@@ -1,24 +1,20 @@
 package org.firstinspires.ftc.teamcode;
-
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
-
 @TeleOp
-public class BB2DecodeOpMode extends LinearOpMode {
-
+public class REVStarterBotTeleOpAutoJava extends LinearOpMode {
     private DcMotor flywheel;
     private DcMotor coreHex;
     private DcMotor leftDrive;
     private CRServo servo;
     private DcMotor rightDrive;
-
     private static final int autoDistance = 50;
-    private static final int autoVelocity = 1400;
-    private static final int bankVelocity = 1100;
+    private static final int autoVelocity = 1150;
+    private static final int bankVelocity = 1200;
     private static final int farVelocity = 2000;
     private static final int maxVelocity = 2200;
     private static final String TELEOP = "TELEOP";
@@ -161,7 +157,7 @@ public class BB2DecodeOpMode extends LinearOpMode {
         } else if (gamepad1.circle) {
             ((DcMotorEx) flywheel).setVelocity(bankVelocity);
         } else if (gamepad1.square) {
-            ((DcMotorEx) flywheel).setVelocity(maxVelocity);
+            SHOT_AUTO();
         } else {
             ((DcMotorEx) flywheel).setVelocity(0);
             coreHex.setPower(0);
@@ -182,8 +178,9 @@ public class BB2DecodeOpMode extends LinearOpMode {
     private void BANK_SHOT_AUTO() {
         ((DcMotorEx) flywheel).setVelocity(bankVelocity);
         servo.setPower(-1);
-        if ((((DcMotorEx) flywheel).getVelocity() >= bankVelocity - 100) &&
-                (((DcMotorEx) flywheel).getVelocity() < bankVelocity + 100)) {
+        if ((((DcMotorEx) flywheel).getVelocity() >= bankVelocity - 100) /*&&
+        (((DcMotorEx) flywheel).getVelocity() < bankVelocity + 100)*/
+        ) {
             coreHex.setPower(1);
         } else {
             coreHex.setPower(0);
@@ -193,8 +190,8 @@ public class BB2DecodeOpMode extends LinearOpMode {
     private void SHOT_AUTO() {
         ((DcMotorEx) flywheel).setVelocity(autoVelocity);
         servo.setPower(-1);
-        if ((((DcMotorEx) flywheel).getVelocity() >= autoVelocity - 100) &&
-                (((DcMotorEx) flywheel).getVelocity() < autoVelocity + 100)) {
+        if ((((DcMotorEx) flywheel).getVelocity() >= autoVelocity - 100) /*&&
+        (((DcMotorEx) flywheel).getVelocity() < autoVelocity + 100)*/ ) {
             coreHex.setPower(1);
         } else {
             coreHex.setPower(0);
@@ -241,6 +238,10 @@ public class BB2DecodeOpMode extends LinearOpMode {
         rightDrive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
 
+    private void turn(int turnDegrees) {
+
+    }
+
     /**
      * Blue Alliance Autonomous
      * The robot will fire the pre-loaded balls until the 30 second timer ends.
@@ -263,7 +264,7 @@ public class BB2DecodeOpMode extends LinearOpMode {
             // Back Up
             autoDrive(1, -autoDistance, -autoDistance, 5000);
             // Turn
-            autoDrive(1, 8, -8, 5000);
+            autoDrive(1, -8, 8, 5000);
             // Drive off Line
             autoDrive(1, -45, -45, 5000);
             // //sleep
@@ -315,7 +316,7 @@ public class BB2DecodeOpMode extends LinearOpMode {
             // Back Up
             autoDrive(1, -autoDistance, -autoDistance, 5000);
             // Turn
-            autoDrive(1, -8, 8, 5000);
+            autoDrive(1, 8, -8, 5000);
             // Drive off Line
             autoDrive(1, -45, -45, 5000);
             // //sleep
@@ -345,47 +346,49 @@ public class BB2DecodeOpMode extends LinearOpMode {
         }
     }
     private void doAutoBlueWall() {
-        autoDrive(1, 88, 88, 5000);
-        autoDrive(1, 8, -8, 5000);
-        autoDrive(1, 36, 36, 5000);
-        if (opModeIsActive()) {
-            telemetry.addData("RUNNING OPMODE", operationSelected);
-            telemetry.update();
-            // Fire balls
-            autoLaunchTimer.reset();
-            while (opModeIsActive() && autoLaunchTimer.milliseconds() < 15000) {
-                SHOT_AUTO();
-                telemetry.addData("Launcher Countdown", autoLaunchTimer.seconds());
-                telemetry.update();
-            }
-            // Back Up
-            autoDrive(1, -autoDistance, -autoDistance, 5000);
-            // Turn
-            autoDrive(1, -8, 8, 5000);
-            // Drive off Line
-            autoDrive(1, -50, -50, 5000);
-        }
+        autoDrive(1, 10, 10, 5000);
+        //   autoDrive(1, 8, -8, 5000);
+        //   autoDrive(1, 36, 36, 5000);
+        //   if (opModeIsActive()) {
+        //     telemetry.addData("RUNNING OPMODE", operationSelected);
+        //     telemetry.update();
+        //     // Fire balls
+        //     autoLaunchTimer.reset();
+        //     while (opModeIsActive() && autoLaunchTimer.milliseconds() < 15000) {
+        //       SHOT_AUTO();
+        //       telemetry.addData("Launcher Countdown", autoLaunchTimer.seconds());
+        //       telemetry.update();
+        //     }
+        //   // Back Up
+        //     autoDrive(1, -autoDistance, -autoDistance, 5000);
+        //     // Turn
+        //     autoDrive(1, -8, 8, 5000);
+        //     // Drive off Line
+        //     autoDrive(1, -50, -50, 5000);
+        // }
     }
     private void doAutoRedWall() {
-        autoDrive(1, 88, 88, 5000);
-        autoDrive(1, -8, 8, 5000);
-        autoDrive(1, 36, 36, 5000);
-        if (opModeIsActive()) {
-            telemetry.addData("RUNNING OPMODE", operationSelected);
-            telemetry.update();
-            // Fire balls
-            autoLaunchTimer.reset();
-            while (opModeIsActive() && autoLaunchTimer.milliseconds() < 15000) {
-                SHOT_AUTO();
-                telemetry.addData("Launcher Countdown", autoLaunchTimer.seconds());
-                telemetry.update();
-            }
-            // Back Up
-            autoDrive(1, -autoDistance, -autoDistance, 5000);
-            // Turn
-            autoDrive(1, -8, 8, 5000);
-            // Drive off Line
-            autoDrive(1, -50, -50, 5000);
-        }
+        autoDrive(1, 10, 10, 5000);
+        //   autoDrive(1, -8, 8, 5000);
+        //   autoDrive(1, 36, 36, 5000);
+        //   if (opModeIsActive()) {
+        //     telemetry.addData("RUNNING OPMODE", operationSelected);
+        //     telemetry.update();
+        //     // Fire balls
+        //     autoLaunchTimer.reset();
+        //     while (opModeIsActive() && autoLaunchTimer.milliseconds() < 15000) {
+        //       SHOT_AUTO();
+        //       telemetry.addData("Launcher Countdown", autoLaunchTimer.seconds());
+        //       telemetry.update();
+        //     }
+        // // Back Up
+        //   autoDrive(1, -autoDistance, -autoDistance, 5000);
+        //   // Turn
+        //   autoDrive(1, -8, 8, 5000);
+        //   // Drive off Line
+        //   autoDrive(1, -50, -50, 5000);
     }
 }
+
+
+
