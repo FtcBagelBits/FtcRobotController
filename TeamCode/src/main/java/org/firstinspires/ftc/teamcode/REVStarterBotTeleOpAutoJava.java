@@ -6,13 +6,14 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
 @TeleOp
-public class REVStarterBotTeleOpAutoJava extends LinearOpMode {
+public class NoServo extends LinearOpMode {
     private DcMotor flywheel;
     private DcMotor coreHex;
     private DcMotor leftDrive;
     private CRServo servo;
     private DcMotor rightDrive;
-    private static final int autoDistance = 50;
+    private static final int slowSpeed = 0.5;
+    private static final int autoDistance = 25;
     private static final int autoVelocity = 1150;
     private static final int bankVelocity = 1200;
     private static final int farVelocity = 2000;
@@ -32,7 +33,7 @@ public class REVStarterBotTeleOpAutoJava extends LinearOpMode {
         flywheel = hardwareMap.get(DcMotor.class, "flywheel");
         coreHex = hardwareMap.get(DcMotor.class, "coreHex");
         leftDrive = hardwareMap.get(DcMotor.class, "leftDrive");
-        servo = hardwareMap.get(CRServo.class, "servo");
+        //servo = hardwareMap.get(CRServo.class, "servo");
         rightDrive = hardwareMap.get(DcMotor.class, "rightDrive");
 
         // Establishing the direction and mode for the motors
@@ -41,7 +42,7 @@ public class REVStarterBotTeleOpAutoJava extends LinearOpMode {
         coreHex.setDirection(DcMotor.Direction.REVERSE);
         leftDrive.setDirection(DcMotor.Direction.REVERSE);
         //Ensures the servo is active and ready
-        servo.setPower(0);
+        //servo.setPower(0);
 
         //On initilization the Driver Station will prompt for which OpMode should be run - Auto Blue, Auto Red, or TeleOp
         while (opModeInInit()) {
@@ -136,9 +137,9 @@ public class REVStarterBotTeleOpAutoJava extends LinearOpMode {
         }
         // Manual control for the hopper's servo
         if (gamepad1.dpad_left) {
-            servo.setPower(1);
+            //servo.setPower(1);
         } else if (gamepad1.dpad_right) {
-            servo.setPower(-1);
+            //servo.setPower(-1);
         }
     }
 
@@ -158,12 +159,14 @@ public class REVStarterBotTeleOpAutoJava extends LinearOpMode {
             ((DcMotorEx) flywheel).setVelocity(bankVelocity);
         } else if (gamepad1.square) {
             SHOT_AUTO();
+        } else if (gamepad1.left_trigger) {
+            slow();
         } else {
             ((DcMotorEx) flywheel).setVelocity(0);
             coreHex.setPower(0);
             // The check below is in place to prevent stuttering with the servo. It checks if the servo is under manual control!
             if (!gamepad1.dpad_right && !gamepad1.dpad_left) {
-                servo.setPower(0);
+                //servo.setPower(0);
             }
         }
     }
@@ -177,7 +180,7 @@ public class REVStarterBotTeleOpAutoJava extends LinearOpMode {
      */
     private void BANK_SHOT_AUTO() {
         ((DcMotorEx) flywheel).setVelocity(bankVelocity);
-        servo.setPower(-1);
+        //servo.setPower(-1);
         if ((((DcMotorEx) flywheel).getVelocity() >= bankVelocity - 100) /*&&
         (((DcMotorEx) flywheel).getVelocity() < bankVelocity + 100)*/
         ) {
@@ -189,13 +192,23 @@ public class REVStarterBotTeleOpAutoJava extends LinearOpMode {
 
     private void SHOT_AUTO() {
         ((DcMotorEx) flywheel).setVelocity(autoVelocity);
-        servo.setPower(-1);
+        // servo.setPower(-1);
         if ((((DcMotorEx) flywheel).getVelocity() >= autoVelocity - 100) /*&&
         (((DcMotorEx) flywheel).getVelocity() < autoVelocity + 100)*/ ) {
             coreHex.setPower(1);
         } else {
             coreHex.setPower(0);
         }
+    }
+
+    private void slow() {
+        float X;
+        float Y;
+
+        X = gamepad1.right_stick_x;
+        Y = -gamepad1.left_stick_y;
+        leftDrive.setPower((Y - X) * slowSpeed);
+        rightDrive.setPower((Y + X) * slowSpeed);
     }
 
     /**
@@ -205,7 +218,7 @@ public class REVStarterBotTeleOpAutoJava extends LinearOpMode {
      */
     private void FAR_POWER_AUTO() {
         ((DcMotorEx) flywheel).setVelocity(farVelocity);
-        servo.setPower(-1);
+        //servo.setPower(-1);
         if (((DcMotorEx) flywheel).getVelocity() >= farVelocity - 100) {
             coreHex.setPower(1);
         } else {
@@ -260,11 +273,11 @@ public class REVStarterBotTeleOpAutoJava extends LinearOpMode {
             }
             ((DcMotorEx) flywheel).setVelocity(0);
             coreHex.setPower(0);
-            servo.setPower(0);
+            //servo.setPower(0);
             // Back Up
             autoDrive(1, -autoDistance, -autoDistance, 5000);
             // Turn
-            autoDrive(1, -8, 8, 5000);
+            autoDrive(1, -10, 10, 5000);
             // Drive off Line
             autoDrive(1, -45, -45, 5000);
             // //sleep
@@ -312,11 +325,11 @@ public class REVStarterBotTeleOpAutoJava extends LinearOpMode {
             }
             ((DcMotorEx) flywheel).setVelocity(0);
             coreHex.setPower(0);
-            servo.setPower(0);
+            //servo.setPower(0);
             // Back Up
             autoDrive(1, -autoDistance, -autoDistance, 5000);
             // Turn
-            autoDrive(1, 8, -8, 5000);
+            autoDrive(1, 10, -10, 5000);
             // Drive off Line
             autoDrive(1, -45, -45, 5000);
             // //sleep
@@ -346,7 +359,7 @@ public class REVStarterBotTeleOpAutoJava extends LinearOpMode {
         }
     }
     private void doAutoBlueWall() {
-        autoDrive(1, 10, 10, 5000);
+        autoDrive(1, 15, 15, 5000);
         //   autoDrive(1, 8, -8, 5000);
         //   autoDrive(1, 36, 36, 5000);
         //   if (opModeIsActive()) {
@@ -368,7 +381,7 @@ public class REVStarterBotTeleOpAutoJava extends LinearOpMode {
         // }
     }
     private void doAutoRedWall() {
-        autoDrive(1, 10, 10, 5000);
+        autoDrive(1, 15, 15, 5000);
         //   autoDrive(1, -8, 8, 5000);
         //   autoDrive(1, 36, 36, 5000);
         //   if (opModeIsActive()) {
@@ -389,6 +402,5 @@ public class REVStarterBotTeleOpAutoJava extends LinearOpMode {
         //   autoDrive(1, -50, -50, 5000);
     }
 }
-
 
 
