@@ -1,11 +1,9 @@
 package org.firstinspires.ftc.teamcode;
 
-import android.os.Environment;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -32,8 +30,8 @@ public class BB2DecodeOpMode extends LinearOpMode {
     private static final String AUTO_RED_GOAL = " AUTO RED GOAL";
     private static final String AUTO_BLUE_WALL = "AUTO BLUE WALL";
     private static final String AUTO_RED_WALL = "AUTO RED WALL";
-    private static double F = 14.098; // Feedforward gain to counteract constant forces like friction.
-    private static double P = 265;    // Proportional gain to correct error based on how far off the velocity is.
+    private static final double F = 14.098; // Feedforward gain to counteract constant forces like friction.
+    private static final double P = 265;    // Proportional gain to correct error based on how far off the velocity is.
 
     private String operationSelected = TELEOP;
     private double WHEELS_INCHES_TO_TICKS = (28 * 5 * 3) / (3 * Math.PI);
@@ -116,7 +114,7 @@ public class BB2DecodeOpMode extends LinearOpMode {
                 splitStickArcadeDrive();
                 setFlywheelVelocity();
                 manualCoreHexAndServoControl();
-                telemetry.addData("Flywheel Velocity", ((DcMotorEx) flywheel).getVelocity());
+                telemetry.addData("Flywheel Velocity", flywheel.getVelocity());
                 telemetry.addData("Flywheel Power", flywheel.getPower());
                 telemetry.update();
             }
@@ -152,12 +150,6 @@ public class BB2DecodeOpMode extends LinearOpMode {
         } else if (gamepad1.triangle) {
             coreHex.setPower(-0.5);
         }
-        // Manual control for the hopper's servo
-        if (gamepad1.dpad_left) {
-            //   servo.setPosition(1);
-        } else if (gamepad1.dpad_right) {
-            //servo.setPosition(-1);
-        }
     }
 
     /**
@@ -175,12 +167,8 @@ public class BB2DecodeOpMode extends LinearOpMode {
         } else if (gamepad1.square) {
             SHOT_AUTO();
         } else {
-            ((DcMotorEx) flywheel).setVelocity(0);
+            flywheel.setVelocity(0);
             coreHex.setPower(0);
-            // The check below is in place to prevent stuttering with the servo. It checks if the servo is under manual control!
-            if (!gamepad1.dpad_right && !gamepad1.dpad_left) {
-                // servo.setPosition(0);
-            }
         }
     }
 
@@ -195,9 +183,9 @@ public class BB2DecodeOpMode extends LinearOpMode {
         PIDFCoefficients pidfCoefficients = new PIDFCoefficients(P, 0, 0, F);
         flywheel.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
 
-        ((DcMotorEx) flywheel).setVelocity(bankVelocity);
+        flywheel.setVelocity(bankVelocity);
         servo.setPosition(midAngle);
-        if (((DcMotorEx) flywheel).getVelocity() >= bankVelocity - 100) {
+        if (flywheel.getVelocity() >= bankVelocity - 100) {
             coreHex.setPower(1);
         } else {
             coreHex.setPower(0);
@@ -208,9 +196,9 @@ public class BB2DecodeOpMode extends LinearOpMode {
         PIDFCoefficients pidfCoefficients = new PIDFCoefficients(P, 0, 0, F);
         flywheel.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
 
-        ((DcMotorEx)flywheel).setVelocity(autoVelocity);
+        flywheel.setVelocity(autoVelocity);
         servo.setPosition(nearAngle);
-        if ((((DcMotorEx)flywheel).getVelocity() >= autoVelocity) ) {
+        if ((flywheel.getVelocity() >= autoVelocity) ) {
             coreHex.setPower(1);
         } else {
             coreHex.setPower(0);
@@ -226,9 +214,9 @@ public class BB2DecodeOpMode extends LinearOpMode {
         PIDFCoefficients pidfCoefficients = new PIDFCoefficients(P, 0, 0, F);
         flywheel.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
 
-        ((DcMotorEx) flywheel).setVelocity(farVelocity);
+        flywheel.setVelocity(farVelocity);
         servo.setPosition(farAngle);
-        if (((DcMotorEx) flywheel).getVelocity() >= farVelocity - 100) {
+        if (flywheel.getVelocity() >= farVelocity - 100) {
             coreHex.setPower(1);
         } else {
             coreHex.setPower(0);
@@ -276,7 +264,7 @@ public class BB2DecodeOpMode extends LinearOpMode {
                 telemetry.addData("Launcher Countdown", autoLaunchTimer.seconds());
                 telemetry.update();
             }
-            ((DcMotorEx) flywheel).setVelocity(0);
+            flywheel.setVelocity(0);
             coreHex.setPower(0);
             // servo.setPosition(0);
             // Back Up
@@ -304,7 +292,7 @@ public class BB2DecodeOpMode extends LinearOpMode {
                 telemetry.addData("Launcher Countdown", autoLaunchTimer.seconds());
                 telemetry.update();
             }
-            ((DcMotorEx) flywheel).setVelocity(0);
+            flywheel.setVelocity(0);
             coreHex.setPower(0);
             // servo.setPosition(0);
             // Back Up
