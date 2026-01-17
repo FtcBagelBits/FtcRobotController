@@ -11,6 +11,7 @@ public class AkiMecanumTeleOp extends OpMode {
     private DcMotor backRight;
     private DcMotor frontRight;
     private final float slowScaleFactor = 0.3F;
+    private final boolean enableSlowMode = true;
 
     @Override
     public void init() {
@@ -50,7 +51,7 @@ public class AkiMecanumTeleOp extends OpMode {
         leftBackPower = (forwardBack - strafe) + turn;
         rightBackPower = (forwardBack + strafe) - turn;
 
-        if (gamepad1.left_trigger > 0.0F) {
+        if (gamepad1.left_trigger > 0.0F || enableSlowMode) {
             leftFrontPower *= slowScaleFactor;
             rightFrontPower *= slowScaleFactor;
             leftBackPower *= slowScaleFactor;
