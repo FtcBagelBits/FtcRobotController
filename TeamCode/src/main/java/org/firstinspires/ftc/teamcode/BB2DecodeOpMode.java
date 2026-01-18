@@ -18,10 +18,9 @@ public class BB2DecodeOpMode extends LinearOpMode {
     private DcMotor rightDrive;
     private static final float slowSpeed = 0.3F;
     private static final int autoDistance = 25;
-    private static final int autoVelocity = 1300;
-    private static final int bankVelocity = 1650;
+    private static final int nearVelocity = 1300;
+    private static final int midVelocity = 1650;
     private static final int farVelocity = 1900;
-    private static final int maxVelocity = 0;
     private static final double nearAngle = 0.0;
     private static final double midAngle = 0.60;
     private static final double farAngle = 0.63;
@@ -30,11 +29,11 @@ public class BB2DecodeOpMode extends LinearOpMode {
     private static final String AUTO_RED_GOAL = " AUTO RED GOAL";
     private static final String AUTO_BLUE_WALL = "AUTO BLUE WALL";
     private static final String AUTO_RED_WALL = "AUTO RED WALL";
+    private static final double WHEELS_INCHES_TO_TICKS = (28 * 5 * 3) / (3 * Math.PI);
     private static final double F = 14.098; // Feedforward gain to counteract constant forces like friction.
     private static final double P = 265;    // Proportional gain to correct error based on how far off the velocity is.
 
     private String operationSelected = TELEOP;
-    private double WHEELS_INCHES_TO_TICKS = (28 * 5 * 3) / (3 * Math.PI);
     private ElapsedTime autoLaunchTimer = new ElapsedTime();
     private ElapsedTime autoDriveTimer = new ElapsedTime();
 
@@ -51,16 +50,18 @@ public class BB2DecodeOpMode extends LinearOpMode {
         flywheel.setDirection(DcMotor.Direction.REVERSE);
         coreHex.setDirection(DcMotor.Direction.REVERSE);
         leftDrive.setDirection(DcMotor.Direction.REVERSE);
-        //Ensures the servo is active and ready
+
+        // Ensures the servo is active and ready
         servo.setPosition(0);
 
-        //On initilization the Driver Station will prompt for which OpMode should be run - Auto Blue, Auto Red, or TeleOp
+        // On initilization the Driver Station will prompt for which OpMode should be run - Auto Blue, Auto Red, or TeleOp
         while (opModeInInit()) {
             operationSelected = selectOperation(operationSelected, gamepad1.psWasPressed());
-            //locationSelected = selectLocation(locationSelected, gamepad1.shareWasPressed());
             telemetry.update();
         }
+
         waitForStart();
+
         if (operationSelected.equals(AUTO_BLUE_GOAL)) {
             doAutoBlueGoal();
         } else if (operationSelected.equals(AUTO_RED_GOAL)) {
@@ -73,6 +74,7 @@ public class BB2DecodeOpMode extends LinearOpMode {
             doTeleOp();
         }
     }
+
     /**
      * If the PS/Home button is pressed, the robot will cycle through the OpMode options following the if/else statement here.
      * The telemetry readout to the Driver Station App will update to reflect which is currently selected for when "play" is pressed.
@@ -102,8 +104,6 @@ public class BB2DecodeOpMode extends LinearOpMode {
         return state;
     }
 
-    //TeleOp Code
-
     /**
      * If TeleOp was selected or defaulted to, the following will be active upon pressing "play".
      */
@@ -113,7 +113,7 @@ public class BB2DecodeOpMode extends LinearOpMode {
                 // Calling our methods while the OpMode is running
                 splitStickArcadeDrive();
                 setFlywheelVelocity();
-                manualCoreHexAndServoControl();
+                manualFeederControl();
                 telemetry.addData("Flywheel Velocity", flywheel.getVelocity());
                 telemetry.addData("Flywheel Power", flywheel.getPower());
                 telemetry.update();
@@ -143,7 +143,7 @@ public class BB2DecodeOpMode extends LinearOpMode {
     /**
      * Manual control for the Core Hex powered feeder and the agitator servo in the hopper
      */
-    private void manualCoreHexAndServoControl() {
+    private void manualFeederControl() {
         // Manual control for the Core Hex intake
         if (gamepad1.cross) {
             coreHex.setPower(0.5);
@@ -158,14 +158,12 @@ public class BB2DecodeOpMode extends LinearOpMode {
      * The bumpers will activate the flywheel, Core Hex feeder, and servo to cycle a series of balls.
      */
     private void setFlywheelVelocity() {
-        if (gamepad1.options) {
-            flywheel.setPower(-0.5);
-        } else if (gamepad1.left_bumper) {
-            FAR_POWER_AUTO();
+        if (gamepad1.left_bumper) {
+            farShot();
         } else if (gamepad1.right_bumper) {
-            BANK_SHOT_AUTO();
+            midShot();
         } else if (gamepad1.square) {
-            SHOT_AUTO();
+            nearShot();
         } else {
             flywheel.setVelocity(0);
             coreHex.setPower(0);
@@ -179,26 +177,26 @@ public class BB2DecodeOpMode extends LinearOpMode {
      * When running this function, the flywheel will spin up and the Core Hex will wait before balls can be fed.
      * The servo will spin until the bumper is released.
      */
-    private void BANK_SHOT_AUTO() {
+    private void midShot() {
         PIDFCoefficients pidfCoefficients = new PIDFCoefficients(P, 0, 0, F);
         flywheel.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
 
-        flywheel.setVelocity(bankVelocity);
+        flywheel.setVelocity(midVelocity);
         servo.setPosition(midAngle);
-        if (flywheel.getVelocity() >= bankVelocity - 100) {
+        if (flywheel.getVelocity() >= midVelocity - 100) {
             coreHex.setPower(1);
         } else {
             coreHex.setPower(0);
         }
     }
 
-    private void SHOT_AUTO() {
+    private void nearShot() {
         PIDFCoefficients pidfCoefficients = new PIDFCoefficients(P, 0, 0, F);
         flywheel.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
 
-        flywheel.setVelocity(autoVelocity);
+        flywheel.setVelocity(nearVelocity);
         servo.setPosition(nearAngle);
-        if ((flywheel.getVelocity() >= autoVelocity) ) {
+        if ((flywheel.getVelocity() >= nearVelocity) ) {
             coreHex.setPower(1);
         } else {
             coreHex.setPower(0);
@@ -210,7 +208,7 @@ public class BB2DecodeOpMode extends LinearOpMode {
      * When running this function, the flywheel will spin up and the Core Hex will wait before balls can be fed.
      * The servo will spin until the bumper is released.
      */
-    private void FAR_POWER_AUTO() {
+    private void farShot() {
         PIDFCoefficients pidfCoefficients = new PIDFCoefficients(P, 0, 0, F);
         flywheel.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
 
@@ -260,17 +258,19 @@ public class BB2DecodeOpMode extends LinearOpMode {
             // Fire artifacts
             autoLaunchTimer.reset();
             while (opModeIsActive() && autoLaunchTimer.milliseconds() < 10000) {
-                SHOT_AUTO();
+                nearShot();
                 telemetry.addData("Launcher Countdown", autoLaunchTimer.seconds());
                 telemetry.update();
             }
             flywheel.setVelocity(0);
             coreHex.setPower(0);
-            // servo.setPosition(0);
+
             // Back Up
             autoDrive(1, -autoDistance, -autoDistance, 5000);
+
             // Turn
             autoDrive(1, -10, 10, 5000);
+
             // Drive off Line
             autoDrive(1, -45, -45, 5000);
         }
@@ -288,17 +288,19 @@ public class BB2DecodeOpMode extends LinearOpMode {
             // Fire artifacts
             autoLaunchTimer.reset();
             while (opModeIsActive() && autoLaunchTimer.milliseconds() < 13000) {
-                SHOT_AUTO();
+                nearShot();
                 telemetry.addData("Launcher Countdown", autoLaunchTimer.seconds());
                 telemetry.update();
             }
             flywheel.setVelocity(0);
             coreHex.setPower(0);
-            // servo.setPosition(0);
+
             // Back Up
             autoDrive(1, -autoDistance, -autoDistance, 5000);
+
             // Turn
             autoDrive(1, 10, -10, 5000);
+
             // Drive off Line
             autoDrive(1, -45, -45, 5000);
         }
