@@ -5,9 +5,9 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 @TeleOp
 public class MecanumOpMode extends OpMode {
-    private Launcher launcher = new Launcher();
-    private MecanumDriveTrain driveTrain = new MecanumDriveTrain();
-    private Auto auto = new Auto();
+    private final Launcher launcher = new Launcher();
+    private final MecanumDriveTrain driveTrain = new MecanumDriveTrain();
+    private final Auto auto = new Auto(driveTrain);
     private static final String TELEOP = "TELEOP";
     private static final String AUTO_BLUE_GOAL = "AUTO BLUE GOAL";
     private static final String AUTO_RED_GOAL = " AUTO RED GOAL";
@@ -65,21 +65,4 @@ public class MecanumOpMode extends OpMode {
         launcher.shotButtons();
         launcher.manualFeederControl();
     }
-
-    private void doAutoBlueGoal() {
-
-    }
-
-    private void doAutoRedGoal() {
-
-    }
-
-    private void doAutoBlueWall() {
-
-    }
-
-    private void doAutoRedWall() {
-
-    }
-
 }
