@@ -7,7 +7,6 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
-
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 
@@ -27,14 +26,27 @@ public class Launcher {
     private DcMotorEx flywheel;
     private Servo servo;
     private DcMotor coreHex;
+    private static final double F = 14.098; // Feedforward gain to counteract constant forces like friction.
+    private static final double P = 265;    // Proportional gain to correct error based on how far off the velocity is.
+
 
     public void init(Gamepad gamepad1, Telemetry telemetry) {
-        self.gamepad1 = gamepad1;
-        self.telemetry = telemetry;
+        this.gamepad1 = gamepad1;
+        this.telemetry = telemetry;
         flywheel = hardwareMap.get(DcMotorEx.class, "flywheel");
         servo = hardwareMap.get(Servo.class, "servo");
         coreHex = hardwareMap.get(DcMotor.class, "coreHex");
     }
+
+    public void manualFeederControl() {
+        // Manual control for the Core Hex intake
+        if (gamepad1.cross) {
+            coreHex.setPower(1);
+        } else if (gamepad1.triangle) {
+            coreHex.setPower(-1);
+        }
+    }
+
     public void shotButtons() {
         if (gamepad1.left_bumper) {
             farShot();
