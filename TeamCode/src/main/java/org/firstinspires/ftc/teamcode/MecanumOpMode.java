@@ -18,7 +18,8 @@ public class MecanumOpMode extends OpMode {
     @Override
     public void init() {
         driveTrain.init(hardwareMap);
-        launcher.init(gamepad1, telemetry);
+        launcher.init(hardwareMap, gamepad1, telemetry);
+
     }
 
     @Override

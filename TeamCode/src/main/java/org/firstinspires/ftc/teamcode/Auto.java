@@ -13,13 +13,15 @@ public class Auto {
     public void doAutoBlueGoal() {
 
     }
+//Positive Strafe makes the robot go to the Right.
+    //Positive Forward makes the robot go Backwards
+    //Positive Turn makes the robot turn to the Right
 
-    public void doAutoRedGoal() {
-        drive(1, 1,0, 0.3, 500);
+    public void doAutoRedGoal() { drive(0, 0,1, 0.3, 1000);
     }
 
     public void doAutoBlueWall() {
-        drive(-1, 0, 0, 0.3, 500);
+        drive(1, 0, 0, 0.3, 500);
     }
 
     public void doAutoRedWall() {

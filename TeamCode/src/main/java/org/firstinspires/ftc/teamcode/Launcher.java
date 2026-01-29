@@ -2,6 +2,9 @@ package org.firstinspires.ftc.teamcode;
 
 import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.hardwareMap;
 
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Gamepad;
@@ -18,7 +21,7 @@ public class Launcher {
     private static final int farVelocity = 1900;
     private static final double nearAngle = 0.0;
     private static final double midAngle = 0.60;
-    private static final double farAngle = 0.63;
+    private static final double farAngle = 0.62;
     private static final double nearDistance = 0.0;
     private static final double midDistance = 70.0;
     private Gamepad gamepad1;
@@ -26,16 +29,19 @@ public class Launcher {
     private DcMotorEx flywheel;
     private Servo servo;
     private DcMotor coreHex;
+    private CRServo intake;
     private static final double F = 14.098; // Feedforward gain to counteract constant forces like friction.
     private static final double P = 265;    // Proportional gain to correct error based on how far off the velocity is.
 
 
-    public void init(Gamepad gamepad1, Telemetry telemetry) {
+    public void init(HardwareMap hardwareMap, Gamepad gamepad1, Telemetry telemetry) {
         this.gamepad1 = gamepad1;
         this.telemetry = telemetry;
         flywheel = hardwareMap.get(DcMotorEx.class, "flywheel");
         servo = hardwareMap.get(Servo.class, "servo");
         coreHex = hardwareMap.get(DcMotor.class, "coreHex");
+        flywheel.setDirection(DcMotor.Direction.REVERSE);
+       // intake =hardwareMap.get(CRServo.class, "intake" );
     }
 
     public void manualFeederControl() {
@@ -54,6 +60,8 @@ public class Launcher {
             midShot();
         } else if (gamepad1.square) {
             nearShot();
+        } else if (gamepad1.right_trigger>0) {
+           // intake.setPower(10);
    //     } else if (gamepad1.circle) {
    //         autoShot();
         } else {
@@ -72,7 +80,7 @@ public class Launcher {
         flywheel.setVelocity(midVelocity);
         servo.setPosition(midAngle);
         if (flywheel.getVelocity() >= midVelocity - 100) {
-            coreHex.setPower(1);
+            coreHex.setPower(-1);
         } else {
             coreHex.setPower(0);
         }
@@ -85,7 +93,7 @@ public class Launcher {
         flywheel.setVelocity(nearVelocity);
         servo.setPosition(nearAngle);
         if ((flywheel.getVelocity() >= nearVelocity) ) {
-            coreHex.setPower(1);
+            coreHex.setPower(-1);
         } else {
             coreHex.setPower(0);
         }
@@ -103,7 +111,7 @@ public class Launcher {
         flywheel.setVelocity(farVelocity);
         servo.setPosition(farAngle);
         if (flywheel.getVelocity() >= farVelocity - 100) {
-            coreHex.setPower(1);
+            coreHex.setPower(-1);
         } else {
             coreHex.setPower(0);
         }

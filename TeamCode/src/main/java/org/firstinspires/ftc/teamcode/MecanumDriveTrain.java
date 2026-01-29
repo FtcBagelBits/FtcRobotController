@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -20,18 +21,18 @@ public class MecanumDriveTrain {
         backLeft = hardwareMap.get(DcMotor.class, "backLeft");
         backRight = hardwareMap.get(DcMotor.class, "backRight");
 
-        frontLeft.setDirection(DcMotor.Direction.REVERSE);
-        frontRight.setDirection(DcMotor.Direction.REVERSE);
-        backLeft.setDirection(DcMotor.Direction.FORWARD);
-        backRight.setDirection(DcMotor.Direction.FORWARD);
+        frontLeft.setDirection(DcMotor.Direction.FORWARD);
+        frontRight.setDirection(DcMotor.Direction.FORWARD);
+        backLeft.setDirection(DcMotor.Direction.REVERSE);
+        backRight.setDirection(DcMotor.Direction.REVERSE);
 
         // Correct way if motors are configured correctly
-        if (true) {
-            frontLeft.setDirection(DcMotor.Direction.REVERSE);
-            backLeft.setDirection(DcMotor.Direction.REVERSE);
-            frontRight.setDirection(DcMotor.Direction.FORWARD);
-            backRight.setDirection(DcMotor.Direction.FORWARD);
-        }
+//        if (true) {
+//            frontLeft.setDirection(DcMotor.Direction.REVERSE);
+//            backLeft.setDirection(DcMotor.Direction.REVERSE);
+//            frontRight.setDirection(DcMotor.Direction.FORWARD);
+//            backRight.setDirection(DcMotor.Direction.FORWARD);
+//        }
 
         frontLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         frontRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -53,10 +54,10 @@ public class MecanumDriveTrain {
     }
 
     public void drive(double forward, double strafe, double turn, double power) {
-        double leftFrontPower = -forward + strafe + turn;
-        double rightFrontPower = -forward - strafe - turn;
-        double leftBackPower = -forward - strafe + turn;
-        double rightBackPower = -forward + strafe - turn;
+        double leftFrontPower = forward - strafe - turn;
+        double rightFrontPower = forward + strafe + turn;
+        double leftBackPower = forward + strafe - turn;
+        double rightBackPower = forward - strafe + turn;
         // Setting Motor Power
         frontLeft.setPower(leftFrontPower * power);
         frontRight.setPower(rightFrontPower * power);
