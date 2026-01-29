@@ -2,7 +2,7 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-
+//If we lose it's kiyo's fault
 @TeleOp
 public class MecanumOpMode extends OpMode {
     private final Launcher launcher = new Launcher();
