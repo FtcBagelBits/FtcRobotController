@@ -73,7 +73,7 @@ public class Launcher {
         telemetry.addData("Flywheel Power", flywheel.getPower());
     }
 
-    private void midShot() {
+    public void midShot() {
         PIDFCoefficients pidfCoefficients = new PIDFCoefficients(P, 0, 0, F);
         flywheel.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
 
@@ -86,7 +86,7 @@ public class Launcher {
         }
     }
 
-    private void nearShot() {
+    public void nearShot() {
         PIDFCoefficients pidfCoefficients = new PIDFCoefficients(P, 0, 0, F);
         flywheel.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
 
@@ -104,7 +104,7 @@ public class Launcher {
      * When running this function, the flywheel will spin up and the Core Hex will wait before balls can be fed.
      * The servo will spin until the bumper is released.
      */
-    private void farShot() {
+    public void farShot() {
         PIDFCoefficients pidfCoefficients = new PIDFCoefficients(P, 0, 0, F);
         flywheel.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
 

@@ -7,7 +7,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 public class MecanumOpMode extends OpMode {
     private final Launcher launcher = new Launcher();
     private final MecanumDriveTrain driveTrain = new MecanumDriveTrain();
-    private final Auto auto = new Auto(driveTrain);
+    private final Auto auto = new Auto(driveTrain, launcher);
     private static final String TELEOP = "TELEOP";
     private static final String AUTO_BLUE_GOAL = "AUTO BLUE GOAL";
     private static final String AUTO_RED_GOAL = " AUTO RED GOAL";
@@ -17,9 +17,14 @@ public class MecanumOpMode extends OpMode {
 
     @Override
     public void init() {
-        driveTrain.init(hardwareMap);
+        driveTrain.init(hardwareMap, telemetry);
         launcher.init(hardwareMap, gamepad1, telemetry);
 
+    }
+    @Override
+    public void init_loop() {
+        operationSelected = selectOperation(operationSelected, gamepad1.psWasPressed());
+        telemetry.update();
     }
 
     @Override
@@ -44,9 +49,9 @@ public class MecanumOpMode extends OpMode {
                 state = AUTO_RED_GOAL;
             } else if (state.equals(AUTO_RED_GOAL)) {
                 state = AUTO_BLUE_WALL;
-            } else if (state.equals (AUTO_BLUE_WALL)) {
+            } else if (state.equals(AUTO_BLUE_WALL)) {
                 state = AUTO_RED_WALL;
-            } else if (state.equals (AUTO_RED_WALL)) {
+            } else if (state.equals(AUTO_RED_WALL)) {
                 state = TELEOP;
             } else {
                 telemetry.addData("WARNING", "Unknown Operation State Reached - Restart Program");
