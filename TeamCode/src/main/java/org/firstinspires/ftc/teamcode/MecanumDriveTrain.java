@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Gamepad;
@@ -9,6 +10,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 public class MecanumDriveTrain {
+    private LinearOpMode linearOpMode;
     private Telemetry telemetry;
     private DcMotor frontLeft;
     private DcMotor frontRight;
@@ -17,6 +19,11 @@ public class MecanumDriveTrain {
     private static final float slowSpeed = 0.3F;
     private final double WHEELS_INCHES_TO_TICKS = (28 * 5 * 3) / (3 * Math.PI);
     private final ElapsedTime autoDriveTimer = new ElapsedTime();
+
+    public MecanumDriveTrain(LinearOpMode linearOpMode) {
+        this.linearOpMode = linearOpMode;
+    }
+
 
     public void init(HardwareMap hardwareMap, Telemetry telemetry) {
         this.telemetry = telemetry;
@@ -61,6 +68,18 @@ public class MecanumDriveTrain {
         }
 
         drive(forwardBack, strafe, turn, power);
+    }
+
+    public void driveWithTime(double forward, double strafe, double turn, double power, int timeout) {
+        drive(forward, strafe, turn, power);
+
+        ElapsedTime driveTimer = new ElapsedTime();
+        while (linearOpMode.opModeIsActive() && driveTimer.milliseconds() < timeout) {
+            linearOpMode.idle();
+        }
+
+        // Stop the power
+        drive(0,0,0,0);
     }
 
     public void drive(double forward, double strafe, double turn, double power) {

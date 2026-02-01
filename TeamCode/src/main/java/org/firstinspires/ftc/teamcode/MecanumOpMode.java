@@ -1,12 +1,12 @@
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 //If we lose it's kiyo's fault
 @TeleOp
-public class MecanumOpMode extends OpMode {
-    private final Launcher launcher = new Launcher();
-    private final MecanumDriveTrain driveTrain = new MecanumDriveTrain();
+public class MecanumOpMode extends LinearOpMode {
+    private final Launcher launcher = new Launcher(this);
+    private final MecanumDriveTrain driveTrain = new MecanumDriveTrain(this);
     private final Auto auto = new Auto(driveTrain, launcher);
     private static final String TELEOP = "TELEOP";
     private static final String AUTO_BLUE_GOAL = "AUTO BLUE GOAL";
@@ -16,19 +16,20 @@ public class MecanumOpMode extends OpMode {
     private String operationSelected = TELEOP;
 
     @Override
-    public void init() {
+    public void runOpMode() {
+
+        // Init
         driveTrain.init(hardwareMap, telemetry);
         launcher.init(hardwareMap, gamepad1, telemetry);
 
-    }
-    @Override
-    public void init_loop() {
-        operationSelected = selectOperation(operationSelected, gamepad1.psWasPressed());
-        telemetry.update();
-    }
+        // On initilization the Driver Station will prompt for which OpMode should be run - Auto Blue, Auto Red, or TeleOp
+        while (opModeInInit()) {
+            operationSelected = selectOperation(operationSelected, gamepad1.psWasPressed());
+            telemetry.update();
+        }
 
-    @Override
-    public void loop() {
+        waitForStart();
+
         if (operationSelected.equals(AUTO_BLUE_GOAL)) {
             auto.doAutoBlueGoal();
         } else if (operationSelected.equals(AUTO_RED_GOAL)) {
@@ -41,6 +42,7 @@ public class MecanumOpMode extends OpMode {
             doTeleOp();
         }
     }
+
     private String selectOperation(String state, boolean cycleNext) {
         if (cycleNext) {
             if (state.equals(TELEOP)) {
@@ -67,8 +69,10 @@ public class MecanumOpMode extends OpMode {
         return state;
     }
     private void doTeleOp() {
-        driveTrain.driveWithGamepad(gamepad1);
-        launcher.shotButtons();
-        launcher.manualFeederControl();
+        while (opModeIsActive()) {
+            driveTrain.driveWithGamepad(gamepad1);
+            launcher.shotButtons();
+            launcher.manualFeederControl();
+        }
     }
 }

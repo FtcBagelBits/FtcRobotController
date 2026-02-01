@@ -16,22 +16,29 @@ public class Auto {
     }
 
     public void doAutoBlueGoal() {
-
+        launcher.shootWithTime(1, 7000);
+        driveTrain.driveWithTime(-1,-1, 0, 1, 1000);
     }
 
 
     public void doAutoRedGoal() {
-
+       launcher.shootWithTime(1, 7000);
+       driveTrain.driveWithTime(-1,1, 0, 1, 1000);
     }
 
     public void doAutoBlueWall() {
-        drive(0,0,-1,0.3,450);
-        farShot(5000);
+        driveTrain.driveWithTime(1,0,0,0.3,200);
+        driveTrain.driveWithTime(0, 0, -1, 0.3, 450);
+        launcher.shootWithTime(3, 7000);
+        driveTrain.driveWithTime(0,0,1,0.3,450);
+        driveTrain.driveWithTime(0, -1, 0, 1, 750);
     }
-
     public void doAutoRedWall() {
-        drive(0,0,1,0.3,450);
-        farShot(5000);
+        driveTrain.driveWithTime(1,0,0,0.3,200);
+        driveTrain.driveWithTime(0,0,1,0.3,450);
+        launcher.shootWithTime(3, 7000);
+        driveTrain.driveWithTime(0, 0, -1, 0.3, 450);
+        driveTrain.driveWithTime(0, 1, 0, 1, 750);
     }
 
     private void farShot(int timeout_ms) {
@@ -42,16 +49,6 @@ public class Auto {
         while (shotTimer.milliseconds() < timeout_ms) {
             launcher.farShot();
         }
-    }
-    private void drive(double forward, double strafe, double turn, double power, int timeout_ms) {
-        if (isAutoStarted == false) {
-            driveTimer.reset();
-            isAutoStarted = true;
-        }
-        while (driveTimer.milliseconds() < timeout_ms) {
-            driveTrain.drive(forward, strafe, turn, power);
-        }
-        driveTrain.drive(0, 0, 0, 0);
     }
 
 }

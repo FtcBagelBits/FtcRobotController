@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode;
 
 import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.hardwareMap;
 
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.CRServo;
@@ -10,12 +11,17 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.ElapsedTime;
+
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 
 import java.util.List;
 
 public class Launcher {
+    private static final int NEAR_SHOT = 1;
+    private static final int MID_SHOT = 2;
+    private static final int FAR_SHOT = 3;
     private static final int nearVelocity = 1300;
     private static final int midVelocity = 1650;
     private static final int farVelocity = 1900;
@@ -24,6 +30,7 @@ public class Launcher {
     private static final double farAngle = 0.62;
     private static final double nearDistance = 0.0;
     private static final double midDistance = 70.0;
+    private LinearOpMode linearOpMode;
     private Gamepad gamepad1;
     private Telemetry telemetry;
     private DcMotorEx flywheel;
@@ -32,6 +39,10 @@ public class Launcher {
     private CRServo intake;
     private static final double F = 14.098; // Feedforward gain to counteract constant forces like friction.
     private static final double P = 265;    // Proportional gain to correct error based on how far off the velocity is.
+
+    public Launcher(LinearOpMode linearOpMode) {
+        this.linearOpMode = linearOpMode;
+    }
 
 
     public void init(HardwareMap hardwareMap, Gamepad gamepad1, Telemetry telemetry) {
@@ -115,6 +126,26 @@ public class Launcher {
         } else {
             coreHex.setPower(0);
         }
+    }
+
+    public void shootWithTime(int shotType, int timeout) {
+
+        ElapsedTime shotTimer = new ElapsedTime();
+        while (linearOpMode.opModeIsActive() && shotTimer.milliseconds() < timeout) {
+            if (shotType == NEAR_SHOT) {
+                nearShot();
+            } else if (shotType == MID_SHOT) {
+                midShot();
+            } else if (shotType == FAR_SHOT) {
+                farShot();
+            } else {
+
+            }
+        }
+
+        //Stop the power
+        flywheel.setPower(0);
+        coreHex.setPower(0);
     }
 
 //    private void autoShot() {
