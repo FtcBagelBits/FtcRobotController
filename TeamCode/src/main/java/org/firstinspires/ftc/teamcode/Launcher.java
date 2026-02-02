@@ -30,7 +30,7 @@ public class Launcher {
     private static final double farAngle = 0.62;
     private static final double nearDistance = 0.0;
     private static final double midDistance = 70.0;
-    private LinearOpMode linearOpMode;
+    private MecanumOpMode lox;
     private Gamepad gamepad1;
     private Telemetry telemetry;
     private DcMotorEx flywheel;
@@ -40,8 +40,8 @@ public class Launcher {
     private static final double F = 14.098; // Feedforward gain to counteract constant forces like friction.
     private static final double P = 265;    // Proportional gain to correct error based on how far off the velocity is.
 
-    public Launcher(LinearOpMode linearOpMode) {
-        this.linearOpMode = linearOpMode;
+    public Launcher(MecanumOpMode lox) {
+        this.lox = lox;
     }
 
 
@@ -52,7 +52,7 @@ public class Launcher {
         servo = hardwareMap.get(Servo.class, "servo");
         coreHex = hardwareMap.get(DcMotor.class, "coreHex");
         flywheel.setDirection(DcMotor.Direction.REVERSE);
-       // intake =hardwareMap.get(CRServo.class, "intake" );
+        // intake =hardwareMap.get(CRServo.class, "intake" );
     }
 
     public void manualFeederControl() {
@@ -71,10 +71,10 @@ public class Launcher {
             midShot();
         } else if (gamepad1.square) {
             nearShot();
-        } else if (gamepad1.right_trigger>0) {
-           // intake.setPower(10);
-   //     } else if (gamepad1.circle) {
-   //         autoShot();
+            //} else if (gamepad1.right_trigger>0) {
+            //    intake.setPower(10);
+        } else if (gamepad1.circle) {
+            autoShot();
         } else {
             flywheel.setVelocity(0);
             coreHex.setPower(0);
@@ -103,7 +103,7 @@ public class Launcher {
 
         flywheel.setVelocity(nearVelocity);
         servo.setPosition(nearAngle);
-        if ((flywheel.getVelocity() >= nearVelocity) ) {
+        if ((flywheel.getVelocity() >= nearVelocity)) {
             coreHex.setPower(-1);
         } else {
             coreHex.setPower(0);
@@ -131,7 +131,7 @@ public class Launcher {
     public void shootWithTime(int shotType, int timeout) {
 
         ElapsedTime shotTimer = new ElapsedTime();
-        while (linearOpMode.opModeIsActive() && shotTimer.milliseconds() < timeout) {
+        while (lox.opModeIsActive() && shotTimer.milliseconds() < timeout) {
             if (shotType == NEAR_SHOT) {
                 nearShot();
             } else if (shotType == MID_SHOT) {
@@ -146,6 +146,11 @@ public class Launcher {
         //Stop the power
         flywheel.setPower(0);
         coreHex.setPower(0);
+    }
+
+    private void autoShot() {
+        //autoshot will adjust what velocity and angle it shoots at depending on how far it is
+        // from the goal and it will get this data from the camera code.
     }
 
 //    private void autoShot() {

@@ -6,11 +6,13 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 
 public class MecanumDriveTrain {
-    private LinearOpMode linearOpMode;
+    private MecanumOpMode lox;
     private Telemetry telemetry;
     private DcMotor frontLeft;
     private DcMotor frontRight;
@@ -20,8 +22,8 @@ public class MecanumDriveTrain {
     private final double WHEELS_INCHES_TO_TICKS = (28 * 5 * 3) / (3 * Math.PI);
     private final ElapsedTime autoDriveTimer = new ElapsedTime();
 
-    public MecanumDriveTrain(LinearOpMode linearOpMode) {
-        this.linearOpMode = linearOpMode;
+    public MecanumDriveTrain(MecanumOpMode linearOpMode) {
+        this.lox = linearOpMode;
     }
 
 
@@ -67,6 +69,16 @@ public class MecanumDriveTrain {
             power = slowSpeed;
         }
 
+        if (gamepad1.right_trigger > 0) {
+            AprilTagDetection detection = lox.camera.findAprilTag(20);
+            if (detection != null) {
+                double bearing = detection.ftcPose.bearing;
+                turn = Range.clip(-bearing * 0.04, -0.5, 0.5);
+                lox.telemetry.addData("Bearing:", bearing);
+                lox.telemetry.update();
+            }
+        }
+
         drive(forwardBack, strafe, turn, power);
     }
 
@@ -74,8 +86,8 @@ public class MecanumDriveTrain {
         drive(forward, strafe, turn, power);
 
         ElapsedTime driveTimer = new ElapsedTime();
-        while (linearOpMode.opModeIsActive() && driveTimer.milliseconds() < timeout) {
-            linearOpMode.idle();
+        while (lox.opModeIsActive() && driveTimer.milliseconds() < timeout) {
+            lox.idle();
         }
 
         // Stop the power

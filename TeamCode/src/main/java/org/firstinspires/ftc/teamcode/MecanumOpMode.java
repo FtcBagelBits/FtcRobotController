@@ -8,6 +8,7 @@ public class MecanumOpMode extends LinearOpMode {
     private final Launcher launcher = new Launcher(this);
     private final MecanumDriveTrain driveTrain = new MecanumDriveTrain(this);
     private final Auto auto = new Auto(driveTrain, launcher);
+    public final Camera camera = new Camera(this);
     private static final String TELEOP = "TELEOP";
     private static final String AUTO_BLUE_GOAL = "AUTO BLUE GOAL";
     private static final String AUTO_RED_GOAL = " AUTO RED GOAL";
@@ -21,6 +22,7 @@ public class MecanumOpMode extends LinearOpMode {
         // Init
         driveTrain.init(hardwareMap, telemetry);
         launcher.init(hardwareMap, gamepad1, telemetry);
+        camera.init();
 
         // On initilization the Driver Station will prompt for which OpMode should be run - Auto Blue, Auto Red, or TeleOp
         while (opModeInInit()) {
