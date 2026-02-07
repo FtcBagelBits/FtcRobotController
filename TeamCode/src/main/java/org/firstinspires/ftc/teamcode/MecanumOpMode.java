@@ -44,12 +44,16 @@ public class MecanumOpMode extends LinearOpMode {
         waitForStart();
 
         if (operationSelected.equals(AUTO_BLUE_GOAL)) {
+            this.goalId = BLUE_GOAL_ID;
             auto.doAutoBlueGoal();
         } else if (operationSelected.equals(AUTO_RED_GOAL)) {
+            this.goalId = RED_GOAL_ID;
             auto.doAutoRedGoal();
         } else if (operationSelected.equals(AUTO_BLUE_WALL)) {
+            this.goalId = BLUE_GOAL_ID;
             auto.doAutoBlueWall();
         } else if (operationSelected.equals(AUTO_RED_WALL)) {
+            this.goalId = RED_GOAL_ID;
             auto.doAutoRedWall();
         } else if (operationSelected.equals(TELEOP_RED_GOAL)) {
             doTeleOp(RED_GOAL_ID);
@@ -82,7 +86,7 @@ public class MecanumOpMode extends LinearOpMode {
         if (state.equals(AUTO_BLUE_GOAL) || state.equals(AUTO_RED_GOAL) || state.equals(AUTO_BLUE_WALL) || state.equals(AUTO_RED_WALL)) {
             telemetry.addLine("Please remember to enable the AUTO timer!");
         }
-        telemetry.addLine("Press START to start your program, also if we lose it is KIYO AND ENZO's fault :)");
+        telemetry.addLine("Press START to start your program, also if we lose its NOBODY's FAULT (yeah everyone lets beat up nobody) :)");
         telemetry.update();
         return state;
     }
