@@ -1,9 +1,5 @@
 package org.firstinspires.ftc.teamcode;
 
-import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.hardwareMap;
-
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -12,11 +8,10 @@ import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
-
-import java.util.List;
 
 public class Launcher {
     private static final int NEAR_SHOT = 1;
@@ -39,6 +34,12 @@ public class Launcher {
     private CRServo intake;
     private static final double F = 14.098; // Feedforward gain to counteract constant forces like friction.
     private static final double P = 265;    // Proportional gain to correct error based on how far off the velocity is.
+
+    private static final int AUTO_STILL = 0;
+
+    private static final int AUTO_TURN = 1;
+    private static final int AUTO_SHOOT = 2;
+    private int autoShotMode = AUTO_STILL;
 
     public Launcher(MecanumOpMode lox) {
         this.lox = lox;
@@ -151,6 +152,27 @@ public class Launcher {
     private void autoShot() {
         //autoshot will adjust what velocity and angle it shoots at depending on how far it is
         // from the goal and it will get this data from the camera code.
+        if (autoShotMode == AUTO_STILL) {
+            autoShotMode = AUTO_TURN;
+        }else if (autoShotMode == AUTO_TURN){
+            AprilTagDetection detection = lox.camera.findAprilTag(lox.goalId);
+            if (detection != null) {
+                double bearing = detection.ftcPose.bearing;
+                if(bearing == 0){
+                    autoShotMode = AUTO_SHOOT;
+                    return;
+                }
+                double turn = Range.clip(-bearing * 0.04, -0.5, 0.5);
+                lox.driveTrain.drive(0,0,turn,1);
+                lox.telemetry.addData("Bearing:", bearing);
+                lox.telemetry.update();
+            }
+
+        }else if (autoShotMode == AUTO_SHOOT){
+            shootWithTime(FAR_SHOT,7000);
+            autoShotMode = AUTO_STILL;
+        }
+
     }
 
 //    private void autoShot() {
