@@ -1,5 +1,8 @@
 package org.firstinspires.ftc.teamcode;
 
+import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.gamepad1;
+import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.telemetry;
+
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -53,6 +56,20 @@ public class MecanumDriveTrain {
         backRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
 
+//    public void turnTowardsGoal(int ID) {
+//            AprilTagDetection detection = lox.camera.findAprilTag(20);
+//            if (detection != null) {
+//                double bearing = detection.ftcPose.bearing;
+//                double turn = Range.clip(-bearing * 0.04, -0.5, 0.5);
+//                drive(0, 0, turn, 1);
+//                lox.telemetry.addData("Bearing:", bearing);
+//                //while (lox.opModeIsActive() && driveTimer.milliseconds() < timeout) {
+//                    lox.idle();
+//                }
+//
+//            }    lox.telemetry.update();
+//    }
+
     public void driveWithGamepad(Gamepad gamepad1) {
         //there is a negative value so that we can fix the fact that when we tilt the joystick
         // forward the telemetry shows a negative value.
@@ -70,7 +87,17 @@ public class MecanumDriveTrain {
         }
 
         if (gamepad1.right_trigger > 0) {
-            AprilTagDetection detection = lox.camera.findAprilTag(20);
+            AprilTagDetection detection = lox.camera.findAprilTag(24);
+            if (detection != null) {
+                double bearing = detection.ftcPose.bearing;
+                turn = Range.clip(-bearing * 0.04, -0.5, 0.5);
+                lox.telemetry.addData("Bearing:", bearing);
+                lox.telemetry.update();
+            }
+        }
+
+        if (gamepad1.right_trigger > 0) {
+            AprilTagDetection detection = lox.camera.findAprilTag(lox.goalId);
             if (detection != null) {
                 double bearing = detection.ftcPose.bearing;
                 turn = Range.clip(-bearing * 0.04, -0.5, 0.5);

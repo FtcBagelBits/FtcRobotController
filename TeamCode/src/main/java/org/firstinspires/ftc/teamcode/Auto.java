@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
+
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 public class Auto {
@@ -16,27 +17,29 @@ public class Auto {
     }
 
     public void doAutoBlueGoal() {
-        launcher.shootWithTime(1, 7000);
-        driveTrain.driveWithTime(-1,-1, 0, 1, 1000);
+        driveTrain.driveWithTime(-1, 0, 0, 1, 600);
+        launcher.autoShotMid(7000);
+        driveTrain.driveWithTime(1, -1, 0, 1, 1000);
     }
 
 
     public void doAutoRedGoal() {
-       launcher.shootWithTime(1, 7000);
-       driveTrain.driveWithTime(-1,1, 0, 1, 1000);
+       driveTrain.driveWithTime(-1,0, 0, 1, 600);
+        launcher.autoShotMid(7000);
+        driveTrain.driveWithTime(1,1, 0, 1, 1000);
     }
 
     public void doAutoBlueWall() {
         driveTrain.driveWithTime(1,0,0,0.3,200);
-        driveTrain.driveWithTime(0, 0, -1, 0.3, 450);
-        launcher.shootWithTime(3, 7000);
+        driveTrain.driveWithTime(0, 0, -1, 0.3, 300);
+        launcher.autoShotFar(7000);
         driveTrain.driveWithTime(0,0,1,0.3,450);
         driveTrain.driveWithTime(0, -1, 0, 1, 750);
     }
     public void doAutoRedWall() {
         driveTrain.driveWithTime(1,0,0,0.3,200);
-        driveTrain.driveWithTime(0,0,1,0.3,450);
-        launcher.shootWithTime(3, 7000);
+        driveTrain.driveWithTime(0,0,1,0.3,300);
+        launcher.autoShotFar(7000);
         driveTrain.driveWithTime(0, 0, -1, 0.3, 450);
         driveTrain.driveWithTime(0, 1, 0, 1, 750);
     }
