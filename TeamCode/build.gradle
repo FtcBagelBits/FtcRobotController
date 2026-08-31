@@ -19,11 +19,31 @@ apply from: '../build.dependencies.gradle'
 android {
     namespace = 'org.firstinspires.ftc.teamcode'
 
+    // build.common.gradle pins compileSdkVersion 30, but Panels' androidx dependencies refuse
+    // to be consumed below 34. Overridden here for TeamCode only so the upstream SDK files stay
+    // untouched. This only changes which APIs are visible at compile time - minSdk (24) and
+    // targetSdk (28) are unchanged, so on-robot behavior is the same.
+    compileSdk 36
+
     packagingOptions {
         jniLibs.useLegacyPackaging true
     }
 }
 
+repositories {
+    // Panels is not on Maven Central; it is published to bylazar's own repo.
+    maven { url = "https://mymaven.bylazar.com/releases" }
+}
+
 dependencies {
     implementation project(':FtcRobotController')
+
+    // Pedro Pathing - path following / odometry. Resolved from mavenCentral(),
+    // which build.dependencies.gradle already declares.
+    implementation 'com.pedropathing:ftc:2.1.2'
+
+    // Panels - on-robot dashboard used to tune Pedro and view telemetry/field position.
+    // pedropathing:telemetry is the adapter that lets Pedro draw to Panels.
+    implementation 'com.pedropathing:telemetry:1.0.0'
+    implementation 'com.bylazar:fullpanels:1.0.12'
 }
