@@ -33,14 +33,21 @@ android {
 repositories {
     // Panels is not on Maven Central; it is published to bylazar's own repo.
     maven { url = "https://mymaven.bylazar.com/releases" }
+
+    // Pedro 3's AutoTune pulls in dev.frozenmilk.sinister:Sloth, which lives here rather than
+    // on Maven Central. Pedro itself resolves from mavenCentral().
+    maven { url = "https://repo.dairy.foundation/releases/" }
 }
 
 dependencies {
     implementation project(':FtcRobotController')
 
-    // Pedro Pathing - path following / odometry. Resolved from mavenCentral(),
-    // which build.dependencies.gradle already declares.
-    implementation 'com.pedropathing:ftc:2.1.2'
+    // Pedro Pathing 3 - path following / odometry. Resolved from mavenCentral(),
+    // which build.dependencies.gradle already declares. 'revhub' replaces the 2.x 'ftc'
+    // artifact; 'tuning' is AutoTune, the robot-hosted tuner served at
+    // http://192.168.43.1:10158 (see pedroPathing/Tuning.java).
+    implementation 'com.pedropathing:revhub:3.0.0'
+    implementation 'com.pedropathing:tuning:1.0.0'
 
     // Panels - on-robot dashboard used to tune Pedro and view telemetry/field position.
     // pedropathing:telemetry is the adapter that lets Pedro draw to Panels.
