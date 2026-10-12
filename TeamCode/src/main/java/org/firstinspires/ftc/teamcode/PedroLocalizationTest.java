@@ -13,6 +13,8 @@ import com.pedropathing.math.Pose;
 import com.pedropathing.paths.Path;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
@@ -90,6 +92,7 @@ public class PedroLocalizationTest extends OpMode {
     private static final boolean FLIP_X = false;
     private static final boolean FLIP_Y = true;
     private static final boolean REVERSE_XY = true;
+    private static final int velocity = 1200;
 
     private Follower follower;
     private TelemetryManager panelsTelemetry;
@@ -101,8 +104,13 @@ public class PedroLocalizationTest extends OpMode {
     /** True while a path button is held, so the path is built once on the way down. */
     private boolean pathArmed;
 
+    private DcMotorEx flywheel;
+
     @Override
     public void init() {
+        flywheel = hardwareMap.get(DcMotorEx.class, "flywheel");
+        flywheel.setDirection(DcMotor.Direction.REVERSE);
+
         follower = Constants.create(hardwareMap);
         follower.setPose(new Pose(135, 9, Math.toRadians(90)));
 
@@ -130,7 +138,13 @@ public class PedroLocalizationTest extends OpMode {
 
     @Override
     public void loop() {
-        if (gamepad1.a || gamepad1.b) {
+        if (gamepad1.a) {
+            flywheel.setVelocity(velocity);
+        } else {
+            flywheel.setVelocity(0);
+        }
+
+        if (gamepad1.b) {
             // Rising edge only: the path is anchored to where the robot stood when the button
             // went down, so holding the button does not keep rebuilding it underneath itself.
             if (!pathArmed) {
