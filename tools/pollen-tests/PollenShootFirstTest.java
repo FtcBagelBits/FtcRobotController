@@ -123,7 +123,7 @@ public final class PollenShootFirstTest {
         near(t.value(DISTANCE_CM), 60.96, "triangle restores short test");
         near(t.value(FEED_SECONDS), 10, "triangle restores feed duration");
         select(t, DISTANCE_CM); for (int i = 0; i < 44; i++) change(t, 1);
-        check(t.worstCaseSeconds() < 26, "nominal field-sized route fits default budget");
+        check(t.worstCaseSeconds() < 26, "longer selected distance remains within time budget");
         select(t, DRIVE_POWER); for (int i = 0; i < 10; i++) change(t, -1);
         check(t.worstCaseSeconds() < 26, "slowing drive cannot silently exhaust budget");
         t.sequence(); // Still a valid sequence after refused changes.

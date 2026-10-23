@@ -113,9 +113,9 @@ between runs and locked at START like the other settings.
 
 Travel distance adjusts how
 long it drives. It then holds zero commands for 0.5 seconds and enters DONE.
-The [calibration reference](POLLEN_SHOOT_FIRST.md) explains the estimate and
-why the full route needs a field clearance test. The distance formula stays the
-same when you change angle, but actual travel can change. Measure each new angle
+Distance is converted to time as `travel_cm / (129 × drive_vector_power)`.
+The coefficient is fitted near the default angle. The formula stays the same
+when you change angle, but actual travel can change. Measure each new angle
 with feed duration zero and a short travel distance before combining it with shooting.
 
 If an edit would use 26 seconds or more in the worst case, it is rejected and
@@ -148,9 +148,8 @@ prevent physical coasting or guarantee recovery from an electrical failure.
 
 ## Robot verification after changes
 
-The team reported successful testing of the cleanup and adjustable-angle builds.
-Use this checklist after further changes or to validate a new route; it is not a
-record that every field configuration has been tested. Start with short trials.
+Use this checklist after changes or to validate a route. Start with short trials;
+verify each selected angle and starting placement on the physical robot.
 Record the installed commit and photograph the settings.
 
 1. **INIT check:** verify both menus, build identifier, settings changes, delay
@@ -159,7 +158,7 @@ Record the installed commit and photograph the settings.
    distance, stopping and a repeat run. Test STOP during a short movement.
 3. **B departure only:** set feed duration to zero and travel to 60.96 cm.
    Verify forward-left travel at the default angle without chassis turning.
-   Try a nearby angle using the new menu row, then return to the default. Measure forward and
+   Try a nearby angle using the angle menu row, then return to the default. Measure forward and
    sideways displacement and the endpoint; test STOP.
 4. **B shooting only:** set travel to zero. Begin without balls and a short feed
    duration, then use a suitable catch area and the tested shooting settings.

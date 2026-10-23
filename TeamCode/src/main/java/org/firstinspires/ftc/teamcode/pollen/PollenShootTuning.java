@@ -25,30 +25,11 @@ public final class PollenShootTuning {
         }
     }
 
-    // Forward-only experiment: distance_cm = seconds * power * 150 at 12.86 V.
-    // Diagonal follow-up: 100 cm selected with that model produced 86 cm total,
-    // including 76 cm forward. Updated diagonal factor = 150 * 86 / 100 = 129.
-    // This ratio does not require assuming the test's power. Its voltage was not
-    // reported. Provisional single-run fit: repeat at the intended power/load.
-    // The observed direction was about 27.9 degrees left if 86 cm is straight-line
-    // displacement. Retain 25.87 degrees as the default; INIT can select another angle.
-    // Factor 129 was fitted near that angle, not across the full adjustment range.
-    // Option A's forward-only settings and calibration are unchanged.
+    // Timed-distance coefficient fitted near the default angle. It is not a
+    // direction-independent speed model; remeasure after angle/power/load changes.
     public static final double CM_PER_SECOND_PER_POWER = 129;
-
-    // Provisional geometry from BIOBUZZ manual TU05, figures 9-2 and 9-10:
-    // 144-inch field; hive axes 25.5 inches apart. Assume an 18x18-inch robot,
-    // centered on its hive axis and square to the end wall, shooting FORWARD.
-    // Red center: (59.25,135) -> (11,35.5) inches, x right / y down on figure 9-2.
-    // Blue is the 180-degree rotation: (84.75,9) -> (133,108.5).
-    // Nominal FULL-FIELD distance = hypot(48.25,99.5)*2.54 = 280.88 cm (9.22 ft).
-    // Nominal travel angle = 25.87 degrees LEFT of robot forward, WITHOUT turning.
-    // This is NOT a validated route: measure the robot footprint, starting center,
-    // loading-zone tape and especially swept clearance past the hive frame/feet.
-    // If clearance fails, a waypoint route is needed; more distance cannot fix it.
-    // Keep the 60.96-cm home-test default above until the complete route is checked.
+    // Robot-relative translation angle: positive left, zero forward, negative right.
     public static final double PARK_ANGLE_DEGREES = 25.87;
-    public static final double NOMINAL_FIELD_DISTANCE_CM = 280.88;
     public static final double SPINUP_TIMEOUT = 4, SPEED_STABLE_SECONDS = .25;
     public static final double READY_FRACTION = .96, HOLD_SECONDS = .5, DEADLINE = 27;
 

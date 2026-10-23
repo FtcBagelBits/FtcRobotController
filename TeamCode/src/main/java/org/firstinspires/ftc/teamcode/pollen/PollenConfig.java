@@ -4,7 +4,7 @@ package org.firstinspires.ftc.teamcode.pollen;
 public final class PollenConfig {
     private PollenConfig() { }
 
-    // Team's BioBuzzStarterbotOpMode mapping (not the download's underscore names).
+    // Device names in the active PollenBot hardware configuration.
     public static final String[] DRIVE_NAMES = {"frontLeft", "frontRight", "backLeft", "backRight"};
     // Matches the current PollenBot TeleOp and the tested autonomous drivetrain.
     public static final boolean[] DRIVE_REVERSED = {

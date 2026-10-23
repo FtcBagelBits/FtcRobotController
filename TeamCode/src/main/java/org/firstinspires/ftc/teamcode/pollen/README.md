@@ -1,8 +1,8 @@
 # Pollen autonomous code
 
 Two standalone FTC autonomous OpModes implement timed parking and shoot-first
-parking. Park remains `pollen-prep-v3.3-clean`; Shoot + Park is
-`pollen-prep-v3.4-angle`, adding INIT-only travel angle selection after cleanup.
+parking. The INIT build identifiers are `pollen-prep-v3.3-clean` for Park and
+`pollen-prep-v3.4-angle` for Shoot + Park.
 For Driver Hub operation, controller tables and test records, read the
 [operating manual](../../../../../../../../../docs/POLLEN_AUTONOMOUS.md).
 
@@ -18,8 +18,7 @@ For Driver Hub operation, controller tables and test records, read the
 | [PollenSequence.java](PollenSequence.java) | Hardware-free state machine: delay, timed drive, spinup, continuous feed, deadlines, STOP and mecanum mixing. |
 
 The two OpModes call the FTC SDK. The other four classes can run in laptop Java
-tests. The former base class, bench OpModes, start-delay helper and paused-feed
-shooting path were removed. There are two Driver Hub autonomous choices:
+tests. There are two Driver Hub autonomous choices:
 `Pollen ROBOT Park` and `Pollen ROBOT Shoot + Park`. Both preselect `PollenBot`.
 
 ## Lifecycle and data flow
@@ -121,19 +120,14 @@ default goes to the next whole degree in that direction (RIGHT → 26, LEFT → 
 then edits step by one degree. Snapshot, reset and START-lock behavior are shared
 with the other fields. The OpMode reports the selected signed angle in telemetry.
 
-The default preserves the calibration in the pushed branch plus cleanup. The original
-100-cm diagonal request traveled 86 cm, with 76 cm forward, leading to the scalar
-factor `150 * 0.86 = 129`. That trial's voltage was not reported. At power 0.20,
-100 cm now requests about 3.876 seconds; the 60.96-cm default requests 2.363 seconds.
+The coefficient is fitted near the default angle. At power 0.20,
+100 cm requests about 3.876 seconds; the 60.96-cm default requests 2.363 seconds.
 Power here is the forward/strafe vector magnitude, not each wheel's power.
 
-There is no alliance transform: the paired physical starting poses are related
-by a 180-degree rotation, so both use the same robot-relative selected angle
-(default forward-left). Humans place
-and aim the robot. The nominal 280.88-cm full-field geometry is a planning value,
-**not an approved route or the default**. See the
-[geometry and calibration reference](../../../../../../../../../docs/POLLEN_SHOOT_FIRST.md)
-for assumptions and required footprint/clearance checks.
+There is no alliance transform. Humans place and aim the robot; opposite-alliance
+starting poses can be related by a 180-degree rotation. Verify each actual
+starting pose, endpoint, complete robot footprint and partner clearance on the
+field before using a route.
 
 Timed travel has no distance feedback, voltage compensation, heading correction,
 obstacle avoidance or parking detection. The same distance coefficient is used
@@ -207,8 +201,8 @@ no APK rebuild or reinstall.
 | Sequence behavior or fault handling | `PollenSequence` and/or OpMode; add a meaningful regression test and verify relevant physical behavior. |
 
 Keep the operator manual as the source for button instructions; keep this README
-as the code map. Preserve the student's
-[comparison with the old code](../../../../../../../../../docs/POLLEN_AUTONOMOUS_EXPLAINED.md)
+as the code map. Use the student's
+[explanation of autonomous](../../../../../../../../../docs/POLLEN_AUTONOMOUS_EXPLAINED.md)
 for learning. Update documentation with the code in the same commit, record the
 installed commit with test results, and never equate a passing laptop test with
 a verified full-field route.
