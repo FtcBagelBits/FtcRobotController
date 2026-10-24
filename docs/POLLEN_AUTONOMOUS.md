@@ -1,6 +1,6 @@
 # Pollen autonomous operating manual
 
-All three modes show build **`pollen-mat-v1`**. Keep these instructions with the
+All three modes show build **`pollen-mat-v2`**. Keep these instructions with the
 installed code. The new mat calibration and field routes are **experimental**.
 The previously tested B settings remain its default and are restored by Triangle.
 
@@ -9,8 +9,8 @@ The previously tested B settings remain its default and are restored by Triangle
 | Driver Hub choice | Behavior | Starting pose |
 | --- | --- | --- |
 | **Pollen ROBOT Park** (A) | Selected delay, timed forward drive, hold | Manually aligned with the team's tested forward parking path |
-| **Pollen ROBOT Shoot + Park** (B) | Delay, stationary shot, optional left clearance, selected angled drive, hold | End wall, square to wall, centerline aimed into the initially upward-facing cell |
-| **Pollen Supporting Shooter Auto** (C) | Wait with flywheel prespin, stationary shot, forward flower clearance, mostly-right travel, hold | Opposite end wall, using the **offset-and-aim pose** below; partner tips the cell before our shot |
+| **Pollen ROBOT Shoot + Park** (B) | Delay, stationary shot, up to three selected drive legs, hold | End wall, flush and square, centerline aimed into the initially upward-facing cell |
+| **Pollen Supporting Shooter Auto** (C) | Wait with flywheel prespin, stationary forward shot, forward flower clearance, mostly-right travel, hold | Opposite end wall, **flush and square, centered between flower and midline** (below); partner tips the cell before our shot |
 
 All preselect **PollenBot** for TeleOp, without automatically starting it. There
 is no localization, heading correction, obstacle detection or hive-tip sensing.
@@ -31,8 +31,8 @@ substitute either of those poses/routes for the field presets.
 3. Tap/release controller buttons to edit. Motors remain stopped during INIT.
    Photograph the settings; they lock at START.
 4. Confirm the entire footprint, shooting area and partner route are clear.
-   For C, physically verify the tight flower/centerline clearance of the offset
-   pose. The CAD clearance does not establish clearance on the actual field.
+   For C, physically verify the tight flower/midline clearance of the flush
+   pose (about 2.6 cm each side nominally). The CAD clearance does not establish clearance on the actual field.
 5. START runs the selected sequence. STOP interrupts it. At DONE, commands stay
    zero; DONE does not prove parking or scoring. Press STOP before another trial.
 
@@ -61,55 +61,63 @@ the motor commands are unchanged. See [calibration analysis](POLLEN_MAT_CALIBRAT
 - **D-pad RIGHT / LEFT:** edit the selected row. Tap/release; held keys do not repeat.
 - **Triangle:** restore that mode's defaults. B restores its tested short baseline;
   C restores its experimental supporting field preset.
-- **Square:** load the experimental field preset, replacing all selections for
-  that mode. It does not move the robot. Check every row before START.
+- **Square:** B loads the experimental three-leg field preset, replacing all
+  selections. C: same as Triangle. It does not move the robot. Check every row.
 
-| Row | B default | C default | Increment / range |
-| --- | ---: | ---: | --- |
-| Flywheel ticks/s | 1250 | 1250 | 50; 500-2500 |
-| Feed seconds | 10 | 7.5 | 0.5; 0-20; 0 skips shooting |
-| Travel cm | 60.96 | 115.93 | 5; 0-350; second leg only |
-| Drive vector power | 0.20 | 0.45 | 0.05; 0.10-0.50 |
-| Travel angle deg (+left) | +25.87 | -79.261 | Next whole degree, then 1; -90 to +90 |
-| Intake + agitator power | 0.50 | 0.50 | 0.05; 0.10-1.00 |
-| Start delay seconds | 0 | 15 | 0.5; 0-20, subject to budget |
-| Calibration | 0: tested baseline | 1: MAT_TRIAL | 0 or 1 |
-| Initial clearance cm | 0 | 20.32 | 5; 0-100; **B left, C forward** |
+Every speed, distance and angle that the routes use is a row, so tuning needs
+no rebuild. After the shot the robot drives **leg 1, leg 2, leg 3** in order,
+all at the one drive power; a leg set to 0 cm is skipped.
 
-**Travel cm is the main/second leg, not the total distance of a two-leg route.**
-Setting travel to zero does not remove a nonzero clearance leg. To shoot in
-place, set **both Travel cm and Initial clearance cm to zero**. To test driving
-without shooting, set Feed seconds to zero. All three zero leave delay/hold only;
-hardware initialization still runs.
+| Row | B default (Triangle) | B Square preset | C default | Increment / range |
+| --- | ---: | ---: | ---: | --- |
+| Launcher ticks/s | 1250 | 1250 | 1250 | 50; 500-2500 |
+| Feed seconds | 10 | 10 | 7.5 | 0.5; 0-20; 0 skips shooting |
+| Intake + agitator power | 0.50 | 0.50 | 0.50 | 0.05; 0.10-1.00 |
+| Start delay seconds | 0 | 0 | 15 | 0.5; 0-20, subject to budget |
+| Calibration | 0: tested baseline | 1: MAT_TRIAL | 1: MAT_TRIAL | 0 or 1 |
+| Drive power, all legs | 0.20 | 0.25 | 0.45 | 0.05; 0.10-0.50 |
+| Leg 1 cm, off wall | 0 | 10 | 20.32 | 1; 0-60 |
+| Leg 1 angle deg (+left) | 0 | 0 | 0 | 1; -90 to +90 |
+| Leg 2 cm, side clear | 0 | 63.50 | 0 | 5; 0-150 |
+| Leg 2 angle deg (+left) | +90 | +90 | -90 | 1; -90 to +90 |
+| Leg 3 cm, to park | 60.96 | 217.47 | 117.96 | 5; 0-350 |
+| Leg 3 angle deg (+left) | +25.87 | +12.313 | -81.848 | 1; -90 to +90 |
+
+Fractional angles step to the next whole degree first, then by 1, so exactly 0
+is reachable. To shoot in place, set **all three leg distances to zero**. To test
+driving without shooting, set Feed seconds to zero. Telemetry shows each leg as
+`cm @ angle -> seconds; command angle`, or `skipped (0 cm)`.
 
 Angles describe translation relative to the starting chassis heading, not a
 chassis turn. Positive means robot-left; negative robot-right. MAT_TRIAL adjusts
-the motor-command angle to estimate the desired physical direction. Telemetry
-shows both angles. It also changes duration by direction. Baseline preserves
-the old `travel_cm / (129 * power)` timing and direct sine/cosine command.
-MAT_TRIAL assumes unconfirmed original test settings: verify it with short
-trials before relying on a field route.
+the motor-command angle to estimate the desired physical direction and changes
+duration by direction. Baseline preserves the old `cm / (129 * power)` timing
+and direct sine/cosine command. MAT_TRIAL assumes unconfirmed original test
+settings: verify it with short trials before relying on a field route.
 
 ## Primary field preset: Square in B
 
 The default 60.96-cm baseline is a short test, not a full-field park. Square loads:
 
 - MAT_TRIAL, power **0.25**, normal 10-second feed and zero delay;
-- **63.50 cm left** clearance after shooting;
-- then **227.25 cm at +11.775 degrees** to the near parking slot.
+- leg 1: **10 cm forward** off the wall after shooting;
+- leg 2: **63.50 cm left** to clear the frame;
+- leg 3: **217.47 cm at +12.313 degrees** to the near parking slot.
 
 This avoids the floor-level frame bar in the nominal CAD. It budgets about
-**24.19 s** including worst-case spinup and hold. Triangle restores the tested
-short route, removing the clearance leg. Editing either leg changes the route;
-check the geometry again after such edits.
+**24.20 s** including worst-case spinup and hold. Triangle restores the tested
+short route (leg 3 only). Editing any leg changes the route; check the geometry
+again after such edits.
 
 ## Supporting field preset: C
 
-Use the offset-and-aim pose from the field guide: relative to the directly
-centered end-wall position, shift about **6.07 cm toward the field centerline**
-and aim about **3.014 degrees to robot-right** back at the cell. A rear corner
-contacts the wall. Nominal flower clearance is only **2.37 cm**; check it on the
-actual field and verify shooting after the cell is tipped upward.
+Start **flush against the scoring end wall and square to it**. Slide the robot
+toward the midline from the hive center until the gap to the flower equals the
+gap to the alliance midline: nominally **2.6 cm each side**, which puts the robot
+centerline **6.9 cm toward the midline** from the hive center. The shot goes
+straight forward and lands about 6.9 cm off the cell center (opening about 51 cm
+wide) at the same distance as a centered start. Measure on the real field:
+the total slack between flower and midline is only about 5.2 cm.
 
 Default sequence, ignoring small loop-transition delays:
 
@@ -118,14 +126,14 @@ Default sequence, ignoring small loop-transition delays:
 | 0-11 s | All motor commands zero |
 | 11-15 s | Flywheel spins; drive, intake and agitator remain off |
 | 15-22.5 s | Feed for 7.5 s if speed qualified; remain stationary |
-| After 22.5 s | Stop all shooting mechanisms; drive 20.32 cm forward to clear flower |
-| Next | Travel 115.93 cm at -79.261 degrees (mostly right, slightly forward) |
+| After 22.5 s | Stop all shooting mechanisms; leg 1: 20.32 cm forward to clear flower |
+| Next | Leg 2 skipped (0 cm); leg 3: 117.96 cm at -81.848 degrees (mostly right) |
 | End | Hold zero outputs for 0.5 s, then DONE |
 
-This uses power 0.45 and MAT_TRIAL; predicted total is about **25.8 s**. Neither
-this power/direction combination nor the route has been validated on the robot.
-The partner's hive tip is an assumption, not a detected event. Shooting into a
-cell that has not tipped is not corrected automatically.
+This uses power 0.45 and MAT_TRIAL; predicted total is about **25.85 s**, so C
+has almost no budget left: longer legs or slower power need a shorter delay or
+feed. Neither this power/direction combination nor the route has been validated
+on the robot. The partner's hive tip is an assumption, not a detected event.
 
 If the launcher is not ready at the end of the delay, C skips the shot and
 waits through the selected feed slot before departing. Shooter INIT fallback
@@ -150,8 +158,8 @@ would exceed the budget with restored delay, all C defaults are restored with
 a visible notice. App restart/reinstall loses memory. Triangle is not a recall
 of the last successful match settings.
 
-Edits are rejected if worst-case total reaches **26 seconds**. Both clearance
-and main leg count toward this budget. An independent **27-second cutoff**
+Edits are rejected if worst-case total reaches **26 seconds**. All three legs
+count toward this budget. An independent **27-second cutoff**
 stops outputs. This is the program's guard, not the official autonomous duration.
 
 | Warning | Meaning |
@@ -170,8 +178,7 @@ with actual load, expected battery and the partner's route. Verify both alliance
 placements. Do not equate computer tests or SDK compilation with a tested route.
 
 Record: installed commit/build; date; battery; surface/load; A/B/C; measured start
-center/heading; profile; flywheel/feed settings; delay; drive power; clearance cm;
-main-leg cm/angle; actual forward/side displacement; final heading; endpoint;
+center/heading; profile; launcher/feed settings; delay; drive power; each leg's cm/angle; actual forward/side displacement; final heading; endpoint;
 shots and STOP result; partner parking slot; who verified the complete route.
 
 Build/deployment instructions are in the

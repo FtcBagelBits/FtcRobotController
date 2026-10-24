@@ -1,7 +1,8 @@
 package org.firstinspires.ftc.teamcode.pollen;
 
 /** Nominal routes derived from official BIOBUZZ STEP v26-27.2 for an 18x18-inch
- * robot with a centered launcher. Support uses an offset, angled wall-contact pose.
+ * robot with a centered launcher. Both shooters start flush and square to an end
+ * wall; nothing turns the chassis. These are the controller presets' defaults only.
  * See docs/POLLEN_FIELD_ROUTES.md for coordinates, margins and assumptions. */
 public final class PollenFieldGeometry {
     private PollenFieldGeometry() { }
@@ -12,52 +13,58 @@ public final class PollenFieldGeometry {
     public static final double PARK_X_INCHES = -56;
     public static final double PRIMARY_PARK_Z_INCHES = -26;
     public static final double SUPPORT_PARK_Z_INCHES = -47;
-    public static final double SUPPORT_START_X_INCHES = -10.35;
-    // Horizontal center of the opening after the initially down cell tips upward,
-    // estimated from the opposite upright cell's front-rib projection in the CAD.
-    public static final double SUPPORT_AIM_Z_INCHES = -15.7;
-    public static final double PRIMARY_CLEARANCE_INCHES = 25;
-    public static final double SUPPORT_CLEARANCE_INCHES = 8;
+    // Inboard edge of the scoring-wall flower's all-height CAD envelope (its wall bracket).
+    public static final double SCORING_FLOWER_INBOARD_X_INCHES = -20.058;
+    public static final double ALLIANCE_MIDLINE_X_INCHES = 0;
+    // Support: flush and square, centered in the flower-to-midline gap (equal margins).
+    public static final double SUPPORT_START_X_INCHES =
+            (SCORING_FLOWER_INBOARD_X_INCHES + ALLIANCE_MIDLINE_X_INCHES) / 2;
+    public static final double PRIMARY_WALL_CLEARANCE_CM = 10;
+    public static final double PRIMARY_SIDE_CLEARANCE_INCHES = 25;
+    public static final double SUPPORT_WALL_CLEARANCE_INCHES = 8;
     private static final double START_Z = END_WALL_INCHES - ROBOT_HALF_INCHES;
     private static final double LEFT_TO_PARK = RED_HIVE_X_INCHES - PARK_X_INCHES;
 
+    /** Primary leg 3: after forward wall clearance and the left hive clearance. */
     public static double primaryDistanceCm() {
-        return Math.hypot(LEFT_TO_PARK - PRIMARY_CLEARANCE_INCHES,
-                START_Z - PRIMARY_PARK_Z_INCHES) * INCH_TO_CM;
+        return Math.hypot(primaryLeftRemainingInches(), primaryForwardRemainingInches()) * INCH_TO_CM;
     }
     public static double primaryAngleDegrees() {
-        return Math.toDegrees(Math.atan2(LEFT_TO_PARK - PRIMARY_CLEARANCE_INCHES,
-                START_Z - PRIMARY_PARK_Z_INCHES));
+        return Math.toDegrees(Math.atan2(primaryLeftRemainingInches(), primaryForwardRemainingInches()));
     }
+    private static double primaryLeftRemainingInches() {
+        return LEFT_TO_PARK - PRIMARY_SIDE_CLEARANCE_INCHES;
+    }
+    private static double primaryForwardRemainingInches() {
+        return START_Z - PRIMARY_WALL_CLEARANCE_CM / INCH_TO_CM - PRIMARY_PARK_Z_INCHES;
+    }
+
+    /** Support leg 3: after forward flower clearance; robot-right is field -X. */
     public static double supportDistanceCm() {
-        return Math.hypot(PARK_X_INCHES - supportClearanceXInches(),
-                SUPPORT_PARK_Z_INCHES - supportClearanceZInches()) * INCH_TO_CM;
+        return Math.hypot(supportRightRemainingInches(), supportForwardRemainingInches()) * INCH_TO_CM;
     }
     public static double supportAngleDegrees() {
-        double yaw = supportYawRadians();
-        double dx = PARK_X_INCHES - supportClearanceXInches();
-        double dz = SUPPORT_PARK_Z_INCHES - supportClearanceZInches();
-        double forward = -dx * Math.sin(yaw) + dz * Math.cos(yaw);
-        double right = -dx * Math.cos(yaw) - dz * Math.sin(yaw);
-        return -Math.toDegrees(Math.atan2(right, forward));
+        return -Math.toDegrees(Math.atan2(supportRightRemainingInches(), supportForwardRemainingInches()));
     }
-    public static double supportStartZInches() {
-        double yaw = supportYawRadians();
-        return -END_WALL_INCHES + ROBOT_HALF_INCHES * (Math.cos(yaw) + Math.sin(yaw));
+    private static double supportRightRemainingInches() {
+        return SUPPORT_START_X_INCHES - PARK_X_INCHES;
     }
-    public static double supportClearanceXInches() {
-        return SUPPORT_START_X_INCHES - SUPPORT_CLEARANCE_INCHES * Math.sin(supportYawRadians());
+    private static double supportForwardRemainingInches() {
+        return SUPPORT_PARK_Z_INCHES - supportClearanceZInches();
     }
+    public static double supportStartZInches() { return -START_Z; }
     public static double supportClearanceZInches() {
-        return supportStartZInches() + SUPPORT_CLEARANCE_INCHES * Math.cos(supportYawRadians());
+        return supportStartZInches() + SUPPORT_WALL_CLEARANCE_INCHES;
     }
-    public static double supportYawRadians() {
-        // The rear corner touches the wall; rotation changes the center-to-wall offset.
-        double yaw = 0;
-        for (int i = 0; i < 20; i++) {
-            double z = -END_WALL_INCHES + ROBOT_HALF_INCHES * (Math.cos(yaw) + Math.sin(yaw));
-            yaw = Math.atan2(SUPPORT_START_X_INCHES - RED_HIVE_X_INCHES, SUPPORT_AIM_Z_INCHES - z);
-        }
-        return yaw;
+
+    /** Lateral offset of the support robot's centerline from the red hive center. */
+    public static double supportOffsetFromHiveCm() {
+        return (SUPPORT_START_X_INCHES - RED_HIVE_X_INCHES) * INCH_TO_CM;
+    }
+    public static double supportFlowerGapCm() {
+        return (SUPPORT_START_X_INCHES - ROBOT_HALF_INCHES - SCORING_FLOWER_INBOARD_X_INCHES) * INCH_TO_CM;
+    }
+    public static double supportMidlineGapCm() {
+        return (ALLIANCE_MIDLINE_X_INCHES - SUPPORT_START_X_INCHES - ROBOT_HALF_INCHES) * INCH_TO_CM;
     }
 }

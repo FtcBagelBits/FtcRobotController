@@ -4,6 +4,9 @@ package org.firstinspires.ftc.teamcode.pollen;
 public final class PollenConfig {
     private PollenConfig() { }
 
+    /** Shown in INIT by all three Pollen modes; change whenever Pollen code changes. */
+    public static final String BUILD = "pollen-mat-v2";
+
     // Device names in the active PollenBot hardware configuration.
     public static final String[] DRIVE_NAMES = {"frontLeft", "frontRight", "backLeft", "backRight"};
     // Matches the current PollenBot TeleOp and the tested autonomous drivetrain.

@@ -1,6 +1,6 @@
 # Pollen autonomous code
 
-Build identifier: **pollen-mat-v1**. Three autonomous OpModes preselect PollenBot:
+Build identifier: **pollen-mat-v2** (`PollenConfig.BUILD`). Three autonomous OpModes preselect PollenBot:
 `Pollen ROBOT Park`, `Pollen ROBOT Shoot + Park`, and
 `Pollen Supporting Shooter Auto`.
 
@@ -20,7 +20,7 @@ The experimental profiles/routes are not validated robot settings.
 | PollenShooterOpMode | Shared B/C hardware lifecycle, isolated memory, telemetry and faults |
 | PollenConfig | Shared tested drive mapping; unchanged A default power/time |
 | PollenParkTuning | A controller editing, bounds, delay budget and lock |
-| PollenShootTuning | B/C menus, defaults, field presets, budget and route construction |
+| PollenShootTuning | B/C menus (launcher, feed, power, three legs' cm/angle), defaults, field presets, budget and route construction |
 | PollenDriveCalibration | Unchanged baseline; opt-in B / default C mat trial; A forward estimate |
 | PollenFieldGeometry | Nominal CAD-derived start/parking coordinates and preset displacements |
 | PollenSequence | Hardware-free timing, prespin, speed qualification, feed, STOP and mixer |
@@ -54,14 +54,16 @@ Wheel order is front-left, front-right, back-left, back-right; mixer commands ar
 ## Routes and timing
 
 - A: delay -> timed forward -> hold.
-- B baseline: delay -> spinup -> feed -> selected single leg -> hold.
-- B Square field preset: same stationary shot -> left clearance -> selected
-  forward-left leg -> hold. Triangle restores the original short baseline.
+- B baseline: delay -> spinup -> feed -> leg 3 only (tested 60.96 cm) -> hold.
+- B Square field preset: same stationary shot -> leg 1 forward 10 cm off the
+  wall -> leg 2 left 63.5 cm -> leg 3 forward-left to park -> hold.
+  Triangle restores the original short baseline.
 - C: delay with flywheel-only prespin during its final four seconds -> feed ->
-  forward flower clearance -> mostly-right second leg -> hold.
+  leg 1 forward flower clearance -> (leg 2 unused) -> leg 3 mostly right -> hold.
 
-`CLEARANCE_CM` has mode-specific meaning: B left, C forward. `DISTANCE_CM` is the
-main/second leg. Both must be zero to disable all travel. Feed=0 removes spinup
+`LEG1_CM`/`LEG1_ANGLE` through `LEG3_CM`/`LEG3_ANGLE` are independent controller
+rows; every leg uses `DRIVE_POWER` and the selected calibration profile, and a
+0-cm leg is skipped. All three must be zero to disable all travel. Feed=0 removes spinup
 and feeding. If C's shooter is unavailable, a zero-output step occupies its feed
 slot; if prespin times out, the sequencer holds the same slot. Explicit feed=0
 instead departs after the chosen start delay. Invalid velocity stops the run.
@@ -72,7 +74,7 @@ first step shoots and delay is at least the spinup timeout. It subtracts that
 one overlapped allowance from worst-case duration; subsequent shots, if added,
 still require their own spinup allowance. Only the flywheel runs during prespin.
 
-Budget includes both drive legs and hold. Selected worst case must be <26 s;
+Budget includes all three drive legs and hold. Selected worst case must be <26 s;
 the independent cutoff is 27 s. Runtime hardware exceptions attempt every stop
 and request OpMode stop. Shooter INIT fallback requires all mapped shooter stop
 commands to succeed; drive failure blocks. B/C never substitute A's starting-pose
@@ -86,8 +88,9 @@ original 129 model at +25.87 degrees, 60.96 cm and power 0.20. The mat trial use
 separate measured direction/distance knots, not a direction-independent scalar.
 See the calibration document for assumptions and exact measurements.
 
-Square loads complete nominal field settings. C's default start is offset and
-aimed to clear a flower; using a centered square-to-wall pose is incompatible.
+Square loads complete nominal field settings. C's default start is flush and
+square, centered between the flower and the midline (6.89 cm toward the midline
+from the hive center); a hive-centered start overlaps the flower.
 The field guide records the CAD geometry, tight initial margins and 180-degree
 alliance transform. Neither these constants nor the timed routes use Pedro,
 Pinpoint, AprilTags, voltage compensation or position/heading feedback.
@@ -104,8 +107,8 @@ ftcgradle :TeamCode:assembleDebug
 ```
 
 The Java script uses Java 8 compatibility and covers original A/B behavior,
-mat arithmetic, field-preset selection, C timing and skipped-shot slots, both
-movement legs, budgets, memory and STOP. The standard-library Python script
+mat arithmetic, field-preset selection, C timing and skipped-shot slots, all three
+movement legs, controller edits of each leg and launcher speed, budgets, memory and STOP. The standard-library Python script
 checks nominal swept polygons, including the rejected direct route and rejected
 centered support start. Neither establishes actual physical clearance.
 
@@ -116,6 +119,6 @@ not that branch-locked helper.
 
 Deploy a freshly built APK through the team's working Wi-Fi/ADB connection or
 Android Studio TeamCode run configuration to the Control Hub. USB-C has not
-worked. Verify `pollen-mat-v1` in INIT. Check the actual installed commit and all
+worked. Verify `pollen-mat-v2` in INIT. Check the actual installed commit and all
 settings before physical tests. Java changes require rebuild/reinstall; INIT
 settings and documentation edits do not.

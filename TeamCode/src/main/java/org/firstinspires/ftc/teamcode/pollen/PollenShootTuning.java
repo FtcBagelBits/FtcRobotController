@@ -6,15 +6,18 @@ import java.util.List;
 /** INIT-only selections for the end-wall, forward-facing shooting start. No hardware calls. */
 public final class PollenShootTuning {
     public enum Field {
-        FLYWHEEL("Flywheel ticks/s", 500, 2500, 50, 1250),
+        FLYWHEEL("Launcher ticks/s", 500, 2500, 50, 1250),
         FEED_SECONDS("Feed seconds (0 = skip shot)", 0, 20, .5, 10),
-        DISTANCE_CM("Travel cm (0 = shoot only)", 0, 350, 5, 60.96),
-        DRIVE_POWER("Drive vector power", .10, .50, .05, .20),
-        TRAVEL_ANGLE("Travel angle deg (+left)", -90, 90, 1, PARK_ANGLE_DEGREES),
         FEED_POWER("Intake + agitator power", .10, 1, .05, .50),
         START_DELAY("Start delay seconds", 0, 20, .5, 0),
         CALIBRATION("Calibration (0=baseline, 1=mat TRIAL)", 0, 1, 1, 0),
-        CLEARANCE_CM("Initial clearance cm (B=left, C=forward)", 0, 100, 5, 0);
+        DRIVE_POWER("Drive power, all legs", .10, .50, .05, .20),
+        LEG1_CM("Leg 1 cm, off wall (0 = skip)", 0, 60, 1, 0),
+        LEG1_ANGLE("Leg 1 angle deg (+left)", -90, 90, 1, 0),
+        LEG2_CM("Leg 2 cm, side clear (0 = skip)", 0, 150, 5, 0),
+        LEG2_ANGLE("Leg 2 angle deg (+left)", -90, 90, 1, 90),
+        LEG3_CM("Leg 3 cm, to park (0 = skip)", 0, 350, 5, 60.96),
+        LEG3_ANGLE("Leg 3 angle deg (+left)", -90, 90, 1, PARK_ANGLE_DEGREES);
 
         public final String label;
         private final double min, max, step, initial;
@@ -25,7 +28,13 @@ public final class PollenShootTuning {
             this.step = step;
             this.initial = initial;
         }
+        public boolean angle() { return this == LEG1_ANGLE || this == LEG2_ANGLE || this == LEG3_ANGLE; }
     }
+
+    /** Leg numbers 1-3 run in order after the shot; a zero-cm leg is skipped. */
+    public static final int LEGS = 3;
+    private static final Field[] LEG_CM = {Field.LEG1_CM, Field.LEG2_CM, Field.LEG3_CM};
+    private static final Field[] LEG_ANGLE = {Field.LEG1_ANGLE, Field.LEG2_ANGLE, Field.LEG3_ANGLE};
 
     public static final double CM_PER_SECOND_PER_POWER = PollenDriveCalibration.BASELINE_COEFFICIENT;
     // Robot-relative translation angle: positive left, zero forward, negative right.
@@ -68,26 +77,31 @@ public final class PollenShootTuning {
         if (supporting) {
             values[Field.START_DELAY.ordinal()] = 15;
             values[Field.FEED_SECONDS.ordinal()] = 7.5;
-            values[Field.TRAVEL_ANGLE.ordinal()] = PollenFieldGeometry.supportAngleDegrees();
-            values[Field.DISTANCE_CM.ordinal()] = PollenFieldGeometry.supportDistanceCm();
             values[Field.DRIVE_POWER.ordinal()] = .45;
             values[Field.CALIBRATION.ordinal()] = 1;
-            values[Field.CLEARANCE_CM.ordinal()] = PollenFieldGeometry.SUPPORT_CLEARANCE_INCHES * PollenFieldGeometry.INCH_TO_CM;
+            set(1, PollenFieldGeometry.SUPPORT_WALL_CLEARANCE_INCHES * PollenFieldGeometry.INCH_TO_CM, 0);
+            set(2, 0, -90);
+            set(3, PollenFieldGeometry.supportDistanceCm(), PollenFieldGeometry.supportAngleDegrees());
         }
-        notice = supporting ? "UNTESTED offset-pose preset: forward clear of flower, then right to park"
+        notice = supporting ? "UNTESTED flush preset: forward clear of flower, then right to park"
                 : "Defaults restored: tested baseline, 2-foot move";
     }
 
     private void fieldPreset() {
         reset();
         if (!supporting) {
-            values[Field.CLEARANCE_CM.ordinal()] = PollenFieldGeometry.PRIMARY_CLEARANCE_INCHES * PollenFieldGeometry.INCH_TO_CM;
-            values[Field.DISTANCE_CM.ordinal()] = PollenFieldGeometry.primaryDistanceCm();
-            values[Field.TRAVEL_ANGLE.ordinal()] = PollenFieldGeometry.primaryAngleDegrees();
+            set(1, PollenFieldGeometry.PRIMARY_WALL_CLEARANCE_CM, 0);
+            set(2, PollenFieldGeometry.PRIMARY_SIDE_CLEARANCE_INCHES * PollenFieldGeometry.INCH_TO_CM, 90);
+            set(3, PollenFieldGeometry.primaryDistanceCm(), PollenFieldGeometry.primaryAngleDegrees());
             values[Field.DRIVE_POWER.ordinal()] = .25;
             values[Field.CALIBRATION.ordinal()] = 1;
         }
         notice = "UNTESTED field preset loaded; verify pose, full footprint and partner route";
+    }
+
+    private void set(int leg, double cm, double angle) {
+        values[LEG_CM[leg - 1].ordinal()] = cm;
+        values[LEG_ANGLE[leg - 1].ordinal()] = angle;
     }
 
     /** D-pad selects/edits; triangle resets. Tap/release. */
@@ -117,10 +131,10 @@ public final class PollenShootTuning {
     private void adjust(int sign) {
         Field f = selected();
         double old = value(f);
-        // Preserve the tested fractional default; first angle edit reaches the
+        // Preserve fractional defaults; first angle edit reaches the
         // next whole degree in the requested direction, then steps by one degree.
         // This lets the operator select exactly zero without extra controls.
-        double next = f == Field.TRAVEL_ANGLE
+        double next = f.angle()
                 ? (sign > 0 ? Math.floor(old) + 1 : Math.ceil(old) - 1)
                 : Math.round((old + sign * f.step) * 100.0) / 100.0;
         values[selected] = Math.max(f.min, Math.min(f.max, next));
@@ -147,21 +161,36 @@ public final class PollenShootTuning {
         return value(Field.CALIBRATION) == 0 ? PollenDriveCalibration.Profile.TESTED_BASELINE
                 : PollenDriveCalibration.Profile.MAT_TRIAL;
     }
+    /** Robot-relative translation for leg 1, 2 or 3 at the shared drive power. */
+    public PollenDriveCalibration.Move legMove(int leg) {
+        if (leg < 1 || leg > LEGS) throw new IllegalArgumentException("Leg must be 1-3");
+        return PollenDriveCalibration.move(profile(), value(LEG_CM[leg - 1]),
+                value(Field.DRIVE_POWER), value(LEG_ANGLE[leg - 1]));
+    }
+
+    /** Leg 3, the final leg to park. */
     public PollenDriveCalibration.Move move() {
-        return PollenDriveCalibration.move(profile(), value(Field.DISTANCE_CM),
-                value(Field.DRIVE_POWER), value(Field.TRAVEL_ANGLE));
+        return legMove(3);
     }
 
     public double driveSeconds() {
         return move().seconds;
     }
 
-    public PollenDriveCalibration.Move clearanceMove() {
-        return PollenDriveCalibration.move(profile(), value(Field.CLEARANCE_CM), value(Field.DRIVE_POWER), supporting ? 0 : 90);
+    public double legCm(int leg) { return value(LEG_CM[leg - 1]); }
+    public double legAngle(int leg) { return value(LEG_ANGLE[leg - 1]); }
+
+    public String legName(int leg) {
+        String[] names = supporting
+                ? new String[] {"LEG 1 CLEAR FLOWER", "LEG 2 (OPTIONAL)", "LEG 3 TO PARK"}
+                : new String[] {"LEG 1 OFF WALL", "LEG 2 CLEAR HIVE", "LEG 3 TO PARK"};
+        return names[leg - 1];
     }
 
     public double worstCaseSeconds() {
-        return value(Field.START_DELAY) + clearanceMove().seconds + driveSeconds() + HOLD_SECONDS
+        double drive = 0;
+        for (int leg = 1; leg <= LEGS; leg++) drive += legMove(leg).seconds;
+        return value(Field.START_DELAY) + drive + HOLD_SECONDS
                 + (value(Field.FEED_SECONDS) > 0 ? (supporting ? 0 : SPINUP_TIMEOUT) + value(Field.FEED_SECONDS) : 0);
     }
 
@@ -184,12 +213,11 @@ public final class PollenShootTuning {
         if (shooterAvailable && value(Field.FEED_SECONDS) > 0) route.add(PollenSequence.Step.continuousShoot(value(Field.FEED_SECONDS)));
         if (supporting && !shooterAvailable && value(Field.FEED_SECONDS) > 0)
             route.add(PollenSequence.Step.drive("NO SHOOTER / WAIT FOR DEPARTURE", value(Field.FEED_SECONDS), 0, 0, 0));
-        if (value(Field.CLEARANCE_CM) > 0) {
-            PollenDriveCalibration.Move clearance = clearanceMove();
-            route.add(PollenSequence.Step.drive(supporting ? "FORWARD CLEAR OF FLOWER" : "LEFT CLEAR OF HIVE",
-                    clearance.seconds, clearance.forward, clearance.strafe, 0));
+        for (int leg = 1; leg <= LEGS; leg++) {
+            if (legCm(leg) <= 0) continue;
+            PollenDriveCalibration.Move m = legMove(leg);
+            route.add(PollenSequence.Step.drive(legName(leg), m.seconds, m.forward, m.strafe, 0));
         }
-        if (value(Field.DISTANCE_CM) > 0) route.add(PollenSequence.Step.drive(supporting ? "RIGHT + FORWARD TO PARK" : "TO PARK", driveSeconds(), forward(), strafe(), 0));
         route.add(PollenSequence.Step.drive("PARK / HOLD", HOLD_SECONDS, 0, 0, 0));
         return new PollenSequence(route.toArray(new PollenSequence.Step[0]), value(Field.FLYWHEEL),
                 value(Field.FLYWHEEL) * READY_FRACTION, SPINUP_TIMEOUT, SPEED_STABLE_SECONDS,

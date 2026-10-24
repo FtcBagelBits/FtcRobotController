@@ -87,7 +87,7 @@ public final class PollenRobotPark extends OpMode {
     }
 
     private void showSettings() {
-        telemetry.addData("Build", "pollen-mat-v1");
+        telemetry.addData("Build", PollenConfig.BUILD);
         telemetry.addData("Mode", "ROBOT Park - real motors on START");
         if (tuning == null) return;
         telemetry.addData("Park power / drive seconds", "%.2f / %.2f s", tuning.power(), tuning.seconds());

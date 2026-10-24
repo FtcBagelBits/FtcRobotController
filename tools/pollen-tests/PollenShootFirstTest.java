@@ -29,7 +29,7 @@ public final class PollenShootFirstTest {
     }
     public static void main(String[] args) {
         PollenShootTuning t = new PollenShootTuning(null);
-        near(t.value(DISTANCE_CM), 60.96, "two-foot default");
+        near(t.value(LEG3_CM), 60.96, "two-foot default");
         near(t.driveSeconds(), 2.3627906976744186, "two-foot time with measured diagonal factor");
         near(t.value(FEED_SECONDS), 10, "ten seconds excludes spinup");
         near(t.value(FEED_POWER), .5, "both feeds match neutral-bumper TeleOp command");
@@ -113,33 +113,33 @@ public final class PollenShootFirstTest {
         select(t, FEED_SECONDS); for (int i = 0; i < 25; i++) change(t, -1);
         near(t.value(FEED_SECONDS), 0, "skip shot for motion calibration");
         s = t.sequence(); s.start(0); near(s.tick(0, 0, false).forward, t.forward(), "skip-shot route");
-        select(t, DISTANCE_CM); for (int i = 0; i < 100; i++) change(t, 1);
-        near(t.value(DISTANCE_CM), 350, "distance upper bound");
+        select(t, LEG3_CM); for (int i = 0; i < 100; i++) change(t, 1);
+        near(t.value(LEG3_CM), 350, "distance upper bound");
         for (int i = 0; i < 100; i++) change(t, -1);
-        near(t.value(DISTANCE_CM), 0, "zero distance for stationary test");
+        near(t.value(LEG3_CM), 0, "zero distance for stationary test");
         s = t.sequence(); s.start(0); zero(s.tick(0, 0, false));
         check(s.tick(.5, 0, false).finished, "both zero gives hold only");
         t.update(false, false, false, false, true); release(t);
-        near(t.value(DISTANCE_CM), 60.96, "triangle restores short test");
+        near(t.value(LEG3_CM), 60.96, "triangle restores short test");
         near(t.value(FEED_SECONDS), 10, "triangle restores feed duration");
-        select(t, DISTANCE_CM); for (int i = 0; i < 44; i++) change(t, 1);
+        select(t, LEG3_CM); for (int i = 0; i < 44; i++) change(t, 1);
         check(t.worstCaseSeconds() < 26, "longer selected distance remains within time budget");
         select(t, DRIVE_POWER); for (int i = 0; i < 10; i++) change(t, -1);
         check(t.worstCaseSeconds() < 26, "slowing drive cannot silently exhaust budget");
         t.sequence(); // Still a valid sequence after refused changes.
         // Angle editing changes translation only; retain the calibrated default.
         t = new PollenShootTuning(null);
-        near(t.value(TRAVEL_ANGLE), 25.87, "tested default angle preserved");
+        near(t.value(LEG3_ANGLE), 25.87, "tested default angle preserved");
         double duration = t.driveSeconds(), budget = t.worstCaseSeconds();
-        select(t, TRAVEL_ANGLE); change(t, 1);
-        near(t.value(TRAVEL_ANGLE), 26, "first right reaches next whole degree");
+        select(t, LEG3_ANGLE); change(t, 1);
+        near(t.value(LEG3_ANGLE), 26, "first right reaches next whole degree");
         t.update(false, false, false, true, false);
         t.update(false, false, false, true, false);
-        near(t.value(TRAVEL_ANGLE), 27, "held angle button does not repeat"); release(t);
+        near(t.value(LEG3_ANGLE), 27, "held angle button does not repeat"); release(t);
         t.update(false, false, true, true, false);
-        near(t.value(TRAVEL_ANGLE), 27, "opposite angle edits cancel"); release(t);
+        near(t.value(LEG3_ANGLE), 27, "opposite angle edits cancel"); release(t);
         for (int i = 0; i < 27; i++) change(t, -1);
-        near(t.value(TRAVEL_ANGLE), 0, "can select exactly straight forward");
+        near(t.value(LEG3_ANGLE), 0, "can select exactly straight forward");
         near(t.forward(), .2, "zero angle forward output");
         near(t.strafe(), 0, "zero angle no strafe");
         change(t, -1);
@@ -147,9 +147,9 @@ public final class PollenShootFirstTest {
         near(t.driveSeconds(), duration, "angle does not change estimated travel duration");
         near(t.worstCaseSeconds(), budget, "angle does not change budget");
         remembered = new PollenShootTuning(t.snapshot());
-        near(remembered.value(TRAVEL_ANGLE), -1, "angle survives next INIT in same app");
+        near(remembered.value(LEG3_ANGLE), -1, "angle survives next INIT in same app");
         for (int i = 0; i < 200; i++) change(t, -1);
-        near(t.value(TRAVEL_ANGLE), -90, "right angle limit");
+        near(t.value(LEG3_ANGLE), -90, "right angle limit");
         near(t.forward(), 0, "right strafe no forward");
         near(t.strafe(), .2, "right strafe output");
         // Shooter fallback must use the selected angle, not the default angle.
@@ -159,7 +159,7 @@ public final class PollenShootFirstTest {
         near(move.turn, 0, "angle never turns chassis");
         zero(s.tick(.1, 0, true)); zero(s.tick(.2, 0, false));
         for (int i = 0; i < 200; i++) change(t, 1);
-        near(t.value(TRAVEL_ANGLE), 90, "left angle limit");
+        near(t.value(LEG3_ANGLE), 90, "left angle limit");
         near(t.forward(), 0, "left strafe no forward");
         near(t.strafe(), -.2, "left strafe output");
         s = t.sequence(); s.start(0);
@@ -169,12 +169,12 @@ public final class PollenShootFirstTest {
         near(move.strafe, -.2, "successful shot departs at selected angle");
         near(move.turn, 0, "successful shot departure does not turn");
         t.update(false, false, false, false, true); release(t);
-        near(t.value(TRAVEL_ANGLE), 25.87, "reset restores fractional calibrated angle");
+        near(t.value(LEG3_ANGLE), 25.87, "reset restores fractional calibrated angle");
         change(t, -1);
-        near(t.value(TRAVEL_ANGLE), 25, "first left reaches next whole degree");
+        near(t.value(LEG3_ANGLE), 25, "first left reaches next whole degree");
         t.lock(); change(t, 1);
         t.update(false, false, false, false, true);
-        near(t.value(TRAVEL_ANGLE), 25, "START locks angle edits and reset");
+        near(t.value(LEG3_ANGLE), 25, "START locks angle edits and reset");
         System.out.println("PollenShootFirstTest: " + checks + " checks passed");
     }
 }

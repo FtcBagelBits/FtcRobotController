@@ -34,7 +34,6 @@ import static org.firstinspires.ftc.teamcode.pollen.PollenShootTuning.Field.*;
 
 /** Shared hardware lifecycle for the two stationary shooting routines. */
 public abstract class PollenShooterOpMode extends OpMode {
-    private static final String BUILD = "pollen-mat-v1";
     private static PollenShootTuning.Snapshot shootRemembered, supportRemembered;
     protected abstract boolean supportingShooter();
     private final DcMotor[] drive = new DcMotor[4];
@@ -106,8 +105,9 @@ public abstract class PollenShooterOpMode extends OpMode {
         else shootRemembered = tuning.snapshot();
         showSettings();
         telemetry.addData("Controls", "D-pad UP/DOWN selects; LEFT/RIGHT edits; tap then release");
-        telemetry.addData("Reset", supportingShooter() ? "Triangle=supporting field preset" : "Triangle=baseline defaults (2 ft)");
-        telemetry.addData("Square", "Load UNTESTED field route; check all settings before START");
+        telemetry.addData("Reset", supportingShooter() ? "Triangle=supporting flush preset" : "Triangle=tested baseline (2 ft, leg 3 only)");
+        telemetry.addData("Square", supportingShooter() ? "Same as Triangle for C" : "Load UNTESTED 3-leg field route; check all rows");
+        telemetry.addData("Tune", "Launcher speed, feed, power and each leg's cm/angle are rows above");
         telemetry.addData("Status", blocked != null ? "BLOCKED: " + blocked
                 : fallback != null ? "READY FOR DEPARTURE ONLY - SHOOTER FAILED" : "READY - no movement until START");
         telemetry.addData("Memory", "Settings kept until app restart; start delay resets every INIT");
@@ -115,32 +115,35 @@ public abstract class PollenShooterOpMode extends OpMode {
     }
 
     private void showSettings() {
-        telemetry.addData("Build", BUILD);
+        telemetry.addData("Build", PollenConfig.BUILD);
         telemetry.addData("Mode", supportingShooter() ? "Supporting Shooter - real motors on START" : "Shoot + Park - real motors on START");
         telemetry.addData("Selections", tuning.locked() ? "LOCKED at START" : "INIT editing");
-        telemetry.addData("Start pose", supportingShooter() ? "OFFSET + AIM pose in field guide; NOT centered/square to wall" : "End wall, square to wall, aligned with initially UP cell");
+        telemetry.addData("Start pose", supportingShooter() ? "End wall, FLUSH + SQUARE, centered between flower and midline"
+                : "End wall, flush + square, aligned with initially UP cell");
         for (PollenShootTuning.Field f : PollenShootTuning.Field.values()) {
             telemetry.addData((f == tuning.selected() ? "> " : "  ") + f.label, "%.2f", tuning.value(f));
         }
-        telemetry.addData("Travel", "%.2f ft / %.2f estimated seconds; angle %+.2f deg (+left/-right); NO TURN",
-                tuning.value(DISTANCE_CM) / 30.48, tuning.driveSeconds(), tuning.value(TRAVEL_ANGLE));
-        telemetry.addData(supportingShooter() ? "Initial FORWARD clearance" : "Initial LEFT clearance",
-                "%.2f cm / %.2f s (then selected travel)", tuning.value(CLEARANCE_CM), tuning.clearanceMove().seconds);
+        for (int leg = 1; leg <= PollenShootTuning.LEGS; leg++) {
+            PollenDriveCalibration.Move m = tuning.legMove(leg);
+            telemetry.addData(tuning.legName(leg), tuning.legCm(leg) <= 0 ? "skipped (0 cm)"
+                    : String.format(java.util.Locale.US, "%.1f cm @ %+.1f deg -> %.2f s; command %+.1f deg; NO TURN",
+                    tuning.legCm(leg), tuning.legAngle(leg), m.seconds, m.commandAngleDegrees));
+        }
         telemetry.addData("Worst case / limit", "%.2f / %.0f seconds", tuning.worstCaseSeconds(), PollenShootTuning.DEADLINE);
         telemetry.addData("Calibration", tuning.profile());
-        telemetry.addData("Command angle", "%+.2f deg; selected angle is desired path in MAT TRIAL", tuning.move().commandAngleDegrees);
+        telemetry.addData("Angles", "+left / -right of start heading; MAT TRIAL converts desired path to command");
         if (tuning.profile() == PollenDriveCalibration.Profile.MAT_TRIAL)
             telemetry.addData("MAT TRIAL", "UNVERIFIED: assumes unchanged 129 test settings; repeat short tests");
         if (supportingShooter()) {
-            telemetry.addData("Support placement", "Offset %.1f cm toward centerline; yaw %.2f deg toward cell",
-                    (PollenFieldGeometry.SUPPORT_START_X_INCHES - PollenFieldGeometry.RED_HIVE_X_INCHES) * 2.54,
-                    Math.toDegrees(PollenFieldGeometry.supportYawRadians()));
-            telemetry.addData("FLOWER CLEARANCE", "Tight nominal start; check actual flower, wall and full footprint");
+            telemetry.addData("Support placement", "Center %.1f cm toward midline from hive center; gaps %.1f cm flower / %.1f cm midline",
+                    PollenFieldGeometry.supportOffsetFromHiveCm(), PollenFieldGeometry.supportFlowerGapCm(),
+                    PollenFieldGeometry.supportMidlineGapCm());
+            telemetry.addData("FLOWER CLEARANCE", "Tight nominal start; check actual flower, midline and full footprint");
             telemetry.addData("Timing", "Flywheel alone during final 4s of wait; feed begins no earlier than delay");
             telemetry.addData("Departure", "Nominal >=%.1fs; failed shot retains feed slot",
                     tuning.value(START_DELAY) + tuning.value(FEED_SECONDS));
-            if (tuning.value(DISTANCE_CM) == 0 && tuning.value(CLEARANCE_CM) == 0)
-                telemetry.addData("NO PARKING MOVE", "Distance is 0: enter measured robot-right travel before match");
+            if (tuning.legCm(1) == 0 && tuning.legCm(2) == 0 && tuning.legCm(3) == 0)
+                telemetry.addData("NO PARKING MOVE", "All legs are 0 cm: enter measured travel before match");
         }
         if (fallback != null) telemetry.addData("SHOOTER INIT FAILED", fallback);
         if (!tuning.notice().isEmpty()) telemetry.addData("Settings notice", tuning.notice());

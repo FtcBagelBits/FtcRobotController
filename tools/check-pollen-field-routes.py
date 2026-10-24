@@ -2,11 +2,11 @@
 """Nominal CAD geometry checks; see docs/POLLEN_FIELD_ROUTES.md. Not physical validation."""
 import math
 R=9; W=70.585; hx=-12.74164098
-start=(-12.74164098, W-R); corner=(start[0]-25,start[1]); primary=(-56,-26); support=(-56,-47)
-sx=-10.35; yaw=0
-for _ in range(20):
- sz=-W+R*(math.cos(yaw)+math.sin(yaw));yaw=math.atan2(sx-hx,-15.7-sz)
-sz=-W+R*(math.cos(yaw)+math.sin(yaw));ss=(sx,sz);sc=(sx-8*math.sin(yaw),sz+8*math.cos(yaw))
+# Primary (B Square): forward 10 cm off the wall, left 25 in, then diagonal to park.
+start=(-12.74164098, W-R); off_wall=(start[0],start[1]-10/2.54); corner=(off_wall[0]-25,off_wall[1]); primary=(-56,-26); support=(-56,-47)
+# Support (C): flush and square, centered between the flower's inboard edge and the midline.
+flower_x=-20.058; midline=0
+ss=((flower_x+midline)/2,-W+R); sc=(ss[0],ss[1]+8); yaw=0
 def box(x0,x1,z0,z1):return [(x0,z0),(x1,z0),(x1,z1),(x0,z1)]
 def robot(p,a=0):
  f=(-math.sin(a),math.cos(a));r=(-math.cos(a),-math.sin(a))
@@ -39,23 +39,27 @@ obstacles={'frame':box(-24.729,24.742,-19.476,19.476),
 'left flower':box(-71.794,-65.630,20.058,26.727),
 'right flower':box(65.630,71.794,-26.727,-20.058),
 'audience flower':box(20.058,26.727,65.630,71.794),
-'scoring flower':box(-26.727,-20.058,-71.794,-65.630)}
+'scoring flower':box(-26.727,flower_x,-71.794,-65.630)}
 foot=box(-24.729,-22.75,-19.472,19.472)
-assert intersects(hull(robot(start)+robot(primary)),foot)
-assert intersects(robot((hx,-W+R)),obstacles['scoring flower'])
-plans={'primary leg 1':hull(robot(start)+robot(corner)), 'primary leg 2':hull(robot(corner)+robot(primary)), 'support leg 1':hull(robot(ss,yaw)+robot(sc,yaw)), 'support leg 2':hull(robot(sc,yaw)+robot(support,yaw))}
+assert intersects(hull(robot(start)+robot(primary)),foot), 'direct primary diagonal should hit the frame foot'
+assert intersects(robot((hx,-W+R)),obstacles['scoring flower']), 'centered support start should overlap the flower'
+plans={'primary leg 1':hull(robot(start)+robot(off_wall)),'primary leg 2':hull(robot(off_wall)+robot(corner)),
+ 'primary leg 3':hull(robot(corner)+robot(primary)),
+ 'support leg 1':hull(robot(ss)+robot(sc)),'support leg 3':hull(robot(sc)+robot(support))}
 for name,p in plans.items():
  for obstacle,b in obstacles.items():
   assert not intersects(p,b),(name,obstacle)
  print(name,'closest',min((distance(p,b),n) for n,b in obstacles.items()))
-assert max(p[0] for p in robot(ss,yaw))<0
-assert abs(min(p[1] for p in robot(ss,yaw))+W)<1e-9
+flower_gap=distance(robot(ss),obstacles['scoring flower']); half_gap=-max(p[0] for p in robot(ss))
+assert half_gap>0 and abs(flower_gap-half_gap)<1e-9, 'support start must split the gap evenly'
+assert abs(min(p[1] for p in robot(ss))+W)<1e-9, 'support rear edge flush on the wall'
+assert abs(max(p[1] for p in robot(start))-W)<1e-9, 'primary rear edge flush on the wall'
 zone=box(-70.101,-59.585,-46.599,-23.907) # conservative overlap of STEP tape and 11-inch-from-wall check
-assert intersects(robot(primary),zone) and intersects(robot(support,yaw),zone)
-assert not intersects(robot(primary),robot(support,yaw))
-assert all(not intersects(plans[p],plans[s]) for p in ['primary leg 1','primary leg 2'] for s in ['support leg 1','support leg 2'])
-print('support start',ss,'yaw',math.degrees(yaw),'flower gap',distance(robot(ss,yaw),obstacles['scoring flower']),'half-field gap',-max(p[0] for p in robot(ss,yaw)))
-print('parking gap',distance(robot(primary),robot(support,yaw)))
+assert intersects(robot(primary),zone) and intersects(robot(support),zone)
+assert not intersects(robot(primary),robot(support))
+assert all(not intersects(plans[p],plans[s]) for p in plans if p.startswith('primary') for s in plans if s.startswith('support'))
+print('support start',ss,'flower gap',flower_gap,'half-field gap',half_gap,'offset from hive center',ss[0]-hx)
+print('parking gap',distance(robot(primary),robot(support)))
 assert not intersects(robot((-56,-W+R)),zone), 'pure strafe should miss parking'
 # True 45-degree line reaches the side boundary before the loading-zone row.
 assert (start[1]-(start[0]-(-W+R)))-R > -23.907

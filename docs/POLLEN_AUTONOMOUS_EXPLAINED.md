@@ -15,7 +15,7 @@ them to motors. `stop()` latches the sequence stopped and attempts to zero every
 mapped motor. A, B and C have separate process-local settings memory.
 
 Use [the operating manual](POLLEN_AUTONOMOUS.md) for controls. In B, Triangle
-restores the tested short baseline; Square loads the experimental two-leg field
+restores the tested short baseline; Square loads the experimental three-leg field
 preset. In C, both restore the supporting preset. Those presets are plans to
 validate, not previously tested robot behavior.
 
@@ -23,9 +23,10 @@ validate, not previously tested robot behavior.
 
 Geometry chooses where the robot should go. The official CAD shows that an
 18-inch robot on a direct primary-to-parking diagonal crosses the frame's
-floor-level bar. Moving left before that diagonal avoids it. The opposite
-shooting start needs an offset and small aiming angle to clear a flower, then
-an initial forward move before the rightward departure. See
+floor-level bar. Moving 10 cm off the wall, then left, before that diagonal
+avoids it. The opposite shooting start sits flush and square to the wall,
+shifted toward the midline to clear a flower, then moves forward before the
+rightward departure. See
 [the field analysis](POLLEN_FIELD_ROUTES.md) and [diagram](POLLEN_FIELD_ROUTES.svg).
 
 Calibration estimates what motor commands achieve those displacements. The
@@ -65,9 +66,10 @@ wheel commands are forward +/- strafe +/- turn. If any exceeds magnitude one,
 all are scaled by the same largest magnitude. The supported translation powers
 stay below that saturation boundary. Zero turn commands do not correct drift.
 
-The supporting robot starts already aimed about three degrees off square to the
-wall. Its two drive legs are measured relative to that heading. The autonomous
-code does not execute that aiming turn. Humans place and aim it before INIT/START.
+Both shooters start flush and square to an end wall, so every leg angle is
+measured from a heading parallel to the field axes. The supporting robot always
+shoots straight forward; its centerline sits about 6.9 cm toward the midline
+from the hive center. Nothing turns the chassis.
 
 ## Sequence timing and shooting
 
@@ -85,9 +87,9 @@ stationary. This prevents a failure from sending C into its departure early.
 
 A shooter INIT failure may permit the same mode's departure only if every mapped
 shooter accepts zero power. C preserves its feed slot in that fallback too.
-Explicitly selecting feed=0 removes the shooting slot instead. Clearance=0 skips
-the first movement; distance=0 skips only the second/main movement. Both must be
-zero for a stationary shooting test.
+Explicitly selecting feed=0 removes the shooting slot instead. Each of the three
+legs has its own distance and angle row; a zero-cm leg is skipped and the others
+still run. All three must be zero for a stationary shooting test.
 
 Mechanism commands are applied before drive commands, so launcher, intake and
 agitator receive zero before departure. Nonfinite velocity, invalid/backwards
@@ -96,7 +98,7 @@ Electrical/mechanical stopping is not guaranteed merely by issuing commands.
 
 ## Time budgets and validation
 
-B's budget includes delay + four-second spinup (if feeding) + feed + both drive
+B's budget includes delay + four-second spinup (if feeding) + feed + all three drive
 legs + 0.5-second hold. C overlaps spinup with the delay. Edits must keep the
 worst case below 26 seconds, leaving transition margin before the independent
 27-second cutoff. C also needs delay >=4 seconds while feeding is enabled.
