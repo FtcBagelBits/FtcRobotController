@@ -1,5 +1,9 @@
 # Competition-mat calibration
 
+This file explains the drive models. The measurements themselves, what has and
+has not run on the robot, and the log for new trials are in
+[POLLEN_ROBOT_BEHAVIOR.md](POLLEN_ROBOT_BEHAVIOR.md); add new data there first.
+
 This branch preserves the tested baseline and adds a selectable **MAT_TRIAL**
 model. The installed settings used for the three shoot-mode measurements were
 not confirmed. MAT_TRIAL is therefore a candidate for controlled tests, not a

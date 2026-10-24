@@ -1,5 +1,9 @@
 # Pollen field routes: 18 x 18-inch robot
 
+Permanent field geometry (all features, tile names, heights, AprilTags) is in
+[POLLEN_FIELD_LAYOUT.md](POLLEN_FIELD_LAYOUT.md); measured robot behavior is in
+[POLLEN_ROBOT_BEHAVIOR.md](POLLEN_ROBOT_BEHAVIOR.md). This file covers our routes.
+
 **These are nominal geometric plans and untested timed-drive presets.** The
 code does not localize, measure clearance, detect a hive tip, or confirm parking.
 A short test move and a full-field route are different things.

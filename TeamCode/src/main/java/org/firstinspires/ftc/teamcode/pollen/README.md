@@ -8,7 +8,9 @@ for its INIT launcher-speed and drive-power menu and shows the same build id.
 
 Read the [operator manual](../../../../../../../../../docs/POLLEN_AUTONOMOUS.md),
 [calibration analysis](../../../../../../../../../docs/POLLEN_MAT_CALIBRATION.md),
-[field geometry](../../../../../../../../../docs/POLLEN_FIELD_ROUTES.md), and
+[field routes](../../../../../../../../../docs/POLLEN_FIELD_ROUTES.md),
+[field layout](../../../../../../../../../docs/POLLEN_FIELD_LAYOUT.md),
+[tested robot behavior](../../../../../../../../../docs/POLLEN_ROBOT_BEHAVIOR.md), and
 [student explanation](../../../../../../../../../docs/POLLEN_AUTONOMOUS_EXPLAINED.md).
 The experimental profiles/routes are not validated robot settings.
 
@@ -117,8 +119,9 @@ movement legs, controller edits of each leg and launcher speed, budgets, memory 
 plus the TeleOp INIT menu (defaults, limits, 96% feed gate, memory, lock at START). The standard-library Python script
 checks nominal swept polygons, including the rejected direct route and rejected
 centered support start. Neither establishes actual physical clearance.
-`tools/draw-pollen-field-routes.py` and `tools/draw-pollen-pit-sheet.py` (matplotlib)
-redraw the engineering diagram and the alliance pit sheet; they draw, not check.
+`tools/draw-pollen-field-routes.py`, `tools/draw-pollen-pit-sheet.py` and
+`tools/draw-pollen-field-layout.py` (matplotlib) redraw the route diagram, the
+alliance pit sheet and the field layout; they draw, not check.
 
 `BioBuzzStarterbotOpMode.java` is the one team file stored with CRLF line endings.
 Keep them when editing, and check whitespace with
