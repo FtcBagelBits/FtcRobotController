@@ -2,7 +2,9 @@
 
 Build identifier: **pollen-mat-v3** (`PollenConfig.BUILD`). Three autonomous OpModes preselect PollenBot:
 `Pollen ROBOT Park`, `Pollen ROBOT Shoot + Park`, and
-`Pollen Supporting Shooter Auto`.
+`Pollen Supporting Shooter Auto`. The PollenBot TeleOp itself
+(`../BioBuzzStarterbotOpMode.java`, outside this package) uses `PollenTeleOpTuning`
+for its INIT launcher-speed and drive-power menu and shows the same build id.
 
 Read the [operator manual](../../../../../../../../../docs/POLLEN_AUTONOMOUS.md),
 [calibration analysis](../../../../../../../../../docs/POLLEN_MAT_CALIBRATION.md),
@@ -30,6 +32,8 @@ B and C use distinct static snapshots in the shared OpMode. Their INIT loads
 never share settings. Start delay resets to the mode default; an invalid C
 snapshot is reset before sequence creation. START locks every control, including
 Triangle and Square. These are process-local snapshots, not persisted files.
+PollenBot TeleOp keeps its own static snapshot the same way; its defaults are the
+OpMode's `LAUNCHER_TARGET_VELOCITY` / `LAUNCHER_MIN_VELOCITY` and 100% drive power.
 
 ## Hardware contract
 
@@ -109,11 +113,16 @@ ftcgradle :TeamCode:assembleDebug
 
 The Java script uses Java 8 compatibility and covers original A/B behavior,
 mat arithmetic, field-preset selection, C timing and skipped-shot slots, all three
-movement legs, controller edits of each leg and launcher speed, budgets, memory and STOP. The standard-library Python script
+movement legs, controller edits of each leg and launcher speed, budgets, memory and STOP,
+plus the TeleOp INIT menu (defaults, limits, 96% feed gate, memory, lock at START). The standard-library Python script
 checks nominal swept polygons, including the rejected direct route and rejected
 centered support start. Neither establishes actual physical clearance.
 `tools/draw-pollen-field-routes.py` and `tools/draw-pollen-pit-sheet.py` (matplotlib)
 redraw the engineering diagram and the alliance pit sheet; they draw, not check.
+
+`BioBuzzStarterbotOpMode.java` is the one team file stored with CRLF line endings.
+Keep them when editing, and check whitespace with
+`git -c core.whitespace=cr-at-eol diff --check`; plain `--check` flags every CR.
 
 `ftcgradle` is the team's existing shell helper; inspect `type ftcgradle` if it
 is unavailable. The older `tools/pollen-patch.sh` still requires the historical

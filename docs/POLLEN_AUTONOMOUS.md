@@ -1,7 +1,7 @@
 # Pollen autonomous operating manual
 
-All three modes and PollenBot TeleOp show build **`pollen-mat-v3`**. Keep these instructions with the
-installed code. The new mat calibration and field routes are **experimental**.
+All three autonomous modes and PollenBot TeleOp show build **`pollen-mat-v3`**.
+Keep these instructions with the installed code. The new mat calibration and field routes are **experimental**.
 The previously tested B settings remain its default and are restored by Triangle.
 
 ## Choose the routine
@@ -176,7 +176,8 @@ B spins up after its delay, with a four-second timeout. Timeout skips the shot
 and continues its selected route. C spends that spinup allowance inside the
 last four seconds of its delay. Invalid velocity data stops either mode.
 
-A, B and C remember settings separately while the Robot Controller app runs.
+A, B, C and PollenBot TeleOp remember settings separately while the Robot
+Controller app runs.
 Start delay resets every INIT: zero for A/B, 15 for C. If C's remembered route
 would exceed the budget with restored delay, all C defaults are restored with
 a visible notice. App restart/reinstall loses memory. Triangle is not a recall
@@ -206,6 +207,7 @@ placements. Do not equate computer tests or SDK compilation with a tested route.
 Record: installed commit/build; date; battery; surface/load; A/B/C; measured start
 center/heading; profile; launcher/feed settings; delay; drive power; each leg's cm/angle; actual forward/side displacement; final heading; endpoint;
 shots and STOP result; partner parking slot; who verified the complete route.
+For TeleOp, record the launcher ticks/s and drive power that worked best.
 
 Build/deployment instructions are in the
 [package README](../TeamCode/src/main/java/org/firstinspires/ftc/teamcode/pollen/README.md).
