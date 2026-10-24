@@ -1,6 +1,6 @@
 # Pollen autonomous operating manual
 
-All three autonomous modes and PollenBot TeleOp show build **`pollen-mat-v3`**.
+All three autonomous modes and PollenBot TeleOp show build **`pollen-mat-v4`**.
 Keep these instructions with the installed code. The new mat calibration and field routes are **experimental**.
 The previously tested B settings remain its default and are restored by Triangle.
 
@@ -136,7 +136,10 @@ Default sequence, ignoring small loop-transition delays:
 
 This uses power 0.45 and MAT_TRIAL; predicted total is about **25.85 s**, so C
 has almost no budget left: longer legs or slower power need a shorter delay or
-feed. Neither this power/direction combination nor the route has been validated
+feed. At a normal loop rate C finishes by about 26.1 s. Each step change costs
+one loop, so a few slow loops can let the 27 s cutoff trim the final 0.5 s
+hold; the computer tests confirm both legs still finish first. While
+commissioning C, use feed 0 or a shorter feed to keep more margin. Neither this power/direction combination nor the route has been validated
 on the robot. The partner's hive tip is an assumption, not a detected event.
 
 If the launcher is not ready at the end of the delay, C skips the shot and
@@ -179,8 +182,11 @@ last four seconds of its delay. Invalid velocity data stops either mode.
 A, B, C and PollenBot TeleOp remember settings separately while the Robot
 Controller app runs.
 Start delay resets every INIT: zero for A/B, 15 for C. If C's remembered route
-would exceed the budget with restored delay, all C defaults are restored with
-a visible notice. App restart/reinstall loses memory. Triangle is not a recall
+no longer fits once its delay is back to 15 s (for example after testing at a
+4 s delay), INIT keeps every remembered value, shows **OVER TIME BUDGET** with
+the planned total, and START will not move the robot. Lower the delay or feed,
+raise power, or shorten a leg until the warning clears, or press Triangle for
+the defaults. Edits that would make the route longer are refused meanwhile. App restart/reinstall loses memory. Triangle is not a recall
 of the last successful match settings.
 
 Edits are rejected if worst-case total reaches **26 seconds**. All three legs
@@ -193,6 +199,8 @@ stops outputs. This is the program's guard, not the official autonomous duration
 | SHOOTER FAILED / DEPARTURE ONLY | Shooting setup failed but all mapped shooter motors accepted stop commands. The mode can run its own selected route; C also waits through its feed slot. |
 | Shot skipped / retaining slot | C did not qualify speed; it stays still until the planned feed slot ends. |
 | Change rejected | Requested settings exceed budget or violate C's prespin requirement. |
+| OVER TIME BUDGET / NOT READY | Remembered settings no longer fit after the delay reset. START will not move the robot until fixed or Triangle is pressed. |
+| LOOP STALL WHILE DRIVING - STOPPED | The program paused for more than 0.25 s while the wheels were moving. Every output stops, because the robot's position is no longer known. Report it with the elapsed time shown. |
 | Hardware error | Attempts to zero every device and requests OpMode stop. |
 
 ## Verification and settings record

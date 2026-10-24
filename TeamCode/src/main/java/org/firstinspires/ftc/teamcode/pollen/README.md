@@ -1,6 +1,6 @@
 # Pollen autonomous code
 
-Build identifier: **pollen-mat-v3** (`PollenConfig.BUILD`). Three autonomous OpModes preselect PollenBot:
+Build identifier: **pollen-mat-v4** (`PollenConfig.BUILD`). Three autonomous OpModes preselect PollenBot:
 `Pollen ROBOT Park`, `Pollen ROBOT Shoot + Park`, and
 `Pollen Supporting Shooter Auto`. The PollenBot TeleOp itself
 (`../BioBuzzStarterbotOpMode.java`, outside this package) uses `PollenTeleOpTuning`
@@ -31,8 +31,11 @@ The experimental profiles/routes are not validated robot settings.
 | PollenTeleOpTuning | PollenBot TeleOp (`BioBuzzStarterbotOpMode`) INIT menu: launcher target and drive-power scale, defaults from that OpMode's constants |
 
 B and C use distinct static snapshots in the shared OpMode. Their INIT loads
-never share settings. Start delay resets to the mode default; an invalid C
-snapshot is reset before sequence creation. START locks every control, including
+never share settings. Start delay resets to the mode default. A remembered
+snapshot that no longer fits the budget is kept as is: `budgetOk()` is false,
+INIT shows OVER TIME BUDGET, `init()` skips building the sequence, and `start()`
+refuses to run. While over budget, `adjust()` accepts only edits that do not
+lengthen the route. START locks every control, including
 Triangle and Square. These are process-local snapshots, not persisted files.
 PollenBot TeleOp keeps its own static snapshot the same way; its defaults are the
 OpMode's `LAUNCHER_TARGET_VELOCITY` / `LAUNCHER_MIN_VELOCITY` and 100% drive power.
@@ -75,6 +78,13 @@ and feeding. If C's shooter is unavailable, a zero-output step occupies its feed
 slot; if prespin times out, the sequencer holds the same slot. Explicit feed=0
 instead departs after the chosen start delay. Invalid velocity stops the run.
 
+Step clocks start on the first `tick()` that runs the step, not when the
+previous step ends, so a delayed loop between steps cannot shorten or skip the
+next one. If the previous tick commanded drive motion and the next tick arrives
+more than `MAX_DRIVE_LOOP_GAP_SECONDS` (0.25 s) later, the sequence stops with
+`LOOP STALL WHILE DRIVING - STOPPED`. Pauses while stationary are allowed. Real
+elapsed time is therefore the plan plus about one loop per step change.
+
 The original PollenSequence constructors delegate with `spinupDuringDelay=false`
 and retain existing behavior. The new overload permits overlap only when the
 first step shoots and delay is at least the spinup timeout. It subtracts that
@@ -116,9 +126,15 @@ ftcgradle :TeamCode:assembleDebug
 The Java script uses Java 8 compatibility and covers original A/B behavior,
 mat arithmetic, field-preset selection, C timing and skipped-shot slots, all three
 movement legs, controller edits of each leg and launcher speed, budgets, memory and STOP,
-plus the TeleOp INIT menu (defaults, limits, 96% feed gate, memory, lock at START). The standard-library Python script
-checks nominal swept polygons, including the rejected direct route and rejected
-centered support start. Neither establishes actual physical clearance.
+plus the TeleOp INIT menu (defaults, limits, 96% feed gate, memory, lock at START).
+`PollenLoopTimingTest` drives B Square, B Triangle and C through irregular loop
+timing and 350 ms pauses at each step change, and checks that no leg is skipped
+or shortened and that a pause while driving stops the run. The standard-library
+Python script checks nominal swept polygons, including the rejected direct route
+and rejected centered support start. The test script also exports the Java
+presets (`PollenPresetExport`) and runs the checker with `--presets`, so the
+checker fails if the Java routes and its plan disagree. Neither establishes
+actual physical clearance.
 `tools/draw-pollen-field-routes.py`, `tools/draw-pollen-pit-sheet.py` and
 `tools/draw-pollen-field-layout.py` (matplotlib) redraw the route diagram, the
 alliance pit sheet and the field layout; they draw, not check.
@@ -134,6 +150,6 @@ not that branch-locked helper.
 
 Deploy a freshly built APK through the team's working Wi-Fi/ADB connection or
 Android Studio TeamCode run configuration to the Control Hub. USB-C has not
-worked. Verify `pollen-mat-v3` in INIT. Check the actual installed commit and all
+worked. Verify `pollen-mat-v4` in INIT. Check the actual installed commit and all
 settings before physical tests. Java changes require rebuild/reinstall; INIT
 settings and documentation edits do not.

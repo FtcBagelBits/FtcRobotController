@@ -33,6 +33,12 @@ public final class PollenMatSupportTest {
         check(rejected, "invalid move rejected");
     }
 
+    /** Tick every 20 ms from {@code from} up to (not including) {@code to}; returns the last output. */
+    private static PollenSequence.Output run(PollenSequence s, double from, double to, double velocity) {
+        PollenSequence.Output out = null;
+        for (double now = from; now < to - 1e-9; now += .02) out = s.tick(now, velocity, false);
+        return out;
+    }
     public static void main(String[] args) {
         PollenDriveCalibration.Profile mat = PollenDriveCalibration.Profile.MAT_TRIAL;
         near(PollenDriveCalibration.FORWARD_MAT_COEFFICIENT, 138.17142857142858, "all .25-power trials fit");
@@ -109,13 +115,18 @@ public final class PollenMatSupportTest {
         zero(s.tick(22.5, 1250, false));
         o = s.tick(22.51, 0, false); near(o.forward, .45, "support forward clearance first");
         near(o.strafe, 0, "no strafe beside the flower");
-        double secondLegStart = 22.5 + t.legMove(1).seconds + .001;
-        zero(s.tick(secondLegStart, 0, false));
-        o = s.tick(secondLegStart + .01, 0, false); near(o.forward, t.forward(), "support second leg forward component");
+        double leg1Ends = 22.51 + t.legMove(1).seconds;  // clock starts on the first commanding loop
+        check(run(s, 22.53, leg1Ends - .005, 0).forward == .45, "leg 1 runs its full time");
+        o = s.tick(leg1Ends + .001, 0, false); zero(o); check(o.phase.startsWith("NEXT"), "leg 1 ends on time");
+        double leg3Start = leg1Ends + .021;
+        o = s.tick(leg3Start, 0, false); near(o.forward, t.forward(), "support second leg forward component");
         near(o.strafe, t.strafe(), "rightward departure"); near(o.launcherVelocity, 0, "shooter off before drive");
         near(o.feederPower, 0, "feeding off before drive");
-        zero(s.tick(secondLegStart + t.driveSeconds() + .001, 0, false));
-        o = s.tick(secondLegStart + t.driveSeconds() + .51, 0, false); check(o.finished, "finish before deadline"); zero(o);
+        check(run(s, leg3Start + .02, leg3Start + t.driveSeconds() - .005, 0).strafe == t.strafe(), "leg 3 full time");
+        zero(s.tick(leg3Start + t.driveSeconds() + .001, 0, false));
+        o = run(s, leg3Start + t.driveSeconds() + .021, leg3Start + t.driveSeconds() + .55, 0);
+        check(o.finished && o.phase.startsWith("DONE"), "finish before deadline"); zero(o);
+        check(leg3Start + t.driveSeconds() + .55 < 26.5, "real loop transitions still finish before the 27 s cutoff");
 
         // Spinup timeout preserves the partner's entire scheduled shooting slot.
         s = t.sequence(); s.start(0); s.tick(11, 0, false);
@@ -151,10 +162,36 @@ public final class PollenMatSupportTest {
         select(t, CALIBRATION); t.lock(); tap(t, -1); check(t.profile() == mat, "lock calibration at START");
         PollenShootTuning shortDelay = support(); set(shortDelay, START_DELAY, -1, 40);
         near(shortDelay.value(START_DELAY), 4, "feeding needs four-second prespin window");
-        set(shortDelay, LEG3_CM, 1, 80);
+        // Reviewer's case: a calibrated C run at 4 s delay, power 0.25, leg 3 lengthened by 10 cm.
+        set(shortDelay, DRIVE_POWER, -1, 4); near(shortDelay.value(DRIVE_POWER), .25, "calibration power");
+        set(shortDelay, LEG3_CM, 1, 2);
+        double calibratedLeg3 = shortDelay.value(LEG3_CM);
+        check(Math.abs(calibratedLeg3 - (PollenFieldGeometry.supportDistanceCm() + 10)) < .01, "calibrated leg 3 (edits round to 0.01 cm)");
+        check(shortDelay.budgetOk(), "valid at 4 s delay");
         remembered = new PollenShootTuning(shortDelay.snapshot(), true);
         near(remembered.value(START_DELAY), 15, "delay resets to support default");
-        near(remembered.value(LEG3_CM), PollenFieldGeometry.supportDistanceCm(), "invalid memory resets to valid field preset");
+        near(remembered.value(DRIVE_POWER), .25, "calibrated power kept, not raised to 0.45");
+        near(remembered.value(LEG3_CM), calibratedLeg3, "calibrated leg 3 kept");
+        check(remembered.profile() == mat, "calibration profile kept");
+        check(!remembered.budgetOk(), "over budget after the delay reset");
+        check(remembered.notice().contains("OVER TIME BUDGET") && remembered.notice().contains("Will not start"),
+                "over-budget notice says why and that START will not move: " + remembered.notice());
+        boolean refused = false;
+        try { remembered.sequence(); } catch (IllegalArgumentException expected) { refused = true; }
+        check(refused, "an over-budget route cannot be built, so START cannot move the robot");
+        double worst = remembered.worstCaseSeconds();
+        set(remembered, LEG3_CM, 1, 1);
+        near(remembered.value(LEG3_CM), calibratedLeg3, "edits that lengthen an over-budget route are refused");
+        check(remembered.notice().contains("longer"), "refusal explained");
+        set(remembered, FLYWHEEL, 1, 1);
+        near(remembered.value(FLYWHEEL), 1300, "edits that do not change the time are allowed");
+        set(remembered, START_DELAY, -1, 1);
+        check(remembered.worstCaseSeconds() < worst, "lowering delay is allowed while over budget");
+        while (!remembered.budgetOk()) set(remembered, START_DELAY, -1, 1);
+        check(remembered.value(START_DELAY) >= 4 && remembered.budgetOk(), "operator can work back under budget");
+        near(remembered.value(LEG3_CM), calibratedLeg3, "route still the calibrated one");
+        near(remembered.value(DRIVE_POWER), .25, "power still the calibrated one");
+        remembered.sequence();
         shortDelay.update(false, false, false, false, true);
         near(shortDelay.value(START_DELAY), 15, "triangle support wait");
         near(shortDelay.value(FEED_SECONDS), 7.5, "triangle support feed");
@@ -176,12 +213,15 @@ public final class PollenMatSupportTest {
         near(primary.worstCaseSeconds(), 4 + 10 + .5 + legs, "budget counts all three legs");
         s = primary.sequence(false); s.start(0); o = s.tick(0, 0, false);
         near(o.forward, .25, "leg 1 forward first"); near(o.strafe, 0, "leg 1 has no strafe beside the wall");
-        double t1 = primary.legMove(1).seconds, t2 = t1 + primary.legMove(2).seconds;
-        zero(s.tick(t1, 0, false));
-        o = s.tick(t1 + .01, 0, false);
+        double t1 = primary.legMove(1).seconds;
+        run(s, .02, t1 - .005, 0);
+        zero(s.tick(t1 + .001, 0, false));
+        double t2start = t1 + .021, t2 = t2start + primary.legMove(2).seconds;
+        o = s.tick(t2start, 0, false);
         near(o.forward, 0, "leg 2 left only"); near(o.strafe, -.25, "leg 2 left");
-        zero(s.tick(t2 + .01, 0, false));
-        o = s.tick(t2 + .02, 0, false);
+        run(s, t2start + .02, t2 - .005, 0);
+        zero(s.tick(t2 + .001, 0, false));
+        o = s.tick(t2 + .021, 0, false);
         near(o.forward, primary.forward(), "third leg after clearances"); near(o.strafe, primary.strafe(), "third leg angle");
         set(primary, LEG3_CM, -1, 100); near(primary.value(LEG3_CM), 0, "zero main leg");
         check(primary.legMove(2).seconds > 0, "clearance remains independently enabled");

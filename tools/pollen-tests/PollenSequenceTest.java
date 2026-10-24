@@ -20,6 +20,12 @@ public final class PollenSequenceTest {
         return sequence(new PollenSequence.Step[]{PollenSequence.Step.continuousShoot(2),
                 PollenSequence.Step.drive("PARK", 1, 0.2, 0, 0)});
     }
+    /** Tick every 20 ms from {@code from} up to (not including) {@code to}; returns the last output. */
+    private static PollenSequence.Output run(PollenSequence s, double from, double to, double velocity) {
+        PollenSequence.Output out = null;
+        for (double t = from; t < to - 1e-9; t += 0.02) out = s.tick(t, velocity, false);
+        return out;
+    }
     public static void main(String[] args) {
         PollenSequence park = sequence(new PollenSequence.Step[]{
                 PollenSequence.Step.drive("MOVE", .75, .2, 0, 0),
@@ -27,9 +33,10 @@ public final class PollenSequenceTest {
         zero(park.tick(0, 0, false)); // No action before Start.
         park.start(0);
         check(park.tick(0, 0, false).forward == 0.2, "Park movement");
+        check(run(park, 0.02, 0.745, 0).forward == 0.2, "Park moves for its whole step");
         zero(park.tick(0.75, 0, false));
-        PollenSequence.Output done = park.tick(1.25, 0, false);
-        check(done.finished, "Park completion");
+        PollenSequence.Output done = run(park, 0.77, 1.28, 0);
+        check(done.finished && done.phase.startsWith("DONE"), "Park completion");
         zero(done);
         zero(park.tick(2, 0, false));
 
@@ -45,7 +52,9 @@ public final class PollenSequenceTest {
         check(shot.tick(2.74, 1250, false).feederPower == 1, "Full feed window after spinup");
         zero(shot.tick(2.75, 1250, false));
         check(shot.tick(2.76, 0, false).forward == .2, "Park after continuous feed completes");
-        check(shot.tick(3.75, 0, false).finished, "Shot route completes");
+        check(run(shot, 2.78, 3.755, 0).forward == .2, "Park leg runs a full second from its first loop");
+        PollenSequence.Output shotDone = shot.tick(3.77, 0, false);
+        check(shotDone.finished && shotDone.phase.startsWith("DONE"), "Shot route completes");
 
         PollenSequence delayed = new PollenSequence(new PollenSequence.Step[]{
                 PollenSequence.Step.drive("MOVE", 1, .2, 0, 0)}, 1250, 1200, 4, .25, 27, 2);
@@ -53,7 +62,9 @@ public final class PollenSequenceTest {
         zero(delayed.tick(10, 0, false));
         zero(delayed.tick(11.99, 0, false));
         check(delayed.tick(12, 0, false).forward == .2, "Delay completes before movement");
-        check(delayed.tick(13, 0, false).finished, "Delay preserves move duration");
+        check(run(delayed, 12.02, 12.995, 0).forward == .2, "Delay preserves move duration");
+        PollenSequence.Output delayedDone = delayed.tick(13.01, 0, false);
+        check(delayedDone.finished && delayedDone.phase.startsWith("DONE"), "Delayed move completes");
         delayed.start(20);
         zero(delayed.tick(21, 0, true));
         check(delayed.tick(22, 0, false).finished, "Stop during delay is latched");

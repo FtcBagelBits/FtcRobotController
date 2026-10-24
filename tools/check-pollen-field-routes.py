@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
-"""Nominal CAD geometry checks; see docs/POLLEN_FIELD_ROUTES.md. Not physical validation."""
-import math
+"""Nominal CAD geometry checks; see docs/POLLEN_FIELD_ROUTES.md. Not physical validation.
+Usage: python3 tools/check-pollen-field-routes.py [--presets presets.json]
+With --presets (written by tools/pollen-tests/PollenPresetExport.java; tools/test-pollen-sequence.sh
+does this), the routes checked are rebuilt from the Java presets and must match this file's plan."""
+import json, math, sys
 R=9; W=70.585; hx=-12.74164098
 # Primary (B Square): forward 10 cm off the wall, left 25 in, then diagonal to park.
 start=(-12.74164098, W-R); off_wall=(start[0],start[1]-10/2.54); corner=(off_wall[0]-25,off_wall[1]); primary=(-56,-26); support=(-56,-47)
@@ -43,9 +46,33 @@ obstacles={'frame':box(-24.729,24.742,-19.476,19.476),
 foot=box(-24.729,-22.75,-19.472,19.472)
 assert intersects(hull(robot(start)+robot(primary)),foot), 'direct primary diagonal should hit the frame foot'
 assert intersects(robot((hx,-W+R)),obstacles['scoring flower']), 'centered support start should overlap the flower'
-plans={'primary leg 1':hull(robot(start)+robot(off_wall)),'primary leg 2':hull(robot(off_wall)+robot(corner)),
- 'primary leg 3':hull(robot(corner)+robot(primary)),
- 'support leg 1':hull(robot(ss)+robot(sc)),'support leg 3':hull(robot(sc)+robot(support))}
+routes={'primary':[start,off_wall,corner,primary],'support':[ss,sc,support]}
+
+def java_route(preset):
+    """Waypoints the Java preset actually drives: start, then each nonzero leg (cm, +left deg)."""
+    fwd,left=((0,-1),(-1,0)) if preset['facing']=='-Z' else ((0,1),(1,0))
+    pts=[tuple(preset['start'])]
+    for cm,deg in preset['legs']:
+        if cm<=0: continue
+        d=cm/2.54; a=math.radians(deg); x,z=pts[-1]
+        pts.append((x+d*(math.cos(a)*fwd[0]+math.sin(a)*left[0]),z+d*(math.cos(a)*fwd[1]+math.sin(a)*left[1])))
+    return pts
+
+if '--presets' in sys.argv:
+    with open(sys.argv[sys.argv.index('--presets')+1]) as f: java=json.load(f)
+    for k,v in (('wall',W),('half',R),('red_hive_x',hx),('flower_inboard_x',flower_x)):
+        assert abs(java[k]-v)<1e-9,('Java constant differs from checker',k,java[k],v)
+    for name,key in (('primary','b_square'),('support','c')):
+        got=java_route(java[key]); want=routes[name]
+        assert len(got)==len(want),(name,'Java preset has a different number of legs',got)
+        for g,w in zip(got,want):
+            assert math.dist(g,w)<0.01,(name,'Java preset waypoint',g,'differs from checker plan',w)
+        assert math.dist(got[-1],tuple(java[key]['park']))<0.01,(name,'Java preset does not end at its park point')
+        routes[name]=got  # check the route the robot will actually be told to drive
+    print('Java presets match the checked plan (B Square and C waypoints within 0.01 in)')
+else:
+    print('NOTE: Java presets not compared; tools/test-pollen-sequence.sh runs this with --presets')
+plans={f'{name} leg {i+1}':hull(robot(a)+robot(b)) for name,pts in routes.items() for i,(a,b) in enumerate(zip(pts,pts[1:]))}
 for name,p in plans.items():
  for obstacle,b in obstacles.items():
   assert not intersects(p,b),(name,obstacle)

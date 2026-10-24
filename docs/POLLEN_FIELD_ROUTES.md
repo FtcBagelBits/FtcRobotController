@@ -218,5 +218,7 @@ normal setup tolerance; use the actual cell center for aiming.
 
 `python3 tools/check-pollen-field-routes.py` checks the nominal swept polygons,
 initial wall/half-field geometry, parking overlap and route separation.
+`bash tools/test-pollen-sequence.sh` runs it on the routes the Java presets
+actually produce (`--presets`), and fails if those differ from this plan.
 `python3 tools/draw-pollen-field-routes.py` (needs matplotlib) redraws the SVG. It does
 not account for calibration error, field tolerance, flexible parts or drift.

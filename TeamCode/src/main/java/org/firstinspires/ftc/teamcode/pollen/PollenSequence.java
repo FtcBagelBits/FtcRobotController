@@ -1,7 +1,14 @@
 package org.firstinspires.ftc.teamcode.pollen;
 
-/** Hardware-independent, nonblocking autonomous sequence. Times are seconds. */
+/** Hardware-independent, nonblocking autonomous sequence. Times are seconds.
+ * Each step's clock starts on the first loop that runs it (when its motion is first
+ * commanded), so a slow loop between steps cannot use up a step. A loop gap longer
+ * than MAX_DRIVE_LOOP_GAP_SECONDS while the drive is moving stops everything. */
 public final class PollenSequence {
+    /** Longest loop gap allowed while drive motors hold a nonzero command. The motors keep
+     * their last power during a gap, so a longer gap means unplanned, unmeasured travel. */
+    public static final double MAX_DRIVE_LOOP_GAP_SECONDS = 0.25;
+
     public static final class Step {
         public final String name;
         public final double seconds, forward, strafe, turn;
@@ -45,6 +52,7 @@ public final class PollenSequence {
     private final double targetVelocity, minVelocity, spinupTimeout, stableTime, deadline, startDelay;
     private final boolean spinupDuringDelay;
     private int index;
+    private boolean stepActive, wasDriving;
     private double startedAt, stepStartedAt, stableSince = Double.NaN;
     private double feedingSince = Double.NaN, previousTime;
     private double activeFeedSeconds;
@@ -122,7 +130,8 @@ public final class PollenSequence {
         if (!Double.isFinite(now)) throw new IllegalArgumentException("Invalid time");
         index = 0;
         startedAt = previousTime = now;
-        stepStartedAt = now + startDelay;
+        stepActive = wasDriving = false;
+        stepStartedAt = Double.NaN;
         activeFeedSeconds = 0;
         wasFeeding = false;
         stableSince = feedingSince = Double.NaN;
@@ -134,12 +143,22 @@ public final class PollenSequence {
     }
 
     public Output tick(double now, double measuredVelocity, boolean stopRequested) {
+        Output out = compute(now, measuredVelocity, stopRequested);
+        wasDriving = !out.finished && (out.forward != 0 || out.strafe != 0 || out.turn != 0);
+        return out;
+    }
+
+    private Output compute(double now, double measuredVelocity, boolean stopRequested) {
         if (stopRequested) return stop("STOPPED");
         if (finished) return terminal();
         if (!started) return new Output("READY - waiting for START");
         if (!Double.isFinite(now) || now < previousTime) return stop("INVALID CLOCK");
         double elapsedSinceTick = now - previousTime;
         previousTime = now;
+        if (wasDriving && elapsedSinceTick > MAX_DRIVE_LOOP_GAP_SECONDS) {
+            warning = String.format(java.util.Locale.US, "Loop paused %.2f s while driving", elapsedSinceTick);
+            return stop("LOOP STALL WHILE DRIVING - STOPPED");
+        }
         if (now - startedAt >= deadline) return stop("TIME LIMIT - STOPPED");
         if (now - startedAt < startDelay) {
             Output waiting = new Output("START DELAY");
@@ -153,6 +172,11 @@ public final class PollenSequence {
             return waiting;
         }
         Step step = steps[index];
+        if (!stepActive) {
+            // Start this step's clock now, on the loop that first commands it.
+            stepActive = true;
+            stepStartedAt = now;
+        }
         Output out = new Output(step.name);
         if (!step.shoot) {
             if (now - stepStartedAt >= step.seconds) return advance(now);
@@ -208,7 +232,7 @@ public final class PollenSequence {
 
     private Output advance(double now) {
         index++;
-        stepStartedAt = now;
+        stepActive = false; // the next step's clock starts when it first runs
         stableSince = feedingSince = Double.NaN;
         activeFeedSeconds = 0;
         wasFeeding = false;

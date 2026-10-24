@@ -27,6 +27,12 @@ public final class PollenShootFirstTest {
         t.update(false, false, direction < 0, direction > 0, false);
         release(t);
     }
+    /** Tick every 20 ms from {@code from} up to (not including) {@code to}; returns the last output. */
+    private static PollenSequence.Output run(PollenSequence s, double from, double to, double velocity) {
+        PollenSequence.Output out = null;
+        for (double now = from; now < to - 1e-9; now += .02) out = s.tick(now, velocity, false);
+        return out;
+    }
     public static void main(String[] args) {
         PollenShootTuning t = new PollenShootTuning(null);
         near(t.value(LEG3_CM), 60.96, "two-foot default");
@@ -62,10 +68,15 @@ public final class PollenShootFirstTest {
         near(move.launcherVelocity, 0, "flywheel off during travel");
         near(move.feederPower, 0, "both feeds off during travel");
         for (double p : PollenSequence.wheelPowers(move)) check(Math.abs(p) <= 1, "bounded wheel power");
-        double travelEnds = 11.5 + t.driveSeconds();
-        zero(s.tick(travelEnds + .001, 0, false));
-        PollenSequence.Output done = s.tick(travelEnds + .502, 0, false);
-        check(done.finished, "hold then finish"); zero(done);
+        // The leg's clock started at 11.51, the first loop that commanded it.
+        double travelEnds = 11.51 + t.driveSeconds();
+        PollenSequence.Output last = run(s, 11.53, travelEnds - .005, 0);
+        check(last.phase.equals("LEG 3 TO PARK") && last.forward == t.forward(), "still driving at loop rate");
+        PollenSequence.Output end = s.tick(travelEnds + .001, 0, false);
+        zero(end); check(end.phase.startsWith("NEXT"), "leg ends on its own time");
+        check(!run(s, travelEnds + .021, travelEnds + .5, 0).finished, "hold lasts half a second");
+        PollenSequence.Output done = s.tick(travelEnds + .522, 0, false);
+        check(done.finished && done.phase.startsWith("DONE"), "hold then finish, not a stall stop"); zero(done);
 
         s = t.sequence(); s.start(0);
         s.tick(0, 0, false); zero(s.tick(4, 0, false));

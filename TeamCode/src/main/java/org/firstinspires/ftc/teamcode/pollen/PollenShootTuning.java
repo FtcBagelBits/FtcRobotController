@@ -67,8 +67,11 @@ public final class PollenShootTuning {
         if (remembered != null) {
             values = remembered.values.clone();
             values[Field.START_DELAY.ordinal()] = supporting ? 15 : 0;
-            // A larger remembered route may no longer fit when delay resets.
-            if (!validBudget()) reset();
+            // Keep the remembered (possibly calibrated) route even if the restored delay makes it
+            // too long: the robot will not start until the operator fixes the budget or presses
+            // Triangle. Never swap in different distances, angles or power without saying so.
+            notice = budgetOk() ? "Remembered settings restored; start delay reset to its default"
+                    : overBudgetNotice();
         }
     }
 
@@ -130,7 +133,8 @@ public final class PollenShootTuning {
 
     private void adjust(int sign) {
         Field f = selected();
-        double old = value(f);
+        double old = value(f), oldWorst = worstCaseSeconds();
+        boolean wasOk = budgetOk();
         // Preserve fractional defaults; first angle edit reaches the
         // next whole degree in the requested direction, then steps by one degree.
         // This lets the operator select exactly zero without extra controls.
@@ -138,10 +142,15 @@ public final class PollenShootTuning {
                 ? (sign > 0 ? Math.floor(old) + 1 : Math.ceil(old) - 1)
                 : Math.round((old + sign * f.step) * 100.0) / 100.0;
         values[selected] = Math.max(f.min, Math.min(f.max, next));
-        if (!validBudget()) {
+        // Over budget (e.g. remembered settings after the delay reset), accept any edit that
+        // does not lengthen the route, so the operator can work back under the limit.
+        boolean accepted = budgetOk()
+                || (!wasOk && prespinOk() && worstCaseSeconds() <= oldWorst + 1e-9);
+        if (!accepted) {
             values[selected] = old;
-            notice = "Change rejected: total must be <26s; support feeding also needs delay >=4s.";
-        } else notice = "";
+            notice = wasOk ? "Change rejected: total must be <26s; support feeding also needs delay >=4s."
+                    : overBudgetNotice() + " That change made it longer.";
+        } else notice = budgetOk() ? "" : overBudgetNotice();
     }
 
     public Field selected() { return Field.values()[selected]; }
@@ -151,9 +160,19 @@ public final class PollenShootTuning {
     public boolean locked() { return locked; }
     public Snapshot snapshot() { return new Snapshot(values); }
 
-    private boolean validBudget() {
-        return worstCaseSeconds() < DEADLINE - 1
-                && (!supporting || value(Field.FEED_SECONDS) == 0 || value(Field.START_DELAY) >= SPINUP_TIMEOUT);
+    /** True when these settings fit the time budget (and C's prespin rule); START refuses otherwise. */
+    public boolean budgetOk() {
+        return worstCaseSeconds() < DEADLINE - 1 && prespinOk();
+    }
+
+    private boolean prespinOk() {
+        return !supporting || value(Field.FEED_SECONDS) == 0 || value(Field.START_DELAY) >= SPINUP_TIMEOUT;
+    }
+
+    private String overBudgetNotice() {
+        return String.format(java.util.Locale.US,
+                "OVER TIME BUDGET: %.2f s planned, must be < %.0f s. Lower delay or feed, raise power, "
+                        + "or shorten legs; Triangle = defaults. Will not start.", worstCaseSeconds(), DEADLINE - 1);
     }
 
     public boolean supporting() { return supporting; }

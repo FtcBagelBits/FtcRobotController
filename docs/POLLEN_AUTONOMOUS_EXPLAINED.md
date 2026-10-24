@@ -74,7 +74,11 @@ from the hive center. Nothing turns the chassis.
 ## Sequence timing and shooting
 
 A sequence is a list of timed actions. `PollenSequence.tick()` returns commands
-without blocking the OpMode loop. Shooting first qualifies encoder speed at 96%
+without blocking the OpMode loop. Each step's clock starts on the first loop
+that runs it, so a slow loop between two steps cannot use up the next step's
+time. The motors keep their last command while the program is paused, so a
+pause of more than 0.25 s while the wheels are moving stops everything:
+after that, the robot's position is not what the plan assumes. Shooting first qualifies encoder speed at 96%
 of target for 0.25 s. Then intake and agitator feed continuously for the selected
 duration. Normal speed dips do not pause the feed clock.
 
@@ -93,7 +97,8 @@ still run. All three must be zero for a stationary shooting test.
 
 Mechanism commands are applied before drive commands, so launcher, intake and
 agitator receive zero before departure. Nonfinite velocity, invalid/backwards
-time, STOP, the independent deadline and runtime hardware errors stop outputs.
+time, a long pause while driving, STOP, the independent deadline and runtime
+hardware errors stop outputs.
 Electrical/mechanical stopping is not guaranteed merely by issuing commands.
 
 ## Time budgets and validation

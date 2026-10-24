@@ -5,7 +5,7 @@ kept apart from what the code only predicts. Field geometry is in
 [POLLEN_FIELD_LAYOUT.md](POLLEN_FIELD_LAYOUT.md); how the drive models are
 built from these numbers is in [POLLEN_MAT_CALIBRATION.md](POLLEN_MAT_CALIBRATION.md).
 
-As of build `pollen-mat-v3` (October 24, 2026), **only two autonomous settings
+As of build `pollen-mat-v4` (October 24, 2026), **only two autonomous settings
 have run successfully on the robot: A's defaults and B's Triangle defaults.**
 Every other route, the MAT_TRIAL drive model and the TeleOp INIT menu are
 checked in software only. Add every new physical result to this file.
@@ -105,6 +105,7 @@ check, not a launch count.
 | C start | 18 in robot between the flower and the midline | 2.6 cm per side (5.2 cm total slack) |
 | B Square leg 3 | clear the side-wall flower | 21.6 cm |
 | C leg 1 | pass the flower going forward | 2.6 cm |
+| C timing | finish before the 27 s hard stop | planned 25.85 s; 0.15 s under the editor's 26 s limit |
 
 A route is usable once repeated runs land well inside these margins with the
 real load and battery.
@@ -119,8 +120,13 @@ real load and battery.
 3. **C legs** at power 0.45, the same way.
 4. **Launcher**: time to 1200 ticks/s, then pollen per 10 s feed, from B's
    start and C's start.
-5. **Footprint**: real width and length including intake and bumpers, and the
-   height of the part that touches the wall.
+5. **Footprint and C placement**: real width and length including intake and
+   bumpers, the height of the part that touches the wall, and whether the real
+   robot fits between the event field's flower and the midline with C's
+   2.6 cm-per-side nominal gaps.
+6. **Loop rate**: note any `LOOP STALL WHILE DRIVING` stop. The code now stops
+   on a pause over 0.25 s while driving, so a stall shows up instead of
+   silently moving the robot off its route.
 
 Record one row per run:
 

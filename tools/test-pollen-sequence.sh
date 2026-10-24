@@ -9,9 +9,15 @@ javac --release 8 -d "$test_build_dir" "$src/PollenSequence.java" "$src/PollenCo
   "$repo_dir/tools/pollen-tests/PollenParkTuningTest.java" \
   "$repo_dir/tools/pollen-tests/PollenShootFirstTest.java" \
   "$repo_dir/tools/pollen-tests/PollenMatSupportTest.java" \
-  "$repo_dir/tools/pollen-tests/PollenTeleOpTuningTest.java"
+  "$repo_dir/tools/pollen-tests/PollenTeleOpTuningTest.java" \
+  "$repo_dir/tools/pollen-tests/PollenLoopTimingTest.java" \
+  "$repo_dir/tools/pollen-tests/PollenPresetExport.java"
 java -cp "$test_build_dir" PollenSequenceTest
 java -cp "$test_build_dir" PollenParkTuningTest
 java -cp "$test_build_dir" PollenShootFirstTest
 java -cp "$test_build_dir" PollenMatSupportTest
 java -cp "$test_build_dir" PollenTeleOpTuningTest
+java -cp "$test_build_dir" PollenLoopTimingTest
+# Check the routes the Java presets actually drive against the CAD field model.
+java -cp "$test_build_dir" PollenPresetExport > "$test_build_dir/presets.json"
+python3 "$repo_dir/tools/check-pollen-field-routes.py" --presets "$test_build_dir/presets.json"

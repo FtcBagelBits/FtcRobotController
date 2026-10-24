@@ -59,7 +59,9 @@ public abstract class PollenShooterOpMode extends OpMode {
                 shooterAvailable = false;
                 fallback = "NO SHOT: " + ex + "; selected departure with shooting omitted";
             }
-            tuning.sequence(shooterAvailable); // Validate defaults before reporting ready.
+            // Validate the selected route before reporting ready. Over-budget remembered settings
+            // are not an error here: INIT shows them and START refuses until they are fixed.
+            if (tuning.budgetOk()) tuning.sequence(shooterAvailable);
         } catch (RuntimeException ex) {
             blocked = ex.toString();
             zeroHardware();
@@ -109,6 +111,7 @@ public abstract class PollenShooterOpMode extends OpMode {
         telemetry.addData("Square", supportingShooter() ? "Same as Triangle for C" : "Load UNTESTED 3-leg field route; check all rows");
         telemetry.addData("Tune", "Launcher speed, feed, power and each leg's cm/angle are rows above");
         telemetry.addData("Status", blocked != null ? "BLOCKED: " + blocked
+                : !tuning.budgetOk() ? "NOT READY - over time budget; START will not move the robot"
                 : fallback != null ? "READY FOR DEPARTURE ONLY - SHOOTER FAILED" : "READY - no movement until START");
         telemetry.addData("Memory", "Settings kept until app restart; start delay resets every INIT");
         telemetry.update();
@@ -129,7 +132,8 @@ public abstract class PollenShooterOpMode extends OpMode {
                     : String.format(java.util.Locale.US, "%.1f cm @ %+.1f deg -> %.2f s; command %+.1f deg; NO TURN",
                     tuning.legCm(leg), tuning.legAngle(leg), m.seconds, m.commandAngleDegrees));
         }
-        telemetry.addData("Worst case / limit", "%.2f / %.0f seconds", tuning.worstCaseSeconds(), PollenShootTuning.DEADLINE);
+        telemetry.addData("Worst case", "%.2f s; must be < %.0f s (hard stop at %.0f s)",
+                tuning.worstCaseSeconds(), PollenShootTuning.DEADLINE - 1, PollenShootTuning.DEADLINE);
         telemetry.addData("Calibration", tuning.profile());
         telemetry.addData("Angles", "+left / -right of start heading; MAT TRIAL converts desired path to command");
         if (tuning.profile() == PollenDriveCalibration.Profile.MAT_TRIAL)
@@ -145,6 +149,9 @@ public abstract class PollenShooterOpMode extends OpMode {
             if (tuning.legCm(1) == 0 && tuning.legCm(2) == 0 && tuning.legCm(3) == 0)
                 telemetry.addData("NO PARKING MOVE", "All legs are 0 cm: enter measured travel before match");
         }
+        if (!tuning.budgetOk()) telemetry.addData("OVER TIME BUDGET",
+                "%.2f s planned, must be < %.0f s: lower delay or feed, raise power, or shorten legs",
+                tuning.worstCaseSeconds(), PollenShootTuning.DEADLINE - 1);
         if (fallback != null) telemetry.addData("SHOOTER INIT FAILED", fallback);
         if (!tuning.notice().isEmpty()) telemetry.addData("Settings notice", tuning.notice());
     }
@@ -152,6 +159,11 @@ public abstract class PollenShooterOpMode extends OpMode {
     @Override public final void start() {
         tuning.lock();
         clock.reset();
+        if (blocked == null && !tuning.budgetOk()) {
+            blocked = "NOT STARTED: settings over time budget (fix in INIT, or Triangle for defaults)";
+            telemetry.addData("Status", blocked);
+            telemetry.update();
+        }
         if (blocked != null) { zeroHardware(); requestOpModeStop(); return; }
         try {
             sequence = tuning.sequence(shooterAvailable);

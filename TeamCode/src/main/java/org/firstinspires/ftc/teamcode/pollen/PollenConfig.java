@@ -5,7 +5,7 @@ public final class PollenConfig {
     private PollenConfig() { }
 
     /** Shown in INIT by the three Pollen autonomous modes and PollenBot TeleOp; change with Pollen code. */
-    public static final String BUILD = "pollen-mat-v3";
+    public static final String BUILD = "pollen-mat-v4";
 
     // Device names in the active PollenBot hardware configuration.
     public static final String[] DRIVE_NAMES = {"frontLeft", "frontRight", "backLeft", "backRight"};
