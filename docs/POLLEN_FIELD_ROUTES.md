@@ -96,7 +96,7 @@ do not confuse commanded angle with measured path direction.
    not dragging along the wall.
 3. Leg 2: strafe left **63.50 cm (25 inches)** to X=-37.742, holding the same heading.
 4. Leg 3: travel **217.47 cm at +12.313 degrees** to (-56,-26) in the CAD
-   plan. The preset now loads the team's field-tuned **172 cm at +35 degrees**
+   plan. The preset now loads the team's field-tuned **172.47 cm at +17 degrees**
    (October 24): the drive model would send that elsewhere, so the real robot
    travels differently from the model. Record measured endpoints in
    [POLLEN_ROBOT_BEHAVIOR.md](POLLEN_ROBOT_BEHAVIOR.md).
@@ -104,8 +104,8 @@ do not confuse commanded angle with measured path direction.
    side wall, leaving room for the supporting robot's separate parking slot.
 
 The preset uses MAT_TRIAL and power 0.25. With the field-tuned leg 3 its
-calculated drive time is about 9.2 seconds; with the 3-second spin-up, the
-default 10-second feed and the 0.5-second hold, the total is about **22.7 seconds**. Short loop transitions
+calculated drive time is about 8.5 seconds; with the 3-second spin-up, the
+default 10-second feed and the 0.5-second hold, the total is about **22.0 seconds**. Short loop transitions
 consume part of the reserved margin. Triangle restores B's tested short baseline.
 
 Swept-square checks clear the fixed frame, both hive projections and all four
@@ -148,7 +148,7 @@ never start partly across the alliance boundary.
 2. Leg 2: unused (0 cm) by default; available as a controller row.
 3. Leg 3: travel **117.96 cm at -81.848 degrees**, i.e. **16.73 cm forward /
    116.77 cm right**, to nominal **(-56,-47)** in the CAD plan. The preset now
-   loads the team's field-tuned **107 cm** at the same angle (October 24). The footprint partially overlaps
+   loads the team's field-tuned **97.96 cm at -81.85 degrees** (October 24). The footprint partially overlaps
    the loading zone with **3.0 inches (7.6 cm)** of separation from the primary
    robot's nominal parked footprint.
 
@@ -160,7 +160,7 @@ team-specific assigned spot.
 
 Supporting defaults use MAT_TRIAL, power **0.45**, a 12-second delay, a
 3-second spin-up and 7.5 seconds of feeding. The higher power is required by the
-short remaining time budget. Calculated total is about **25.6 seconds**,
+short remaining time budget. Calculated total is about **25.4 seconds**,
 including the hold, below the existing 27-second cutoff and the editor's
 stricter <26-second planning limit.
 

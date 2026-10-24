@@ -1,6 +1,6 @@
 # Pollen autonomous code
 
-Build identifier: **pollen-mat-v6** (`PollenConfig.BUILD`). Three autonomous OpModes preselect PollenBot:
+Build identifier: **pollen-mat-v7** (`PollenConfig.BUILD`). Three autonomous OpModes preselect PollenBot:
 `Pollen ROBOT Park`, `Pollen ROBOT Shoot + Park`, and
 `Pollen Supporting Shooter Auto`. The PollenBot TeleOp itself
 (`../BioBuzzStarterbotOpMode.java`, outside this package) uses `PollenTeleOpTuning`
@@ -66,10 +66,10 @@ Wheel order is front-left, front-right, back-left, back-right; mixer commands ar
 - A: delay -> timed forward -> hold.
 - B baseline: delay -> spinup -> feed -> leg 3 only (tested 60.96 cm) -> hold.
 - B Square field preset: same stationary shot -> leg 1 forward 10 cm off the
-  wall -> leg 2 left 63.5 cm -> leg 3 172 cm at +35 deg (field-tuned) -> hold.
+  wall -> leg 2 left 63.5 cm -> leg 3 172.47 cm at +17 deg (field-tuned) -> hold.
   Triangle restores the original short baseline.
 - C: 12 s delay -> 3 s spin-up -> feed 15-22.5 s -> leg 1 forward flower
-  clearance -> (leg 2 unused) -> leg 3 107 cm mostly right (field-tuned) -> hold.
+  clearance -> (leg 2 unused) -> leg 3 97.96 cm at -81.85 deg (field-tuned) -> hold.
 
 A shoot step runs the launcher alone for `SPINUP` seconds (default
 `PollenConfig.LAUNCHER_SPINUP_SECONDS` = 3), then launcher, intake and agitator
@@ -157,6 +157,6 @@ not that branch-locked helper.
 
 Deploy a freshly built APK through the team's working Wi-Fi/ADB connection or
 Android Studio TeamCode run configuration to the Control Hub. USB-C has not
-worked. Verify `pollen-mat-v6` in INIT. Check the actual installed commit and all
+worked. Verify `pollen-mat-v7` in INIT. Check the actual installed commit and all
 settings before physical tests. Java changes require rebuild/reinstall; INIT
 settings and documentation edits do not.

@@ -46,8 +46,8 @@ public final class PollenShootTuning {
     public static final double SUPPORT_START_DELAY = 12;
     // Field-tuned last-leg defaults set by the team on 2026-10-24. They replace the CAD plan's
     // computed values (PollenFieldGeometry), which remain the nominal geometry reference.
-    public static final double B_FIELD_LEG3_CM = 172, B_FIELD_LEG3_DEGREES = 35;
-    public static final double C_LEG3_CM = 107;
+    public static final double B_FIELD_LEG3_CM = 172.47, B_FIELD_LEG3_DEGREES = 17;
+    public static final double C_LEG3_CM = 97.96, C_LEG3_DEGREES = -81.85;
 
     /** Process-local memory, not saved across a Robot Controller app restart. */
     public static final class Snapshot {
@@ -91,7 +91,7 @@ public final class PollenShootTuning {
             values[Field.CALIBRATION.ordinal()] = 1;
             set(1, PollenFieldGeometry.SUPPORT_WALL_CLEARANCE_INCHES * PollenFieldGeometry.INCH_TO_CM, 0);
             set(2, 0, -90);
-            set(3, C_LEG3_CM, PollenFieldGeometry.supportAngleDegrees());
+            set(3, C_LEG3_CM, C_LEG3_DEGREES);
         }
         notice = supporting ? "Flush preset: forward clear of flower, then right to park (leg 3 field-tuned)"
                 : "Defaults restored: tested baseline, 2-foot move";

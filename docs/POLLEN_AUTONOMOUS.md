@@ -1,6 +1,6 @@
 # Pollen autonomous operating manual
 
-All three autonomous modes and PollenBot TeleOp show build **`pollen-mat-v6`**.
+All three autonomous modes and PollenBot TeleOp show build **`pollen-mat-v7`**.
 Keep these instructions with the installed code. The new mat calibration and field routes are **experimental**.
 The previously tested B settings remain its default and are restored by Triangle.
 
@@ -85,8 +85,8 @@ all at the one drive power; a leg set to 0 cm is skipped.
 | Leg 1 angle deg (+left) | 0 | 0 | 0 | 1; -90 to +90 |
 | Leg 2 cm, side clear | 0 | 63.50 | 0 | 5; 0-150 |
 | Leg 2 angle deg (+left) | +90 | +90 | -90 | 1; -90 to +90 |
-| Leg 3 cm, to park | 60.96 | 172 (field-tuned) | 107 (field-tuned) | 5; 0-350 |
-| Leg 3 angle deg (+left) | +25.87 | +35 (field-tuned) | -81.848 | 1; -90 to +90 |
+| Leg 3 cm, to park | 60.96 | 172.47 (field-tuned) | 97.96 (field-tuned) | 5; 0-350 |
+| Leg 3 angle deg (+left) | +25.87 | +17 (field-tuned) | -81.85 (field-tuned) | 1; -90 to +90 |
 
 Fractional angles step to the next whole degree first, then by 1, so exactly 0
 is reachable. To shoot in place, set **all three leg distances to zero**. To test
@@ -107,12 +107,12 @@ The default 60.96-cm baseline is a short test, not a full-field park. Square loa
 - MAT_TRIAL, power **0.25**, normal 10-second feed and zero delay;
 - leg 1: **10 cm forward** off the wall after shooting;
 - leg 2: **63.50 cm left** to clear the frame;
-- leg 3: **172 cm at +35 degrees** to the near parking slot. These are the
+- leg 3: **172.47 cm at +17 degrees** to the near parking slot. These are the
   team's field-tuned values (October 24); the CAD plan's 217.47 cm at +12.31
   degrees is the nominal reference.
 
 This avoids the floor-level frame bar in the nominal CAD. It budgets about
-**22.7 s**: 3 s spin-up, 10 s feed, about 9.2 s of driving and the 0.5 s hold.
+**22.0 s**: 3 s spin-up, 10 s feed, about 8.5 s of driving and the 0.5 s hold.
 Drive starts at about 13 s. Triangle restores the tested
 short route (leg 3 only). Editing any leg changes the route; check the geometry
 again after such edits.
@@ -135,16 +135,16 @@ Default sequence, ignoring small loop-transition delays:
 | 12-15 s | Launcher spins up; drive, intake and agitator remain off |
 | 15-22.5 s | Feed for 7.5 s; remain stationary |
 | After 22.5 s | Stop all shooting mechanisms; leg 1: 20.32 cm forward to clear flower |
-| Next | Leg 2 skipped (0 cm); leg 3: 107 cm at -81.848 degrees (mostly right; field-tuned) |
+| Next | Leg 2 skipped (0 cm); leg 3: 97.96 cm at -81.85 degrees (mostly right; field-tuned) |
 | End | Hold zero outputs for 0.5 s, then DONE |
 
-This uses power 0.45 and MAT_TRIAL; predicted total is about **25.6 s**, so C
+This uses power 0.45 and MAT_TRIAL; predicted total is about **25.4 s**, so C
 has little budget left: longer legs or slower power need a shorter delay or
 feed. The 12 s delay plus the 3 s spin-up keeps C's feed at 15-22.5 s, the
 slot agreed with partners. Each step change costs one loop, so a few slow loops
 can let the 27 s cutoff trim the final 0.5 s hold; the computer tests confirm
 both legs still finish first. While commissioning C, use feed 0 or a shorter
-feed to keep more margin. Leg 3's 107 cm is a field-tuned default; record the
+feed to keep more margin. Leg 3's 97.96 cm is a field-tuned default; record the
 endpoint of each full run. The partner's hive tip is an assumption, not a detected event.
 
 If the shooter fails at INIT, C holds still through the spin-up and feed slot
