@@ -51,9 +51,10 @@ ax.annotate('B start', start, (start[0] + 14, start[1] - 2), fontsize=8, arrowpr
 ax.annotate('C start (flush, even gaps)', ss, (ss[0] + 12, ss[1] + 14), fontsize=8,
             arrowprops=dict(arrowstyle='-', lw=.6))
 ax.set_xlim(-W - 2, W + 2); ax.set_ylim(-W - 2, W + 2); ax.set_aspect('equal')
-ax.set_xlabel('X inches (+ = blue side)'); ax.set_ylabel('Z inches (+ = audience)')
+ax.invert_yaxis()  # match-view convention: red left, audience (up cell) at the bottom, loading zones at the top
+ax.set_xlabel('X inches (+ = blue side)'); ax.set_ylabel('Z inches (+ = audience, at bottom)')
 ax.set_title('Red alliance nominal presets (blue: rotate 180 degrees)', fontsize=11)
-ax.legend(loc='lower right', fontsize=8, framealpha=.95)
+ax.legend(loc='upper right', fontsize=8, framealpha=.95)
 
 tx.axis('off')
 lines = [

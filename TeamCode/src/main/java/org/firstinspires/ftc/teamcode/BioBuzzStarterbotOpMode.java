@@ -32,6 +32,9 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 
+import org.firstinspires.ftc.teamcode.pollen.PollenConfig;
+import org.firstinspires.ftc.teamcode.pollen.PollenTeleOpTuning;
+
 /*
  * This file includes a teleop (driver-controlled) file for the goBILDA® StarterBot with Mecanum
  * Wheels for the 2026-2027 FIRST® Tech Challenge. On top of a mecanum wheel drivetrain, it uses
@@ -75,6 +78,15 @@ public class BioBuzzStarterbotOpMode extends OpMode {
      */
     public final int LAUNCHER_TARGET_VELOCITY = 1250; //2678 RPM
     public final int LAUNCHER_MIN_VELOCITY = 1200; //2571 RPM
+
+    /*
+     * INIT menu (like the Pollen autonomous menus): before START the driver can raise or lower the
+     * launcher speed and turn down the drive power. The two numbers above are the defaults, so an
+     * untouched menu drives and launches exactly as before. Settings lock at START and are kept
+     * for the next INIT until the Robot Controller app restarts; Triangle restores the defaults.
+     */
+    private static PollenTeleOpTuning.Snapshot remembered;
+    private PollenTeleOpTuning tuning;
 
 
     /*
@@ -160,6 +172,8 @@ public class BioBuzzStarterbotOpMode extends OpMode {
          */
 //        rightIntakeServo.setDirection(DcMotorSimple.Direction.REVERSE);
 
+        tuning = new PollenTeleOpTuning(LAUNCHER_TARGET_VELOCITY, LAUNCHER_MIN_VELOCITY, remembered);
+
         /*
          * Tell the driver that initialization is complete.
          */
@@ -171,6 +185,21 @@ public class BioBuzzStarterbotOpMode extends OpMode {
      */
     @Override
     public void init_loop() {
+        // D-pad and Triangle are not used for driving, so they are free for the INIT menu.
+        tuning.update(gamepad1.dpad_up, gamepad1.dpad_down, gamepad1.dpad_left, gamepad1.dpad_right,
+                gamepad1.triangle);
+        remembered = tuning.snapshot();
+        telemetry.addData("Build", PollenConfig.BUILD);
+        telemetry.addData(marker(PollenTeleOpTuning.Row.LAUNCHER) + "Launcher ticks/s", "%.0f (default %d)",
+                tuning.launcherVelocity(), LAUNCHER_TARGET_VELOCITY);
+        telemetry.addData(marker(PollenTeleOpTuning.Row.DRIVE) + "Drive power", "%.0f%% (default 100%%)",
+                tuning.driveScale() * 100);
+        telemetry.addData("Controls", "D-pad UP/DOWN selects; LEFT/RIGHT edits; Triangle = defaults");
+        telemetry.addData("Settings", tuning.isDefault() ? "DEFAULTS" : "CHANGED - check before START");
+    }
+
+    private String marker(PollenTeleOpTuning.Row row) {
+        return tuning.selected() == row ? "> " : "  ";
     }
 
     /*
@@ -178,6 +207,7 @@ public class BioBuzzStarterbotOpMode extends OpMode {
      */
     @Override
     public void start() {
+        tuning.lock();
     }
 
     /*
@@ -231,6 +261,9 @@ public class BioBuzzStarterbotOpMode extends OpMode {
          */
         telemetry.addData("Motors", "left (%.2f), right (%.2f)", leftFrontPower, rightFrontPower);
         telemetry.addData("Triggers", "left (%.2f, right (%.2f)",gamepad1.left_trigger, gamepad1.right_trigger);
+        telemetry.addData("Launcher target / measured", "%.0f / %.0f ticks/s",
+                tuning.launcherVelocity(), launcher.getVelocity());
+        telemetry.addData("Drive power", "%.0f%%", tuning.driveScale() * 100);
     }
 
     /*
@@ -257,6 +290,12 @@ public class BioBuzzStarterbotOpMode extends OpMode {
             rightBackPower /= max;
         }
 
+        // INIT drive-power setting: 100% leaves the normal stick response unchanged.
+        leftFrontPower *= tuning.driveScale();
+        rightFrontPower *= tuning.driveScale();
+        leftBackPower *= tuning.driveScale();
+        rightBackPower *= tuning.driveScale();
+
         /*
          * Send calculated power to wheels
          */
@@ -276,7 +315,7 @@ public class BioBuzzStarterbotOpMode extends OpMode {
          * Otherwise, we start spinning the launcher down.
          */
         if (gamepad1.right_bumper) {
-            launcher.setVelocity(LAUNCHER_TARGET_VELOCITY);
+            launcher.setVelocity(tuning.launcherVelocity());
         } else {
             launcher.setVelocity(0);
         }
@@ -288,7 +327,7 @@ public class BioBuzzStarterbotOpMode extends OpMode {
          * add some power to the intake power. This can sometimes help dislodge stuck elements from
          * inside the hopper.
          */
-        if (gamepad1.right_bumper && launcher.getVelocity() > LAUNCHER_MIN_VELOCITY) {
+        if (gamepad1.right_bumper && launcher.getVelocity() > tuning.launcherMinVelocity()) {
             //agitator.setPower(1);
             intakePower += 0.5;
         } else {

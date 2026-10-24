@@ -1,6 +1,6 @@
 # Pollen autonomous operating manual
 
-All three modes show build **`pollen-mat-v2`**. Keep these instructions with the
+All three modes and PollenBot TeleOp show build **`pollen-mat-v3`**. Keep these instructions with the
 installed code. The new mat calibration and field routes are **experimental**.
 The previously tested B settings remain its default and are restored by Triangle.
 
@@ -144,6 +144,26 @@ waits through the selected feed slot before departing. Shooter INIT fallback
 also retains that slot. If you deliberately set Feed seconds to zero, both
 prespin and the feed slot disappear: departure starts after the selected delay.
 With feeding enabled, delay cannot be reduced below four seconds.
+
+## PollenBot TeleOp INIT settings
+
+PollenBot TeleOp has a two-row INIT menu, set before START like the autonomous
+menus. Driving controls are unchanged; the menu only changes two numbers.
+
+| Row | Default | Increment / range | Effect during the match |
+| --- | ---: | --- | --- |
+| Launcher ticks/s | 1250 | 50; 500-2500 | Target while R1 is held. Feeding boost starts at 96% of it (1200 at default). |
+| Drive power | 100% | 5%; 20-100% | Multiplies all wheel powers after the usual mixing, so slower but same stick feel. |
+
+- **D-pad UP / DOWN:** select the row marked `>`. **RIGHT / LEFT:** edit. Tap/release.
+- **Triangle:** restore both defaults. INIT shows `DEFAULTS` or `CHANGED`.
+- Settings lock at START and show on the match screen with the measured launcher
+  speed. They are kept for the next INIT until the Robot Controller app restarts,
+  so check the INIT screen before every match.
+
+A faster launcher target only helps if the motor can reach it under load: watch
+"Launcher target / measured". If measured stays below 96% of target, feeding
+never gets the boost. Find the best speed on the practice field and record it.
 
 ## Shooting, memory and failure handling
 

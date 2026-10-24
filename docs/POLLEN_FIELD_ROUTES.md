@@ -38,6 +38,12 @@ the audience. Red is X<0. The STEP vertical Y coordinate is not used for the
 2D footprint check. The robot is modeled as a filled 18-inch square; no benefit
 is assumed from cutout corners or low chassis height.
 
+Both diagrams are drawn as a true top-down view in the manual's match-view
+orientation: **audience at the bottom, red on the left**, so the red loading zone
+is on the left wall toward the top of the page and the initially upward-facing
+red cell faces the bottom. (Diagrams before October 23, 2026 plotted +Z upward,
+which mirrored the field top-to-bottom; coordinates were unaffected.)
+
 | Item | CAD / planning bounds in inches |
 | --- | --- |
 | End-wall inner top-rail face | Z = +/-70.585 |

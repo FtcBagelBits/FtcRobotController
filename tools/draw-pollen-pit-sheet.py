@@ -76,12 +76,12 @@ for blue in (False, True):
 # Timeline badges on the red half; the blue half is identical, rotated.
 badge(ax, (-5, 44), 'P: 0-14 s shoot\n~10-24 s: 3 legs\nto INNER slot', P_COL)
 badge(ax, (8, -40), 'S: 0-15 s wait\n15-22.5 s shoot\n~23-25.5 s: 2 legs\nto OUTER slot', S_COL)
-ax.text(-W + 2, W + 2.5, 'RED', color=RED, fontsize=12, weight='bold', va='bottom')
-ax.text(W - 2, W + 2.5, 'BLUE', color=BLUE, fontsize=12, weight='bold', va='bottom', ha='right')
-ax.text(0, W + 2.5, 'AUDIENCE END', fontsize=8, ha='center', va='bottom')
-ax.text(0, -W - 2.5, 'SCORING END', fontsize=8, ha='center', va='top')
-ax.text(1.5, 28, 'alliance\nmidline\n(tile seam)', fontsize=6.5, va='bottom', color='#333')
+ax.text(-W + 2, -W - 2.5, 'RED', color=RED, fontsize=12, weight='bold', va='bottom')
+ax.text(W - 2, -W - 2.5, 'BLUE', color=BLUE, fontsize=12, weight='bold', va='bottom', ha='right')
+ax.text(0, W + 2.5, 'AUDIENCE END   (dashed line = alliance midline, a tile seam)', fontsize=8, ha='center', va='top')
+ax.text(0, -W - 2.5, 'SCORING END', fontsize=8, ha='center', va='bottom')
 ax.set_xlim(-W - 3, W + 3); ax.set_ylim(-W - 6, W + 6); ax.set_aspect('equal'); ax.axis('off')
+ax.invert_yaxis()  # match-view convention: red left, audience (up cell) at the bottom, loading zones at the top
 ax.set_title('BIOBUZZ autonomous lanes - team 31452 (nominal, untested)', fontsize=11, pad=14)
 
 lines = [
