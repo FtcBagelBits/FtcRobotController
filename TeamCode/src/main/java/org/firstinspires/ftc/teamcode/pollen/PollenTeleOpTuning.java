@@ -68,14 +68,23 @@ public final class PollenTeleOpTuning {
     }
 
     public double launcherVelocity() { return launcher; }
-    /** Seconds R1 must be held (launcher on) before the feed boost starts. Speed is not checked. */
+    /** Longest wait, in seconds of R1, before feeding starts (sooner if up to speed). */
     public double spinupSeconds() { return spinup; }
     /** Agitator power while feeding (R1 held past the spin-up). */
     public double agitatorPower() { return agitator; }
     /** Multiplies all four wheel powers after the normal mecanum normalization. */
     public double driveScale() { return drive; }
-    /** True when R1 has been held long enough for the feed boost. */
-    public boolean feedReady(double heldSeconds) { return heldSeconds >= spinup; }
+    /** "Up to speed" means 96% of the target: 1200 ticks/s for the default 1250. */
+    public double launcherReadyVelocity() { return launcher * PollenConfig.LAUNCHER_READY_FRACTION; }
+
+    /** Feeding rule 1: the launcher's encoder says it is up to speed. */
+    public boolean launcherIsUpToSpeed(double measuredVelocity) {
+        return measuredVelocity >= launcherReadyVelocity();
+    }
+
+    /** Feeding rule 2 (the backup): R1 has been held for the whole spin-up time, so feed even
+     * if the encoder reading is wrong. This is the rule that fixed the October 24 stall. */
+    public boolean spinUpTimeIsOver(double heldSeconds) { return heldSeconds >= spinup; }
     public boolean isDefault() {
         return launcher == defaultLauncher && spinup == defaultSpinup && agitator == defaultAgitator && drive == MAX_DRIVE;
     }

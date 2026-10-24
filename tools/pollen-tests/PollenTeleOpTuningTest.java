@@ -2,7 +2,7 @@ import org.firstinspires.ftc.teamcode.pollen.PollenConfig;
 import org.firstinspires.ftc.teamcode.pollen.PollenTeleOpTuning;
 import static org.firstinspires.ftc.teamcode.pollen.PollenTeleOpTuning.Row.*;
 
-/** PollenBot TeleOp INIT menu: defaults, edits, limits, memory, locking and the time-based feed. */
+/** PollenBot TeleOp INIT menu: defaults, edits, limits, memory, locking and the two feeding rules. */
 public final class PollenTeleOpTuningTest {
     private static int checks;
     private static void check(boolean ok, String message) {
@@ -29,11 +29,16 @@ public final class PollenTeleOpTuningTest {
         near(t.driveScale(), 1, "default drive power leaves sticks unchanged");
         check(t.isDefault() && t.selected() == LAUNCHER, "starts on launcher row with defaults");
 
-        // The feed follows the launcher after a fixed hold time; speed is never checked.
-        check(!t.feedReady(0) && !t.feedReady(2.99), "no feed before 3 s of R1");
-        check(t.feedReady(3) && t.feedReady(10), "feed from 3 s of R1 onward");
+        // Feeding starts at rule 1 (up to speed) OR rule 2 (spin-up time over); TeleOp ORs them.
+        near(t.launcherReadyVelocity(), 1200, "up to speed is the original 1200 ticks/s");
+        check(t.launcherIsUpToSpeed(1200) && t.launcherIsUpToSpeed(1300), "1200 and above is up to speed");
+        check(!t.launcherIsUpToSpeed(1199) && !t.launcherIsUpToSpeed(0), "below 1200 is not");
+        check(!t.launcherIsUpToSpeed(Double.NaN), "a bad reading never counts as up to speed");
+        check(!t.spinUpTimeIsOver(0) && !t.spinUpTimeIsOver(2.99), "backup timer not over before 3 s");
+        check(t.spinUpTimeIsOver(3) && t.spinUpTimeIsOver(10), "backup timer over from 3 s on");
 
         tap(t, 1, 3); near(t.launcherVelocity(), 1400, "launcher +50 per tap");
+        near(t.launcherReadyVelocity(), 1344, "up-to-speed level follows the edited target");
         t.update(false, false, false, true, false); t.update(false, false, false, true, false);
         near(t.launcherVelocity(), 1450, "held button does not repeat"); release(t);
         t.update(false, false, true, true, false); near(t.launcherVelocity(), 1450, "opposite arrows cancel"); release(t);
@@ -42,9 +47,9 @@ public final class PollenTeleOpTuningTest {
 
         select(t, SPINUP); near(t.launcherVelocity(), 500, "changing rows does not edit");
         tap(t, -1, 2); near(t.spinupSeconds(), 2, "spin-up -0.5 s per tap");
-        check(t.feedReady(2) && !t.feedReady(1.99), "feed timing follows the edited spin-up");
+        check(t.spinUpTimeIsOver(2) && !t.spinUpTimeIsOver(1.99), "backup timer follows the edited spin-up");
         tap(t, -1, 20); near(t.spinupSeconds(), 0, "spin-up lower limit (feed at once)");
-        check(t.feedReady(0), "zero spin-up feeds with R1");
+        check(t.spinUpTimeIsOver(0), "zero spin-up feeds with R1");
         tap(t, 1, 20); near(t.spinupSeconds(), 6, "spin-up upper limit");
 
         select(t, AGITATOR);

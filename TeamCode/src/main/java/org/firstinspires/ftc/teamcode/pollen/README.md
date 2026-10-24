@@ -1,6 +1,6 @@
 # Pollen autonomous code
 
-Build identifier: **pollen-mat-v7** (`PollenConfig.BUILD`). Three autonomous OpModes preselect PollenBot:
+Build identifier: **pollen-mat-v8** (`PollenConfig.BUILD`). Three autonomous OpModes preselect PollenBot:
 `Pollen ROBOT Park`, `Pollen ROBOT Shoot + Park`, and
 `Pollen Supporting Shooter Auto`. The PollenBot TeleOp itself
 (`../BioBuzzStarterbotOpMode.java`, outside this package) uses `PollenTeleOpTuning`
@@ -76,9 +76,12 @@ A shoot step runs the launcher alone for `SPINUP` seconds (default
 together for `FEED_SECONDS`, the intake at `FEED_POWER` (0.5) and the agitator at
 `AGITATOR_POWER` (`PollenConfig.AGITATOR_FEED_POWER`, 1.0; it replaced a windmill
 servo that ran at full power). Measured launcher speed is never used to delay,
-pause or skip feeding; only non-finite velocity data stops the run. PollenBot
-TeleOp does the same with its own spin-up row: hold R1 for the spin-up time,
-then the intake gets +0.5 (clipped to 1) and the agitator its own feed power.
+pause or skip feeding in auto; only non-finite velocity data stops the run.
+PollenBot TeleOp feeds on R1 when the launcher reads `LAUNCHER_READY_FRACTION`
+(0.96) of target or its spin-up row elapses, whichever is first
+(`launcherIsUpToSpeed` or `spinUpTimeIsOver` in `PollenTeleOpTuning`), and latches feeding until R1
+is released: the intake gets +0.5 (clipped to 1) and the agitator its own feed
+power. Auto keeps fixed times so C never feeds before its 15 s slot.
 
 Leg 3 defaults (`B_FIELD_LEG3_CM/DEGREES`, `C_LEG3_CM` in `PollenShootTuning`) are
 field-tuned and no longer equal the CAD plan in `PollenFieldGeometry`; the route
@@ -157,6 +160,6 @@ not that branch-locked helper.
 
 Deploy a freshly built APK through the team's working Wi-Fi/ADB connection or
 Android Studio TeamCode run configuration to the Control Hub. USB-C has not
-worked. Verify `pollen-mat-v7` in INIT. Check the actual installed commit and all
+worked. Verify `pollen-mat-v8` in INIT. Check the actual installed commit and all
 settings before physical tests. Java changes require rebuild/reinstall; INIT
 settings and documentation edits do not.

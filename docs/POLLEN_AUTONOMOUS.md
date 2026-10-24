@@ -1,6 +1,6 @@
 # Pollen autonomous operating manual
 
-All three autonomous modes and PollenBot TeleOp show build **`pollen-mat-v7`**.
+All three autonomous modes and PollenBot TeleOp show build **`pollen-mat-v8`**.
 Keep these instructions with the installed code. The new mat calibration and field routes are **experimental**.
 The previously tested B settings remain its default and are restored by Triangle.
 
@@ -160,7 +160,7 @@ autonomous menus. Driving controls are unchanged.
 | Row | Default | Increment / range | Effect during the match |
 | --- | ---: | --- | --- |
 | Launcher ticks/s | 1250 | 50; 500-2500 | Target while R1 is held. |
-| Spin-up before feed | 3.0 s | 0.5; 0-6 s | How long R1 must be held before feeding starts. A fixed time; launcher speed is not checked. |
+| Spin-up before feed | 3.0 s | 0.5; 0-6 s | Longest R1 hold before feeding starts. Feeding starts sooner if the launcher reads 96% of target (1200 at default); a low reading can never block it. |
 | Agitator power while feeding | 1.00 | 0.05; 0.10-1.00 | Agitator power once feeding starts. The intake gets +0.5 on top of the triggers, capped at 1. |
 | Drive power | 100% | 5%; 20-100% | Multiplies all wheel powers after the usual mixing, so slower but same stick feel. |
 
@@ -170,9 +170,11 @@ autonomous menus. Driving controls are unchanged.
   speed. They are kept for the next INIT until the Robot Controller app restarts,
   so check the INIT screen before every match.
 
-The match screen shows `Feed: spinning up / FEEDING` and "Launcher target /
-measured". Feeding no longer waits for the measured speed, so a launcher that
-reads low still feeds. If measured stays near 0 while the wheel is clearly
+The match screen shows `Feed: spinning up` or `FEEDING (started at 1.2 s: up to
+speed)` / `(3.0 s: spin-up timer)`, plus "Launcher target / measured". Once
+feeding starts it stays on until R1 is released, even when the wheel slows as
+balls go through. If it always says "spin-up timer", the launcher never reads
+up to speed: check the battery and the encoder cable. If measured stays near 0 while the wheel is clearly
 spinning, the launcher's encoder cable is loose or unplugged: the screen says
 so. Without the encoder, the launcher's speed control does not work properly,
 so fix the cable before relying on shot distance.
