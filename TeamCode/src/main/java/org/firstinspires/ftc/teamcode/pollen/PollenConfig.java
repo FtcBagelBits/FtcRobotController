@@ -5,7 +5,10 @@ public final class PollenConfig {
     private PollenConfig() { }
 
     /** Shown in INIT by the three Pollen autonomous modes and PollenBot TeleOp; change with Pollen code. */
-    public static final String BUILD = "pollen-mat-v4";
+    public static final String BUILD = "pollen-mat-v5";
+
+    /** Launcher runs alone this long before feeding starts, in auto and TeleOp (team-measured). */
+    public static final double LAUNCHER_SPINUP_SECONDS = 3.0;
 
     // Device names in the active PollenBot hardware configuration.
     public static final String[] DRIVE_NAMES = {"frontLeft", "frontRight", "backLeft", "backRight"};

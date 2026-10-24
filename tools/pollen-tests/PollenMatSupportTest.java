@@ -93,23 +93,24 @@ public final class PollenMatSupportTest {
         near(PollenFieldGeometry.PRIMARY_PARK_Z_INCHES - PollenFieldGeometry.SUPPORT_PARK_Z_INCHES - 18,
                 3, "two nominal parking footprints have a three-inch gap");
         PollenShootTuning t = support();
-        near(t.value(START_DELAY), 15, "support waits 15 seconds");
+        near(t.value(START_DELAY), 12, "support waits 12 seconds");
+        near(t.value(SPINUP), 3, "then spins up 3 seconds");
+        near(t.feedStartSeconds(), 15, "so C feeds from 15 s, as agreed with the partner");
         near(t.value(FEED_SECONDS), 7.5, "support feed duration");
-        near(t.value(LEG3_CM), PollenFieldGeometry.supportDistanceCm(), "support field distance");
+        near(t.value(LEG3_CM), 98, "field-tuned support leg 3");
         check(t.forward() > 0 && t.strafe() > 0, "support moves right AND forward");
         check(t.profile() == mat, "new experimental support uses trial profile");
-        check(t.worstCaseSeconds() > 25.7 && t.worstCaseSeconds() < 26, "overlapped spinup fits field route");
+        check(t.worstCaseSeconds() > 25 && t.worstCaseSeconds() < 26, "support route fits the budget: " + t.worstCaseSeconds());
         near(t.value(LEG1_CM), 20.32, "forward clearance before rightward support leg");
         near(t.value(LEG1_ANGLE), 0, "support leg 1 straight forward");
         near(t.value(LEG2_CM), 0, "support leg 2 unused by default");
         near(t.value(LEG3_ANGLE), PollenFieldGeometry.supportAngleDegrees(), "support leg 3 angle");
         PollenSequence s = t.sequence(); s.start(0);
-        zero(s.tick(0, 0, false)); zero(s.tick(10.99, 0, false));
-        PollenSequence.Output o = s.tick(11, 0, false);
-        near(o.launcherVelocity, 1250, "spinup at t=11"); near(o.feederPower, 0, "no early feed");
-        s.tick(14.7, 1250, false);
-        o = s.tick(14.99, 1250, false); near(o.feederPower, 0, "ready still cannot feed before t=15");
-        o = s.tick(15, 1250, false); near(o.feederPower, 1, "feed at t=15 after qualifying speed");
+        zero(s.tick(0, 0, false)); zero(s.tick(11.99, 0, false));
+        PollenSequence.Output o = s.tick(12, 0, false);
+        near(o.launcherVelocity, 1250, "launcher starts at t=12, after the delay"); near(o.feederPower, 0, "no early feed");
+        o = s.tick(14.99, 1250, false); near(o.feederPower, 0, "launcher alone until t=15");
+        o = s.tick(15, 0, false); near(o.feederPower, 1, "feed at t=15 without checking speed");
         near(o.forward, 0, "stationary shot"); near(o.strafe, 0, "stationary shot strafe");
         near(s.tick(22.49, 900, false).feederPower, 1, "full 7.5 seconds despite normal dip");
         zero(s.tick(22.5, 1250, false));
@@ -128,29 +129,34 @@ public final class PollenMatSupportTest {
         check(o.finished && o.phase.startsWith("DONE"), "finish before deadline"); zero(o);
         check(leg3Start + t.driveSeconds() + .55 < 26.5, "real loop transitions still finish before the 27 s cutoff");
 
-        // Spinup timeout preserves the partner's entire scheduled shooting slot.
-        s = t.sequence(); s.start(0); s.tick(11, 0, false);
-        zero(s.tick(15, 0, false)); check(s.warning().contains("retaining"), "skipped shot warning");
-        zero(s.tick(22.49, 0, false)); zero(s.tick(22.5, 0, false));
-        near(s.tick(22.51, 0, false).forward, .45, "failed spinup begins same forward clearance, not early");
-        s = t.sequence(false); s.start(0); zero(s.tick(14.99, 0, false));
-        zero(s.tick(15, 0, false)); zero(s.tick(22.49, 0, false)); zero(s.tick(22.5, 0, false));
+        // A launcher that reports no speed still feeds 15-22.5 s and departs on time.
+        s = t.sequence(); s.start(0);
+        run(s, 0, 11.995, 0); s.tick(12, 0, false);  // shoot step starts exactly at 12 s
+        o = run(s, 12.02, 22.495, 0); near(o.feederPower, 1, "zero measured speed still feeds");
+        check(s.warning().isEmpty(), "no speed warning");
+        zero(s.tick(22.5, 0, false));
+        near(s.tick(22.51, 0, false).forward, .45, "departs at the usual time");
+        // Shooter INIT failure: C holds still through the spin-up and feed slot, then departs.
+        s = t.sequence(false); s.start(0);
+        run(s, 0, 11.995, 0); s.tick(12, 0, false);
+        o = run(s, 12.02, 22.495, 0); zero(o); check(o.phase.startsWith("NO SHOOTER"), "holds still through the slot");
+        zero(s.tick(22.5, 0, false));
         near(s.tick(22.51, 0, false).forward, .45, "INIT failure preserves slot and forward clearance");
 
-        for (double stopAt : new double[] {1, 11.1, 15.1, 23, 25.5}) {
+        for (double stopAt : new double[] {1, 12.1, 15.1, 23, 25}) {
             s = t.sequence(); s.start(0);
             for (double now = 0; now < stopAt; now += .02) s.tick(now, 1250, false);
             zero(s.tick(stopAt, 1250, true)); o = s.tick(stopAt + 1, 1250, false);
             zero(o); check(o.finished, "STOP latches through support phases");
         }
-        s = t.sequence(); s.start(0); o = s.tick(11, Double.NaN, false); zero(o); check(o.finished, "bad velocity during prespin stops");
+        s = t.sequence(); s.start(0); o = s.tick(13, Double.NaN, false); zero(o); check(o.finished, "invalid launcher data during spin-up stops");
         s = t.sequence(); s.start(0); o = s.tick(27, 1250, false); zero(o); check(o.finished, "deadline stops support");
-        // Operator-requested feed=0 removes prespin and the feed slot.
+        // Operator-requested feed=0 removes the spin-up and the feed slot.
         PollenShootTuning skip = support(); set(skip, FEED_SECONDS, -1, 15);
-        s = skip.sequence(); s.start(0); zero(s.tick(11, 0, false));
-        near(s.tick(15, 0, false).forward, .45, "explicit feed=0 departs at selected delay");
-        set(skip, LEG3_CM, -1, 80); set(skip, LEG1_CM, -1, 30); s = skip.sequence(); s.start(0); zero(s.tick(15, 0, false));
-        check(s.tick(15.5, 0, false).finished, "zero feed/distance holds only");
+        s = skip.sequence(); s.start(0); zero(s.tick(11.99, 0, false));
+        near(s.tick(12, 0, false).forward, .45, "explicit feed=0 departs at selected delay");
+        set(skip, LEG3_CM, -1, 80); set(skip, LEG1_CM, -1, 30); s = skip.sequence(); s.start(0); zero(s.tick(12, 0, false));
+        check(s.tick(12.5, 0, false).finished, "zero feed/distance holds only");
 
         set(t, LEG3_CM, 1, 80); check(t.worstCaseSeconds() < 26, "support rejects over-budget distance");
         check(t.notice().contains("rejected"), "budget warning");
@@ -160,16 +166,16 @@ public final class PollenMatSupportTest {
         near(remembered.value(LEG3_CM), t.value(LEG3_CM), "support memory");
         check(remembered.profile() == mat, "remember calibration profile");
         select(t, CALIBRATION); t.lock(); tap(t, -1); check(t.profile() == mat, "lock calibration at START");
-        PollenShootTuning shortDelay = support(); set(shortDelay, START_DELAY, -1, 40);
-        near(shortDelay.value(START_DELAY), 4, "feeding needs four-second prespin window");
+        PollenShootTuning shortDelay = support(); set(shortDelay, START_DELAY, -1, 16);
+        near(shortDelay.value(START_DELAY), 4, "short delay for a practice run");
         // Reviewer's case: a calibrated C run at 4 s delay, power 0.25, leg 3 lengthened by 10 cm.
         set(shortDelay, DRIVE_POWER, -1, 4); near(shortDelay.value(DRIVE_POWER), .25, "calibration power");
         set(shortDelay, LEG3_CM, 1, 2);
         double calibratedLeg3 = shortDelay.value(LEG3_CM);
-        check(Math.abs(calibratedLeg3 - (PollenFieldGeometry.supportDistanceCm() + 10)) < .01, "calibrated leg 3 (edits round to 0.01 cm)");
+        check(Math.abs(calibratedLeg3 - 108) < .01, "calibrated leg 3, 10 cm past the default");
         check(shortDelay.budgetOk(), "valid at 4 s delay");
         remembered = new PollenShootTuning(shortDelay.snapshot(), true);
-        near(remembered.value(START_DELAY), 15, "delay resets to support default");
+        near(remembered.value(START_DELAY), 12, "delay resets to support default");
         near(remembered.value(DRIVE_POWER), .25, "calibrated power kept, not raised to 0.45");
         near(remembered.value(LEG3_CM), calibratedLeg3, "calibrated leg 3 kept");
         check(remembered.profile() == mat, "calibration profile kept");
@@ -188,14 +194,14 @@ public final class PollenMatSupportTest {
         set(remembered, START_DELAY, -1, 1);
         check(remembered.worstCaseSeconds() < worst, "lowering delay is allowed while over budget");
         while (!remembered.budgetOk()) set(remembered, START_DELAY, -1, 1);
-        check(remembered.value(START_DELAY) >= 4 && remembered.budgetOk(), "operator can work back under budget");
+        check(remembered.value(START_DELAY) >= 0 && remembered.budgetOk(), "operator can work back under budget");
         near(remembered.value(LEG3_CM), calibratedLeg3, "route still the calibrated one");
         near(remembered.value(DRIVE_POWER), .25, "power still the calibrated one");
         remembered.sequence();
         shortDelay.update(false, false, false, false, true);
-        near(shortDelay.value(START_DELAY), 15, "triangle support wait");
+        near(shortDelay.value(START_DELAY), 12, "triangle support wait");
         near(shortDelay.value(FEED_SECONDS), 7.5, "triangle support feed");
-        near(shortDelay.value(LEG3_CM), PollenFieldGeometry.supportDistanceCm(), "triangle support field distance");
+        near(shortDelay.value(LEG3_CM), 98, "triangle support field-tuned distance");
         check(new PollenShootTuning(null).value(FEED_SECONDS) == 10, "B defaults independent of support");
 
         // Square gives B a three-leg route without changing triangle's tested default.
@@ -205,12 +211,12 @@ public final class PollenMatSupportTest {
         near(primary.value(LEG1_ANGLE), 0, "wall clearance is straight forward");
         near(primary.value(LEG2_CM), 63.5, "then clears the frame to the left");
         near(primary.value(LEG2_ANGLE), 90, "hive clearance is pure left");
-        near(primary.value(LEG3_CM), PollenFieldGeometry.primaryDistanceCm(), "then travel to near parking slot");
-        near(primary.value(LEG3_ANGLE), PollenFieldGeometry.primaryAngleDegrees(), "third-leg angle");
+        near(primary.value(LEG3_CM), 172, "then the field-tuned last leg to the parking slot");
+        near(primary.value(LEG3_ANGLE), 35, "field-tuned last-leg angle");
         near(primary.value(DRIVE_POWER), .25, "primary field trial power");
         check(primary.worstCaseSeconds() < 26, "field preset fits full shot budget");
         double legs = primary.legMove(1).seconds + primary.legMove(2).seconds + primary.legMove(3).seconds;
-        near(primary.worstCaseSeconds(), 4 + 10 + .5 + legs, "budget counts all three legs");
+        near(primary.worstCaseSeconds(), 3 + 10 + .5 + legs, "budget: 3 s spin-up, 10 s feed, three legs, hold");
         s = primary.sequence(false); s.start(0); o = s.tick(0, 0, false);
         near(o.forward, .25, "leg 1 forward first"); near(o.strafe, 0, "leg 1 has no strafe beside the wall");
         double t1 = primary.legMove(1).seconds;
@@ -260,9 +266,9 @@ public final class PollenMatSupportTest {
             set(tune, f, 1, 200); near(tune.value(f), 90, "angle upper limit");
             set(tune, f, -1, 200); near(tune.value(f), -90, "angle lower limit");
         }
-        set(tune, LEG1_CM, 1, 100);
+        set(tune, LEG3_CM, 1, 100);
         check(tune.worstCaseSeconds() < 26, "long field-route edits stay inside budget");
-        check(tune.value(LEG1_CM) < 60 && tune.notice().contains("rejected"), "over-budget leg edit rejected visibly");
+        check(tune.value(LEG3_CM) < 350 && tune.notice().contains("rejected"), "over-budget leg edit rejected visibly");
         PollenShootTuning shortRoute = new PollenShootTuning(null);
         set(shortRoute, LEG1_CM, 1, 100); near(shortRoute.value(LEG1_CM), 60, "leg 1 upper limit");
         PollenShootTuning kept = new PollenShootTuning(tune.snapshot());
@@ -272,8 +278,13 @@ public final class PollenMatSupportTest {
         set(cTune, LEG2_CM, 1, 1); near(cTune.value(LEG2_CM), 5, "C optional leg 2 can be enabled");
         near(cTune.value(LEG2_ANGLE), -90, "C leg 2 defaults to robot-right");
         set(cTune, FLYWHEEL, -1, 2); near(cTune.value(FLYWHEEL), 1150, "C launcher speed editable");
-        s = cTune.sequence(); s.start(0); s.tick(10.99, 0, false);
-        near(s.tick(11, 0, false).launcherVelocity, 1150, "C prespin uses edited speed");
+        s = cTune.sequence(); s.start(0); s.tick(11.99, 0, false);
+        near(s.tick(12, 0, false).launcherVelocity, 1150, "C spin-up uses edited speed");
+        set(cTune, SPINUP, -1, 2); near(cTune.value(SPINUP), 2, "spin-up row editable");
+        near(cTune.feedStartSeconds(), 14, "shorter spin-up moves the feed earlier");
+        s = cTune.sequence(); s.start(0); s.tick(12, 0, false);
+        near(s.tick(13.99, 0, false).feederPower, 0, "no feed before the edited spin-up ends");
+        near(s.tick(14, 0, false).feederPower, 1, "feed after the edited spin-up");
         System.out.println("PollenMatSupportTest: " + checks + " checks passed");
     }
 }

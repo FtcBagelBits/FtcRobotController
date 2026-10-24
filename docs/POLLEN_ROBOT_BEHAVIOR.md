@@ -5,7 +5,7 @@ kept apart from what the code only predicts. Field geometry is in
 [POLLEN_FIELD_LAYOUT.md](POLLEN_FIELD_LAYOUT.md); how the drive models are
 built from these numbers is in [POLLEN_MAT_CALIBRATION.md](POLLEN_MAT_CALIBRATION.md).
 
-As of build `pollen-mat-v4` (October 24, 2026), **only two autonomous settings
+As of build `pollen-mat-v5` (October 24, 2026), **only two autonomous settings
 have run successfully on the robot: A's defaults and B's Triangle defaults.**
 Every other route, the MAT_TRIAL drive model and the TeleOp INIT menu are
 checked in software only. Add every new physical result to this file.
@@ -16,7 +16,9 @@ checked in software only. Add every new physical result to this file.
 | --- | --- | --- | --- |
 | A: Pollen ROBOT Park | 2.00 s forward at power 0.20, delay 0 | Run successfully | Team report; endpoint not recorded |
 | B: Shoot + Park, Triangle | 1250 ticks/s, feed 10 s, 60.96 cm at +25.87 deg, power 0.20, baseline model | Run successfully | Team report; endpoint and shots not recorded |
-| PollenBot TeleOp, untouched menu | launcher 1250 / feed gate 1200, drive 100% | Team's working TeleOp | Same numbers as before the INIT menu existed |
+| PollenBot TeleOp, untouched menu | launcher 1250, feed 3 s after R1, drive 100% | Feed stopped working Oct 24 under the old speed gate; time-based feed not yet run | See "Feeder stall, October 24" |
+| Launcher spin-up | 3 s before feeding | Team-measured | Basis for the fixed spin-up in auto and TeleOp |
+| Leg 3 defaults | B Square 172 cm at +35 deg; C 98 cm at -81.85 deg | Team-chosen on the field, Oct 24 | Endpoints not recorded here; the drive model predicts different endpoints |
 | B, Square field route | 3 legs, MAT_TRIAL, power 0.25 | Not run | Software tests and CAD route checker only |
 | C: Supporting Shooter | flush start, 2 legs, MAT_TRIAL, power 0.45 | Not run | Software tests and CAD route checker only |
 | MAT_TRIAL drive model | interpolated from the trials below | Not validated | Built from trials whose setup is partly unknown |
@@ -87,12 +89,21 @@ same. Code: `PollenDriveCalibration.move()`.
 | Setting | Auto (B and C) | TeleOp | Measured? |
 | --- | --- | --- | --- |
 | Launcher target | 1250 ticks/s (INIT row) | 1250 ticks/s (INIT menu) | Used in matches; exit speed not measured |
-| Feed allowed at | 96% of target (1200), held 0.25 s | above 96% of target (1200) | Code |
-| Spin-up limit | 4 s, then skip the shot | none | Spin-up time not measured |
+| Feed starts | after the Spin-up row (3 s), whatever the measured speed | 3 s after R1 (INIT row) | 3 s is team-measured |
 | Feed power | intake + agitator 0.50 | trigger, +0.50 while firing | Code |
 | Feed duration | B 10 s, C 7.5 s | while R1 held | Pollen per second not measured |
 
-Not measured yet: time to reach 1200 ticks/s, pollen launched per second, shot
+### Feeder stall, October 24
+
+The launcher spun in auto and TeleOp but the feeder never ran. Both used to wait
+for the encoder to read at least 1200 ticks/s (96% of target); TeleOp's check
+came from the original StarterBot code. The likeliest cause is the measured
+speed no longer reaching 1200: a loose launcher encoder cable, a low battery, or
+a raised TeleOp INIT speed. Build `pollen-mat-v5` feeds on fixed times instead,
+and TeleOp telemetry flags a measured speed near 0. Check "Launcher target /
+measured" on the next run and record what it shows.
+
+Not measured yet: actual speed reached in 3 s, pollen launched per second, shot
 spread, and whether 4 pre-loads tip the hive from either start. The field's own
 calibration (3 nectar + 2 pollen holds, one more tossed pollen tips) is a field
 check, not a launch count.
@@ -105,7 +116,7 @@ check, not a launch count.
 | C start | 18 in robot between the flower and the midline | 2.6 cm per side (5.2 cm total slack) |
 | B Square leg 3 | clear the side-wall flower | 21.6 cm |
 | C leg 1 | pass the flower going forward | 2.6 cm |
-| C timing | finish before the 27 s hard stop | planned 25.85 s; 0.15 s under the editor's 26 s limit |
+| C timing | finish before the 27 s hard stop | planned 25.4 s; 0.6 s under the editor's 26 s limit |
 
 A route is usable once repeated runs land well inside these margins with the
 real load and battery.
@@ -116,9 +127,10 @@ real load and battery.
    measure forward and sideways separately and the final heading. MAT_TRIAL's
    biggest assumptions are sideways distance and left/right symmetry.
 2. **B Square, legs one at a time** (other legs set to 0 cm), then the full
-   route: lateral endpoint and heading.
+   route: lateral endpoint and heading. Record where the field-tuned 172 cm at
+   +35 deg leg actually ends; that tells us how to correct MAT_TRIAL.
 3. **C legs** at power 0.45, the same way.
-4. **Launcher**: time to 1200 ticks/s, then pollen per 10 s feed, from B's
+4. **Launcher**: measured speed after the 3 s spin-up, then pollen per 10 s feed, from B's
    start and C's start.
 5. **Footprint and C placement**: real width and length including intake and
    bumpers, the height of the part that touches the wall, and whether the real

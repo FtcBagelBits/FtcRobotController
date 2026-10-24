@@ -95,13 +95,17 @@ do not confuse commanded angle with measured path direction.
 2. Leg 1: drive **10 cm forward** to (-12.742, +57.648) so the left strafe is
    not dragging along the wall.
 3. Leg 2: strafe left **63.50 cm (25 inches)** to X=-37.742, holding the same heading.
-4. Leg 3: travel **217.47 cm at +12.313 degrees** to (-56,-26).
+4. Leg 3: travel **217.47 cm at +12.313 degrees** to (-56,-26) in the CAD
+   plan. The preset now loads the team's field-tuned **172 cm at +35 degrees**
+   (October 24): the drive model would send that elsewhere, so the real robot
+   travels differently from the model. Record measured endpoints in
+   [POLLEN_ROBOT_BEHAVIOR.md](POLLEN_ROBOT_BEHAVIOR.md).
 5. Stop. The nominal footprint overlaps the loading zone without pressing the
    side wall, leaving room for the supporting robot's separate parking slot.
 
-The preset uses MAT_TRIAL and power 0.25. Its calculated drive time is about
-9.70 seconds; with the default 10-second feed, four-second spinup allowance and
-0.5-second hold, the total is about **24.20 seconds**. Short loop transitions
+The preset uses MAT_TRIAL and power 0.25. With the field-tuned leg 3 its
+calculated drive time is about 9.2 seconds; with the 3-second spin-up, the
+default 10-second feed and the 0.5-second hold, the total is about **22.7 seconds**. Short loop transitions
 consume part of the reserved margin. Triangle restores B's tested short baseline.
 
 Swept-square checks clear the fixed frame, both hive projections and all four
@@ -143,7 +147,8 @@ never start partly across the alliance boundary.
    edge then sits about 3 inches past the flower's field-side face.
 2. Leg 2: unused (0 cm) by default; available as a controller row.
 3. Leg 3: travel **117.96 cm at -81.848 degrees**, i.e. **16.73 cm forward /
-   116.77 cm right**, to nominal **(-56,-47)**. The footprint partially overlaps
+   116.77 cm right**, to nominal **(-56,-47)** in the CAD plan. The preset now
+   loads the team's field-tuned **98 cm** at the same angle (October 24). The footprint partially overlaps
    the loading zone with **3.0 inches (7.6 cm)** of separation from the primary
    robot's nominal parked footprint.
 
@@ -153,16 +158,16 @@ footprints do not overlap. A different partner's actual route still needs
 coordination. These coordinates describe two parking slots, not an official
 team-specific assigned spot.
 
-Supporting defaults use MAT_TRIAL, power **0.45**, 15 seconds before feeding,
-and 7.5 seconds of feeding. The higher power is required by the short remaining
-time budget and has not been validated for this sideways move. Calculated total
-is about **25.85 seconds**, including the hold, below the existing 27-second
-cutoff and the editor's stricter <26-second planning limit.
+Supporting defaults use MAT_TRIAL, power **0.45**, a 12-second delay, a
+3-second spin-up and 7.5 seconds of feeding. The higher power is required by the
+short remaining time budget. Calculated total is about **25.4 seconds**,
+including the hold, below the existing 27-second cutoff and the editor's
+stricter <26-second planning limit.
 
-The flywheel alone spins from approximately t=11 to t=15. Feeding starts no
-earlier than t=15 after speed qualification, and runs for 7.5 seconds. Drive
-starts at approximately t=22.5, with all shooter outputs off. If spinup fails,
-the robot waits through the feed slot before departing. It does **not** verify
+The launcher alone spins from t=12 to t=15. Feeding runs from t=15 to t=22.5 on
+fixed times; launcher speed is not checked. Drive starts at approximately
+t=22.5, with all shooter outputs off. If the shooter fails at INIT, the robot
+holds still through the same slot before departing. It does **not** verify
 that the partner tipped the hive; the wait is an open-loop coordination plan.
 
 ## Parking margins and the auto SWARM points

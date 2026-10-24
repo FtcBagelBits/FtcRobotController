@@ -1,6 +1,6 @@
 # Pollen autonomous code
 
-Build identifier: **pollen-mat-v4** (`PollenConfig.BUILD`). Three autonomous OpModes preselect PollenBot:
+Build identifier: **pollen-mat-v5** (`PollenConfig.BUILD`). Three autonomous OpModes preselect PollenBot:
 `Pollen ROBOT Park`, `Pollen ROBOT Shoot + Park`, and
 `Pollen Supporting Shooter Auto`. The PollenBot TeleOp itself
 (`../BioBuzzStarterbotOpMode.java`, outside this package) uses `PollenTeleOpTuning`
@@ -27,7 +27,7 @@ The experimental profiles/routes are not validated robot settings.
 | PollenShootTuning | B/C menus (launcher, feed, power, three legs' cm/angle), defaults, field presets, budget and route construction |
 | PollenDriveCalibration | Unchanged baseline; opt-in B / default C mat trial; A forward estimate |
 | PollenFieldGeometry | Nominal CAD-derived start/parking coordinates and preset displacements |
-| PollenSequence | Hardware-free timing, prespin, speed qualification, feed, STOP and mixer |
+| PollenSequence | Hardware-free timing: fixed spin-up then feed, drive legs, stall/STOP/deadline, mixer |
 | PollenTeleOpTuning | PollenBot TeleOp (`BioBuzzStarterbotOpMode`) INIT menu: launcher target and drive-power scale, defaults from that OpMode's constants |
 
 B and C use distinct static snapshots in the shared OpMode. Their INIT loads
@@ -66,17 +66,28 @@ Wheel order is front-left, front-right, back-left, back-right; mixer commands ar
 - A: delay -> timed forward -> hold.
 - B baseline: delay -> spinup -> feed -> leg 3 only (tested 60.96 cm) -> hold.
 - B Square field preset: same stationary shot -> leg 1 forward 10 cm off the
-  wall -> leg 2 left 63.5 cm -> leg 3 forward-left to park -> hold.
+  wall -> leg 2 left 63.5 cm -> leg 3 172 cm at +35 deg (field-tuned) -> hold.
   Triangle restores the original short baseline.
-- C: delay with flywheel-only prespin during its final four seconds -> feed ->
-  leg 1 forward flower clearance -> (leg 2 unused) -> leg 3 mostly right -> hold.
+- C: 12 s delay -> 3 s spin-up -> feed 15-22.5 s -> leg 1 forward flower
+  clearance -> (leg 2 unused) -> leg 3 98 cm mostly right (field-tuned) -> hold.
+
+A shoot step runs the launcher alone for `SPINUP` seconds (default
+`PollenConfig.LAUNCHER_SPINUP_SECONDS` = 3), then launcher, intake and agitator
+together for `FEED_SECONDS`. Measured launcher speed is never used to delay,
+pause or skip feeding; only non-finite velocity data stops the run. PollenBot
+TeleOp does the same with its own spin-up row: hold R1 for the spin-up time,
+then the +0.5 feed boost starts.
+
+Leg 3 defaults (`B_FIELD_LEG3_CM/DEGREES`, `C_LEG3_CM` in `PollenShootTuning`) are
+field-tuned and no longer equal the CAD plan in `PollenFieldGeometry`; the route
+checker reports the difference instead of requiring a match.
 
 `LEG1_CM`/`LEG1_ANGLE` through `LEG3_CM`/`LEG3_ANGLE` are independent controller
 rows; every leg uses `DRIVE_POWER` and the selected calibration profile, and a
-0-cm leg is skipped. All three must be zero to disable all travel. Feed=0 removes spinup
-and feeding. If C's shooter is unavailable, a zero-output step occupies its feed
-slot; if prespin times out, the sequencer holds the same slot. Explicit feed=0
-instead departs after the chosen start delay. Invalid velocity stops the run.
+0-cm leg is skipped. All three must be zero to disable all travel. Feed=0 removes
+spin-up and feeding. If C's shooter is unavailable, a zero-output step occupies
+its spin-up and feed slot. Explicit feed=0 instead departs after the chosen
+start delay. Non-finite velocity stops the run.
 
 Step clocks start on the first `tick()` that runs the step, not when the
 previous step ends, so a delayed loop between steps cannot shorten or skip the
@@ -84,12 +95,6 @@ next one. If the previous tick commanded drive motion and the next tick arrives
 more than `MAX_DRIVE_LOOP_GAP_SECONDS` (0.25 s) later, the sequence stops with
 `LOOP STALL WHILE DRIVING - STOPPED`. Pauses while stationary are allowed. Real
 elapsed time is therefore the plan plus about one loop per step change.
-
-The original PollenSequence constructors delegate with `spinupDuringDelay=false`
-and retain existing behavior. The new overload permits overlap only when the
-first step shoots and delay is at least the spinup timeout. It subtracts that
-one overlapped allowance from worst-case duration; subsequent shots, if added,
-still require their own spinup allowance. Only the flywheel runs during prespin.
 
 Budget includes all three drive legs and hold. Selected worst case must be <26 s;
 the independent cutoff is 27 s. Runtime hardware exceptions attempt every stop
@@ -124,9 +129,9 @@ ftcgradle :TeamCode:assembleDebug
 ```
 
 The Java script uses Java 8 compatibility and covers original A/B behavior,
-mat arithmetic, field-preset selection, C timing and skipped-shot slots, all three
+mat arithmetic, field-preset selection, fixed spin-up/feed timing (including a launcher reading zero), C's slot, all three
 movement legs, controller edits of each leg and launcher speed, budgets, memory and STOP,
-plus the TeleOp INIT menu (defaults, limits, 96% feed gate, memory, lock at START).
+plus the TeleOp INIT menu (defaults, limits, time-based feed, memory, lock at START).
 `PollenLoopTimingTest` drives B Square, B Triangle and C through irregular loop
 timing and 350 ms pauses at each step change, and checks that no leg is skipped
 or shortened and that a pause while driving stops the run. The standard-library
@@ -150,6 +155,6 @@ not that branch-locked helper.
 
 Deploy a freshly built APK through the team's working Wi-Fi/ADB connection or
 Android Studio TeamCode run configuration to the Control Hub. USB-C has not
-worked. Verify `pollen-mat-v4` in INIT. Check the actual installed commit and all
+worked. Verify `pollen-mat-v5` in INIT. Check the actual installed commit and all
 settings before physical tests. Java changes require rebuild/reinstall; INIT
 settings and documentation edits do not.

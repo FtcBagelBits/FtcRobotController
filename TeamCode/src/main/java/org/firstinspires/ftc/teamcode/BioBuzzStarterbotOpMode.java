@@ -31,6 +31,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.pollen.PollenConfig;
 import org.firstinspires.ftc.teamcode.pollen.PollenTeleOpTuning;
@@ -72,16 +73,18 @@ public class BioBuzzStarterbotOpMode extends OpMode {
      * have encoders with a resolution of 28 ticks per revolution. We can convert this to RPM
      * by dividing the value by 28, to get to revolutions per second, before multiplying by 60
      * to get revolutions per minute.
-     * We pass the target velocity variable to our motor to set the goal. We use the min velocity
-     * in the launch() function to only run the windmill servo when the motor is spinning fast
-     * enough to make a successful throw.
+     * We pass the target velocity variable to our motor to set the goal. Feeding starts a fixed
+     * spin-up time after the driver starts the launcher; it no longer waits for a measured speed,
+     * which kept the feeder from ever starting when the encoder read low.
      */
     public final int LAUNCHER_TARGET_VELOCITY = 1250; //2678 RPM
-    public final int LAUNCHER_MIN_VELOCITY = 1200; //2571 RPM
+    public final double LAUNCHER_SPINUP_SECONDS = PollenConfig.LAUNCHER_SPINUP_SECONDS; // 3 s
+    private final ElapsedTime launchTimer = new ElapsedTime();
+    private boolean launching = false;
 
     /*
      * INIT menu (like the Pollen autonomous menus): before START the driver can raise or lower the
-     * launcher speed and turn down the drive power. The two numbers above are the defaults, so an
+     * launcher speed and spin-up time and turn down the drive power. The numbers above are the defaults, so an
      * untouched menu drives and launches exactly as before. Settings lock at START and are kept
      * for the next INIT until the Robot Controller app restarts; Triangle restores the defaults.
      */
@@ -172,7 +175,7 @@ public class BioBuzzStarterbotOpMode extends OpMode {
          */
 //        rightIntakeServo.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        tuning = new PollenTeleOpTuning(LAUNCHER_TARGET_VELOCITY, LAUNCHER_MIN_VELOCITY, remembered);
+        tuning = new PollenTeleOpTuning(LAUNCHER_TARGET_VELOCITY, LAUNCHER_SPINUP_SECONDS, remembered);
 
         /*
          * Tell the driver that initialization is complete.
@@ -192,6 +195,8 @@ public class BioBuzzStarterbotOpMode extends OpMode {
         telemetry.addData("Build", PollenConfig.BUILD);
         telemetry.addData(marker(PollenTeleOpTuning.Row.LAUNCHER) + "Launcher ticks/s", "%.0f (default %d)",
                 tuning.launcherVelocity(), LAUNCHER_TARGET_VELOCITY);
+        telemetry.addData(marker(PollenTeleOpTuning.Row.SPINUP) + "Spin-up before feed", "%.1f s (default %.1f s)",
+                tuning.spinupSeconds(), LAUNCHER_SPINUP_SECONDS);
         telemetry.addData(marker(PollenTeleOpTuning.Row.DRIVE) + "Drive power", "%.0f%% (default 100%%)",
                 tuning.driveScale() * 100);
         telemetry.addData("Controls", "D-pad UP/DOWN selects; LEFT/RIGHT edits; Triangle = defaults");
@@ -261,8 +266,11 @@ public class BioBuzzStarterbotOpMode extends OpMode {
          */
         telemetry.addData("Motors", "left (%.2f), right (%.2f)", leftFrontPower, rightFrontPower);
         telemetry.addData("Triggers", "left (%.2f, right (%.2f)",gamepad1.left_trigger, gamepad1.right_trigger);
-        telemetry.addData("Launcher target / measured", "%.0f / %.0f ticks/s",
-                tuning.launcherVelocity(), launcher.getVelocity());
+        telemetry.addData("Launcher target / measured", "%.0f / %.0f ticks/s%s",
+                tuning.launcherVelocity(), launcher.getVelocity(),
+                launching && launcher.getVelocity() < 50 ? "  (measured ~0: check launcher encoder cable)" : "");
+        telemetry.addData("Feed", !launching ? "off (hold R1)"
+                : tuning.feedReady(launchTimer.seconds()) ? "FEEDING" : "spinning up");
         telemetry.addData("Drive power", "%.0f%%", tuning.driveScale() * 100);
     }
 
@@ -315,19 +323,20 @@ public class BioBuzzStarterbotOpMode extends OpMode {
          * Otherwise, we start spinning the launcher down.
          */
         if (gamepad1.right_bumper) {
+            if (!launching) launchTimer.reset(); // R1 just pressed: start the spin-up clock
+            launching = true;
             launcher.setVelocity(tuning.launcherVelocity());
         } else {
+            launching = false;
             launcher.setVelocity(0);
         }
 
         /*
-         * Here we ask if the driver is currently pressing the right bumper, AND the launcher is
-         * spinning fast enough to make a successful shot. If it is, then we will turn on the
-         * windmill servo to start feeding the elements into the launcher motor. We also
-         * add some power to the intake power. This can sometimes help dislodge stuck elements from
-         * inside the hopper.
+         * Once the driver has held the right bumper for the spin-up time, add power to the intake
+         * and agitator to feed elements into the launcher. This is a fixed time, not a measured
+         * speed, so the feed always follows the launcher.
          */
-        if (gamepad1.right_bumper && launcher.getVelocity() > tuning.launcherMinVelocity()) {
+        if (launching && tuning.feedReady(launchTimer.seconds())) {
             //agitator.setPower(1);
             intakePower += 0.5;
         } else {

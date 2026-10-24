@@ -51,26 +51,26 @@ public final class PollenShootFirstTest {
         near(spin.launcherVelocity, 1250, "flywheel starts alone");
         near(spin.feederPower, 0, "no premature feed");
         near(spin.forward, 0, "no approach drive");
-        near(s.tick(1, 1199, false).feederPower, 0, "wait for target band");
-        s.tick(1.25, 1250, false);
-        near(s.tick(1.49, 1250, false).feederPower, 0, "quarter second stability");
-        near(s.tick(1.5, 1250, false).feederPower, 1, "begin continuous feed");
-        PollenSequence.Output dip = s.tick(2, 900, false);
+        near(t.value(SPINUP), 3, "three-second spin-up default");
+        near(s.tick(1, 1250, false).feederPower, 0, "launcher alone during spin-up, even at full speed");
+        near(s.tick(2.99, 1250, false).feederPower, 0, "still spinning up just before 3 s");
+        near(s.tick(3, 0, false).feederPower, 1, "feed at 3 s even with zero measured speed");
+        PollenSequence.Output dip = s.tick(4, 900, false);
         near(dip.feederPower, 1, "ordinary speed dip does not pause continuous feed");
         near(dip.launcherVelocity, 1250, "flywheel target maintained during feed");
         near(dip.forward, 0, "stationary shooting");
-        near(s.tick(11.49, 1250, false).feederPower, 1, "full ten seconds after qualification");
-        zero(s.tick(11.5, 1250, false));
-        PollenSequence.Output move = s.tick(11.51, 0, false);
+        near(s.tick(12.99, 1250, false).feederPower, 1, "full ten seconds after spin-up");
+        zero(s.tick(13, 1250, false));
+        PollenSequence.Output move = s.tick(13.01, 0, false);
         near(move.forward, t.forward(), "depart after feeding");
         near(move.strafe, t.strafe(), "diagonal departure");
         near(move.turn, 0, "does not rotate");
         near(move.launcherVelocity, 0, "flywheel off during travel");
         near(move.feederPower, 0, "both feeds off during travel");
         for (double p : PollenSequence.wheelPowers(move)) check(Math.abs(p) <= 1, "bounded wheel power");
-        // The leg's clock started at 11.51, the first loop that commanded it.
-        double travelEnds = 11.51 + t.driveSeconds();
-        PollenSequence.Output last = run(s, 11.53, travelEnds - .005, 0);
+        // The leg's clock started at 13.01, the first loop that commanded it.
+        double travelEnds = 13.01 + t.driveSeconds();
+        PollenSequence.Output last = run(s, 13.03, travelEnds - .005, 0);
         check(last.phase.equals("LEG 3 TO PARK") && last.forward == t.forward(), "still driving at loop rate");
         PollenSequence.Output end = s.tick(travelEnds + .001, 0, false);
         zero(end); check(end.phase.startsWith("NEXT"), "leg ends on its own time");
@@ -79,9 +79,10 @@ public final class PollenShootFirstTest {
         check(done.finished && done.phase.startsWith("DONE"), "hold then finish, not a stall stop"); zero(done);
 
         s = t.sequence(); s.start(0);
-        s.tick(0, 0, false); zero(s.tick(4, 0, false));
-        check(s.warning().contains("not ready"), "spinup timeout reported");
-        near(s.tick(4.01, 0, false).strafe, t.strafe(), "timeout uses selected diagonal, not Park A");
+        s.tick(0, 0, false); near(s.tick(3, 0, false).feederPower, 1, "no speed reading: still feeds");
+        zero(s.tick(13, 0, false));
+        check(s.warning().isEmpty(), "no speed warning: speed is not checked");
+        near(s.tick(13.01, 0, false).strafe, t.strafe(), "then the selected diagonal, not Park A");
         s = t.sequence(false); s.start(0);
         near(s.tick(0, 0, false).strafe, t.strafe(), "INIT fallback uses same departure");
         for (double stopAt : new double[]{0, .5, 3, 11.5, 12}) {
@@ -174,9 +175,9 @@ public final class PollenShootFirstTest {
         near(t.forward(), 0, "left strafe no forward");
         near(t.strafe(), -.2, "left strafe output");
         s = t.sequence(); s.start(0);
-        s.tick(0, 1250, false); s.tick(.25, 1250, false);
-        zero(s.tick(10.25, 1250, false));
-        move = s.tick(10.26, 1250, false);
+        s.tick(0, 1250, false); s.tick(3, 1250, false);
+        zero(s.tick(13, 1250, false));
+        move = s.tick(13.01, 1250, false);
         near(move.strafe, -.2, "successful shot departs at selected angle");
         near(move.turn, 0, "successful shot departure does not turn");
         t.update(false, false, false, false, true); release(t);

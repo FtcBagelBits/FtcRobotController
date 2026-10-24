@@ -7,6 +7,7 @@ import java.util.List;
 public final class PollenShootTuning {
     public enum Field {
         FLYWHEEL("Launcher ticks/s", 500, 2500, 50, 1250),
+        SPINUP("Spin-up seconds before feed", 0, 6, .5, PollenConfig.LAUNCHER_SPINUP_SECONDS),
         FEED_SECONDS("Feed seconds (0 = skip shot)", 0, 20, .5, 10),
         FEED_POWER("Intake + agitator power", .10, 1, .05, .50),
         START_DELAY("Start delay seconds", 0, 20, .5, 0),
@@ -39,8 +40,13 @@ public final class PollenShootTuning {
     public static final double CM_PER_SECOND_PER_POWER = PollenDriveCalibration.BASELINE_COEFFICIENT;
     // Robot-relative translation angle: positive left, zero forward, negative right.
     public static final double PARK_ANGLE_DEGREES = 25.87;
-    public static final double SPINUP_TIMEOUT = 4, SPEED_STABLE_SECONDS = .25;
-    public static final double READY_FRACTION = .96, HOLD_SECONDS = .5, DEADLINE = 27;
+    public static final double HOLD_SECONDS = .5, DEADLINE = 27;
+    /** C waits this long, then spins up for 3 s, so its feed starts at 15 s as agreed with partners. */
+    public static final double SUPPORT_START_DELAY = 12;
+    // Field-tuned last-leg defaults set by the team on 2026-10-24. They replace the CAD plan's
+    // computed values (PollenFieldGeometry), which remain the nominal geometry reference.
+    public static final double B_FIELD_LEG3_CM = 172, B_FIELD_LEG3_DEGREES = 35;
+    public static final double C_LEG3_CM = 98;
 
     /** Process-local memory, not saved across a Robot Controller app restart. */
     public static final class Snapshot {
@@ -66,7 +72,7 @@ public final class PollenShootTuning {
         reset();
         if (remembered != null) {
             values = remembered.values.clone();
-            values[Field.START_DELAY.ordinal()] = supporting ? 15 : 0;
+            values[Field.START_DELAY.ordinal()] = supporting ? SUPPORT_START_DELAY : 0;
             // Keep the remembered (possibly calibrated) route even if the restored delay makes it
             // too long: the robot will not start until the operator fixes the budget or presses
             // Triangle. Never swap in different distances, angles or power without saying so.
@@ -78,15 +84,15 @@ public final class PollenShootTuning {
     private void reset() {
         for (Field f : Field.values()) values[f.ordinal()] = f.initial;
         if (supporting) {
-            values[Field.START_DELAY.ordinal()] = 15;
+            values[Field.START_DELAY.ordinal()] = SUPPORT_START_DELAY;
             values[Field.FEED_SECONDS.ordinal()] = 7.5;
             values[Field.DRIVE_POWER.ordinal()] = .45;
             values[Field.CALIBRATION.ordinal()] = 1;
             set(1, PollenFieldGeometry.SUPPORT_WALL_CLEARANCE_INCHES * PollenFieldGeometry.INCH_TO_CM, 0);
             set(2, 0, -90);
-            set(3, PollenFieldGeometry.supportDistanceCm(), PollenFieldGeometry.supportAngleDegrees());
+            set(3, C_LEG3_CM, PollenFieldGeometry.supportAngleDegrees());
         }
-        notice = supporting ? "UNTESTED flush preset: forward clear of flower, then right to park"
+        notice = supporting ? "Flush preset: forward clear of flower, then right to park (leg 3 field-tuned)"
                 : "Defaults restored: tested baseline, 2-foot move";
     }
 
@@ -95,11 +101,11 @@ public final class PollenShootTuning {
         if (!supporting) {
             set(1, PollenFieldGeometry.PRIMARY_WALL_CLEARANCE_CM, 0);
             set(2, PollenFieldGeometry.PRIMARY_SIDE_CLEARANCE_INCHES * PollenFieldGeometry.INCH_TO_CM, 90);
-            set(3, PollenFieldGeometry.primaryDistanceCm(), PollenFieldGeometry.primaryAngleDegrees());
+            set(3, B_FIELD_LEG3_CM, B_FIELD_LEG3_DEGREES);
             values[Field.DRIVE_POWER.ordinal()] = .25;
             values[Field.CALIBRATION.ordinal()] = 1;
         }
-        notice = "UNTESTED field preset loaded; verify pose, full footprint and partner route";
+        notice = "Field preset loaded (leg 3 field-tuned); verify pose, footprint and partner route";
     }
 
     private void set(int leg, double cm, double angle) {
@@ -144,11 +150,10 @@ public final class PollenShootTuning {
         values[selected] = Math.max(f.min, Math.min(f.max, next));
         // Over budget (e.g. remembered settings after the delay reset), accept any edit that
         // does not lengthen the route, so the operator can work back under the limit.
-        boolean accepted = budgetOk()
-                || (!wasOk && prespinOk() && worstCaseSeconds() <= oldWorst + 1e-9);
+        boolean accepted = budgetOk() || (!wasOk && worstCaseSeconds() <= oldWorst + 1e-9);
         if (!accepted) {
             values[selected] = old;
-            notice = wasOk ? "Change rejected: total must be <26s; support feeding also needs delay >=4s."
+            notice = wasOk ? "Change rejected: total must be <26s."
                     : overBudgetNotice() + " That change made it longer.";
         } else notice = budgetOk() ? "" : overBudgetNotice();
     }
@@ -160,13 +165,14 @@ public final class PollenShootTuning {
     public boolean locked() { return locked; }
     public Snapshot snapshot() { return new Snapshot(values); }
 
-    /** True when these settings fit the time budget (and C's prespin rule); START refuses otherwise. */
+    /** True when these settings fit the time budget; START refuses otherwise. */
     public boolean budgetOk() {
-        return worstCaseSeconds() < DEADLINE - 1 && prespinOk();
+        return worstCaseSeconds() < DEADLINE - 1;
     }
 
-    private boolean prespinOk() {
-        return !supporting || value(Field.FEED_SECONDS) == 0 || value(Field.START_DELAY) >= SPINUP_TIMEOUT;
+    /** Seconds from START until feeding begins (delay + spin-up), assuming a normal loop. */
+    public double feedStartSeconds() {
+        return value(Field.START_DELAY) + value(Field.SPINUP);
     }
 
     private String overBudgetNotice() {
@@ -210,7 +216,7 @@ public final class PollenShootTuning {
         double drive = 0;
         for (int leg = 1; leg <= LEGS; leg++) drive += legMove(leg).seconds;
         return value(Field.START_DELAY) + drive + HOLD_SECONDS
-                + (value(Field.FEED_SECONDS) > 0 ? (supporting ? 0 : SPINUP_TIMEOUT) + value(Field.FEED_SECONDS) : 0);
+                + (value(Field.FEED_SECONDS) > 0 ? value(Field.SPINUP) + value(Field.FEED_SECONDS) : 0);
     }
 
     // Both alliance starts are related by a 180-degree rotation. Humans position
@@ -231,7 +237,9 @@ public final class PollenShootTuning {
         List<PollenSequence.Step> route = new ArrayList<>();
         if (shooterAvailable && value(Field.FEED_SECONDS) > 0) route.add(PollenSequence.Step.continuousShoot(value(Field.FEED_SECONDS)));
         if (supporting && !shooterAvailable && value(Field.FEED_SECONDS) > 0)
-            route.add(PollenSequence.Step.drive("NO SHOOTER / WAIT FOR DEPARTURE", value(Field.FEED_SECONDS), 0, 0, 0));
+            // Hold still through the spin-up and feed slot so C still departs after the partner.
+            route.add(PollenSequence.Step.drive("NO SHOOTER / WAIT FOR DEPARTURE",
+                    value(Field.SPINUP) + value(Field.FEED_SECONDS), 0, 0, 0));
         for (int leg = 1; leg <= LEGS; leg++) {
             if (legCm(leg) <= 0) continue;
             PollenDriveCalibration.Move m = legMove(leg);
@@ -239,7 +247,6 @@ public final class PollenShootTuning {
         }
         route.add(PollenSequence.Step.drive("PARK / HOLD", HOLD_SECONDS, 0, 0, 0));
         return new PollenSequence(route.toArray(new PollenSequence.Step[0]), value(Field.FLYWHEEL),
-                value(Field.FLYWHEEL) * READY_FRACTION, SPINUP_TIMEOUT, SPEED_STABLE_SECONDS,
-                DEADLINE, value(Field.START_DELAY), supporting && shooterAvailable && value(Field.FEED_SECONDS) > 0);
+                value(Field.SPINUP), DEADLINE, value(Field.START_DELAY));
     }
 }

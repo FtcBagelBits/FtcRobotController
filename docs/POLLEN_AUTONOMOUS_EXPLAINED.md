@@ -78,16 +78,16 @@ without blocking the OpMode loop. Each step's clock starts on the first loop
 that runs it, so a slow loop between two steps cannot use up the next step's
 time. The motors keep their last command while the program is paused, so a
 pause of more than 0.25 s while the wheels are moving stops everything:
-after that, the robot's position is not what the plan assumes. Shooting first qualifies encoder speed at 96%
-of target for 0.25 s. Then intake and agitator feed continuously for the selected
-duration. Normal speed dips do not pause the feed clock.
+after that, the robot's position is not what the plan assumes.
 
-B's four-second spinup allowance happens after its start delay. Its timeout
-skips the shot and proceeds along B's selected route. C spins the flywheel alone
-during the final four seconds of its delay; intake, agitator and drive stay off.
-At the default 15-second mark, a qualified launcher begins 7.5 seconds of feeding.
-An unqualified launcher skips the shot but keeps the entire shooting time slot
-stationary. This prevents a failure from sending C into its departure early.
+Shooting uses fixed times, not measured speed. The launcher runs alone for the
+spin-up time (3 s by default, an INIT row), then intake and agitator feed
+continuously for the selected duration with the launcher still on. An earlier
+version waited until the encoder read 96% of target speed; when the encoder
+read low, the feeder never started, so that check was removed. B spins up right
+after its start delay. C waits 12 s, spins up from 12 to 15 s, and feeds from
+15 to 22.5 s, the slot agreed with a partner who shoots first. TeleOp works the
+same way: hold R1 for the spin-up time and the feed boost starts.
 
 A shooter INIT failure may permit the same mode's departure only if every mapped
 shooter accepts zero power. C preserves its feed slot in that fallback too.
@@ -103,10 +103,9 @@ Electrical/mechanical stopping is not guaranteed merely by issuing commands.
 
 ## Time budgets and validation
 
-B's budget includes delay + four-second spinup (if feeding) + feed + all three drive
-legs + 0.5-second hold. C overlaps spinup with the delay. Edits must keep the
-worst case below 26 seconds, leaving transition margin before the independent
-27-second cutoff. C also needs delay >=4 seconds while feeding is enabled.
+Each budget is delay + spin-up (if feeding) + feed + all three drive legs +
+0.5-second hold. Edits must keep the total below 26 seconds, leaving
+transition margin before the independent 27-second cutoff.
 
 Computer tests check arithmetic, transitions, locking, resets, bounds and fault
 behavior. The geometry script checks nominal swept polygons and parking overlap.

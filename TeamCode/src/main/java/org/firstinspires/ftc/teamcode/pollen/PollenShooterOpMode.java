@@ -143,12 +143,14 @@ public abstract class PollenShooterOpMode extends OpMode {
                     PollenFieldGeometry.supportOffsetFromHiveCm(), PollenFieldGeometry.supportFlowerGapCm(),
                     PollenFieldGeometry.supportMidlineGapCm());
             telemetry.addData("FLOWER CLEARANCE", "Tight nominal start; check actual flower, midline and full footprint");
-            telemetry.addData("Timing", "Flywheel alone during final 4s of wait; feed begins no earlier than delay");
-            telemetry.addData("Departure", "Nominal >=%.1fs; failed shot retains feed slot",
-                    tuning.value(START_DELAY) + tuning.value(FEED_SECONDS));
+            telemetry.addData("Departure", "about %.1f s; without a shooter C still waits out the slot",
+                    tuning.feedStartSeconds() + tuning.value(FEED_SECONDS));
             if (tuning.legCm(1) == 0 && tuning.legCm(2) == 0 && tuning.legCm(3) == 0)
                 telemetry.addData("NO PARKING MOVE", "All legs are 0 cm: enter measured travel before match");
         }
+        if (tuning.value(FEED_SECONDS) > 0) telemetry.addData("Shot timing",
+                "launcher on at %.1f s, feed %.1f-%.1f s (fixed times; speed is not checked)",
+                tuning.value(START_DELAY), tuning.feedStartSeconds(), tuning.feedStartSeconds() + tuning.value(FEED_SECONDS));
         if (!tuning.budgetOk()) telemetry.addData("OVER TIME BUDGET",
                 "%.2f s planned, must be < %.0f s: lower delay or feed, raise power, or shorten legs",
                 tuning.worstCaseSeconds(), PollenShootTuning.DEADLINE - 1);

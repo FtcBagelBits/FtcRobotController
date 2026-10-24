@@ -74,8 +74,8 @@ for blue in (False, True):
         robot(ax, pts[-1], color, .75, blue, 'IN' if tag == 'P' else 'OUT')
 
 # Timeline badges on the red half; the blue half is identical, rotated.
-badge(ax, (-5, 44), 'P: 0-14 s shoot\n~10-24 s: 3 legs\nto INNER slot', P_COL)
-badge(ax, (8, -40), 'S: 0-15 s wait\n15-22.5 s shoot\n~23-25.5 s: 2 legs\nto OUTER slot', S_COL)
+badge(ax, (-5, 44), 'P: 0-3 s spin-up\n3-13 s shoot\n~13-22 s: 3 legs\nto INNER slot', P_COL)
+badge(ax, (8, -40), 'S: 0-12 s wait\n12-15 s spin-up\n15-22.5 s shoot\n~22.5-25 s: 2 legs\nto OUTER slot', S_COL)
 ax.text(-W + 2, -W - 2.5, 'RED', color=RED, fontsize=12, weight='bold', va='bottom')
 ax.text(W - 2, -W - 2.5, 'BLUE', color=BLUE, fontsize=12, weight='bold', va='bottom', ha='right')
 ax.text(0, W + 2.5, 'AUDIENCE END   (dashed line = alliance midline, a tile seam)', fontsize=8, ha='center', va='top')
