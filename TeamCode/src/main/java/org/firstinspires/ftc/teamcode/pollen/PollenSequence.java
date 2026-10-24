@@ -43,12 +43,14 @@ public final class PollenSequence {
 
     private final Step[] steps;
     private final double targetVelocity, minVelocity, spinupTimeout, stableTime, deadline, startDelay;
+    private final boolean spinupDuringDelay;
     private int index;
     private double startedAt, stepStartedAt, stableSince = Double.NaN;
     private double feedingSince = Double.NaN, previousTime;
     private double activeFeedSeconds;
     private boolean wasFeeding;
     private boolean started, finished;
+    private boolean shotSkipped;
     private String result = "READY";
     private String warning = "";
 
@@ -69,6 +71,14 @@ public final class PollenSequence {
     public PollenSequence(Step[] steps, double targetVelocity, double minVelocity,
                           double spinupTimeout, double stableTime, double deadline,
                           double startDelay) {
+        this(steps, targetVelocity, minVelocity, spinupTimeout, stableTime, deadline, startDelay, false);
+    }
+
+    /** Supporting shooter: qualify the first shot during the end of the delay.
+     * If not ready when the delay ends, retain the shooting slot with zero outputs. */
+    public PollenSequence(Step[] steps, double targetVelocity, double minVelocity,
+                          double spinupTimeout, double stableTime, double deadline,
+                          double startDelay, boolean spinupDuringDelay) {
         if (steps == null || steps.length == 0 || !Double.isFinite(targetVelocity)
                 || !Double.isFinite(minVelocity) || !Double.isFinite(spinupTimeout)
                 || !Double.isFinite(stableTime) || !Double.isFinite(deadline)
@@ -77,7 +87,10 @@ public final class PollenSequence {
                 || !Double.isFinite(startDelay) || startDelay < 0) {
             throw new IllegalArgumentException("Invalid sequence settings");
         }
-        double worstCase = startDelay + worstCaseDuration(steps, spinupTimeout);
+        if (spinupDuringDelay && (steps[0] == null || !steps[0].shoot || startDelay < spinupTimeout))
+            throw new IllegalArgumentException("Overlapped spinup needs a first shot and sufficient delay");
+        double worstCase = startDelay + worstCaseDuration(steps, spinupTimeout)
+                - (spinupDuringDelay ? spinupTimeout : 0);
         // Leave room for transition loops; the independent deadline always stops outputs.
         if (worstCase >= deadline - 1) {
             throw new IllegalArgumentException("Route exceeds autonomous time budget");
@@ -89,6 +102,7 @@ public final class PollenSequence {
         this.stableTime = stableTime;
         this.deadline = deadline;
         this.startDelay = startDelay;
+        this.spinupDuringDelay = spinupDuringDelay;
     }
 
     /** Route wall-clock allowance, excluding start delay and loop-transition reserve. */
@@ -113,6 +127,7 @@ public final class PollenSequence {
         wasFeeding = false;
         stableSince = feedingSince = Double.NaN;
         finished = false;
+        shotSkipped = false;
         started = true;
         warning = "";
         result = "RUNNING";
@@ -126,7 +141,17 @@ public final class PollenSequence {
         double elapsedSinceTick = now - previousTime;
         previousTime = now;
         if (now - startedAt >= deadline) return stop("TIME LIMIT - STOPPED");
-        if (now - startedAt < startDelay) return new Output("START DELAY");
+        if (now - startedAt < startDelay) {
+            Output waiting = new Output("START DELAY");
+            if (spinupDuringDelay && now - startedAt >= startDelay - spinupTimeout) {
+                if (!Double.isFinite(measuredVelocity)) return stop("INVALID LAUNCHER VELOCITY - STOPPED");
+                waiting.phase = "WAIT / FLYWHEEL SPINUP - NO FEED";
+                waiting.launcherVelocity = targetVelocity;
+                if (measuredVelocity < minVelocity) stableSince = Double.NaN;
+                else if (Double.isNaN(stableSince)) stableSince = now;
+            }
+            return waiting;
+        }
         Step step = steps[index];
         Output out = new Output(step.name);
         if (!step.shoot) {
@@ -135,6 +160,11 @@ public final class PollenSequence {
             out.strafe = step.strafe;
             out.turn = step.turn;
             return out;
+        }
+
+        if (shotSkipped) {
+            if (now - stepStartedAt >= step.seconds) return advance(now);
+            return new Output("SHOT SKIPPED / WAIT FOR DEPARTURE");
         }
 
         out.phase = "SPINUP";
@@ -153,7 +183,15 @@ public final class PollenSequence {
         boolean stable = ready && now - stableSince >= stableTime;
 
         if (Double.isNaN(feedingSince)) {
-            if (now - stepStartedAt >= spinupTimeout) {
+            if (spinupDuringDelay && index == 0) {
+                if (!stable) {
+                    shotSkipped = true;
+                    warning = "Launcher not ready at feed start: shot skipped; retaining shooting slot";
+                    if (now - stepStartedAt >= step.seconds) return advance(now);
+                    return new Output("SHOT SKIPPED / WAIT FOR DEPARTURE");
+                }
+                feedingSince = now;
+            } else if (now - stepStartedAt >= spinupTimeout) {
                 warning = "Launcher not ready: shot skipped; continuing route";
                 return advance(now);
             }
@@ -174,6 +212,7 @@ public final class PollenSequence {
         stableSince = feedingSince = Double.NaN;
         activeFeedSeconds = 0;
         wasFeeding = false;
+        shotSkipped = false;
         if (index == steps.length) return stop("DONE - all outputs zero");
         return new Output("NEXT: " + steps[index].name); // Zero outputs between steps.
     }
