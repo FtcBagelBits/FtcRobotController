@@ -81,6 +81,7 @@ public class BioBuzzStarterbotOpMode extends OpMode {
     public final double LAUNCHER_SPINUP_SECONDS = PollenConfig.LAUNCHER_SPINUP_SECONDS; // 3 s
     private final ElapsedTime launchTimer = new ElapsedTime();
     private boolean launching = false;
+    private boolean feeding = false;   // R1 held past the spin-up time
 
     /*
      * INIT menu (like the Pollen autonomous menus): before START the driver can raise or lower the
@@ -175,7 +176,8 @@ public class BioBuzzStarterbotOpMode extends OpMode {
          */
 //        rightIntakeServo.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        tuning = new PollenTeleOpTuning(LAUNCHER_TARGET_VELOCITY, LAUNCHER_SPINUP_SECONDS, remembered);
+        tuning = new PollenTeleOpTuning(LAUNCHER_TARGET_VELOCITY, LAUNCHER_SPINUP_SECONDS,
+                PollenConfig.AGITATOR_FEED_POWER, remembered);
 
         /*
          * Tell the driver that initialization is complete.
@@ -197,6 +199,8 @@ public class BioBuzzStarterbotOpMode extends OpMode {
                 tuning.launcherVelocity(), LAUNCHER_TARGET_VELOCITY);
         telemetry.addData(marker(PollenTeleOpTuning.Row.SPINUP) + "Spin-up before feed", "%.1f s (default %.1f s)",
                 tuning.spinupSeconds(), LAUNCHER_SPINUP_SECONDS);
+        telemetry.addData(marker(PollenTeleOpTuning.Row.AGITATOR) + "Agitator power while feeding", "%.2f (default %.2f)",
+                tuning.agitatorPower(), PollenConfig.AGITATOR_FEED_POWER);
         telemetry.addData(marker(PollenTeleOpTuning.Row.DRIVE) + "Drive power", "%.0f%% (default 100%%)",
                 tuning.driveScale() * 100);
         telemetry.addData("Controls", "D-pad UP/DOWN selects; LEFT/RIGHT edits; Triangle = defaults");
@@ -256,7 +260,11 @@ public class BioBuzzStarterbotOpMode extends OpMode {
          * variable before we write it to our motor and servos.
          */
 
-        agitator.setPower(intakePower);
+        // R1 plus a full trigger would ask for 1.5; keep commands in the motors' -1..1 range.
+        intakePower = Math.max(-1, Math.min(1, intakePower));
+        // While feeding the launcher, the agitator runs at its own (full by default) power, like
+        // the windmill servo it replaced; otherwise it follows the triggers as before.
+        agitator.setPower(feeding ? tuning.agitatorPower() : intakePower);
         intake.setPower(intakePower);
 //        leftIntakeServo.setPower(intakePower);
 //        rightIntakeServo.setPower(intakePower);
@@ -269,8 +277,9 @@ public class BioBuzzStarterbotOpMode extends OpMode {
         telemetry.addData("Launcher target / measured", "%.0f / %.0f ticks/s%s",
                 tuning.launcherVelocity(), launcher.getVelocity(),
                 launching && launcher.getVelocity() < 50 ? "  (measured ~0: check launcher encoder cable)" : "");
-        telemetry.addData("Feed", !launching ? "off (hold R1)"
-                : tuning.feedReady(launchTimer.seconds()) ? "FEEDING" : "spinning up");
+        telemetry.addData("Feed", !launching ? "off (hold R1)" : feeding ? "FEEDING" : "spinning up");
+        telemetry.addData("Intake / agitator command", "%.2f / %.2f",
+                intakePower, feeding ? tuning.agitatorPower() : intakePower);
         telemetry.addData("Drive power", "%.0f%%", tuning.driveScale() * 100);
     }
 
@@ -336,7 +345,8 @@ public class BioBuzzStarterbotOpMode extends OpMode {
          * and agitator to feed elements into the launcher. This is a fixed time, not a measured
          * speed, so the feed always follows the launcher.
          */
-        if (launching && tuning.feedReady(launchTimer.seconds())) {
+        feeding = launching && tuning.feedReady(launchTimer.seconds());
+        if (feeding) {
             //agitator.setPower(1);
             intakePower += 0.5;
         } else {

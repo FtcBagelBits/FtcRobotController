@@ -38,7 +38,8 @@ public final class PollenShootFirstTest {
         near(t.value(LEG3_CM), 60.96, "two-foot default");
         near(t.driveSeconds(), 2.3627906976744186, "two-foot time with measured diagonal factor");
         near(t.value(FEED_SECONDS), 10, "ten seconds excludes spinup");
-        near(t.value(FEED_POWER), .5, "both feeds match neutral-bumper TeleOp command");
+        near(t.value(FEED_POWER), .5, "intake matches the neutral-trigger TeleOp feed boost");
+        near(t.value(AGITATOR_POWER), 1, "agitator runs at full power while feeding");
         near(t.forward() * t.forward() + t.strafe() * t.strafe(), .04, "vector magnitude");
         check(t.forward() > 0 && t.strafe() < 0, "forward-left departure");
         near(t.forward(), .20 * Math.cos(Math.toRadians(25.87)), "fixed forward component");

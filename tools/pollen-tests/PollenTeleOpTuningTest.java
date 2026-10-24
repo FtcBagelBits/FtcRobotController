@@ -21,9 +21,11 @@ public final class PollenTeleOpTuningTest {
     }
 
     public static void main(String[] args) {
-        PollenTeleOpTuning t = new PollenTeleOpTuning(1250, PollenConfig.LAUNCHER_SPINUP_SECONDS, null);
+        PollenTeleOpTuning t = new PollenTeleOpTuning(1250, PollenConfig.LAUNCHER_SPINUP_SECONDS,
+                PollenConfig.AGITATOR_FEED_POWER, null);
         near(t.launcherVelocity(), 1250, "default launcher target is the TeleOp constant");
         near(t.spinupSeconds(), 3, "default spin-up is 3 s");
+        near(t.agitatorPower(), 1, "agitator runs at full power while feeding by default");
         near(t.driveScale(), 1, "default drive power leaves sticks unchanged");
         check(t.isDefault() && t.selected() == LAUNCHER, "starts on launcher row with defaults");
 
@@ -45,6 +47,11 @@ public final class PollenTeleOpTuningTest {
         check(t.feedReady(0), "zero spin-up feeds with R1");
         tap(t, 1, 20); near(t.spinupSeconds(), 6, "spin-up upper limit");
 
+        select(t, AGITATOR);
+        tap(t, 1, 1); near(t.agitatorPower(), 1, "agitator cannot exceed full power");
+        tap(t, -1, 2); near(t.agitatorPower(), .9, "agitator -0.05 per tap");
+        tap(t, -1, 100); near(t.agitatorPower(), .1, "agitator lower limit");
+
         select(t, DRIVE);
         tap(t, 1, 1); near(t.driveScale(), 1, "drive cannot exceed 100%");
         tap(t, -1, 4); near(t.driveScale(), .8, "drive -5% per tap");
@@ -53,16 +60,17 @@ public final class PollenTeleOpTuningTest {
         check(t.selected() == LAUNCHER, "DOWN wraps from the last row to the first");
         check(!t.isDefault(), "changed settings reported");
 
-        PollenTeleOpTuning kept = new PollenTeleOpTuning(1250, 3, t.snapshot());
+        PollenTeleOpTuning kept = new PollenTeleOpTuning(1250, 3, 1, t.snapshot());
         near(kept.launcherVelocity(), 500, "launcher kept for next INIT");
         near(kept.spinupSeconds(), 6, "spin-up kept for next INIT");
+        near(kept.agitatorPower(), .1, "agitator power kept for next INIT");
         near(kept.driveScale(), .2, "drive kept for next INIT");
         tap(t, 1, 1); near(kept.launcherVelocity(), 500, "snapshots do not alias");
 
         t.update(false, false, false, false, true); release(t);
         check(t.isDefault(), "Triangle restores all defaults");
         near(t.launcherVelocity(), 1250, "reset launcher"); near(t.spinupSeconds(), 3, "reset spin-up");
-        near(t.driveScale(), 1, "reset drive");
+        near(t.driveScale(), 1, "reset drive"); near(t.agitatorPower(), 1, "reset agitator");
         t.update(false, false, false, false, true); t.update(false, false, true, false, true);
         near(t.launcherVelocity(), 1250, "reset dominates and does not repeat");
         release(t);
@@ -72,7 +80,7 @@ public final class PollenTeleOpTuningTest {
         check(t.locked(), "locked flag");
 
         boolean rejected = false;
-        try { new PollenTeleOpTuning(1250, -1, null); } catch (IllegalArgumentException expected) { rejected = true; }
+        try { new PollenTeleOpTuning(1250, -1, 1, null); } catch (IllegalArgumentException expected) { rejected = true; }
         check(rejected, "negative spin-up rejected");
         System.out.println("PollenTeleOpTuningTest: " + checks + " checks passed");
     }

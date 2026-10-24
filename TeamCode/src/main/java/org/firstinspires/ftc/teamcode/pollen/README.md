@@ -1,6 +1,6 @@
 # Pollen autonomous code
 
-Build identifier: **pollen-mat-v5** (`PollenConfig.BUILD`). Three autonomous OpModes preselect PollenBot:
+Build identifier: **pollen-mat-v6** (`PollenConfig.BUILD`). Three autonomous OpModes preselect PollenBot:
 `Pollen ROBOT Park`, `Pollen ROBOT Shoot + Park`, and
 `Pollen Supporting Shooter Auto`. The PollenBot TeleOp itself
 (`../BioBuzzStarterbotOpMode.java`, outside this package) uses `PollenTeleOpTuning`
@@ -69,14 +69,16 @@ Wheel order is front-left, front-right, back-left, back-right; mixer commands ar
   wall -> leg 2 left 63.5 cm -> leg 3 172 cm at +35 deg (field-tuned) -> hold.
   Triangle restores the original short baseline.
 - C: 12 s delay -> 3 s spin-up -> feed 15-22.5 s -> leg 1 forward flower
-  clearance -> (leg 2 unused) -> leg 3 98 cm mostly right (field-tuned) -> hold.
+  clearance -> (leg 2 unused) -> leg 3 107 cm mostly right (field-tuned) -> hold.
 
 A shoot step runs the launcher alone for `SPINUP` seconds (default
 `PollenConfig.LAUNCHER_SPINUP_SECONDS` = 3), then launcher, intake and agitator
-together for `FEED_SECONDS`. Measured launcher speed is never used to delay,
+together for `FEED_SECONDS`, the intake at `FEED_POWER` (0.5) and the agitator at
+`AGITATOR_POWER` (`PollenConfig.AGITATOR_FEED_POWER`, 1.0; it replaced a windmill
+servo that ran at full power). Measured launcher speed is never used to delay,
 pause or skip feeding; only non-finite velocity data stops the run. PollenBot
 TeleOp does the same with its own spin-up row: hold R1 for the spin-up time,
-then the +0.5 feed boost starts.
+then the intake gets +0.5 (clipped to 1) and the agitator its own feed power.
 
 Leg 3 defaults (`B_FIELD_LEG3_CM/DEGREES`, `C_LEG3_CM` in `PollenShootTuning`) are
 field-tuned and no longer equal the CAD plan in `PollenFieldGeometry`; the route
@@ -155,6 +157,6 @@ not that branch-locked helper.
 
 Deploy a freshly built APK through the team's working Wi-Fi/ADB connection or
 Android Studio TeamCode run configuration to the Control Hub. USB-C has not
-worked. Verify `pollen-mat-v5` in INIT. Check the actual installed commit and all
+worked. Verify `pollen-mat-v6` in INIT. Check the actual installed commit and all
 settings before physical tests. Java changes require rebuild/reinstall; INIT
 settings and documentation edits do not.

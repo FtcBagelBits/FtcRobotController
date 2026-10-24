@@ -1,6 +1,6 @@
 # Pollen autonomous operating manual
 
-All three autonomous modes and PollenBot TeleOp show build **`pollen-mat-v5`**.
+All three autonomous modes and PollenBot TeleOp show build **`pollen-mat-v6`**.
 Keep these instructions with the installed code. The new mat calibration and field routes are **experimental**.
 The previously tested B settings remain its default and are restored by Triangle.
 
@@ -76,7 +76,8 @@ all at the one drive power; a leg set to 0 cm is skipped.
 | --- | ---: | ---: | ---: | --- |
 | Launcher ticks/s | 1250 | 1250 | 1250 | 50; 500-2500 |
 | Feed seconds | 10 | 10 | 7.5 | 0.5; 0-20; 0 skips shooting |
-| Intake + agitator power | 0.50 | 0.50 | 0.50 | 0.05; 0.10-1.00 |
+| Intake power while feeding | 0.50 | 0.50 | 0.50 | 0.05; 0.10-1.00 |
+| Agitator power while feeding | 1.00 | 1.00 | 1.00 | 0.05; 0.10-1.00 |
 | Start delay seconds | 0 | 0 | 12 | 0.5; 0-20, subject to budget |
 | Calibration | 0: tested baseline | 1: MAT_TRIAL | 1: MAT_TRIAL | 0 or 1 |
 | Drive power, all legs | 0.20 | 0.25 | 0.45 | 0.05; 0.10-0.50 |
@@ -84,7 +85,7 @@ all at the one drive power; a leg set to 0 cm is skipped.
 | Leg 1 angle deg (+left) | 0 | 0 | 0 | 1; -90 to +90 |
 | Leg 2 cm, side clear | 0 | 63.50 | 0 | 5; 0-150 |
 | Leg 2 angle deg (+left) | +90 | +90 | -90 | 1; -90 to +90 |
-| Leg 3 cm, to park | 60.96 | 172 (field-tuned) | 98 (field-tuned) | 5; 0-350 |
+| Leg 3 cm, to park | 60.96 | 172 (field-tuned) | 107 (field-tuned) | 5; 0-350 |
 | Leg 3 angle deg (+left) | +25.87 | +35 (field-tuned) | -81.848 | 1; -90 to +90 |
 
 Fractional angles step to the next whole degree first, then by 1, so exactly 0
@@ -134,16 +135,16 @@ Default sequence, ignoring small loop-transition delays:
 | 12-15 s | Launcher spins up; drive, intake and agitator remain off |
 | 15-22.5 s | Feed for 7.5 s; remain stationary |
 | After 22.5 s | Stop all shooting mechanisms; leg 1: 20.32 cm forward to clear flower |
-| Next | Leg 2 skipped (0 cm); leg 3: 98 cm at -81.848 degrees (mostly right; field-tuned) |
+| Next | Leg 2 skipped (0 cm); leg 3: 107 cm at -81.848 degrees (mostly right; field-tuned) |
 | End | Hold zero outputs for 0.5 s, then DONE |
 
-This uses power 0.45 and MAT_TRIAL; predicted total is about **25.4 s**, so C
+This uses power 0.45 and MAT_TRIAL; predicted total is about **25.6 s**, so C
 has little budget left: longer legs or slower power need a shorter delay or
 feed. The 12 s delay plus the 3 s spin-up keeps C's feed at 15-22.5 s, the
 slot agreed with partners. Each step change costs one loop, so a few slow loops
 can let the 27 s cutoff trim the final 0.5 s hold; the computer tests confirm
 both legs still finish first. While commissioning C, use feed 0 or a shorter
-feed to keep more margin. Leg 3's 98 cm is a field-tuned default; record the
+feed to keep more margin. Leg 3's 107 cm is a field-tuned default; record the
 endpoint of each full run. The partner's hive tip is an assumption, not a detected event.
 
 If the shooter fails at INIT, C holds still through the spin-up and feed slot
@@ -153,13 +154,14 @@ delay.
 
 ## PollenBot TeleOp INIT settings
 
-PollenBot TeleOp has a three-row INIT menu, set before START like the
+PollenBot TeleOp has a four-row INIT menu, set before START like the
 autonomous menus. Driving controls are unchanged.
 
 | Row | Default | Increment / range | Effect during the match |
 | --- | ---: | --- | --- |
 | Launcher ticks/s | 1250 | 50; 500-2500 | Target while R1 is held. |
-| Spin-up before feed | 3.0 s | 0.5; 0-6 s | How long R1 must be held before the intake and agitator get the +0.5 feed boost. A fixed time; launcher speed is not checked. |
+| Spin-up before feed | 3.0 s | 0.5; 0-6 s | How long R1 must be held before feeding starts. A fixed time; launcher speed is not checked. |
+| Agitator power while feeding | 1.00 | 0.05; 0.10-1.00 | Agitator power once feeding starts. The intake gets +0.5 on top of the triggers, capped at 1. |
 | Drive power | 100% | 5%; 20-100% | Multiplies all wheel powers after the usual mixing, so slower but same stick feel. |
 
 - **D-pad UP / DOWN:** select the row marked `>`. **RIGHT / LEFT:** edit. Tap/release.

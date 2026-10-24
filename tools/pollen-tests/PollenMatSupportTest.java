@@ -97,7 +97,7 @@ public final class PollenMatSupportTest {
         near(t.value(SPINUP), 3, "then spins up 3 seconds");
         near(t.feedStartSeconds(), 15, "so C feeds from 15 s, as agreed with the partner");
         near(t.value(FEED_SECONDS), 7.5, "support feed duration");
-        near(t.value(LEG3_CM), 98, "field-tuned support leg 3");
+        near(t.value(LEG3_CM), 107, "field-tuned support leg 3");
         check(t.forward() > 0 && t.strafe() > 0, "support moves right AND forward");
         check(t.profile() == mat, "new experimental support uses trial profile");
         check(t.worstCaseSeconds() > 25 && t.worstCaseSeconds() < 26, "support route fits the budget: " + t.worstCaseSeconds());
@@ -172,7 +172,7 @@ public final class PollenMatSupportTest {
         set(shortDelay, DRIVE_POWER, -1, 4); near(shortDelay.value(DRIVE_POWER), .25, "calibration power");
         set(shortDelay, LEG3_CM, 1, 2);
         double calibratedLeg3 = shortDelay.value(LEG3_CM);
-        check(Math.abs(calibratedLeg3 - 108) < .01, "calibrated leg 3, 10 cm past the default");
+        check(Math.abs(calibratedLeg3 - 117) < .01, "calibrated leg 3, 10 cm past the default");
         check(shortDelay.budgetOk(), "valid at 4 s delay");
         remembered = new PollenShootTuning(shortDelay.snapshot(), true);
         near(remembered.value(START_DELAY), 12, "delay resets to support default");
@@ -201,7 +201,7 @@ public final class PollenMatSupportTest {
         shortDelay.update(false, false, false, false, true);
         near(shortDelay.value(START_DELAY), 12, "triangle support wait");
         near(shortDelay.value(FEED_SECONDS), 7.5, "triangle support feed");
-        near(shortDelay.value(LEG3_CM), 98, "triangle support field-tuned distance");
+        near(shortDelay.value(LEG3_CM), 107, "triangle support field-tuned distance");
         check(new PollenShootTuning(null).value(FEED_SECONDS) == 10, "B defaults independent of support");
 
         // Square gives B a three-leg route without changing triangle's tested default.

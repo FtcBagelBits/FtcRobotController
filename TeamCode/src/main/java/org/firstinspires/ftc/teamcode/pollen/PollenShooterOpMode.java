@@ -186,14 +186,15 @@ public abstract class PollenShooterOpMode extends OpMode {
             if (shooterAvailable) {
                 launcher.setVelocity(out.launcherVelocity);
                 intake.setPower(out.feederPower * tuning.value(FEED_POWER));
-                agitator.setPower(out.feederPower * tuning.value(FEED_POWER));
+                agitator.setPower(out.feederPower * tuning.value(AGITATOR_POWER));
             }
             for (int i = 0; i < drive.length; i++) drive[i].setPower(powers[i]);
             showSettings();
             telemetry.addData("Phase", out.phase);
             telemetry.addData("Elapsed", "%.2f s", now);
             telemetry.addData("Launcher target / measured", "%.0f / %.0f ticks/s", out.launcherVelocity, velocity);
-            telemetry.addData("Intake + agitator command", "%.2f", out.feederPower * tuning.value(FEED_POWER));
+            telemetry.addData("Intake / agitator command", "%.2f / %.2f",
+                    out.feederPower * tuning.value(FEED_POWER), out.feederPower * tuning.value(AGITATOR_POWER));
             telemetry.addData("Commanded feed time", "%.2f s", out.activeFeedSeconds);
             telemetry.addData("FL FR BL BR", "%.3f %.3f %.3f %.3f", powers[0], powers[1], powers[2], powers[3]);
             if (!sequence.warning().isEmpty()) telemetry.addData("Warning", sequence.warning());

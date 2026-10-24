@@ -1,39 +1,46 @@
 package org.firstinspires.ftc.teamcode.pollen;
 
-/** PollenBot TeleOp INIT menu: launcher speed, spin-up time and drive power. Pure Java, no
+/** PollenBot TeleOp INIT menu: launcher speed, spin-up time, agitator feed power and drive power. Pure Java, no
  * hardware calls. Defaults come from the TeleOp's own constants and PollenConfig. */
 public final class PollenTeleOpTuning {
-    public enum Row { LAUNCHER, SPINUP, DRIVE }
+    public enum Row { LAUNCHER, SPINUP, AGITATOR, DRIVE }
     public static final double MIN_LAUNCHER = 500, MAX_LAUNCHER = 2500, LAUNCHER_STEP = 50;
     public static final double MIN_SPINUP = 0, MAX_SPINUP = 6, SPINUP_STEP = .5;
+    public static final double MIN_AGITATOR = .10, MAX_AGITATOR = 1.0, AGITATOR_STEP = .05;
     public static final double MIN_DRIVE = .20, MAX_DRIVE = 1.0, DRIVE_STEP = .05;
 
     /** Process-local memory between INITs, cleared by a Robot Controller app restart. */
     public static final class Snapshot {
-        private final double launcher, spinup, drive;
-        private Snapshot(double launcher, double spinup, double drive) {
+        private final double launcher, spinup, agitator, drive;
+        private Snapshot(double launcher, double spinup, double agitator, double drive) {
             this.launcher = launcher;
             this.spinup = spinup;
+            this.agitator = agitator;
             this.drive = drive;
         }
     }
 
-    private final double defaultLauncher, defaultSpinup;
-    private double launcher, spinup, drive;
+    private final double defaultLauncher, defaultSpinup, defaultAgitator;
+    private double launcher, spinup, agitator, drive;
     private Row selected = Row.LAUNCHER;
     private boolean locked;
     private final boolean[] previous = new boolean[5];
 
-    /** @param defaultTarget launcher ticks/s; @param defaultSpinupSeconds launcher-only time before feeding. */
-    public PollenTeleOpTuning(double defaultTarget, double defaultSpinupSeconds, Snapshot remembered) {
+    /** @param defaultTarget launcher ticks/s; @param defaultSpinupSeconds launcher-only time before
+     * feeding; @param defaultAgitatorPower agitator power while feeding. */
+    public PollenTeleOpTuning(double defaultTarget, double defaultSpinupSeconds, double defaultAgitatorPower,
+            Snapshot remembered) {
         if (!Double.isFinite(defaultTarget) || defaultTarget < MIN_LAUNCHER || defaultTarget > MAX_LAUNCHER
                 || !Double.isFinite(defaultSpinupSeconds) || defaultSpinupSeconds < MIN_SPINUP
-                || defaultSpinupSeconds > MAX_SPINUP)
+                || defaultSpinupSeconds > MAX_SPINUP || !Double.isFinite(defaultAgitatorPower)
+                || defaultAgitatorPower < MIN_AGITATOR || defaultAgitatorPower > MAX_AGITATOR)
             throw new IllegalArgumentException("Invalid TeleOp launcher defaults");
         defaultLauncher = defaultTarget;
         defaultSpinup = defaultSpinupSeconds;
+        defaultAgitator = defaultAgitatorPower;
         launcher = remembered == null ? defaultTarget : remembered.launcher;
         spinup = remembered == null ? defaultSpinupSeconds : remembered.spinup;
+        agitator = remembered == null ? defaultAgitatorPower : remembered.agitator;
         drive = remembered == null ? MAX_DRIVE : remembered.drive;
     }
 
@@ -42,7 +49,7 @@ public final class PollenTeleOpTuning {
         if (locked) return;
         boolean[] keys = {up, down, left, right, reset};
         if (reset) {
-            if (!previous[4]) { launcher = defaultLauncher; spinup = defaultSpinup; drive = MAX_DRIVE; }
+            if (!previous[4]) { launcher = defaultLauncher; spinup = defaultSpinup; agitator = defaultAgitator; drive = MAX_DRIVE; }
         } else {
             Row[] rows = Row.values();
             if (up && !down && !previous[0]) selected = rows[(selected.ordinal() + rows.length - 1) % rows.length];
@@ -50,6 +57,7 @@ public final class PollenTeleOpTuning {
             int sign = right && !left && !previous[3] ? 1 : left && !right && !previous[2] ? -1 : 0;
             if (sign != 0 && selected == Row.LAUNCHER) launcher = step(launcher, sign * LAUNCHER_STEP, MIN_LAUNCHER, MAX_LAUNCHER);
             if (sign != 0 && selected == Row.SPINUP) spinup = step(spinup, sign * SPINUP_STEP, MIN_SPINUP, MAX_SPINUP);
+            if (sign != 0 && selected == Row.AGITATOR) agitator = step(agitator, sign * AGITATOR_STEP, MIN_AGITATOR, MAX_AGITATOR);
             if (sign != 0 && selected == Row.DRIVE) drive = step(drive, sign * DRIVE_STEP, MIN_DRIVE, MAX_DRIVE);
         }
         System.arraycopy(keys, 0, previous, 0, keys.length);
@@ -62,13 +70,17 @@ public final class PollenTeleOpTuning {
     public double launcherVelocity() { return launcher; }
     /** Seconds R1 must be held (launcher on) before the feed boost starts. Speed is not checked. */
     public double spinupSeconds() { return spinup; }
+    /** Agitator power while feeding (R1 held past the spin-up). */
+    public double agitatorPower() { return agitator; }
     /** Multiplies all four wheel powers after the normal mecanum normalization. */
     public double driveScale() { return drive; }
     /** True when R1 has been held long enough for the feed boost. */
     public boolean feedReady(double heldSeconds) { return heldSeconds >= spinup; }
-    public boolean isDefault() { return launcher == defaultLauncher && spinup == defaultSpinup && drive == MAX_DRIVE; }
+    public boolean isDefault() {
+        return launcher == defaultLauncher && spinup == defaultSpinup && agitator == defaultAgitator && drive == MAX_DRIVE;
+    }
     public Row selected() { return selected; }
     public void lock() { locked = true; }
     public boolean locked() { return locked; }
-    public Snapshot snapshot() { return new Snapshot(launcher, spinup, drive); }
+    public Snapshot snapshot() { return new Snapshot(launcher, spinup, agitator, drive); }
 }

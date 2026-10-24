@@ -5,7 +5,7 @@ kept apart from what the code only predicts. Field geometry is in
 [POLLEN_FIELD_LAYOUT.md](POLLEN_FIELD_LAYOUT.md); how the drive models are
 built from these numbers is in [POLLEN_MAT_CALIBRATION.md](POLLEN_MAT_CALIBRATION.md).
 
-As of build `pollen-mat-v5` (October 24, 2026), **only two autonomous settings
+As of build `pollen-mat-v6` (October 24, 2026), **only two autonomous settings
 have run successfully on the robot: A's defaults and B's Triangle defaults.**
 Every other route, the MAT_TRIAL drive model and the TeleOp INIT menu are
 checked in software only. Add every new physical result to this file.
@@ -18,7 +18,7 @@ checked in software only. Add every new physical result to this file.
 | B: Shoot + Park, Triangle | 1250 ticks/s, feed 10 s, 60.96 cm at +25.87 deg, power 0.20, baseline model | Run successfully | Team report; endpoint and shots not recorded |
 | PollenBot TeleOp, untouched menu | launcher 1250, feed 3 s after R1, drive 100% | Feed stopped working Oct 24 under the old speed gate; time-based feed not yet run | See "Feeder stall, October 24" |
 | Launcher spin-up | 3 s before feeding | Team-measured | Basis for the fixed spin-up in auto and TeleOp |
-| Leg 3 defaults | B Square 172 cm at +35 deg; C 98 cm at -81.85 deg | Team-chosen on the field, Oct 24 | Endpoints not recorded here; the drive model predicts different endpoints |
+| Leg 3 defaults | B Square 172 cm at +35 deg; C 107 cm at -81.85 deg | Team-chosen on the field, Oct 24 | Endpoints not recorded here; the drive model predicts different endpoints |
 | B, Square field route | 3 legs, MAT_TRIAL, power 0.25 | Not run | Software tests and CAD route checker only |
 | C: Supporting Shooter | flush start, 2 legs, MAT_TRIAL, power 0.45 | Not run | Software tests and CAD route checker only |
 | MAT_TRIAL drive model | interpolated from the trials below | Not validated | Built from trials whose setup is partly unknown |
@@ -103,6 +103,14 @@ a raised TeleOp INIT speed. Build `pollen-mat-v5` feeds on fixed times instead,
 and TeleOp telemetry flags a measured speed near 0. Check "Launcher target /
 measured" on the next run and record what it shows.
 
+On `pollen-mat-v5` the launcher and intake ran but the agitator still did not.
+The agitator replaced a windmill servo that ran at full power while shooting
+(PR #15 commented out `agitator.setPower(1)`), and since then it had only
+received the intake's 0.5 command. Build `pollen-mat-v6` runs the agitator at its
+own feed power, default 1.0, in auto and TeleOp, and shows "Intake / agitator
+command" on the screen. If that line reads 1.00 and the agitator still does not
+turn, check its wiring, port and configuration name (`agitator`).
+
 Not measured yet: actual speed reached in 3 s, pollen launched per second, shot
 spread, and whether 4 pre-loads tip the hive from either start. The field's own
 calibration (3 nectar + 2 pollen holds, one more tossed pollen tips) is a field
@@ -116,7 +124,7 @@ check, not a launch count.
 | C start | 18 in robot between the flower and the midline | 2.6 cm per side (5.2 cm total slack) |
 | B Square leg 3 | clear the side-wall flower | 21.6 cm |
 | C leg 1 | pass the flower going forward | 2.6 cm |
-| C timing | finish before the 27 s hard stop | planned 25.4 s; 0.6 s under the editor's 26 s limit |
+| C timing | finish before the 27 s hard stop | planned 25.6 s; 0.4 s under the editor's 26 s limit |
 
 A route is usable once repeated runs land well inside these margins with the
 real load and battery.

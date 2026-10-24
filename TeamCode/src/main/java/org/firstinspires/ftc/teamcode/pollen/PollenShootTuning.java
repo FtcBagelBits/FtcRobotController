@@ -9,7 +9,8 @@ public final class PollenShootTuning {
         FLYWHEEL("Launcher ticks/s", 500, 2500, 50, 1250),
         SPINUP("Spin-up seconds before feed", 0, 6, .5, PollenConfig.LAUNCHER_SPINUP_SECONDS),
         FEED_SECONDS("Feed seconds (0 = skip shot)", 0, 20, .5, 10),
-        FEED_POWER("Intake + agitator power", .10, 1, .05, .50),
+        FEED_POWER("Intake power while feeding", .10, 1, .05, .50),
+        AGITATOR_POWER("Agitator power while feeding", .10, 1, .05, PollenConfig.AGITATOR_FEED_POWER),
         START_DELAY("Start delay seconds", 0, 20, .5, 0),
         CALIBRATION("Calibration (0=baseline, 1=mat TRIAL)", 0, 1, 1, 0),
         DRIVE_POWER("Drive power, all legs", .10, .50, .05, .20),
@@ -46,7 +47,7 @@ public final class PollenShootTuning {
     // Field-tuned last-leg defaults set by the team on 2026-10-24. They replace the CAD plan's
     // computed values (PollenFieldGeometry), which remain the nominal geometry reference.
     public static final double B_FIELD_LEG3_CM = 172, B_FIELD_LEG3_DEGREES = 35;
-    public static final double C_LEG3_CM = 98;
+    public static final double C_LEG3_CM = 107;
 
     /** Process-local memory, not saved across a Robot Controller app restart. */
     public static final class Snapshot {

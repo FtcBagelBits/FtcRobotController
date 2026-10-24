@@ -148,7 +148,7 @@ never start partly across the alliance boundary.
 2. Leg 2: unused (0 cm) by default; available as a controller row.
 3. Leg 3: travel **117.96 cm at -81.848 degrees**, i.e. **16.73 cm forward /
    116.77 cm right**, to nominal **(-56,-47)** in the CAD plan. The preset now
-   loads the team's field-tuned **98 cm** at the same angle (October 24). The footprint partially overlaps
+   loads the team's field-tuned **107 cm** at the same angle (October 24). The footprint partially overlaps
    the loading zone with **3.0 inches (7.6 cm)** of separation from the primary
    robot's nominal parked footprint.
 
@@ -160,7 +160,7 @@ team-specific assigned spot.
 
 Supporting defaults use MAT_TRIAL, power **0.45**, a 12-second delay, a
 3-second spin-up and 7.5 seconds of feeding. The higher power is required by the
-short remaining time budget. Calculated total is about **25.4 seconds**,
+short remaining time budget. Calculated total is about **25.6 seconds**,
 including the hold, below the existing 27-second cutoff and the editor's
 stricter <26-second planning limit.
 

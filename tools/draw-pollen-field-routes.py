@@ -77,7 +77,7 @@ lines = [
     ('3. Leg 2: 0 cm (optional; default -90 deg)', False),
     ('4. Leg 3 plan: %.2f cm @ %+.2f deg to (-56, -47)' % (leg(sc, support),
         -math.degrees(math.atan2(sc[0] - support[0], support[1] - sc[1]))), False),
-    ('   INIT default (field-tuned): 98 cm, same angle', False),
+    ('   INIT default (field-tuned): 107 cm, same angle', False),
     ('', False),
     ('All launcher speeds, leg distances and angles are', False),
     ('INIT controller rows. Translation only; no turns.', False),
