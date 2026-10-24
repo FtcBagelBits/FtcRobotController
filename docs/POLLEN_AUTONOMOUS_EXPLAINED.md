@@ -1,157 +1,114 @@
-# Pollen autonomous: how it works
+# How Pollen autonomous works
 
-Pollen has two autonomous choices: **Pollen ROBOT Park** and
-**Pollen ROBOT Shoot + Park**. Both execute timed actions. They do not measure
-robot position or detect arrival at a parking zone.
+Pollen has three timed autonomous modes. A drives forward after a delay. B
+shoots while stationary, optionally moves left to clear the hive frame, then
+travels toward parking. C lets a partner shoot first, shoots from an opposite
+end-wall pose, moves forward to clear a flower, then travels mostly right to park.
+They do not measure position or detect arrival.
 
-Use the [operating manual](POLLEN_AUTONOMOUS.md) for controller instructions and
-the [code README](../TeamCode/src/main/java/org/firstinspires/ftc/teamcode/pollen/README.md)
-for hardware details, source files and build instructions.
+## INIT edits settings; START freezes them
 
-## Hardware names connect configuration to Java
+`init()` maps devices and commands zero outputs. `init_loop()` reads controller
+taps and displays selections without moving. `start()` locks settings and starts
+a clock. `loop()` asks the hardware-independent sequencer for outputs and sends
+them to motors. `stop()` latches the sequence stopped and attempts to zero every
+mapped motor. A, B and C have separate process-local settings memory.
 
-The team names each device in Configure Robot. The active configuration associates
-that name with a hub, port and device type. Java retrieves the device by name:
+Use [the operating manual](POLLEN_AUTONOMOUS.md) for controls. In B, Triangle
+restores the tested short baseline; Square loads the experimental three-leg field
+preset. In C, both restore the supporting preset. Those presets are plans to
+validate, not previously tested robot behavior.
 
-```java
-DcMotor motor = hardwareMap.get(DcMotor.class, "frontLeft");
-```
+## Field geometry and motor calibration solve different problems
 
-Names are case-sensitive. `frontLeft` identifies a configured device; the name
-does not determine its direction. Direction is set separately in Java to match
-wheel mounting and gearing.
+Geometry chooses where the robot should go. The official CAD shows that an
+18-inch robot on a direct primary-to-parking diagonal crosses the frame's
+floor-level bar. Moving 10 cm off the wall, then left, before that diagonal
+avoids it. The opposite shooting start sits flush and square to the wall,
+shifted toward the midline to clear a flower, then moves forward before the
+rightward departure. See
+[the field analysis](POLLEN_FIELD_ROUTES.md) and [diagram](POLLEN_FIELD_ROUTES.svg).
 
-`PollenConfig` lists the four drive names and direction flags. The shooting
-routine also retrieves `pollenLauncher`, `intake` and `agitator`. Its launcher
-uses encoder velocity control; the intake and agitator use motor power.
+Calibration estimates what motor commands achieve those displacements. The
+reported 45-degree command traveled 54 cm forward and 31 cm sideways: its
+physical direction was only 29.86 degrees. Running longer would preserve that
+wrong direction. Both direction and duration need correction.
 
-## INIT selects settings; START runs the sequence
+`PollenDriveCalibration` provides two profiles:
 
-| Callback | Responsibility |
-| --- | --- |
-| `init()` | Map and configure devices, command zero outputs and load settings. |
-| `init_loop()` | Read controller taps and display settings without moving motors. |
-| `start()` | Lock settings, reset the clock and construct the selected sequence. |
-| `loop()` | Ask the sequence for outputs, apply them to hardware and report telemetry. |
-| `stop()` | Stop the sequence and attempt to zero each mapped motor. |
+- **TESTED_BASELINE:** unchanged coefficient 129, time = distance/(129*power),
+  with direct sine/cosine motor inputs. B still defaults to this profile.
+- **MAT_TRIAL:** piecewise interpolation/inversion of the reported forward,
+  diagonal and sideways results. It changes the commanded direction and time
+  while preserving selected vector-power magnitude. The original shoot-test
+  settings were uncertain; this profile assumes unchanged baseline code and
+  comparable power. It is not a verified physical model.
 
-A button edit changes configuration, not motor output. Held buttons do not repeat.
-Settings remain in app memory between runs, except start delay, which resets
-every INIT. Restarting the Robot Controller app loses that memory. Triangle
-restores code defaults. START locks settings for the run.
+At power 0.20, MAT_TRIAL predicts a +56.33-degree command for 3.534 seconds to
+travel 75 cm at a physical +45 degrees. That is a prediction between the measured
+points. Left/right symmetry and scaling to other powers also require testing.
+A remains time-controlled; its new mat distance display uses the known-power
+forward measurements without changing the existing motor command.
 
-## A sequence is a list of timed actions
+## Translation is not rotation
 
-**Option A:** start delay → forward drive → zero-output hold → DONE.
-
-**Option B:** start delay → launcher spinup → stationary feeding → angled drive
-→ zero-output hold → DONE.
-
-`PollenConfig.parkRoute()` builds A's drive steps.
-`PollenShootTuning.sequence()` builds B's steps from the selected settings.
-`PollenSequence.tick()` checks the clock and current step each loop, then returns
-the requested outputs. It does not wait inside a long driving or shooting loop.
-
-A drive step specifies seconds and a robot-relative movement vector:
-
-```java
-PollenSequence.Step.drive("Forward", 0.2, 0.3, 0, 0);
-```
-
-This requests 0.3 forward power for 0.2 seconds. Positive drive axes are forward,
-right strafe and clockwise turn. Humans choose the starting pose and clear route.
-A step name containing PARK does not establish that the robot is physically parked.
-
-## Angle describes translation, not a chassis turn
-
-B's menu angle uses positive degrees for left of robot-forward, negative for
-right and zero for forward. `PollenShootTuning` converts it into movement inputs:
+The selected angle is positive toward robot-left. The drive mixer uses positive
+right strafe, so command-angle conversion is:
 
 ```text
-forward = vector_power × cos(angle)
-strafe  = -vector_power × sin(angle)
+forward = power * cos(command_angle)
+strafe  = -power * sin(command_angle)
 turn    = 0
 ```
 
-The minus sign converts left-positive angle into right-positive strafe.
-The chassis is commanded to keep its orientation, but there is no heading
-feedback to correct drift.
+With MAT_TRIAL, `command_angle` differs from the desired path angle. The four
+wheel commands are forward +/- strafe +/- turn. If any exceeds magnitude one,
+all are scaled by the same largest magnitude. The supported translation powers
+stay below that saturation boundary. Zero turn commands do not correct drift.
 
-The mixer calculates four wheel commands:
+Both shooters start flush and square to an end wall, so every leg angle is
+measured from a heading parallel to the field axes. The supporting robot always
+shoots straight forward; its centerline sits about 6.9 cm toward the midline
+from the hive center. Nothing turns the chassis.
 
-```text
-frontLeft  = forward + strafe + turn
-frontRight = forward - strafe - turn
-backLeft   = forward - strafe + turn
-backRight  = forward + strafe - turn
-```
+## Sequence timing and shooting
 
-If any magnitude exceeds one, all four are divided by the largest magnitude.
-This preserves their proportions while keeping commands within the allowed range.
-Vector power is not the same as each wheel's individual power.
+A sequence is a list of timed actions. `PollenSequence.tick()` returns commands
+without blocking the OpMode loop. Each step's clock starts on the first loop
+that runs it, so a slow loop between two steps cannot use up the next step's
+time. The motors keep their last command while the program is paused, so a
+pause of more than 0.25 s while the wheels are moving stops everything:
+after that, the robot's position is not what the plan assumes.
 
-## Distance is converted into time
+Shooting uses fixed times, not measured speed. The launcher runs alone for the
+spin-up time (3 s by default, an INIT row), then intake and agitator feed
+continuously for the selected duration with the launcher still on. An earlier
+version waited until the encoder read 96% of target speed; when the encoder
+read low, the feeder never started, so that check was removed. B spins up right
+after its start delay. C waits 12 s, spins up from 12 to 15 s, and feeds from
+15 to 22.5 s, the slot agreed with a partner who shoots first. TeleOp works the
+same way: hold R1 for the spin-up time and the feed boost starts.
 
-B calculates:
+A shooter INIT failure may permit the same mode's departure only if every mapped
+shooter accepts zero power. C preserves its feed slot in that fallback too.
+Explicitly selecting feed=0 removes the shooting slot instead. Each of the three
+legs has its own distance and angle row; a zero-cm leg is skipped and the others
+still run. All three must be zero for a stationary shooting test.
 
-```text
-drive_seconds = selected_distance_cm / (129 × selected_vector_power)
-```
+Mechanism commands are applied before drive commands, so launcher, intake and
+agitator receive zero before departure. Nonfinite velocity, invalid/backwards
+time, a long pause while driving, STOP, the independent deadline and runtime
+hardware errors stop outputs.
+Electrical/mechanical stopping is not guaranteed merely by issuing commands.
 
-At the code defaults, 60.96 cm and power 0.20 request about 2.363 seconds of
-driving at +25.87 degrees. The coefficient is fitted near that angle. The same
-coefficient is used throughout the angle menu, so changing angle can change the
-actual distance traveled even when the selected distance stays the same.
+## Time budgets and validation
 
-Battery, surface, load and wheel slip also affect travel. This is an open-loop
-estimate: no sensor checks the endpoint. Keep the known calibration until repeat
-measurements justify changing it. Hold power fixed, measure forward and sideways
-displacement, adjust angle for direction and distance for the endpoint, then
-repeat with shooting included. Check the complete robot footprint and partner
-route before using a full-field path.
+Each budget is delay + spin-up (if feeding) + feed + all three drive legs +
+0.5-second hold. Edits must keep the total below 26 seconds, leaving
+transition margin before the independent 27-second cutoff.
 
-## Shooting qualifies speed once, then feeds continuously
-
-B sets launcher velocity in encoder ticks per second. Once measured speed is at
-least 96% of the selected target for 0.25 seconds, it runs the intake and agitator
-for the selected feed duration while keeping the flywheel running. Normal speed
-dips during feeding do not pause it. The displayed feed time measures commanded
-motor time; it does not count balls or confirm scoring.
-
-Spinup has a four-second timeout. A timeout skips feeding and continues the
-selected departure. Nonfinite velocity data stops the sequence. The OpMode sends
-zero shooter commands before its first driving command.
-
-Zero feed duration skips shooting; zero travel distance skips driving. Both zero
-leave delay and hold only. Hardware initialization still runs.
-
-## Failure handling preserves the selected starting pose
-
-If shooting initialization fails, B attempts to stop every mapped shooting motor.
-If those commands succeed, it displays a warning and can run its own selected
-departure without shooting. It does not substitute A's route, because A uses a
-different starting pose. Drive initialization failures or failed shooter stop
-commands block the run.
-
-Runtime hardware exceptions attempt to stop all devices and request OpMode stop.
-The sequencer also stops on STOP, invalid or backwards time, and its independent
-27-second cutoff. Route editing reserves one second below that cutoff for
-transitions. Software stop commands do not prove immediate mechanical stopping
-or guarantee recovery from an electrical failure.
-
-## Where students make changes
-
-| File in the `pollen` package | Responsibility |
-| --- | --- |
-| `PollenRobotPark.java` | A's FTC lifecycle, controller input, telemetry and drive output. |
-| `PollenRobotShoot.java` | B's lifecycle, shooting hardware, fallback and output. |
-| `PollenConfig.java` | Shared drive mapping and A's permanent defaults. |
-| `PollenParkTuning.java` | A's INIT settings, bounds and memory. |
-| `PollenShootTuning.java` | B's settings, calibration and route construction. |
-| `PollenSequence.java` | Timed execution, shooting readiness, motor mixing and stop conditions. |
-
-Use INIT for routine tuning. Save validated permanent defaults in the appropriate
-configuration class. Computer tests check sequencing and arithmetic; APK
-compilation checks SDK integration; physical trials establish travel, shooting
-and STOP behavior. Record results against the installed commit in the operating
-manual's settings record.
+Computer tests check arithmetic, transitions, locking, resets, bounds and fault
+behavior. The geometry script checks nominal swept polygons and parking overlap.
+Compiling against FTC checks API compatibility. A full Android build checks APK
+integration. Only physical trials verify distance, heading, clearance, shooting
+and partner timing. Neither CAD nor timed waiting confirms that a hive tipped.

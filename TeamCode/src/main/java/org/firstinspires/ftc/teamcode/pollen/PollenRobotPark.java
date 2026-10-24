@@ -87,10 +87,12 @@ public final class PollenRobotPark extends OpMode {
     }
 
     private void showSettings() {
-        telemetry.addData("Build", "pollen-prep-v3.3-clean");
+        telemetry.addData("Build", PollenConfig.BUILD);
         telemetry.addData("Mode", "ROBOT Park - real motors on START");
         if (tuning == null) return;
         telemetry.addData("Park power / drive seconds", "%.2f / %.2f s", tuning.power(), tuning.seconds());
+        telemetry.addData("Mat forward estimate", "%.1f cm; measured powers .25/.50, extrapolated below .25",
+                PollenDriveCalibration.forwardDistanceCm(tuning.seconds(), tuning.power()));
         telemetry.addData("Start delay / maximum", "%.1f / %.1f seconds",
                 tuning.delaySeconds(), tuning.maximumDelaySeconds());
         telemetry.addData("Selection", tuning.locked() ? "LOCKED" : "Adjust on Gamepad 1 before START");

@@ -14,11 +14,17 @@ public final class PollenSequenceTest {
                 && out.launcherVelocity == 0 && out.feederPower == 0, "Nonzero stopped output");
     }
     private static PollenSequence sequence(PollenSequence.Step[] route) {
-        return new PollenSequence(route, 1250, 1200, 4, 0.25, 27);
+        return new PollenSequence(route, 1250, 3, 27, 0); // 3 s spin-up, then feed
     }
     private static PollenSequence shot() {
         return sequence(new PollenSequence.Step[]{PollenSequence.Step.continuousShoot(2),
                 PollenSequence.Step.drive("PARK", 1, 0.2, 0, 0)});
+    }
+    /** Tick every 20 ms from {@code from} up to (not including) {@code to}; returns the last output. */
+    private static PollenSequence.Output run(PollenSequence s, double from, double to, double velocity) {
+        PollenSequence.Output out = null;
+        for (double t = from; t < to - 1e-9; t += 0.02) out = s.tick(t, velocity, false);
+        return out;
     }
     public static void main(String[] args) {
         PollenSequence park = sequence(new PollenSequence.Step[]{
@@ -27,45 +33,58 @@ public final class PollenSequenceTest {
         zero(park.tick(0, 0, false)); // No action before Start.
         park.start(0);
         check(park.tick(0, 0, false).forward == 0.2, "Park movement");
+        check(run(park, 0.02, 0.745, 0).forward == 0.2, "Park moves for its whole step");
         zero(park.tick(0.75, 0, false));
-        PollenSequence.Output done = park.tick(1.25, 0, false);
-        check(done.finished, "Park completion");
+        PollenSequence.Output done = run(park, 0.77, 1.28, 0);
+        check(done.finished && done.phase.startsWith("DONE"), "Park completion");
         zero(done);
         zero(park.tick(2, 0, false));
 
+        // Fixed timing: launcher alone for 3 s, then feed 2 s. Measured speed never gates the feed.
         PollenSequence shot = shot(); shot.start(0);
-        check(shot.tick(0, 0, false).feederPower == 0, "No feeding before speed");
-        check(shot.tick(.125, 1250, false).feederPower == 0, "Require stable speed");
-        check(shot.tick(.25, 0, false).feederPower == 0, "Reset stability on dip");
-        shot.tick(.5, 1250, false);
-        check(shot.tick(.75, 1250, false).feederPower == 1, "Feed after stable speed");
-        PollenSequence.Output feeding = shot.tick(1, 1100, false);
-        check(feeding.feederPower == 1, "Continuous feeding survives an ordinary speed dip");
-        check(feeding.activeFeedSeconds == .25, "Count the previous commanded feed interval");
-        check(shot.tick(2.74, 1250, false).feederPower == 1, "Full feed window after spinup");
-        zero(shot.tick(2.75, 1250, false));
-        check(shot.tick(2.76, 0, false).forward == .2, "Park after continuous feed completes");
-        check(shot.tick(3.75, 0, false).finished, "Shot route completes");
+        PollenSequence.Output spin = shot.tick(0, 0, false);
+        check(spin.launcherVelocity == 1250 && spin.feederPower == 0, "Launcher alone during spin-up");
+        check(run(shot, .02, 2.995, 0).feederPower == 0, "No feed during the 3 s spin-up");
+        PollenSequence.Output feeding = shot.tick(3.0, 0, false);
+        check(feeding.feederPower == 1 && feeding.launcherVelocity == 1250, "Feed starts at 3 s even with zero measured speed");
+        feeding = shot.tick(3.5, 900, false);
+        check(feeding.feederPower == 1, "A speed dip does not pause the feed");
+        check(Math.abs(feeding.activeFeedSeconds - .5) < 1e-9, "Feed time counted from feed start");
+        check(shot.tick(4.99, 1250, false).feederPower == 1, "Full 2 s feed after spin-up");
+        zero(shot.tick(5.0, 1250, false));
+        check(shot.tick(5.02, 0, false).forward == .2, "Park after the feed completes");
+        check(run(shot, 5.04, 6.015, 0).forward == .2, "Park leg runs a full second from its first loop");
+        PollenSequence.Output shotDone = shot.tick(6.03, 0, false);
+        check(shotDone.finished && shotDone.phase.startsWith("DONE"), "Shot route completes");
 
         PollenSequence delayed = new PollenSequence(new PollenSequence.Step[]{
-                PollenSequence.Step.drive("MOVE", 1, .2, 0, 0)}, 1250, 1200, 4, .25, 27, 2);
+                PollenSequence.Step.drive("MOVE", 1, .2, 0, 0)}, 1250, 3, 27, 2);
         delayed.start(10);
         zero(delayed.tick(10, 0, false));
         zero(delayed.tick(11.99, 0, false));
         check(delayed.tick(12, 0, false).forward == .2, "Delay completes before movement");
-        check(delayed.tick(13, 0, false).finished, "Delay preserves move duration");
+        check(run(delayed, 12.02, 12.995, 0).forward == .2, "Delay preserves move duration");
+        PollenSequence.Output delayedDone = delayed.tick(13.01, 0, false);
+        check(delayedDone.finished && delayedDone.phase.startsWith("DONE"), "Delayed move completes");
         delayed.start(20);
         zero(delayed.tick(21, 0, true));
         check(delayed.tick(22, 0, false).finished, "Stop during delay is latched");
 
-        PollenSequence timeout = shot(); timeout.start(0);
-        timeout.tick(0, 0, false);
-        zero(timeout.tick(4, 0, false));
-        check(!timeout.warning().isEmpty(), "Timeout reported");
-        check(timeout.tick(4.01, 0, false).forward == 0.2, "Park after launcher timeout");
+        // A launcher that never reports speed (e.g. unplugged encoder) still feeds on schedule.
+        PollenSequence blind = shot(); blind.start(0);
+        boolean fedBlind = false;
+        for (int i = 0; i <= 250; i++) fedBlind |= blind.tick(i * .02, 0, false).feederPower > 0;
+        check(fedBlind && blind.warning().isEmpty(), "Zero measured speed: feeds on schedule, no warning");
+        check(blind.tick(5.02, 0, false).forward == .2, "then parks");
+        PollenSequence noSpin = new PollenSequence(new PollenSequence.Step[]{PollenSequence.Step.continuousShoot(1)},
+                1250, 0, 27, 0);
+        noSpin.start(0);
+        check(noSpin.tick(0, 0, false).feederPower == 1, "Zero spin-up feeds at once");
+        PollenSequence badSpeed = shot(); badSpeed.start(0);
+        check(badSpeed.tick(0, Double.NaN, false).finished, "Invalid launcher data still stops everything");
 
         // Stop before start, during driving, spinup, feeding, and parking must latch zero.
-        for (double stopAt : new double[]{0, 0.5, 1.5, 2.8, 4.5, 6.0}) {
+        for (double stopAt : new double[]{0, 1.5, 3.5, 5.5, 6.5}) {
             PollenSequence s = shot(); s.start(0);
             for (double t = 0; t < stopAt; t += 0.02) s.tick(t, 1250, false);
             zero(s.tick(stopAt, 1250, true));
@@ -111,7 +130,7 @@ public final class PollenSequenceTest {
                     if (out.finished) { zero(out); finished = true; break; }
                 }
                 check(finished, "Full route finishes");
-                check(fed == (shoot && !failure), "Expected feed outcome");
+                check(fed == shoot, "Feeds on schedule whatever the measured launcher speed");
             }
         }
         rejected = false;
@@ -130,10 +149,14 @@ public final class PollenSequenceTest {
         try { PollenSequence.park(new PollenSequence.Step[]{PollenSequence.Step.continuousShoot(1)}, 27, 0); }
         catch (IllegalArgumentException expected) { rejected = true; }
         check(rejected, "Drive-only sequence rejects shooting steps");
+        rejected = false;
+        try { new PollenSequence(new PollenSequence.Step[]{PollenSequence.Step.continuousShoot(1)}, 0, 3, 27, 0); }
+        catch (IllegalArgumentException expected) { rejected = true; }
+        check(rejected, "A shooting step needs a launcher velocity");
         for (double delay : new double[]{-1, Double.NaN, 25}) {
             rejected = false;
             try { new PollenSequence(new PollenSequence.Step[]{PollenSequence.Step.drive("MOVE", 1, .2, 0, 0)},
-                    1250, 1200, 4, .25, 27, delay); }
+                    1250, 3, 27, delay); }
             catch (IllegalArgumentException expected) { rejected = true; }
             check(rejected, "Reject invalid or over-budget delay");
         }

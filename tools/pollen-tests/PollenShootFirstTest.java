@@ -27,12 +27,19 @@ public final class PollenShootFirstTest {
         t.update(false, false, direction < 0, direction > 0, false);
         release(t);
     }
+    /** Tick every 20 ms from {@code from} up to (not including) {@code to}; returns the last output. */
+    private static PollenSequence.Output run(PollenSequence s, double from, double to, double velocity) {
+        PollenSequence.Output out = null;
+        for (double now = from; now < to - 1e-9; now += .02) out = s.tick(now, velocity, false);
+        return out;
+    }
     public static void main(String[] args) {
         PollenShootTuning t = new PollenShootTuning(null);
-        near(t.value(DISTANCE_CM), 60.96, "two-foot default");
+        near(t.value(LEG3_CM), 60.96, "two-foot default");
         near(t.driveSeconds(), 2.3627906976744186, "two-foot time with measured diagonal factor");
         near(t.value(FEED_SECONDS), 10, "ten seconds excludes spinup");
-        near(t.value(FEED_POWER), .5, "both feeds match neutral-bumper TeleOp command");
+        near(t.value(FEED_POWER), .5, "intake matches the neutral-trigger TeleOp feed boost");
+        near(t.value(AGITATOR_POWER), 1, "agitator runs at full power while feeding");
         near(t.forward() * t.forward() + t.strafe() * t.strafe(), .04, "vector magnitude");
         check(t.forward() > 0 && t.strafe() < 0, "forward-left departure");
         near(t.forward(), .20 * Math.cos(Math.toRadians(25.87)), "fixed forward component");
@@ -45,32 +52,38 @@ public final class PollenShootFirstTest {
         near(spin.launcherVelocity, 1250, "flywheel starts alone");
         near(spin.feederPower, 0, "no premature feed");
         near(spin.forward, 0, "no approach drive");
-        near(s.tick(1, 1199, false).feederPower, 0, "wait for target band");
-        s.tick(1.25, 1250, false);
-        near(s.tick(1.49, 1250, false).feederPower, 0, "quarter second stability");
-        near(s.tick(1.5, 1250, false).feederPower, 1, "begin continuous feed");
-        PollenSequence.Output dip = s.tick(2, 900, false);
+        near(t.value(SPINUP), 3, "three-second spin-up default");
+        near(s.tick(1, 1250, false).feederPower, 0, "launcher alone during spin-up, even at full speed");
+        near(s.tick(2.99, 1250, false).feederPower, 0, "still spinning up just before 3 s");
+        near(s.tick(3, 0, false).feederPower, 1, "feed at 3 s even with zero measured speed");
+        PollenSequence.Output dip = s.tick(4, 900, false);
         near(dip.feederPower, 1, "ordinary speed dip does not pause continuous feed");
         near(dip.launcherVelocity, 1250, "flywheel target maintained during feed");
         near(dip.forward, 0, "stationary shooting");
-        near(s.tick(11.49, 1250, false).feederPower, 1, "full ten seconds after qualification");
-        zero(s.tick(11.5, 1250, false));
-        PollenSequence.Output move = s.tick(11.51, 0, false);
+        near(s.tick(12.99, 1250, false).feederPower, 1, "full ten seconds after spin-up");
+        zero(s.tick(13, 1250, false));
+        PollenSequence.Output move = s.tick(13.01, 0, false);
         near(move.forward, t.forward(), "depart after feeding");
         near(move.strafe, t.strafe(), "diagonal departure");
         near(move.turn, 0, "does not rotate");
         near(move.launcherVelocity, 0, "flywheel off during travel");
         near(move.feederPower, 0, "both feeds off during travel");
         for (double p : PollenSequence.wheelPowers(move)) check(Math.abs(p) <= 1, "bounded wheel power");
-        double travelEnds = 11.5 + t.driveSeconds();
-        zero(s.tick(travelEnds + .001, 0, false));
-        PollenSequence.Output done = s.tick(travelEnds + .502, 0, false);
-        check(done.finished, "hold then finish"); zero(done);
+        // The leg's clock started at 13.01, the first loop that commanded it.
+        double travelEnds = 13.01 + t.driveSeconds();
+        PollenSequence.Output last = run(s, 13.03, travelEnds - .005, 0);
+        check(last.phase.equals("LEG 3 TO PARK") && last.forward == t.forward(), "still driving at loop rate");
+        PollenSequence.Output end = s.tick(travelEnds + .001, 0, false);
+        zero(end); check(end.phase.startsWith("NEXT"), "leg ends on its own time");
+        check(!run(s, travelEnds + .021, travelEnds + .5, 0).finished, "hold lasts half a second");
+        PollenSequence.Output done = s.tick(travelEnds + .522, 0, false);
+        check(done.finished && done.phase.startsWith("DONE"), "hold then finish, not a stall stop"); zero(done);
 
         s = t.sequence(); s.start(0);
-        s.tick(0, 0, false); zero(s.tick(4, 0, false));
-        check(s.warning().contains("not ready"), "spinup timeout reported");
-        near(s.tick(4.01, 0, false).strafe, t.strafe(), "timeout uses selected diagonal, not Park A");
+        s.tick(0, 0, false); near(s.tick(3, 0, false).feederPower, 1, "no speed reading: still feeds");
+        zero(s.tick(13, 0, false));
+        check(s.warning().isEmpty(), "no speed warning: speed is not checked");
+        near(s.tick(13.01, 0, false).strafe, t.strafe(), "then the selected diagonal, not Park A");
         s = t.sequence(false); s.start(0);
         near(s.tick(0, 0, false).strafe, t.strafe(), "INIT fallback uses same departure");
         for (double stopAt : new double[]{0, .5, 3, 11.5, 12}) {
@@ -113,33 +126,33 @@ public final class PollenShootFirstTest {
         select(t, FEED_SECONDS); for (int i = 0; i < 25; i++) change(t, -1);
         near(t.value(FEED_SECONDS), 0, "skip shot for motion calibration");
         s = t.sequence(); s.start(0); near(s.tick(0, 0, false).forward, t.forward(), "skip-shot route");
-        select(t, DISTANCE_CM); for (int i = 0; i < 100; i++) change(t, 1);
-        near(t.value(DISTANCE_CM), 350, "distance upper bound");
+        select(t, LEG3_CM); for (int i = 0; i < 100; i++) change(t, 1);
+        near(t.value(LEG3_CM), 350, "distance upper bound");
         for (int i = 0; i < 100; i++) change(t, -1);
-        near(t.value(DISTANCE_CM), 0, "zero distance for stationary test");
+        near(t.value(LEG3_CM), 0, "zero distance for stationary test");
         s = t.sequence(); s.start(0); zero(s.tick(0, 0, false));
         check(s.tick(.5, 0, false).finished, "both zero gives hold only");
         t.update(false, false, false, false, true); release(t);
-        near(t.value(DISTANCE_CM), 60.96, "triangle restores short test");
+        near(t.value(LEG3_CM), 60.96, "triangle restores short test");
         near(t.value(FEED_SECONDS), 10, "triangle restores feed duration");
-        select(t, DISTANCE_CM); for (int i = 0; i < 44; i++) change(t, 1);
+        select(t, LEG3_CM); for (int i = 0; i < 44; i++) change(t, 1);
         check(t.worstCaseSeconds() < 26, "longer selected distance remains within time budget");
         select(t, DRIVE_POWER); for (int i = 0; i < 10; i++) change(t, -1);
         check(t.worstCaseSeconds() < 26, "slowing drive cannot silently exhaust budget");
         t.sequence(); // Still a valid sequence after refused changes.
         // Angle editing changes translation only; retain the calibrated default.
         t = new PollenShootTuning(null);
-        near(t.value(TRAVEL_ANGLE), 25.87, "tested default angle preserved");
+        near(t.value(LEG3_ANGLE), 25.87, "tested default angle preserved");
         double duration = t.driveSeconds(), budget = t.worstCaseSeconds();
-        select(t, TRAVEL_ANGLE); change(t, 1);
-        near(t.value(TRAVEL_ANGLE), 26, "first right reaches next whole degree");
+        select(t, LEG3_ANGLE); change(t, 1);
+        near(t.value(LEG3_ANGLE), 26, "first right reaches next whole degree");
         t.update(false, false, false, true, false);
         t.update(false, false, false, true, false);
-        near(t.value(TRAVEL_ANGLE), 27, "held angle button does not repeat"); release(t);
+        near(t.value(LEG3_ANGLE), 27, "held angle button does not repeat"); release(t);
         t.update(false, false, true, true, false);
-        near(t.value(TRAVEL_ANGLE), 27, "opposite angle edits cancel"); release(t);
+        near(t.value(LEG3_ANGLE), 27, "opposite angle edits cancel"); release(t);
         for (int i = 0; i < 27; i++) change(t, -1);
-        near(t.value(TRAVEL_ANGLE), 0, "can select exactly straight forward");
+        near(t.value(LEG3_ANGLE), 0, "can select exactly straight forward");
         near(t.forward(), .2, "zero angle forward output");
         near(t.strafe(), 0, "zero angle no strafe");
         change(t, -1);
@@ -147,9 +160,9 @@ public final class PollenShootFirstTest {
         near(t.driveSeconds(), duration, "angle does not change estimated travel duration");
         near(t.worstCaseSeconds(), budget, "angle does not change budget");
         remembered = new PollenShootTuning(t.snapshot());
-        near(remembered.value(TRAVEL_ANGLE), -1, "angle survives next INIT in same app");
+        near(remembered.value(LEG3_ANGLE), -1, "angle survives next INIT in same app");
         for (int i = 0; i < 200; i++) change(t, -1);
-        near(t.value(TRAVEL_ANGLE), -90, "right angle limit");
+        near(t.value(LEG3_ANGLE), -90, "right angle limit");
         near(t.forward(), 0, "right strafe no forward");
         near(t.strafe(), .2, "right strafe output");
         // Shooter fallback must use the selected angle, not the default angle.
@@ -159,22 +172,22 @@ public final class PollenShootFirstTest {
         near(move.turn, 0, "angle never turns chassis");
         zero(s.tick(.1, 0, true)); zero(s.tick(.2, 0, false));
         for (int i = 0; i < 200; i++) change(t, 1);
-        near(t.value(TRAVEL_ANGLE), 90, "left angle limit");
+        near(t.value(LEG3_ANGLE), 90, "left angle limit");
         near(t.forward(), 0, "left strafe no forward");
         near(t.strafe(), -.2, "left strafe output");
         s = t.sequence(); s.start(0);
-        s.tick(0, 1250, false); s.tick(.25, 1250, false);
-        zero(s.tick(10.25, 1250, false));
-        move = s.tick(10.26, 1250, false);
+        s.tick(0, 1250, false); s.tick(3, 1250, false);
+        zero(s.tick(13, 1250, false));
+        move = s.tick(13.01, 1250, false);
         near(move.strafe, -.2, "successful shot departs at selected angle");
         near(move.turn, 0, "successful shot departure does not turn");
         t.update(false, false, false, false, true); release(t);
-        near(t.value(TRAVEL_ANGLE), 25.87, "reset restores fractional calibrated angle");
+        near(t.value(LEG3_ANGLE), 25.87, "reset restores fractional calibrated angle");
         change(t, -1);
-        near(t.value(TRAVEL_ANGLE), 25, "first left reaches next whole degree");
+        near(t.value(LEG3_ANGLE), 25, "first left reaches next whole degree");
         t.lock(); change(t, 1);
         t.update(false, false, false, false, true);
-        near(t.value(TRAVEL_ANGLE), 25, "START locks angle edits and reset");
+        near(t.value(LEG3_ANGLE), 25, "START locks angle edits and reset");
         System.out.println("PollenShootFirstTest: " + checks + " checks passed");
     }
 }
