@@ -56,6 +56,10 @@ assert abs(min(p[1] for p in robot(ss))+W)<1e-9, 'support rear edge flush on the
 assert abs(max(p[1] for p in robot(start))-W)<1e-9, 'primary rear edge flush on the wall'
 zone=box(-70.101,-59.585,-46.599,-23.907) # conservative overlap of STEP tape and 11-inch-from-wall check
 assert intersects(robot(primary),zone) and intersects(robot(support),zone)
+# LEAVE is judged at the end of AUTO: a parked robot touching the side wall loses it.
+wall_gaps={n:min(x for x,z in robot(p))+W for n,p in (('primary',primary),('support',support))}
+assert all(g>0 for g in wall_gaps.values()), wall_gaps
+print('parked side-wall gaps (in)',wall_gaps)
 assert not intersects(robot(primary),robot(support))
 assert all(not intersects(plans[p],plans[s]) for p in plans if p.startswith('primary') for s in plans if s.startswith('support'))
 print('support start',ss,'flower gap',flower_gap,'half-field gap',half_gap,'offset from hive center',ss[0]-hx)

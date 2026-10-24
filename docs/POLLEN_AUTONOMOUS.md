@@ -33,7 +33,11 @@ substitute either of those poses/routes for the field presets.
 4. Confirm the entire footprint, shooting area and partner route are clear.
    For C, physically verify the tight flower/midline clearance of the flush
    pose (about 2.6 cm each side nominally). The CAD clearance does not establish clearance on the actual field.
-5. START runs the selected sequence. STOP interrupts it. At DONE, commands stay
+5. Agree lanes with the partner using the
+   [pit sheet](POLLEN_PIT_SHEET.svg): who shoots first, inner/outer parking
+   slot, and that our C feeds from t=15 s. A robot touching the side wall at
+   the end of AUTO loses its 3 LEAVE points (and the alliance its 16-point SWARM).
+6. START runs the selected sequence. STOP interrupts it. At DONE, commands stay
    zero; DONE does not prove parking or scoring. Press STOP before another trial.
 
 ## A controls and defaults
@@ -173,7 +177,9 @@ stops outputs. This is the program's guard, not the official autonomous duration
 ## Verification and settings record
 
 Test INIT and STOP, then short isolated drive/shot trials, then each field leg,
-then the combined route. Confirm zero shooter output before driving. Repeat
+then the combined route. The parked robot must end partly on the tape and off
+the side wall: the nominal margins are about 14 cm each way, roughly 12% of the
+lateral travel, so tune leg distances until repeated runs stay well inside. Confirm zero shooter output before driving. Repeat
 with actual load, expected battery and the partner's route. Verify both alliance
 placements. Do not equate computer tests or SDK compilation with a tested route.
 

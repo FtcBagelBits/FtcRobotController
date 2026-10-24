@@ -20,12 +20,17 @@ Downloaded and inspected October 23, 2026 Pacific:
   pages 14 and 23: loading-zone tape and initial hive orientation.
 - [Field Acceptance Checklist](https://ftc-resources.firstinspires.org/ftc/field/field-check),
   downloaded revision 26-27.2: frame placement and loading-zone tape checks.
-- [Game Details TU05, section 10.5.4](https://ftc-resources.firstinspires.org/ftc/game/manual-10):
+- [Game Details TU05, sections 10.5 and 10.5.4, Tables 10-2 and 10-3](https://ftc-resources.firstinspires.org/ftc/game/manual-10):
   PARK requires partial presence in the alliance loading zone; LEAVE requires
-  no longer contacting the perimeter wall.
-- [Game Rules TU06, G304](https://ftc-resources.firstinspires.org/ftc/game/manual-11):
-  starting robot contacts the wall, stays entirely on its alliance half and
-  does not contact a flower or its scoring volume.
+  no longer contacting the perimeter wall. Both are assessed at the end of AUTO.
+  LEAVE is 3 points (AUTO only); PARK is 5 in AUTO and 5 at the end of the match.
+  The SWARM RP needs combined LEAVE + PARK points at or above the threshold:
+  16 at "all other events"; championships TBA; premier events may set their own.
+- [Game Rules TU06, G302-G304](https://ftc-resources.firstinspires.org/ftc/game/manual-11):
+  a starting robot contacts the perimeter wall, is fully on its alliance's side,
+  does not contact a flower or its scoring volume, is not in the loading zone
+  and contacts exactly 4 pre-loaded pollen (G304.A-G). Alignment devices may be
+  brought for setup (G302) but nothing but the robot may remain on the field (G303.C).
 
 Coordinates below are **inches, centered on the field**, using the STEP model's
 horizontal X and Z axes. +X points toward the blue alliance; +Z points toward
@@ -149,6 +154,41 @@ earlier than t=15 after speed qualification, and runs for 7.5 seconds. Drive
 starts at approximately t=22.5, with all shooter outputs off. If spinup fails,
 the robot waits through the feed slot before departing. It does **not** verify
 that the partner tipped the hive; the wait is an open-loop coordination plan.
+
+## Parking margins and the auto SWARM points
+
+Two robots that each LEAVE (3) and AUTO PARK (5) score exactly 16, the default
+SWARM threshold, before TeleOp. Both are judged at the end of AUTO, so a robot
+that parks against the side wall still earns PARK but **loses LEAVE**, and the
+alliance drops below 16. The two parking slots are placed to balance that risk
+against missing the tape:
+
+| Slot | Robot center | Gap to side wall | Overlap of the tape (X) | Overlap of the zone (Z) |
+| --- | --- | ---: | ---: | ---: |
+| Inner, primary (B) | (-56, -26) | 5.585 in (14.2 cm) | 5.415 in (13.8 cm) | 11.1 in |
+| Outer, support (C) | (-56, -47) | 5.585 in (14.2 cm) | 5.415 in (13.8 cm) | 8.6 in |
+
+The tape overlap uses the conservative X<=-59.585 edge; against the CAD tape
+edge it is 5.9 inches. Neither robot needs to be fully inside the 22.69-inch
+zone: PARK needs only partial presence, which is why both slots fit.
+
+Those margins set the accuracy the timed drive needs. Toward the side wall,
+B travels 109.9 cm in total (leg 2 plus leg 3's lateral part) and C 116.8 cm
+(leg 3's lateral part). About **12% overshoot** reaches the wall and about **12%
+undershoot** misses the tape, before counting heading drift. Measure the
+lateral endpoint on the practice field and adjust the leg distances in INIT
+until repeated runs land well inside that band.
+
+Placement in tile terms (CAD tile pitch 23.50 inches): B's midline-side edge is
+3.7 inches from the center seam; C has 1.0 inch to the flower bracket and 1.0
+inch to the center seam. A 1.0-inch spacer gauge is an allowed alignment device
+(G302) and must be taken off the field before the match (G303.C). The loading
+zone tape sits about 0.4 inch inside one tile row along the side wall.
+
+[POLLEN_PIT_SHEET.svg](POLLEN_PIT_SHEET.svg) is the simplified alliance version of
+this guide: tile grid, both alliances, inner/outer slots, the no-wall strip and
+timeline badges. `python3 tools/draw-pollen-pit-sheet.py out.pdf` makes a
+printable letter-size copy.
 
 ## Blue alliance and physical validation
 

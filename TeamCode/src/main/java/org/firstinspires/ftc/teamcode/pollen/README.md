@@ -111,6 +111,8 @@ mat arithmetic, field-preset selection, C timing and skipped-shot slots, all thr
 movement legs, controller edits of each leg and launcher speed, budgets, memory and STOP. The standard-library Python script
 checks nominal swept polygons, including the rejected direct route and rejected
 centered support start. Neither establishes actual physical clearance.
+`tools/draw-pollen-field-routes.py` and `tools/draw-pollen-pit-sheet.py` (matplotlib)
+redraw the engineering diagram and the alliance pit sheet; they draw, not check.
 
 `ftcgradle` is the team's existing shell helper; inspect `type ftcgradle` if it
 is unavailable. The older `tools/pollen-patch.sh` still requires the historical
