@@ -1,7 +1,14 @@
 package org.firstinspires.ftc.teamcode.pollen;
 
-/** Hardware-independent, nonblocking autonomous sequence. Times are seconds. */
+/** Hardware-independent, nonblocking autonomous sequence. Times are seconds.
+ * Each step's clock starts on the first loop that runs it (when its motion is first
+ * commanded), so a slow loop between steps cannot use up a step. A loop gap longer
+ * than MAX_DRIVE_LOOP_GAP_SECONDS while the drive is moving stops everything. */
 public final class PollenSequence {
+    /** Longest loop gap allowed while drive motors hold a nonzero command. The motors keep
+     * their last power during a gap, so a longer gap means unplanned, unmeasured travel. */
+    public static final double MAX_DRIVE_LOOP_GAP_SECONDS = 0.25;
+
     public static final class Step {
         public final String name;
         public final double seconds, forward, strafe, turn;
@@ -28,7 +35,7 @@ public final class PollenSequence {
             return new Step(name, seconds, forward, strafe, turn, false);
         }
 
-        /** Qualify speed once, then feed continuously for this wall-clock duration. */
+        /** Launcher on for the sequence's spin-up time, then feed for {@code seconds}. */
         public static Step continuousShoot(double seconds) {
             return new Step("SHOOT", seconds, 0, 0, 0, true);
         }
@@ -42,12 +49,10 @@ public final class PollenSequence {
     }
 
     private final Step[] steps;
-    private final double targetVelocity, minVelocity, spinupTimeout, stableTime, deadline, startDelay;
+    private final double targetVelocity, spinupSeconds, deadline, startDelay;
     private int index;
-    private double startedAt, stepStartedAt, stableSince = Double.NaN;
-    private double feedingSince = Double.NaN, previousTime;
-    private double activeFeedSeconds;
-    private boolean wasFeeding;
+    private boolean stepActive, wasDriving;
+    private double startedAt, stepStartedAt, previousTime;
     private boolean started, finished;
     private String result = "READY";
     private String warning = "";
@@ -57,49 +62,44 @@ public final class PollenSequence {
         if (steps != null) for (Step step : steps) {
             if (step != null && step.shoot) throw new IllegalArgumentException("Park route cannot shoot");
         }
-        // Valid placeholders are unused because this route contains no shooting.
-        return new PollenSequence(steps, 1, 1, 1, .25, deadline, startDelay);
+        return new PollenSequence(steps, 0, 0, deadline, startDelay);
     }
 
-    public PollenSequence(Step[] steps, double targetVelocity, double minVelocity,
-                          double spinupTimeout, double stableTime, double deadline) {
-        this(steps, targetVelocity, minVelocity, spinupTimeout, stableTime, deadline, 0);
-    }
-
-    public PollenSequence(Step[] steps, double targetVelocity, double minVelocity,
-                          double spinupTimeout, double stableTime, double deadline,
-                          double startDelay) {
-        if (steps == null || steps.length == 0 || !Double.isFinite(targetVelocity)
-                || !Double.isFinite(minVelocity) || !Double.isFinite(spinupTimeout)
-                || !Double.isFinite(stableTime) || !Double.isFinite(deadline)
-                || minVelocity <= 0 || targetVelocity < minVelocity || stableTime <= 0
-                || spinupTimeout <= stableTime || deadline <= 0
+    /** A shoot step runs the launcher at {@code targetVelocity} for {@code spinupSeconds},
+     * then keeps it on and feeds for the step's seconds. Timing is fixed: measured launcher
+     * speed never delays, skips or stops feeding. */
+    public PollenSequence(Step[] steps, double targetVelocity, double spinupSeconds,
+                          double deadline, double startDelay) {
+        if (steps == null || steps.length == 0 || !Double.isFinite(targetVelocity) || targetVelocity < 0
+                || !Double.isFinite(spinupSeconds) || spinupSeconds < 0
+                || !Double.isFinite(deadline) || deadline <= 0
                 || !Double.isFinite(startDelay) || startDelay < 0) {
             throw new IllegalArgumentException("Invalid sequence settings");
         }
-        double worstCase = startDelay + worstCaseDuration(steps, spinupTimeout);
+        for (Step step : steps) {
+            if (step != null && step.shoot && targetVelocity <= 0)
+                throw new IllegalArgumentException("A shooting step needs a launcher velocity");
+        }
         // Leave room for transition loops; the independent deadline always stops outputs.
-        if (worstCase >= deadline - 1) {
+        if (startDelay + worstCaseDuration(steps, spinupSeconds) >= deadline - 1) {
             throw new IllegalArgumentException("Route exceeds autonomous time budget");
         }
         this.steps = steps.clone();
         this.targetVelocity = targetVelocity;
-        this.minVelocity = minVelocity;
-        this.spinupTimeout = spinupTimeout;
-        this.stableTime = stableTime;
+        this.spinupSeconds = spinupSeconds;
         this.deadline = deadline;
         this.startDelay = startDelay;
     }
 
-    /** Route wall-clock allowance, excluding start delay and loop-transition reserve. */
-    public static double worstCaseDuration(Step[] steps, double spinupTimeout) {
-        if (steps == null || steps.length == 0 || !Double.isFinite(spinupTimeout) || spinupTimeout <= 0) {
+    /** Route duration, excluding start delay and loop-transition reserve. */
+    public static double worstCaseDuration(Step[] steps, double spinupSeconds) {
+        if (steps == null || steps.length == 0 || !Double.isFinite(spinupSeconds) || spinupSeconds < 0) {
             throw new IllegalArgumentException("Invalid route budget");
         }
         double seconds = 0;
         for (Step step : steps) {
             if (step == null) throw new IllegalArgumentException("Null step");
-            seconds += step.shoot ? spinupTimeout + step.seconds : step.seconds;
+            seconds += step.shoot ? spinupSeconds + step.seconds : step.seconds;
         }
         return seconds;
     }
@@ -108,72 +108,66 @@ public final class PollenSequence {
         if (!Double.isFinite(now)) throw new IllegalArgumentException("Invalid time");
         index = 0;
         startedAt = previousTime = now;
-        stepStartedAt = now + startDelay;
-        activeFeedSeconds = 0;
-        wasFeeding = false;
-        stableSince = feedingSince = Double.NaN;
+        stepActive = wasDriving = false;
+        stepStartedAt = Double.NaN;
         finished = false;
         started = true;
         warning = "";
         result = "RUNNING";
     }
 
+    /** {@code measuredVelocity} is only checked for invalid data (NaN or infinite stops
+     * everything); its value never changes when the feed runs. */
     public Output tick(double now, double measuredVelocity, boolean stopRequested) {
+        Output out = compute(now, measuredVelocity, stopRequested);
+        wasDriving = !out.finished && (out.forward != 0 || out.strafe != 0 || out.turn != 0);
+        return out;
+    }
+
+    private Output compute(double now, double measuredVelocity, boolean stopRequested) {
         if (stopRequested) return stop("STOPPED");
         if (finished) return terminal();
         if (!started) return new Output("READY - waiting for START");
         if (!Double.isFinite(now) || now < previousTime) return stop("INVALID CLOCK");
         double elapsedSinceTick = now - previousTime;
         previousTime = now;
+        if (wasDriving && elapsedSinceTick > MAX_DRIVE_LOOP_GAP_SECONDS) {
+            warning = String.format(java.util.Locale.US, "Loop paused %.2f s while driving", elapsedSinceTick);
+            return stop("LOOP STALL WHILE DRIVING - STOPPED");
+        }
         if (now - startedAt >= deadline) return stop("TIME LIMIT - STOPPED");
         if (now - startedAt < startDelay) return new Output("START DELAY");
         Step step = steps[index];
+        if (!stepActive) {
+            // Start this step's clock now, on the loop that first commands it.
+            stepActive = true;
+            stepStartedAt = now;
+        }
+        double elapsed = now - stepStartedAt;
         Output out = new Output(step.name);
         if (!step.shoot) {
-            if (now - stepStartedAt >= step.seconds) return advance(now);
+            if (elapsed >= step.seconds) return advance(now);
             out.forward = step.forward;
             out.strafe = step.strafe;
             out.turn = step.turn;
             return out;
         }
-
-        out.phase = "SPINUP";
+        if (elapsed >= spinupSeconds + step.seconds) return advance(now);
+        if (!Double.isFinite(measuredVelocity)) return stop("INVALID LAUNCHER VELOCITY - STOPPED");
         out.launcherVelocity = targetVelocity;
-        if (!Double.isFinite(measuredVelocity)) {
-            return stop("INVALID LAUNCHER VELOCITY - STOPPED");
-        }
-        // Count the time for which the preceding loop actually requested feeding.
-        // This measures commands, not balls or verified physical feeder motion.
-        if (wasFeeding) activeFeedSeconds += elapsedSinceTick;
-        wasFeeding = false;
-        out.activeFeedSeconds = activeFeedSeconds;
-        boolean ready = Double.isFinite(measuredVelocity) && measuredVelocity >= minVelocity;
-        if (!ready) stableSince = Double.NaN;
-        else if (Double.isNaN(stableSince)) stableSince = now;
-        boolean stable = ready && now - stableSince >= stableTime;
-
-        if (Double.isNaN(feedingSince)) {
-            if (now - stepStartedAt >= spinupTimeout) {
-                warning = "Launcher not ready: shot skipped; continuing route";
-                return advance(now);
-            }
-            if (stable) feedingSince = now;
-        }
-        if (!Double.isNaN(feedingSince)) {
-            if (now - feedingSince >= step.seconds) return advance(now);
-            out.phase = ready ? "CONTINUOUS FEED" : "CONTINUOUS FEED - speed below target band";
+        if (elapsed < spinupSeconds) {
+            out.phase = "SPINUP - launcher only";
+        } else {
+            out.phase = "FEED";
             out.feederPower = 1;
-            wasFeeding = true;
+            out.activeFeedSeconds = elapsed - spinupSeconds;
         }
         return out;
     }
 
     private Output advance(double now) {
         index++;
-        stepStartedAt = now;
-        stableSince = feedingSince = Double.NaN;
-        activeFeedSeconds = 0;
-        wasFeeding = false;
+        stepActive = false; // the next step's clock starts when it first runs
         if (index == steps.length) return stop("DONE - all outputs zero");
         return new Output("NEXT: " + steps[index].name); // Zero outputs between steps.
     }
