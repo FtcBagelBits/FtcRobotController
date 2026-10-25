@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.pollen;
 
-/** Open-loop estimates, not localization. See docs/POLLEN_MAT_CALIBRATION.md. */
+/** Bridge code, frozen: turns a distance and angle into seconds and wheel powers for timed
+ * driving. Odometry and Pedro Pathing will replace it. See docs/POLLEN_MAT_CALIBRATION.md. */
 public final class PollenDriveCalibration {
     private PollenDriveCalibration() { }
 

@@ -1,10 +1,25 @@
 # Pollen autonomous code
 
-Build identifier: **pollen-mat-v8** (`PollenConfig.BUILD`). Three autonomous OpModes preselect PollenBot:
+Build identifier: **pollen-mat-v9** (`PollenConfig.BUILD`). Three autonomous OpModes preselect PollenBot:
 `Pollen ROBOT Park`, `Pollen ROBOT Shoot + Park`, and
 `Pollen Supporting Shooter Auto`. The PollenBot TeleOp itself
 (`../BioBuzzStarterbotOpMode.java`, outside this package) uses `PollenTeleOpTuning`
 for its INIT launcher-speed and drive-power menu and shows the same build id.
+
+## Where to start reading
+
+Timed driving is a bridge until odometry and Pedro Pathing work. Read the parts
+that carry over first; skim or skip the bridge code.
+
+| Read | File | What it shows | Future |
+| --- | --- | --- | --- |
+| 1 | `../BioBuzzStarterbotOpMode.java`, `launch()` | When to feed the launcher: up to speed or after the backup timer | Carries over |
+| 2 | `PollenSequence.java`, `tick()` | Each loop: look at the clock, return what every motor does now | Carries over |
+| 3 | `PollenShooterOpMode.java` | The OpMode lifecycle: init, init_loop, start, loop, stop | Carries over |
+| 4 | `PollenTeleOpTuning.java` | An INIT menu: select a row, edit it, Triangle resets, START locks | Carries over |
+| 5 | `PollenFieldGeometry.java` | Field positions from the official CAD, in inches from the center | Becomes path targets |
+| skim | `PollenShootTuning.java`, `PollenParkTuning.java`, `PollenRobotPark.java` | B/C and A menus, presets and time budgets | Mostly replaced |
+| skip | `PollenDriveCalibration.java` | Turns a distance and angle into seconds and wheel powers (MAT_TRIAL model) | Bridge code, frozen |
 
 Read the [operator manual](../../../../../../../../../docs/POLLEN_AUTONOMOUS.md),
 [calibration analysis](../../../../../../../../../docs/POLLEN_MAT_CALIBRATION.md),
@@ -76,7 +91,7 @@ A shoot step runs the launcher alone for `SPINUP` seconds (default
 together for `FEED_SECONDS`, the intake at `FEED_POWER` (0.5) and the agitator at
 `AGITATOR_POWER` (`PollenConfig.AGITATOR_FEED_POWER`, 1.0; it replaced a windmill
 servo that ran at full power). Measured launcher speed is never used to delay,
-pause or skip feeding in auto; only non-finite velocity data stops the run.
+pause, skip or stop feeding in auto; `PollenSequence.tick(now)` takes only the clock.
 PollenBot TeleOp feeds on R1 when the launcher reads `LAUNCHER_READY_FRACTION`
 (0.96) of target or its spin-up row elapses, whichever is first
 (`launcherIsUpToSpeed` or `spinUpTimeIsOver` in `PollenTeleOpTuning`), and latches feeding until R1
@@ -154,12 +169,10 @@ Keep them when editing, and check whitespace with
 `git -c core.whitespace=cr-at-eol diff --check`; plain `--check` flags every CR.
 
 `ftcgradle` is the team's existing shell helper; inspect `type ftcgradle` if it
-is unavailable. The older `tools/pollen-patch.sh` still requires the historical
-`pollen-auto-prep` branch: on this feature branch use the explicit checks above,
-not that branch-locked helper.
+is unavailable.
 
 Deploy a freshly built APK through the team's working Wi-Fi/ADB connection or
 Android Studio TeamCode run configuration to the Control Hub. USB-C has not
-worked. Verify `pollen-mat-v8` in INIT. Check the actual installed commit and all
+worked. Verify `pollen-mat-v9` in INIT. Check the actual installed commit and all
 settings before physical tests. Java changes require rebuild/reinstall; INIT
 settings and documentation edits do not.

@@ -87,13 +87,13 @@ public final class PollenParkTuningTest {
         PollenSequence sequence = PollenSequence.park(PollenConfig.parkRoute(t.seconds(), t.power()),
                 27, t.delaySeconds());
         sequence.start(0);
-        equal(sequence.tick(0.49, 0, false).forward, 0, "No output during selected delay");
-        equal(sequence.tick(0.5, 0, false).forward, 0.25, "Route uses selected power");
-        for (double now = 0.52; now < 1.28; now += 0.02) sequence.tick(now, 0, false); // ~50 Hz loop
-        equal(sequence.tick(1.29, 0, false).forward, 0.25, "Route uses selected time");
-        equal(sequence.tick(1.31, 0, false).forward, 0, "Drive stops after selected time");
+        equal(sequence.tick(0.49).forward, 0, "No output during selected delay");
+        equal(sequence.tick(0.5).forward, 0.25, "Route uses selected power");
+        for (double now = 0.52; now < 1.28; now += 0.02) sequence.tick(now); // ~50 Hz loop
+        equal(sequence.tick(1.29).forward, 0.25, "Route uses selected time");
+        equal(sequence.tick(1.31).forward, 0, "Drive stops after selected time");
         sequence.stop("Operator stop");
-        equal(sequence.tick(2, 0, false).forward, 0, "STOP remains latched");
+        equal(sequence.tick(2).forward, 0, "STOP remains latched");
         System.out.println("PASS: " + checks + " parking-tuning checks (host logic, not robot calibration)");
     }
 }

@@ -5,7 +5,7 @@ kept apart from what the code only predicts. Field geometry is in
 [POLLEN_FIELD_LAYOUT.md](POLLEN_FIELD_LAYOUT.md); how the drive models are
 built from these numbers is in [POLLEN_MAT_CALIBRATION.md](POLLEN_MAT_CALIBRATION.md).
 
-As of build `pollen-mat-v8` (October 24, 2026), **only two autonomous settings
+As of build `pollen-mat-v9` (October 24, 2026), **only two autonomous settings
 have run successfully on the robot: A's defaults and B's Triangle defaults.**
 Every other route, the MAT_TRIAL drive model and the TeleOp INIT menu are
 checked in software only. Add every new physical result to this file.
@@ -138,20 +138,25 @@ real load and battery.
 
 ## Highest-value next measurements
 
-1. **Strafe left and right** at 0.25 and 0.45 power, 1-3 s, feed set to 0:
-   measure forward and sideways separately and the final heading. MAT_TRIAL's
-   biggest assumptions are sideways distance and left/right symmetry.
-2. **B Square, legs one at a time** (other legs set to 0 cm), then the full
-   route: lateral endpoint and heading. Record where the field-tuned 172.47 cm at
-   +17 deg leg actually ends; that tells us how to correct MAT_TRIAL.
-3. **C legs** at power 0.45, the same way.
-4. **Launcher**: measured speed after the 3 s spin-up, then pollen per 10 s feed, from B's
-   start and C's start.
-5. **Footprint and C placement**: real width and length including intake and
+Odometry and Pedro Pathing will replace timed driving, so MAT_TRIAL is frozen:
+run the current routes to confirm they are safe to use until then, but do not
+spend field time refining the drive model.
+
+1. **Launcher**: TeleOp's "Feed" line on each shot ("up to speed" or "spin-up
+   timer"), measured speed after the 3 s spin-up, then pollen per 10 s feed,
+   from B's start and C's start. This carries over to every future autonomous.
+2. **B Square and C, full routes as installed**: does the robot end partly in
+   the loading zone and off the wall, without touching the hive frame or a
+   flower? Record the endpoint and heading.
+3. **Cycle timing**, once the mechanisms exist: seconds to shoot a full load,
+   seconds to collect one, and driving time between the shooting spot, the
+   flower and the parking zone. See
+   [what carries over](POLLEN_AUTONOMOUS_EXPLAINED.md#what-carries-over-to-odometry-and-pedro).
+4. **Footprint and C placement**: real width and length including intake and
    bumpers, the height of the part that touches the wall, and whether the real
    robot fits between the event field's flower and the midline with C's
    2.6 cm-per-side nominal gaps.
-6. **Loop rate**: note any `LOOP STALL WHILE DRIVING` stop. The code now stops
+5. **Loop rate**: note any `LOOP STALL WHILE DRIVING` stop. The code now stops
    on a pause over 0.25 s while driving, so a stall shows up instead of
    silently moving the robot off its route.
 
@@ -161,7 +166,5 @@ Record one row per run:
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | | | | | | | | | | | | | |
 
-After adding data, update the constants in `PollenDriveCalibration.java` and
-their asserted values in `tools/pollen-tests/PollenMatSupportTest.java`, then
-rerun `bash tools/test-pollen-sequence.sh`. Do not fit a new correction on top
-of runs made with an unknown earlier correction.
+If a route misses, adjust that leg's distance or angle in the INIT menu and
+record the new setting here; do not refit `PollenDriveCalibration.java`.

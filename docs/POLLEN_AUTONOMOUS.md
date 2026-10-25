@@ -1,6 +1,6 @@
 # Pollen autonomous operating manual
 
-All three autonomous modes and PollenBot TeleOp show build **`pollen-mat-v8`**.
+All three autonomous modes and PollenBot TeleOp show build **`pollen-mat-v9`**.
 Keep these instructions with the installed code. The new mat calibration and field routes are **experimental**.
 The previously tested B settings remain its default and are restored by Triangle.
 
@@ -187,8 +187,7 @@ main intake and agitator run together for the full feed duration. Measured
 speed never delays, pauses or skips the feed; an earlier version waited for
 96% of target speed and could stall the feeder when the encoder read low. No
 windmill feeder is used. Encoder target is ticks/s, not RPM; feed time is
-commanded motor time, not a ball count. Invalid (non-numeric) velocity data
-still stops either mode.
+commanded motor time, not a ball count.
 
 A, B, C and PollenBot TeleOp remember settings separately while the Robot
 Controller app runs.
