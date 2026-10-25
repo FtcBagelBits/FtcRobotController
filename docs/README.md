@@ -1,9 +1,11 @@
 # Pollen documentation
 
-Use these documents with the code installed on the robot.
+Use these documents with the code installed on the robot. New to the code?
+Read [Start here](POLLEN_START_HERE.md) first.
 
 | Document | Audience and purpose |
 | --- | --- |
+| [Start here](POLLEN_START_HERE.md) | Everyone new to the code: what runs, the three core ideas, a guided reading path, exercises, build commands. |
 | [Operating manual](POLLEN_AUTONOMOUS.md) | Drivers and students: choose a routine, position the robot, use INIT controls (autonomous and PollenBot TeleOp), interpret warnings and record tested settings. |
 | [Code README](../TeamCode/src/main/java/org/firstinspires/ftc/teamcode/pollen/README.md) | Programmers: file map, hardware, sequencing, calibration, tests and deployment. |
 | [How autonomous works](POLLEN_AUTONOMOUS_EXPLAINED.md) | Students: hardware names, lifecycle, timed movement, shooting and failure handling. |

@@ -8,6 +8,9 @@ for its INIT launcher-speed and drive-power menu and shows the same build id.
 
 ## Where to start reading
 
+New to the code? [docs/POLLEN_START_HERE.md](../../../../../../../../../docs/POLLEN_START_HERE.md)
+walks through it with questions and exercises. In short:
+
 Timed driving is a bridge until odometry and Pedro Pathing work. Read the parts
 that carry over first; skim or skip the bridge code.
 
@@ -151,7 +154,7 @@ ftcgradle :TeamCode:assembleDebug
 The Java script uses Java 8 compatibility and covers original A/B behavior,
 mat arithmetic, field-preset selection, fixed spin-up/feed timing (including a launcher reading zero), C's slot, all three
 movement legs, controller edits of each leg and launcher speed, budgets, memory and STOP,
-plus the TeleOp INIT menu (defaults, limits, time-based feed, memory, lock at START).
+plus the TeleOp INIT menu (defaults, limits, the two feed rules, memory, lock at START).
 `PollenLoopTimingTest` drives B Square, B Triangle and C through irregular loop
 timing and 350 ms pauses at each step change, and checks that no leg is skipped
 or shortened and that a pause while driving stops the run. The standard-library
