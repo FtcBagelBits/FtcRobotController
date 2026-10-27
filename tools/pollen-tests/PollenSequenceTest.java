@@ -21,90 +21,88 @@ public final class PollenSequenceTest {
                 PollenSequence.Step.drive("PARK", 1, 0.2, 0, 0)});
     }
     /** Tick every 20 ms from {@code from} up to (not including) {@code to}; returns the last output. */
-    private static PollenSequence.Output run(PollenSequence s, double from, double to, double velocity) {
+    private static PollenSequence.Output run(PollenSequence s, double from, double to) {
         PollenSequence.Output out = null;
-        for (double t = from; t < to - 1e-9; t += 0.02) out = s.tick(t, velocity, false);
+        for (double t = from; t < to - 1e-9; t += 0.02) out = s.tick(t);
         return out;
     }
     public static void main(String[] args) {
         PollenSequence park = sequence(new PollenSequence.Step[]{
                 PollenSequence.Step.drive("MOVE", .75, .2, 0, 0),
                 PollenSequence.Step.drive("HOLD", .5, 0, 0, 0)});
-        zero(park.tick(0, 0, false)); // No action before Start.
+        zero(park.tick(0)); // No action before Start.
         park.start(0);
-        check(park.tick(0, 0, false).forward == 0.2, "Park movement");
-        check(run(park, 0.02, 0.745, 0).forward == 0.2, "Park moves for its whole step");
-        zero(park.tick(0.75, 0, false));
-        PollenSequence.Output done = run(park, 0.77, 1.28, 0);
+        check(park.tick(0).forward == 0.2, "Park movement");
+        check(run(park, 0.02, 0.745).forward == 0.2, "Park moves for its whole step");
+        zero(park.tick(0.75));
+        PollenSequence.Output done = run(park, 0.77, 1.28);
         check(done.finished && done.phase.startsWith("DONE"), "Park completion");
         zero(done);
-        zero(park.tick(2, 0, false));
+        zero(park.tick(2));
 
         // Fixed timing: launcher alone for 3 s, then feed 2 s. Measured speed never gates the feed.
         PollenSequence shot = shot(); shot.start(0);
-        PollenSequence.Output spin = shot.tick(0, 0, false);
+        PollenSequence.Output spin = shot.tick(0);
         check(spin.launcherVelocity == 1250 && spin.feederPower == 0, "Launcher alone during spin-up");
-        check(run(shot, .02, 2.995, 0).feederPower == 0, "No feed during the 3 s spin-up");
-        PollenSequence.Output feeding = shot.tick(3.0, 0, false);
+        check(run(shot, .02, 2.995).feederPower == 0, "No feed during the 3 s spin-up");
+        PollenSequence.Output feeding = shot.tick(3.0);
         check(feeding.feederPower == 1 && feeding.launcherVelocity == 1250, "Feed starts at 3 s even with zero measured speed");
-        feeding = shot.tick(3.5, 900, false);
+        feeding = shot.tick(3.5);
         check(feeding.feederPower == 1, "A speed dip does not pause the feed");
         check(Math.abs(feeding.activeFeedSeconds - .5) < 1e-9, "Feed time counted from feed start");
-        check(shot.tick(4.99, 1250, false).feederPower == 1, "Full 2 s feed after spin-up");
-        zero(shot.tick(5.0, 1250, false));
-        check(shot.tick(5.02, 0, false).forward == .2, "Park after the feed completes");
-        check(run(shot, 5.04, 6.015, 0).forward == .2, "Park leg runs a full second from its first loop");
-        PollenSequence.Output shotDone = shot.tick(6.03, 0, false);
+        check(shot.tick(4.99).feederPower == 1, "Full 2 s feed after spin-up");
+        zero(shot.tick(5.0));
+        check(shot.tick(5.02).forward == .2, "Park after the feed completes");
+        check(run(shot, 5.04, 6.015).forward == .2, "Park leg runs a full second from its first loop");
+        PollenSequence.Output shotDone = shot.tick(6.03);
         check(shotDone.finished && shotDone.phase.startsWith("DONE"), "Shot route completes");
 
         PollenSequence delayed = new PollenSequence(new PollenSequence.Step[]{
                 PollenSequence.Step.drive("MOVE", 1, .2, 0, 0)}, 1250, 3, 27, 2);
         delayed.start(10);
-        zero(delayed.tick(10, 0, false));
-        zero(delayed.tick(11.99, 0, false));
-        check(delayed.tick(12, 0, false).forward == .2, "Delay completes before movement");
-        check(run(delayed, 12.02, 12.995, 0).forward == .2, "Delay preserves move duration");
-        PollenSequence.Output delayedDone = delayed.tick(13.01, 0, false);
+        zero(delayed.tick(10));
+        zero(delayed.tick(11.99));
+        check(delayed.tick(12).forward == .2, "Delay completes before movement");
+        check(run(delayed, 12.02, 12.995).forward == .2, "Delay preserves move duration");
+        PollenSequence.Output delayedDone = delayed.tick(13.01);
         check(delayedDone.finished && delayedDone.phase.startsWith("DONE"), "Delayed move completes");
         delayed.start(20);
-        zero(delayed.tick(21, 0, true));
-        check(delayed.tick(22, 0, false).finished, "Stop during delay is latched");
+        zero(delayed.stop("STOPPED"));
+        check(delayed.tick(22).finished, "Stop during delay is latched");
 
         // A launcher that never reports speed (e.g. unplugged encoder) still feeds on schedule.
         PollenSequence blind = shot(); blind.start(0);
         boolean fedBlind = false;
-        for (int i = 0; i <= 250; i++) fedBlind |= blind.tick(i * .02, 0, false).feederPower > 0;
+        for (int i = 0; i <= 250; i++) fedBlind |= blind.tick(i * .02).feederPower > 0;
         check(fedBlind && blind.warning().isEmpty(), "Zero measured speed: feeds on schedule, no warning");
-        check(blind.tick(5.02, 0, false).forward == .2, "then parks");
+        check(blind.tick(5.02).forward == .2, "then parks");
         PollenSequence noSpin = new PollenSequence(new PollenSequence.Step[]{PollenSequence.Step.continuousShoot(1)},
                 1250, 0, 27, 0);
         noSpin.start(0);
-        check(noSpin.tick(0, 0, false).feederPower == 1, "Zero spin-up feeds at once");
-        PollenSequence badSpeed = shot(); badSpeed.start(0);
-        check(badSpeed.tick(0, Double.NaN, false).finished, "Invalid launcher data still stops everything");
+        check(noSpin.tick(0).feederPower == 1, "Zero spin-up feeds at once");
 
         // Stop before start, during driving, spinup, feeding, and parking must latch zero.
         for (double stopAt : new double[]{0, 1.5, 3.5, 5.5, 6.5}) {
             PollenSequence s = shot(); s.start(0);
-            for (double t = 0; t < stopAt; t += 0.02) s.tick(t, 1250, false);
-            zero(s.tick(stopAt, 1250, true));
-            PollenSequence.Output stopped = s.tick(stopAt + 0.1, 1250, false);
+            for (double t = 0; t < stopAt; t += 0.02) s.tick(t);
+            zero(s.stop("STOPPED"));
+            PollenSequence.Output stopped = s.tick(stopAt + 0.1);
             zero(stopped); check(stopped.finished, "Stop latched");
         }
         PollenSequence stoppedBeforeStart = shot();
-        zero(stoppedBeforeStart.tick(0, 0, true));
-        check(stoppedBeforeStart.tick(1, 0, false).finished, "Stop before start latched");
+        zero(stoppedBeforeStart.stop("STOPPED"));
+        check(stoppedBeforeStart.tick(1).finished, "Stop before start latched");
 
         PollenSequence deadline = shot(); deadline.start(0);
-        zero(deadline.tick(27, 1250, false));
-        check(deadline.tick(28, 1250, false).finished, "Hard deadline latched");
+        zero(deadline.tick(27));
+        check(deadline.tick(28).finished, "Hard deadline latched");
         PollenSequence clock = shot(); clock.start(2);
-        check(clock.tick(1, 1250, false).finished, "Bad clock stops");
+        check(clock.tick(1).finished, "Bad clock stops");
 
         PollenSequence diagonal = sequence(new PollenSequence.Step[]{
                 PollenSequence.Step.drive("diagonal", 1, 1, 1, 1)});
         diagonal.start(0);
-        double[] wheels = PollenSequence.wheelPowers(diagonal.tick(0, 0, false));
+        double[] wheels = PollenSequence.wheelPowers(diagonal.tick(0));
         for (double power : wheels) check(Math.abs(power) <= 1, "Motor normalization");
         check(wheels[0] == 1 && wheels[1] < 0, "Mecanum signs");
 
@@ -125,7 +123,7 @@ public final class PollenSequenceTest {
                                 PollenConfig.TOTAL_TIME_LIMIT, PollenConfig.START_DELAY_SECONDS);
                 s.start(0); boolean finished = false; boolean fed = false;
                 for (double t = 0; t < PollenConfig.TOTAL_TIME_LIMIT + 1; t += .02) {
-                    PollenSequence.Output out = s.tick(t, failure ? 0 : 1250, false);
+                    PollenSequence.Output out = s.tick(t);
                     fed |= out.feederPower > 0;
                     if (out.finished) { zero(out); finished = true; break; }
                 }

@@ -116,16 +116,15 @@ public final class PollenSequence {
         result = "RUNNING";
     }
 
-    /** {@code measuredVelocity} is only checked for invalid data (NaN or infinite stops
-     * everything); its value never changes when the feed runs. */
-    public Output tick(double now, double measuredVelocity, boolean stopRequested) {
-        Output out = compute(now, measuredVelocity, stopRequested);
+    /** Call once per loop with the match clock; returns what every motor should do right now.
+     * The launcher's measured speed is not an input: autonomous feeds on fixed times. */
+    public Output tick(double now) {
+        Output out = compute(now);
         wasDriving = !out.finished && (out.forward != 0 || out.strafe != 0 || out.turn != 0);
         return out;
     }
 
-    private Output compute(double now, double measuredVelocity, boolean stopRequested) {
-        if (stopRequested) return stop("STOPPED");
+    private Output compute(double now) {
         if (finished) return terminal();
         if (!started) return new Output("READY - waiting for START");
         if (!Double.isFinite(now) || now < previousTime) return stop("INVALID CLOCK");
@@ -153,7 +152,6 @@ public final class PollenSequence {
             return out;
         }
         if (elapsed >= spinupSeconds + step.seconds) return advance(now);
-        if (!Double.isFinite(measuredVelocity)) return stop("INVALID LAUNCHER VELOCITY - STOPPED");
         out.launcherVelocity = targetVelocity;
         if (elapsed < spinupSeconds) {
             out.phase = "SPINUP - launcher only";

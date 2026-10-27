@@ -5,7 +5,7 @@ kept apart from what the code only predicts. Field geometry is in
 [POLLEN_FIELD_LAYOUT.md](POLLEN_FIELD_LAYOUT.md); how the drive models are
 built from these numbers is in [POLLEN_MAT_CALIBRATION.md](POLLEN_MAT_CALIBRATION.md).
 
-As of build `pollen-mat-v7` (October 24, 2026), **only two autonomous settings
+As of build `pollen-mat-v9` (October 24, 2026), **only two autonomous settings
 have run successfully on the robot: A's defaults and B's Triangle defaults.**
 Every other route, the MAT_TRIAL drive model and the TeleOp INIT menu are
 checked in software only. Add every new physical result to this file.
@@ -16,7 +16,7 @@ checked in software only. Add every new physical result to this file.
 | --- | --- | --- | --- |
 | A: Pollen ROBOT Park | 2.00 s forward at power 0.20, delay 0 | Run successfully | Team report; endpoint not recorded |
 | B: Shoot + Park, Triangle | 1250 ticks/s, feed 10 s, 60.96 cm at +25.87 deg, power 0.20, baseline model | Run successfully | Team report; endpoint and shots not recorded |
-| PollenBot TeleOp, untouched menu | launcher 1250, feed 3 s after R1, drive 100% | Feed stopped working Oct 24 under the old speed gate; time-based feed not yet run | See "Feeder stall, October 24" |
+| PollenBot TeleOp, untouched menu | launcher 1250, feed at 1200 ticks/s or 3 s after R1, drive 100% | Feed stopped working Oct 24 under the old speed-only gate; v8's speed-or-timer feed not yet run | See "Feeder stall, October 24" |
 | Launcher spin-up | 3 s before feeding | Team-measured | Basis for the fixed spin-up in auto and TeleOp |
 | Leg 3 defaults | B Square 172.47 cm at +17 deg; C 97.96 cm at -81.85 deg | Team-chosen on the field, Oct 24 | Endpoints not recorded here; the drive model predicts different endpoints |
 | B, Square field route | 3 legs, MAT_TRIAL, power 0.25 | Not run | Software tests and CAD route checker only |
@@ -89,7 +89,7 @@ same. Code: `PollenDriveCalibration.move()`.
 | Setting | Auto (B and C) | TeleOp | Measured? |
 | --- | --- | --- | --- |
 | Launcher target | 1250 ticks/s (INIT row) | 1250 ticks/s (INIT menu) | Used in matches; exit speed not measured |
-| Feed starts | after the Spin-up row (3 s), whatever the measured speed | 3 s after R1 (INIT row) | 3 s is team-measured |
+| Feed starts | after the Spin-up row (3 s), whatever the measured speed | at 96% of target or 3 s after R1, whichever is first | 3 s is team-measured |
 | Feed power | intake + agitator 0.50 | trigger, +0.50 while firing | Code |
 | Feed duration | B 10 s, C 7.5 s | while R1 held | Pollen per second not measured |
 
@@ -111,6 +111,13 @@ own feed power, default 1.0, in auto and TeleOp, and shows "Intake / agitator
 command" on the screen. If that line reads 1.00 and the agitator still does not
 turn, check its wiring, port and configuration name (`agitator`).
 
+Because the agitator, not the speed check, was still failing after v5, build
+`pollen-mat-v8` brings the speed check back in TeleOp only, as an early start:
+feeding begins at 96% of target speed or after 3 s, whichever is first, and the
+screen says which. If it says "up to speed" on every shot, the encoder reads
+correctly. If it always says "spin-up timer", the launcher never reached 1200
+ticks/s, which may be why the original strict check failed.
+
 Not measured yet: actual speed reached in 3 s, pollen launched per second, shot
 spread, and whether 4 pre-loads tip the hive from either start. The field's own
 calibration (3 nectar + 2 pollen holds, one more tossed pollen tips) is a field
@@ -131,20 +138,25 @@ real load and battery.
 
 ## Highest-value next measurements
 
-1. **Strafe left and right** at 0.25 and 0.45 power, 1-3 s, feed set to 0:
-   measure forward and sideways separately and the final heading. MAT_TRIAL's
-   biggest assumptions are sideways distance and left/right symmetry.
-2. **B Square, legs one at a time** (other legs set to 0 cm), then the full
-   route: lateral endpoint and heading. Record where the field-tuned 172.47 cm at
-   +17 deg leg actually ends; that tells us how to correct MAT_TRIAL.
-3. **C legs** at power 0.45, the same way.
-4. **Launcher**: measured speed after the 3 s spin-up, then pollen per 10 s feed, from B's
-   start and C's start.
-5. **Footprint and C placement**: real width and length including intake and
+Odometry and Pedro Pathing will replace timed driving, so MAT_TRIAL is frozen:
+run the current routes to confirm they are safe to use until then, but do not
+spend field time refining the drive model.
+
+1. **Launcher**: TeleOp's "Feed" line on each shot ("up to speed" or "spin-up
+   timer"), measured speed after the 3 s spin-up, then pollen per 10 s feed,
+   from B's start and C's start. This carries over to every future autonomous.
+2. **B Square and C, full routes as installed**: does the robot end partly in
+   the loading zone and off the wall, without touching the hive frame or a
+   flower? Record the endpoint and heading.
+3. **Cycle timing**, once the mechanisms exist: seconds to shoot a full load,
+   seconds to collect one, and driving time between the shooting spot, the
+   flower and the parking zone. See
+   [what carries over](POLLEN_AUTONOMOUS_EXPLAINED.md#what-carries-over-to-odometry-and-pedro).
+4. **Footprint and C placement**: real width and length including intake and
    bumpers, the height of the part that touches the wall, and whether the real
    robot fits between the event field's flower and the midline with C's
    2.6 cm-per-side nominal gaps.
-6. **Loop rate**: note any `LOOP STALL WHILE DRIVING` stop. The code now stops
+5. **Loop rate**: note any `LOOP STALL WHILE DRIVING` stop. The code now stops
    on a pause over 0.25 s while driving, so a stall shows up instead of
    silently moving the robot off its route.
 
@@ -154,7 +166,5 @@ Record one row per run:
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | | | | | | | | | | | | | |
 
-After adding data, update the constants in `PollenDriveCalibration.java` and
-their asserted values in `tools/pollen-tests/PollenMatSupportTest.java`, then
-rerun `bash tools/test-pollen-sequence.sh`. Do not fit a new correction on top
-of runs made with an unknown earlier correction.
+If a route misses, adjust that leg's distance or angle in the INIT menu and
+record the new setting here; do not refit `PollenDriveCalibration.java`.

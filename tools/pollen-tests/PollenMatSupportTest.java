@@ -34,9 +34,9 @@ public final class PollenMatSupportTest {
     }
 
     /** Tick every 20 ms from {@code from} up to (not including) {@code to}; returns the last output. */
-    private static PollenSequence.Output run(PollenSequence s, double from, double to, double velocity) {
+    private static PollenSequence.Output run(PollenSequence s, double from, double to) {
         PollenSequence.Output out = null;
-        for (double now = from; now < to - 1e-9; now += .02) out = s.tick(now, velocity, false);
+        for (double now = from; now < to - 1e-9; now += .02) out = s.tick(now);
         return out;
     }
     public static void main(String[] args) {
@@ -106,57 +106,56 @@ public final class PollenMatSupportTest {
         near(t.value(LEG2_CM), 0, "support leg 2 unused by default");
         near(t.value(LEG3_ANGLE), -81.85, "field-tuned support leg 3 angle");
         PollenSequence s = t.sequence(); s.start(0);
-        zero(s.tick(0, 0, false)); zero(s.tick(11.99, 0, false));
-        PollenSequence.Output o = s.tick(12, 0, false);
+        zero(s.tick(0)); zero(s.tick(11.99));
+        PollenSequence.Output o = s.tick(12);
         near(o.launcherVelocity, 1250, "launcher starts at t=12, after the delay"); near(o.feederPower, 0, "no early feed");
-        o = s.tick(14.99, 1250, false); near(o.feederPower, 0, "launcher alone until t=15");
-        o = s.tick(15, 0, false); near(o.feederPower, 1, "feed at t=15 without checking speed");
+        o = s.tick(14.99); near(o.feederPower, 0, "launcher alone until t=15");
+        o = s.tick(15); near(o.feederPower, 1, "feed at t=15 without checking speed");
         near(o.forward, 0, "stationary shot"); near(o.strafe, 0, "stationary shot strafe");
-        near(s.tick(22.49, 900, false).feederPower, 1, "full 7.5 seconds despite normal dip");
-        zero(s.tick(22.5, 1250, false));
-        o = s.tick(22.51, 0, false); near(o.forward, .45, "support forward clearance first");
+        near(s.tick(22.49).feederPower, 1, "full 7.5 seconds despite normal dip");
+        zero(s.tick(22.5));
+        o = s.tick(22.51); near(o.forward, .45, "support forward clearance first");
         near(o.strafe, 0, "no strafe beside the flower");
         double leg1Ends = 22.51 + t.legMove(1).seconds;  // clock starts on the first commanding loop
-        check(run(s, 22.53, leg1Ends - .005, 0).forward == .45, "leg 1 runs its full time");
-        o = s.tick(leg1Ends + .001, 0, false); zero(o); check(o.phase.startsWith("NEXT"), "leg 1 ends on time");
+        check(run(s, 22.53, leg1Ends - .005).forward == .45, "leg 1 runs its full time");
+        o = s.tick(leg1Ends + .001); zero(o); check(o.phase.startsWith("NEXT"), "leg 1 ends on time");
         double leg3Start = leg1Ends + .021;
-        o = s.tick(leg3Start, 0, false); near(o.forward, t.forward(), "support second leg forward component");
+        o = s.tick(leg3Start); near(o.forward, t.forward(), "support second leg forward component");
         near(o.strafe, t.strafe(), "rightward departure"); near(o.launcherVelocity, 0, "shooter off before drive");
         near(o.feederPower, 0, "feeding off before drive");
-        check(run(s, leg3Start + .02, leg3Start + t.driveSeconds() - .005, 0).strafe == t.strafe(), "leg 3 full time");
-        zero(s.tick(leg3Start + t.driveSeconds() + .001, 0, false));
-        o = run(s, leg3Start + t.driveSeconds() + .021, leg3Start + t.driveSeconds() + .55, 0);
+        check(run(s, leg3Start + .02, leg3Start + t.driveSeconds() - .005).strafe == t.strafe(), "leg 3 full time");
+        zero(s.tick(leg3Start + t.driveSeconds() + .001));
+        o = run(s, leg3Start + t.driveSeconds() + .021, leg3Start + t.driveSeconds() + .55);
         check(o.finished && o.phase.startsWith("DONE"), "finish before deadline"); zero(o);
         check(leg3Start + t.driveSeconds() + .55 < 26.5, "real loop transitions still finish before the 27 s cutoff");
 
         // A launcher that reports no speed still feeds 15-22.5 s and departs on time.
         s = t.sequence(); s.start(0);
-        run(s, 0, 11.995, 0); s.tick(12, 0, false);  // shoot step starts exactly at 12 s
-        o = run(s, 12.02, 22.495, 0); near(o.feederPower, 1, "zero measured speed still feeds");
+        run(s, 0, 11.995); s.tick(12);  // shoot step starts exactly at 12 s
+        o = run(s, 12.02, 22.495); near(o.feederPower, 1, "zero measured speed still feeds");
         check(s.warning().isEmpty(), "no speed warning");
-        zero(s.tick(22.5, 0, false));
-        near(s.tick(22.51, 0, false).forward, .45, "departs at the usual time");
+        zero(s.tick(22.5));
+        near(s.tick(22.51).forward, .45, "departs at the usual time");
         // Shooter INIT failure: C holds still through the spin-up and feed slot, then departs.
         s = t.sequence(false); s.start(0);
-        run(s, 0, 11.995, 0); s.tick(12, 0, false);
-        o = run(s, 12.02, 22.495, 0); zero(o); check(o.phase.startsWith("NO SHOOTER"), "holds still through the slot");
-        zero(s.tick(22.5, 0, false));
-        near(s.tick(22.51, 0, false).forward, .45, "INIT failure preserves slot and forward clearance");
+        run(s, 0, 11.995); s.tick(12);
+        o = run(s, 12.02, 22.495); zero(o); check(o.phase.startsWith("NO SHOOTER"), "holds still through the slot");
+        zero(s.tick(22.5));
+        near(s.tick(22.51).forward, .45, "INIT failure preserves slot and forward clearance");
 
         for (double stopAt : new double[] {1, 12.1, 15.1, 23, 25}) {
             s = t.sequence(); s.start(0);
-            for (double now = 0; now < stopAt; now += .02) s.tick(now, 1250, false);
-            zero(s.tick(stopAt, 1250, true)); o = s.tick(stopAt + 1, 1250, false);
+            for (double now = 0; now < stopAt; now += .02) s.tick(now);
+            zero(s.stop("STOPPED")); o = s.tick(stopAt + 1);
             zero(o); check(o.finished, "STOP latches through support phases");
         }
-        s = t.sequence(); s.start(0); o = s.tick(13, Double.NaN, false); zero(o); check(o.finished, "invalid launcher data during spin-up stops");
-        s = t.sequence(); s.start(0); o = s.tick(27, 1250, false); zero(o); check(o.finished, "deadline stops support");
+        s = t.sequence(); s.start(0); o = s.tick(27); zero(o); check(o.finished, "deadline stops support");
         // Operator-requested feed=0 removes the spin-up and the feed slot.
         PollenShootTuning skip = support(); set(skip, FEED_SECONDS, -1, 15);
-        s = skip.sequence(); s.start(0); zero(s.tick(11.99, 0, false));
-        near(s.tick(12, 0, false).forward, .45, "explicit feed=0 departs at selected delay");
-        set(skip, LEG3_CM, -1, 80); set(skip, LEG1_CM, -1, 30); s = skip.sequence(); s.start(0); zero(s.tick(12, 0, false));
-        check(s.tick(12.5, 0, false).finished, "zero feed/distance holds only");
+        s = skip.sequence(); s.start(0); zero(s.tick(11.99));
+        near(s.tick(12).forward, .45, "explicit feed=0 departs at selected delay");
+        set(skip, LEG3_CM, -1, 80); set(skip, LEG1_CM, -1, 30); s = skip.sequence(); s.start(0); zero(s.tick(12));
+        check(s.tick(12.5).finished, "zero feed/distance holds only");
 
         set(t, LEG3_CM, 1, 80); check(t.worstCaseSeconds() < 26, "support rejects over-budget distance");
         check(t.notice().contains("rejected"), "budget warning");
@@ -217,23 +216,23 @@ public final class PollenMatSupportTest {
         check(primary.worstCaseSeconds() < 26, "field preset fits full shot budget");
         double legs = primary.legMove(1).seconds + primary.legMove(2).seconds + primary.legMove(3).seconds;
         near(primary.worstCaseSeconds(), 3 + 10 + .5 + legs, "budget: 3 s spin-up, 10 s feed, three legs, hold");
-        s = primary.sequence(false); s.start(0); o = s.tick(0, 0, false);
+        s = primary.sequence(false); s.start(0); o = s.tick(0);
         near(o.forward, .25, "leg 1 forward first"); near(o.strafe, 0, "leg 1 has no strafe beside the wall");
         double t1 = primary.legMove(1).seconds;
-        run(s, .02, t1 - .005, 0);
-        zero(s.tick(t1 + .001, 0, false));
+        run(s, .02, t1 - .005);
+        zero(s.tick(t1 + .001));
         double t2start = t1 + .021, t2 = t2start + primary.legMove(2).seconds;
-        o = s.tick(t2start, 0, false);
+        o = s.tick(t2start);
         near(o.forward, 0, "leg 2 left only"); near(o.strafe, -.25, "leg 2 left");
-        run(s, t2start + .02, t2 - .005, 0);
-        zero(s.tick(t2 + .001, 0, false));
-        o = s.tick(t2 + .021, 0, false);
+        run(s, t2start + .02, t2 - .005);
+        zero(s.tick(t2 + .001));
+        o = s.tick(t2 + .021);
         near(o.forward, primary.forward(), "third leg after clearances"); near(o.strafe, primary.strafe(), "third leg angle");
         set(primary, LEG3_CM, -1, 100); near(primary.value(LEG3_CM), 0, "zero main leg");
         check(primary.legMove(2).seconds > 0, "clearance remains independently enabled");
-        s = primary.sequence(false); s.start(0); near(s.tick(0, 0, false).forward, .25, "zero main leg still performs leg 1");
+        s = primary.sequence(false); s.start(0); near(s.tick(0).forward, .25, "zero main leg still performs leg 1");
         set(primary, LEG1_CM, -1, 20); near(primary.value(LEG1_CM), 0, "leg 1 can be skipped");
-        s = primary.sequence(false); s.start(0); near(s.tick(0, 0, false).strafe, -.25, "skipped leg 1 starts with leg 2");
+        s = primary.sequence(false); s.start(0); near(s.tick(0).strafe, -.25, "skipped leg 1 starts with leg 2");
         primary.update(false, false, false, false, true); release(primary);
         near(primary.value(LEG1_CM), 0, "triangle removes wall leg");
         near(primary.value(LEG2_CM), 0, "triangle removes dogleg");
@@ -260,7 +259,7 @@ public final class PollenMatSupportTest {
             near(tune.legMove(leg).strafe, expect.strafe, "leg " + leg + " direction uses its edited angle");
         }
         s = tune.sequence(); s.start(0);
-        near(s.tick(0, 0, false).launcherVelocity, 1450, "edited launcher target reaches sequence");
+        near(s.tick(0).launcherVelocity, 1450, "edited launcher target reaches sequence");
         check(tune.legMove(1).strafe > 0, "negative leg 1 angle drifts right");
         for (PollenShootTuning.Field f : new PollenShootTuning.Field[] {LEG1_ANGLE, LEG2_ANGLE, LEG3_ANGLE}) {
             set(tune, f, 1, 200); near(tune.value(f), 90, "angle upper limit");
@@ -278,13 +277,13 @@ public final class PollenMatSupportTest {
         set(cTune, LEG2_CM, 1, 1); near(cTune.value(LEG2_CM), 5, "C optional leg 2 can be enabled");
         near(cTune.value(LEG2_ANGLE), -90, "C leg 2 defaults to robot-right");
         set(cTune, FLYWHEEL, -1, 2); near(cTune.value(FLYWHEEL), 1150, "C launcher speed editable");
-        s = cTune.sequence(); s.start(0); s.tick(11.99, 0, false);
-        near(s.tick(12, 0, false).launcherVelocity, 1150, "C spin-up uses edited speed");
+        s = cTune.sequence(); s.start(0); s.tick(11.99);
+        near(s.tick(12).launcherVelocity, 1150, "C spin-up uses edited speed");
         set(cTune, SPINUP, -1, 2); near(cTune.value(SPINUP), 2, "spin-up row editable");
         near(cTune.feedStartSeconds(), 14, "shorter spin-up moves the feed earlier");
-        s = cTune.sequence(); s.start(0); s.tick(12, 0, false);
-        near(s.tick(13.99, 0, false).feederPower, 0, "no feed before the edited spin-up ends");
-        near(s.tick(14, 0, false).feederPower, 1, "feed after the edited spin-up");
+        s = cTune.sequence(); s.start(0); s.tick(12);
+        near(s.tick(13.99).feederPower, 0, "no feed before the edited spin-up ends");
+        near(s.tick(14).feederPower, 1, "feed after the edited spin-up");
         System.out.println("PollenMatSupportTest: " + checks + " checks passed");
     }
 }

@@ -114,7 +114,7 @@ public final class PollenRobotPark extends OpMode {
         if (blocked != null || sequence == null) return;
         try {
             double now = clock.seconds();
-            PollenSequence.Output out = sequence.tick(now, 0, false);
+            PollenSequence.Output out = sequence.tick(now);
             double[] powers = PollenSequence.wheelPowers(out);
             for (int i = 0; i < drive.length; i++) drive[i].setPower(powers[i]);
             showSettings();

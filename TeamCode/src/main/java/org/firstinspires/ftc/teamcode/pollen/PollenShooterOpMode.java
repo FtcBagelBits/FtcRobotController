@@ -179,8 +179,8 @@ public abstract class PollenShooterOpMode extends OpMode {
         if (blocked != null || sequence == null) return;
         try {
             double now = clock.seconds();
-            double velocity = shooterAvailable ? launcher.getVelocity() : 0;
-            PollenSequence.Output out = sequence.tick(now, velocity, false);
+            PollenSequence.Output out = sequence.tick(now);
+            double velocity = shooterAvailable ? launcher.getVelocity() : 0; // shown on screen only
             double[] powers = PollenSequence.wheelPowers(out);
             // Stop the shooting mechanisms BEFORE the first parking drive command.
             if (shooterAvailable) {

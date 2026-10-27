@@ -86,8 +86,10 @@ continuously for the selected duration with the launcher still on. An earlier
 version waited until the encoder read 96% of target speed; when the encoder
 read low, the feeder never started, so that check was removed. B spins up right
 after its start delay. C waits 12 s, spins up from 12 to 15 s, and feeds from
-15 to 22.5 s, the slot agreed with a partner who shoots first. TeleOp works the
-same way: hold R1 for the spin-up time and the feed boost starts.
+15 to 22.5 s, the slot agreed with a partner who shoots first. In TeleOp the
+driver holds R1: feeding starts when the launcher reads 96% of its target or
+after the spin-up time, whichever comes first, and stays on until R1 is
+released. The speed check can only make feeding start sooner, never stop it.
 
 A shooter INIT failure may permit the same mode's departure only if every mapped
 shooter accepts zero power. C preserves its feed slot in that fallback too.
@@ -96,8 +98,8 @@ legs has its own distance and angle row; a zero-cm leg is skipped and the others
 still run. All three must be zero for a stationary shooting test.
 
 Mechanism commands are applied before drive commands, so launcher, intake and
-agitator receive zero before departure. Nonfinite velocity, invalid/backwards
-time, a long pause while driving, STOP, the independent deadline and runtime
+agitator receive zero before departure. Invalid/backwards time, a long pause
+while driving, STOP, the independent deadline and runtime
 hardware errors stop outputs.
 Electrical/mechanical stopping is not guaranteed merely by issuing commands.
 
@@ -112,3 +114,40 @@ behavior. The geometry script checks nominal swept polygons and parking overlap.
 Compiling against FTC checks API compatibility. A full Android build checks APK
 integration. Only physical trials verify distance, heading, clearance, shooting
 and partner timing. Neither CAD nor timed waiting confirms that a hive tipped.
+
+## What carries over to odometry and Pedro
+
+Timed driving is a bridge. Once odometry and Pedro Pathing work, the robot
+drives to a position and knows when it got there, instead of guessing from
+time. The plan after that is a cycle: shoot the pre-loads, collect more pollen
+from a known spot (probably a flower), shoot again, and repeat until it is time
+to park or the hive has tipped.
+
+These parts go away then, so don't spend effort polishing them now:
+
+- timed legs (distance, angle, power turned into seconds) and both
+  `PollenDriveCalibration` profiles, including MAT_TRIAL;
+- the leg rows in the INIT menu and the per-leg time budget arithmetic;
+- the stall stop for timed driving (a path follower corrects its own position).
+
+These carry over:
+
+- **Field coordinates.** `PollenFieldGeometry` holds CAD positions in inches
+  from the field center. They become the target positions for paths, after one
+  conversion into Pedro's own field coordinates.
+- **The launcher rule** from TeleOp: feed when the launcher is up to speed or
+  after the backup timer, and keep feeding until done. A cycle cannot afford to
+  wait the full timer every time.
+- **"What now?" every loop.** `PollenSequence` never blocks: each loop it
+  looks at the clock and returns what the motors should do. A cycle works the
+  same way, except it chooses the next step while running. Before each new
+  cycle it asks one question: is there time to finish this cycle and still
+  park before the 27 s cutoff?
+- **INIT menus with memory** for settings the drive team changes between
+  matches, such as launcher speed and start delay.
+- **Stop conditions:** time to park, or (with the Limelight) the hive has
+  tipped.
+
+The numbers that will decide how many cycles fit, worth measuring as soon as
+the mechanisms exist: seconds to shoot a full load, seconds to collect a load,
+and driving time between the shooting spot, the flower and the parking zone.

@@ -73,15 +73,17 @@ public class BioBuzzStarterbotOpMode extends OpMode {
      * have encoders with a resolution of 28 ticks per revolution. We can convert this to RPM
      * by dividing the value by 28, to get to revolutions per second, before multiplying by 60
      * to get revolutions per minute.
-     * We pass the target velocity variable to our motor to set the goal. Feeding starts a fixed
-     * spin-up time after the driver starts the launcher; it no longer waits for a measured speed,
-     * which kept the feeder from ever starting when the encoder read low.
+     * We pass the target velocity variable to our motor to set the goal. Feeding starts when the
+     * launcher reads 96% of target or when the spin-up time runs out, whichever is first, so a
+     * low encoder reading can delay feeding by at most the spin-up time but never block it.
      */
     public final int LAUNCHER_TARGET_VELOCITY = 1250; //2678 RPM
     public final double LAUNCHER_SPINUP_SECONDS = PollenConfig.LAUNCHER_SPINUP_SECONDS; // 3 s
     private final ElapsedTime launchTimer = new ElapsedTime();
     private boolean launching = false;
-    private boolean feeding = false;   // R1 held past the spin-up time
+    private boolean feeding = false;   // latched on until R1 is released
+    private String feedStartedBy = "";
+    private double feedStartedAt = 0;
 
     /*
      * INIT menu (like the Pollen autonomous menus): before START the driver can raise or lower the
@@ -277,7 +279,9 @@ public class BioBuzzStarterbotOpMode extends OpMode {
         telemetry.addData("Launcher target / measured", "%.0f / %.0f ticks/s%s",
                 tuning.launcherVelocity(), launcher.getVelocity(),
                 launching && launcher.getVelocity() < 50 ? "  (measured ~0: check launcher encoder cable)" : "");
-        telemetry.addData("Feed", !launching ? "off (hold R1)" : feeding ? "FEEDING" : "spinning up");
+        telemetry.addData("Feed", !launching ? "off (hold R1)"
+                : feeding ? String.format("FEEDING (started at %.1f s: %s)", feedStartedAt, feedStartedBy)
+                : "spinning up");
         telemetry.addData("Intake / agitator command", "%.2f / %.2f",
                 intakePower, feeding ? tuning.agitatorPower() : intakePower);
         telemetry.addData("Drive power", "%.0f%%", tuning.driveScale() * 100);
@@ -341,11 +345,21 @@ public class BioBuzzStarterbotOpMode extends OpMode {
         }
 
         /*
-         * Once the driver has held the right bumper for the spin-up time, add power to the intake
-         * and agitator to feed elements into the launcher. This is a fixed time, not a measured
-         * speed, so the feed always follows the launcher.
+         * When do we start feeding balls into the launcher? Whichever happens FIRST:
+         *   1. the encoder says the launcher is up to speed (1200 ticks/s for a 1250 target), or
+         *   2. R1 has been held for the spin-up time (3 s), in case the encoder reading is wrong.
+         * Once feeding starts, keep feeding until R1 is released. Each ball slows the wheel a
+         * little, and we don't want that dip to switch the agitator off in the middle of a volley.
          */
-        feeding = launching && tuning.feedReady(launchTimer.seconds());
+        boolean upToSpeed = tuning.launcherIsUpToSpeed(launcher.getVelocity());
+        boolean spinUpTimeIsOver = tuning.spinUpTimeIsOver(launchTimer.seconds());
+        if (!launching) {
+            feeding = false;
+        } else if (!feeding && (upToSpeed || spinUpTimeIsOver)) {
+            feeding = true;
+            feedStartedAt = launchTimer.seconds();
+            feedStartedBy = upToSpeed ? "up to speed" : "spin-up timer";
+        }
         if (feeding) {
             //agitator.setPower(1);
             intakePower += 0.5;
