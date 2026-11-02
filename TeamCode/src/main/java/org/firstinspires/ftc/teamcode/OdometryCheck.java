@@ -66,8 +66,9 @@ public class OdometryCheck extends OpMode {
     public void init() {
         pinpoint = hardwareMap.tryGet(GoBildaPinpointDriver.class, cfg.name.get());
         if (pinpoint == null) {
-            problem = "No device named \"" + cfg.name.get() + "\" in the active configuration. "
-                    + "Add it on an I2C bus as type goBILDA Pinpoint Odometry Computer.";
+            problem = "No goBILDA Pinpoint named \"" + cfg.name.get() + "\" in the active "
+                    + "configuration. Check the name, and that its type is goBILDA Pinpoint "
+                    + "Odometry Computer (a device with the right name but another type is not found).";
         } else {
             // Same order and values as Pedro's PinpointLocalizer constructor.
             pinpoint.setOffsets(cfg.xPodOffset.get(), cfg.yPodOffset.get(), cfg.offsetUnits.get());

@@ -45,7 +45,7 @@ Motor direction assignments differ between `MecanumDrive` and `MecanumDriveTrain
 
 ## Hardware configuration names
 
-`hardwareMap.get(...)` names must match the config saved on the Robot Controller. Names in use: `frontLeft`, `frontRight`, `backLeft`, `backRight` (mecanum); `leftDrive`, `rightDrive` (legacy tank); `flywheel` (DcMotorEx, velocity-controlled), `coreHex` (feeder), `servo` (launch-angle deflector), `intake`, `leftIntakeServo`, `rightIntakeServo`, `Webcam 1`, `pinpoint`. A typo here compiles fine and fails at runtime on the robot.
+`hardwareMap.get(...)` names must match the config saved on the Robot Controller. Names in use: `frontLeft`, `frontRight`, `backLeft`, `backRight` (mecanum); `leftDrive`, `rightDrive` (legacy tank); `flywheel` (DcMotorEx, velocity-controlled), `coreHex` (feeder), `servo` (launch-angle deflector), `intake`, `leftIntakeServo`, `rightIntakeServo`, `Webcam 1`, `odometry` (the Pinpoint, named in `pedroPathing/Constants`; the disabled `SensorGoBildaPinpoint` sample still says `pinpoint`). A typo here compiles fine and fails at runtime on the robot.
 
 ## Launcher tuning
 

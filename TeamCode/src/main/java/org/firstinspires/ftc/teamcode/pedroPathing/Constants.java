@@ -71,7 +71,8 @@ public class Constants {
      */
     public static PinpointConfig localizerConfig = new PinpointConfig(
             c -> {
-                c.name.set("pinpoint");
+                // Must match the Pinpoint's name in the Control Hub's active configuration.
+                c.name.set("odometry");
                 c.xPodOffset.set(156.0);
                 c.yPodOffset.set(-81.0);
                 c.offsetUnits.set(DistanceUnit.MM);
