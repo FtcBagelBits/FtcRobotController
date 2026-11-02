@@ -53,7 +53,7 @@ Motor direction assignments differ between `MecanumDrive` and `MecanumDriveTrain
 
 ## Pedro Pathing
 
-`com.pedropathing:revhub:3.0.0` and `com.pedropathing:tuning:1.0.0` (Pedro 3 + AutoTune) are
+`com.pedropathing:revhub:3.0.2` and `com.pedropathing:tuning:1.0.3` (Pedro 3 + AutoTune; the versions Pedro's Quickstart uses as of 2026-10-30) are
 declared in `TeamCode/build.gradle` (not the upstream `build.dependencies.gradle`) and resolve from
 Maven Central; they pull in `com.pedropathing:core` and `kotlin-stdlib`. AutoTune also pulls
 `dev.frozenmilk.sinister:Sloth`, which is why `https://repo.dairy.foundation/releases/` is declared
