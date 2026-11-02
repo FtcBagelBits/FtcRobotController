@@ -64,6 +64,8 @@ public final class PollenOdometryTest {
         String result = "";
         String warning = "";
         double finishedAt = Double.NaN, feedAt = Double.NaN;
+        List<String> trackPhase = new ArrayList<>();
+        List<double[]> track = new ArrayList<>();
         SimRobot robot;
     }
 
@@ -81,6 +83,8 @@ public final class PollenOdometryTest {
             if (out.phase.startsWith("NEXT: ")) run.steps.add(out.phase.substring(6));
             if (out.phase.equals("FEED") && Double.isNaN(run.feedAt)) run.feedAt = t;
             if (out.finished) { run.result = out.phase; run.finishedAt = t; break; }
+            run.trackPhase.add(out.phase);
+            run.track.add(new double[] {robot.x, robot.y});
             robot.step(out, dt);
         }
         run.warning = seq.warning();
@@ -109,6 +113,56 @@ public final class PollenOdometryTest {
         return Math.hypot(run.robot.x - targetWallFrame[0], run.robot.y - targetWallFrame[1]);
     }
 
+    /** For one leg (wall frame, from {@code from} to {@code to}): how far the robot strayed
+     * sideways from the straight line, and how far it went past the end. Inches. */
+    static double[] legDeviation(Run run, String leg, double[] from, double[] to) {
+        double dx = to[0] - from[0], dy = to[1] - from[1], len = Math.hypot(dx, dy);
+        double side = 0, past = 0;
+        for (int i = 0; i < run.track.size(); i++) {
+            String ph = run.trackPhase.get(i);
+            if (!ph.equals(leg) && !ph.equals("NEXT: " + leg)) continue;
+            double px = run.track.get(i)[0] - from[0], py = run.track.get(i)[1] - from[1];
+            side = Math.max(side, Math.abs(px * dy - py * dx) / len);
+            past = Math.max(past, (px * dx + py * dy) / len - len);
+        }
+        return new double[] {side, past};
+    }
+
+    static void speedRuns() {
+        for (double power : new double[] {0.6, 0.8}) {
+            for (double lag : new double[] {0.10, 0.20}) {
+                PollenShootTuning c = new PollenShootTuning(null, true, true);
+                setRow(c, DRIVE_POWER, power);
+                SimRobot r = startCrooked(-2);
+                r.lagSeconds = lag;
+                Run run = simulate(c.sequence(), r);
+                check(run.result.startsWith("DONE"), "C at " + power + " finishes: " + run.result + " " + run.warning);
+                double[] l1 = legDeviation(run, "LEG 1 CLEAR FLOWER", new double[] {0, 0}, c.legEndInches(1));
+                double[] l3 = legDeviation(run, "LEG 3 TO PARK", c.legEndInches(1), c.legEndInches(3));
+                check(l1[0] < 1.0 && l3[0] < 1.0, "C at " + power + " stays within 1 in of the straight legs");
+                check(endError(run, c.legEndInches(3)) < 0.75, "C at " + power + " ends on target");
+                System.out.printf("  C at %.1f power, lag %.2f s: finish %.2f s (planned %.2f); leg 1 side %.2f past %.2f in;"
+                                + " leg 3 side %.2f past %.2f in; end error %.2f in%n", power, lag, run.finishedAt,
+                        c.worstCaseSeconds(), l1[0], l1[1], l3[0], l3[1], endError(run, c.legEndInches(3)));
+
+                PollenShootTuning b = new PollenShootTuning(null, false, true);
+                b.update(false, false, false, false, false, true);
+                b.update(false, false, false, false, false, false);
+                setRow(b, DRIVE_POWER, power);
+                SimRobot rb = startCrooked(2);
+                rb.lagSeconds = lag;
+                Run runB = simulate(b.sequence(), rb);
+                check(runB.result.startsWith("DONE") && endError(runB, b.legEndInches(3)) < 0.75,
+                        "B field preset at " + power + " ends on target");
+                double worstPast = 0;
+                for (int leg = 1; leg <= 3; leg++) worstPast = Math.max(worstPast, legDeviation(runB, b.legName(leg),
+                        leg == 1 ? new double[] {0, 0} : b.legEndInches(leg - 1), b.legEndInches(leg))[1]);
+                System.out.printf("  B field preset at %.1f, lag %.2f s: finish %.2f s, worst overshoot %.2f in, end error %.2f in%n",
+                        power, lag, runB.finishedAt, worstPast, endError(runB, b.legEndInches(3)));
+            }
+        }
+    }
+
     public static void main(String[] args) {
         controller();
         stepOrderAndRows();
@@ -117,6 +171,7 @@ public final class PollenOdometryTest {
         fieldPresetRun();
         parkRun();
         failures();
+        speedRuns();
         System.out.println("PollenOdometryTest: " + checks + " checks passed (simulated robot, not robot validation)");
     }
 
@@ -132,7 +187,10 @@ public final class PollenOdometryTest {
         double[] ccw = PollenOdometryDrive.command(48, 0, 0.4, 0, 0, Math.toRadians(5));
         check(ccw[2] > 0 && ccw[2] < 0.1, "5 deg CCW: small clockwise correction");
         double[] near = PollenOdometryDrive.command(1, 0, 0.4, 0, 0, 0);
-        check(Math.abs(near[0] - PollenOdometryDrive.MIN_POWER) < 1e-9, "1 in out: minimum power, not stalled");
+        check(Math.abs(near[0] - 0.2) < 1e-9, "1 in out: slowed to 0.2");
+        double[] nearer = PollenOdometryDrive.command(0.6, 0, 0.4, 0, 0, 0);
+        check(Math.abs(nearer[0] - Math.max(PollenOdometryDrive.MIN_POWER, 0.2 * Math.sqrt(0.6))) < 1e-9,
+                "just outside tolerance: never below the minimum power");
         double[] done = PollenOdometryDrive.command(0.3, 0.2, 0.4, 0, 0, 0.1);
         check(done[0] == 0 && done[1] == 0 && done[2] == 0, "inside tolerance: all zero");
         double[] end = PollenOdometryDrive.legEnd(0, 0, 2.54 * 10, 90);
@@ -152,6 +210,12 @@ public final class PollenOdometryTest {
         check(b.wallSquare() && b.label(CALIBRATION).startsWith("Wall square"), "odometry B: wall square on by default");
         check(b.value(LEG3_CM) == 60.96 && b.value(LEG3_ANGLE) == PollenShootTuning.PARK_ANGLE_DEGREES,
                 "odometry B Triangle default is the same 2-foot move");
+        check(b.value(DRIVE_POWER) == PollenOdometryDrive.DEFAULT_LEG_POWER, "odometry legs default to 0.6 power");
+        setRow(b, DRIVE_POWER, 0.8);
+        check(b.value(DRIVE_POWER) == 0.8, "odometry power row reaches 0.8");
+        for (int i = 0; i < 3; i++) tap(b, false, false, false, true);
+        check(b.value(DRIVE_POWER) == 0.8, "odometry power row stops at 0.8");
+        setRow(b, DRIVE_POWER, 0.6);
         Run run = simulate(b.sequence(), new SimRobot());
         check(run.steps.toString().equals("[SQUARE TO WALL, ZERO ODOMETRY, SHOOT, LEG 3 TO PARK]"),
                 "B order: square, zero, shoot, leg; got " + run.steps);
@@ -182,11 +246,19 @@ public final class PollenOdometryTest {
         check(endError(squared, target) < 0.75, "B squared ends within 0.75 in of target: " + endError(squared, target));
         check(Math.abs(Math.toDegrees(squared.robot.h)) < 1, "B squared ends square to the wall");
 
-        setRow(b, CALIBRATION, 0);
-        Run crooked = simulate(b.sequence(), startCrooked(3));
-        check(endError(crooked, target) > 1.0, "without squaring a 3 deg start misses by > 1 in: " + endError(crooked, target));
-        System.out.printf("  B, start 3 deg crooked: end error %.2f in with wall square, %.2f in without%n",
-                endError(squared, target), endError(crooked, target));
+        // The comparison uses the long field-preset route, where a crooked start matters most.
+        PollenShootTuning field = new PollenShootTuning(null, false, true);
+        field.update(false, false, false, false, false, true);
+        field.update(false, false, false, false, false, false);
+        double[] fieldTarget = field.legEndInches(3);
+        Run fieldSquared = simulate(field.sequence(), startCrooked(3));
+        setRow(field, CALIBRATION, 0);
+        Run crooked = simulate(field.sequence(), startCrooked(3));
+        check(endError(fieldSquared, fieldTarget) < 0.75, "field preset squared ends on target");
+        check(endError(crooked, fieldTarget) > 4.0, "without squaring a 3 deg start misses the 98 in route by > 4 in: "
+                + endError(crooked, fieldTarget));
+        System.out.printf("  B field preset, start 3 deg crooked: end error %.2f in with wall square, %.2f in without%n",
+                endError(fieldSquared, fieldTarget), endError(crooked, fieldTarget));
     }
 
     static void supportRun() {
@@ -222,7 +294,7 @@ public final class PollenOdometryTest {
 
     static void parkRun() {
         PollenOdoParkTuning a = new PollenOdoParkTuning(.20, 0, 27, .5, null);
-        check(a.cm() == PollenOdoParkTuning.DEFAULT_CM && a.power() == .20, "A defaults: 55 cm at 0.20");
+        check(a.cm() == PollenOdoParkTuning.DEFAULT_CM && a.power() == .20, "A defaults: 55 cm at the given power");
         a.update(false, false, false, true, false, false, false);
         a.update(false, false, false, false, false, false, false);
         check(a.cm() == 60, "A RIGHT adds 5 cm");
@@ -230,7 +302,7 @@ public final class PollenOdometryTest {
         check(a.cm() == 55, "A Triangle resets");
         Run run = simulate(a.sequence(), startCrooked(0));
         check(run.steps.toString().equals("[ZERO ODOMETRY, FORWARD TO PARK, PARK / HOLD]"), "A order: " + run.steps);
-        check(Math.abs(run.robot.x - 55 / 2.54) < 0.6 && Math.abs(run.robot.y) < 0.6, "A ends 55 cm ahead");
+        check(Math.abs(run.robot.x - 55 / 2.54) < 0.6 && Math.abs(run.robot.y) < 0.6, "A ends 55 cm ahead: x " + run.robot.x + " y " + run.robot.y + " want " + 55 / 2.54);
         PollenOdoParkTuning kept = new PollenOdoParkTuning(.20, 0, 27, .5, a.snapshot());
         check(kept.cm() == a.cm() && kept.power() == a.power(), "A snapshot keeps distance and power");
         check(a.maximumDelaySeconds() >= 20, "A default leaves the full 20 s delay range");

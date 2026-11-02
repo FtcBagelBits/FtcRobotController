@@ -35,7 +35,7 @@ public final class PollenOdoPark extends OpMode {
                 drive[i].setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
             }
             odometry = PollenOdometryHardware.open(hardwareMap);
-            tuning = new PollenOdoParkTuning(PollenConfig.PARK_FORWARD_POWER, PollenConfig.START_DELAY_SECONDS,
+            tuning = new PollenOdoParkTuning(PollenOdometryDrive.DEFAULT_LEG_POWER, PollenConfig.START_DELAY_SECONDS,
                     PollenConfig.TOTAL_TIME_LIMIT, PollenConfig.PARK_HOLD_SECONDS, remembered);
             sequence = tuning.sequence();
         } catch (RuntimeException ex) {

@@ -3,7 +3,7 @@ package org.firstinspires.ftc.teamcode.pollen;
 /** INIT controls for Option A with odometry. Same buttons as PollenParkTuning, but LEFT/RIGHT
  * changes the distance driven (cm) instead of the drive time. Pure Java, no hardware commands. */
 public final class PollenOdoParkTuning {
-    public static final double MIN_POWER = 0.10, MAX_POWER = 0.50, POWER_INCREMENT = 0.05;
+    public static final double MIN_POWER = 0.10, MAX_POWER = PollenOdometryDrive.MAX_LEG_POWER, POWER_INCREMENT = 0.05;
     public static final double MIN_CM = 5, MAX_CM = 150, CM_INCREMENT = 5;
     public static final double DELAY_INCREMENT = 0.5;
     /** Default distance: the mat model's estimate for the tested timed A (2.0 s at 0.20 power),

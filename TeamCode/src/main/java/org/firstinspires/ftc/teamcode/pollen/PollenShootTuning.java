@@ -112,6 +112,7 @@ public final class PollenShootTuning {
                 : "Defaults restored: tested baseline, 2-foot move";
         if (odometry) {
             values[Field.CALIBRATION.ordinal()] = 1; // wall square ON
+            values[Field.DRIVE_POWER.ordinal()] = PollenOdometryDrive.DEFAULT_LEG_POWER;
             if (supporting) {
                 set(3, PollenFieldGeometry.supportDistanceCm(), PollenFieldGeometry.supportAngleDegrees());
                 notice = "Odometry: forward clear of flower, then right to the planned park spot";
@@ -129,7 +130,10 @@ public final class PollenShootTuning {
             set(3, B_FIELD_LEG3_CM, B_FIELD_LEG3_DEGREES);
             values[Field.DRIVE_POWER.ordinal()] = .25;
             values[Field.CALIBRATION.ordinal()] = 1;
-            if (odometry) set(3, PollenFieldGeometry.primaryDistanceCm(), PollenFieldGeometry.primaryAngleDegrees());
+            if (odometry) {
+                set(3, PollenFieldGeometry.primaryDistanceCm(), PollenFieldGeometry.primaryAngleDegrees());
+                values[Field.DRIVE_POWER.ordinal()] = PollenOdometryDrive.DEFAULT_LEG_POWER;
+            }
         }
         notice = odometry ? "Field preset loaded (planned park spot); verify pose, footprint and partner route"
                 : "Field preset loaded (leg 3 field-tuned); verify pose, footprint and partner route";
@@ -174,7 +178,9 @@ public final class PollenShootTuning {
         double next = f.angle()
                 ? (sign > 0 ? Math.floor(old) + 1 : Math.ceil(old) - 1)
                 : Math.round((old + sign * f.step) * 100.0) / 100.0;
-        values[selected] = Math.max(f.min, Math.min(f.max, next));
+        // Odometry legs may run faster than timed ones (timed calibration only covers 0.10-0.50).
+        double max = odometry && f == Field.DRIVE_POWER ? PollenOdometryDrive.MAX_LEG_POWER : f.max;
+        values[selected] = Math.max(f.min, Math.min(max, next));
         // Over budget (e.g. remembered settings after the delay reset), accept any edit that
         // does not lengthen the route, so the operator can work back under the limit.
         boolean accepted = budgetOk() || (!wasOk && worstCaseSeconds() <= oldWorst + 1e-9);

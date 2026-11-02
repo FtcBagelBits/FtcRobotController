@@ -94,6 +94,8 @@ public final class PollenSequence {
     private final double targetVelocity, spinupSeconds, deadline, startDelay;
     private int index;
     private boolean stepActive, wasDriving;
+    /** Odometry move: last loop's position, to tell whether the robot has stopped. */
+    private double lastMoveX = Double.NaN, lastMoveY = Double.NaN;
     private double startedAt, stepStartedAt, previousTime;
     private boolean started, finished;
     private String result = "READY";
@@ -189,6 +191,7 @@ public final class PollenSequence {
             // Start this step's clock now, on the loop that first commands it.
             stepActive = true;
             stepStartedAt = now;
+            lastMoveX = lastMoveY = Double.NaN;
         }
         double elapsed = now - stepStartedAt;
         Output out = new Output(step.name);
@@ -200,9 +203,17 @@ public final class PollenSequence {
         if (step.move) {
             if (!Double.isFinite(x) || !Double.isFinite(y) || !Double.isFinite(heading))
                 return stop("NO ODOMETRY POSE - STOPPED");
+            boolean haveSpeed = !Double.isNaN(lastMoveX) && elapsedSinceTick > 0;
+            double vx = haveSpeed ? (x - lastMoveX) / elapsedSinceTick : 0;
+            double vy = haveSpeed ? (y - lastMoveY) / elapsedSinceTick : 0;
+            double speed = haveSpeed ? Math.hypot(vx, vy) : Double.POSITIVE_INFINITY;
+            lastMoveX = x;
+            lastMoveY = y;
             double[] cmd = PollenOdometryDrive.command(step.targetForwardIn, step.targetLeftIn,
-                    step.maxPower, x, y, heading);
-            if (cmd[3] <= PollenOdometryDrive.POSITION_TOLERANCE_IN) return advance(now);
+                    PollenOdometryDrive.rampedPower(elapsed, step.maxPower), x, y, heading, vx, vy);
+            // Done only when inside the tolerance AND stopped, so it can't coast past and stay there.
+            if (cmd[3] <= PollenOdometryDrive.POSITION_TOLERANCE_IN
+                    && speed <= PollenOdometryDrive.SETTLED_IN_PER_SECOND) return advance(now);
             if (elapsed >= step.timeoutSeconds) {
                 warning = String.format(java.util.Locale.US, "%s gave up %.1f in short after %.1f s",
                         step.name, cmd[3], elapsed);

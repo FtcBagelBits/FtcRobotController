@@ -37,7 +37,10 @@ them on the field. Run [the odometry baseline test](ODOMETRY_BASELINE_TEST.md) f
 - **The Calibration row is now "Wall square first (0=off, 1=on)"** for B and C, and is on by default.
 - **Odo ROBOT Park:** LEFT/RIGHT changes the distance by 5 cm (default 55 cm: the mat model's
   estimate for the tested 2 s at 0.20 power; that power is below the measured ones, so check it in test 1). UP/DOWN delay, L1/R1 power, Triangle reset are as before.
-- **No end hold for B and C.** A leg only ends when the robot is stopped within 0.5 in of its end point.
+- **Faster: leg power defaults to 0.60 for A, B and C** (timed used 0.20-0.45), and the power row
+  goes up to 0.80. Speed no longer costs accuracy because the robot checks where it is every loop
+  and brakes on approach. It does cost stopping distance, which is what the controller below handles.
+- **No end hold for B and C.** A leg only ends when the robot has stopped within 0.5 in of its end point.
 
 ## Wall squaring (B and C)
 
@@ -61,17 +64,31 @@ reaches the wall first. Check this before relying on it. To compare, set the row
 
 ## The drive controller
 
-`PollenOdometryDrive` drives straight at each end point: full leg power while far away, then
-slowing (0.04 power per inch) to no less than 0.08, until within 0.5 in. It holds the zeroed
-heading. Every number is a named constant at the top of the file:
+`PollenOdometryDrive` drives straight at each end point and checks where the robot is every loop:
+
+- **Start of a leg:** power ramps up at 2.0 per second, so the wheels don't spin. That's 0.3 s to reach 0.60.
+- **Cruise:** the leg's power. Heading is held at the zeroed heading.
+- **Approach:** power = 0.20 x sqrt(inches to go), an even braking rate. That's 0.60 until 9 in out, 0.40 at 4 in,
+  0.20 at 1 in, never below 0.08. Braking uses where the robot will be in 0.15 s at its current
+  speed, so it doesn't coast past.
+- **Done:** within 0.5 in of the end point **and** stopped. Inside that circle the power is zero; if
+  the robot rolls back out, it drives back in.
+
+Every number is a named constant at the top of the file:
 
 | Symptom | Change |
 |---|---|
 | Stops short and sits there | raise `MIN_POWER` (0.08) |
-| Overshoots and comes back | lower `KP_POWER_PER_INCH` (0.04) or the leg power |
+| Overshoots and comes back | raise `LOOKAHEAD_SECONDS` (0.15) or lower `SLOWDOWN_POWER_PER_SQRT_INCH` (0.20) |
+| Slow, careful final approach | raise `SLOWDOWN_POWER_PER_SQRT_INCH` |
+| Wheels spin at the start of a leg | lower `RAMP_POWER_PER_SECOND` (2.0) |
 | Ends visibly rotated | raise `HEADING_KP` (1.0) |
 | Wobbles in heading | lower `HEADING_KP` |
 | Squaring doesn't straighten it | raise `SQUARE_SECONDS` (0.35) or `SQUARE_POWER` (0.30) |
+
+In the simulation (assumed robot, not ours), at 0.60 and 0.80 power: overshoot at most 0.6 in, end error 0.3-0.5 in,
+and C stays within 0.9 in of its straight-line path. C's start gap to the flower is only about 1 in,
+so watch leg 1 of C on the real robot.
 
 Pedro Pathing's path follower is not used yet: it needs AutoTune values for this robot, and the
 ones in `pedroPathing/Constants` belong to another robot. The pose already comes from Pedro's
@@ -83,15 +100,18 @@ starts toward its own end point. If the pose is lost (no reading), everything st
 ## Time budget
 
 Odometry legs are budgeted at an **estimate**: 120 cm/s per unit of power, plus 0.2 s per leg
-for slowing down. If the tuned timed routes reached their planned spots, they moved at 125-150. **C is tight**: planned 25.5 s of the
-26 s allowed. A simulated robot slower than that estimate finished at 26.6 s, with the hard stop
-at 27 s. If C hits the hard stop on the field, take 0.5 s off its feed time or raise its power.
+for slowing down. If the tuned timed routes reached their planned spots, they moved at 125-150.
+**C is still the tight one:** it can't start moving until its feed ends at 22.5 s. Planned 24.8 s; the
+simulation finished at 25.6-26.2 s (0.60-0.80 power, quick or sluggish robot), with the hard stop at 27 s.
+The time goes to the two stops (end of leg 1 and end of leg 3) as much as to cruising, so more power helps
+only a little. If C hits the hard stop on the field, take 0.5 s off its feed time.
 
 ## First tests
 
 Do these on the practice field if you can. A slippery floor makes squaring and stopping look worse than they are.
 
 1. **Odo ROBOT Park**, defaults. Tape-measure the travel: 55 cm, within 1 in. Robot should not drift sideways.
+   Try it at 0.30 power first (L1 to lower), then the 0.60 default.
 2. **Odo ROBOT Shoot + Park**, Triangle defaults, **feed seconds 0** (skips the shot, saves 13 s).
    Ends 21.6 in forward and 10.5 in left of the start, within 1 in, not rotated.
 3. **Wall square**, same as 2, but start the robot visibly crooked (3-5 deg) against a wall. With the
