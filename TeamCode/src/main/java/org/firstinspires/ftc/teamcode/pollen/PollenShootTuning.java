@@ -3,7 +3,17 @@ package org.firstinspires.ftc.teamcode.pollen;
 import java.util.ArrayList;
 import java.util.List;
 
-/** INIT-only selections for the end-wall, forward-facing shooting start. No hardware calls. */
+/** INIT-only selections for the end-wall, forward-facing shooting start. No hardware calls.
+ *
+ * ODOMETRY MODE (the "Odo" OpModes): the same menu, but each leg's cm and angle are a real
+ * distance and direction, driven to with odometry (PollenOdometryDrive) instead of being turned
+ * into seconds. The CALIBRATION row becomes "wall square first": at the very start, back into
+ * the end wall so the robot sits flat against it, then zero the odometry there. Doing it first
+ * squares the shot as well as the route, and it runs inside the start delay when there is one
+ * (C's 12 s), so C still feeds at 15 s. There is no end hold: a leg only ends once the robot is
+ * stopped inside the tolerance. Leg 3 defaults to the CAD plan (PollenFieldGeometry), not the
+ * field-tuned timed values: those were shortened (17-21%), most likely to make up for timed driving
+ * overshooting its model, so as true distances they would stop B about 19 in and C about 8 in short of the planned spot. */
 public final class PollenShootTuning {
     public enum Field {
         FLYWHEEL("Launcher ticks/s", 500, 2500, 50, 1250),
@@ -58,7 +68,7 @@ public final class PollenShootTuning {
     }
 
     private double[] values = new double[Field.values().length];
-    private final boolean supporting;
+    private final boolean supporting, odometry;
     private int selected;
     private boolean locked;
     private final boolean[] previous = new boolean[6];
@@ -69,7 +79,12 @@ public final class PollenShootTuning {
     }
 
     public PollenShootTuning(Snapshot remembered, boolean supporting) {
+        this(remembered, supporting, false);
+    }
+
+    public PollenShootTuning(Snapshot remembered, boolean supporting, boolean odometry) {
         this.supporting = supporting;
+        this.odometry = odometry;
         reset();
         if (remembered != null) {
             values = remembered.values.clone();
@@ -95,6 +110,15 @@ public final class PollenShootTuning {
         }
         notice = supporting ? "Flush preset: forward clear of flower, then right to park (leg 3 field-tuned)"
                 : "Defaults restored: tested baseline, 2-foot move";
+        if (odometry) {
+            values[Field.CALIBRATION.ordinal()] = 1; // wall square ON
+            if (supporting) {
+                set(3, PollenFieldGeometry.supportDistanceCm(), PollenFieldGeometry.supportAngleDegrees());
+                notice = "Odometry: forward clear of flower, then right to the planned park spot";
+            } else {
+                notice = "Odometry defaults: 2-foot move";
+            }
+        }
     }
 
     private void fieldPreset() {
@@ -105,8 +129,10 @@ public final class PollenShootTuning {
             set(3, B_FIELD_LEG3_CM, B_FIELD_LEG3_DEGREES);
             values[Field.DRIVE_POWER.ordinal()] = .25;
             values[Field.CALIBRATION.ordinal()] = 1;
+            if (odometry) set(3, PollenFieldGeometry.primaryDistanceCm(), PollenFieldGeometry.primaryAngleDegrees());
         }
-        notice = "Field preset loaded (leg 3 field-tuned); verify pose, footprint and partner route";
+        notice = odometry ? "Field preset loaded (planned park spot); verify pose, footprint and partner route"
+                : "Field preset loaded (leg 3 field-tuned); verify pose, footprint and partner route";
     }
 
     private void set(int leg, double cm, double angle) {
@@ -160,6 +186,27 @@ public final class PollenShootTuning {
     }
 
     public Field selected() { return Field.values()[selected]; }
+    public boolean odometry() { return odometry; }
+    /** Row label as shown on the Driver Hub; one row means something else in odometry mode. */
+    public String label(Field f) {
+        return odometry && f == Field.CALIBRATION ? "Wall square first (0=off, 1=on)" : f.label;
+    }
+    /** Odometry mode: at the start, back into the end wall and zero the odometry there. */
+    public boolean wallSquare() { return odometry && value(Field.CALIBRATION) == 1; }
+
+    /** Odometry mode: where leg 1, 2 or 3 ends, in inches from the zero point {forward, left}.
+     * Legs add up, so a skipped (0 cm) leg ends where the previous one did. */
+    public double[] legEndInches(int leg) {
+        if (leg < 1 || leg > LEGS) throw new IllegalArgumentException("Leg must be 1-3");
+        double[] end = {0, 0};
+        for (int i = 1; i <= leg; i++) end = PollenOdometryDrive.legEnd(end[0], end[1], legCm(i), legAngle(i));
+        return end;
+    }
+
+    /** Odometry mode: expected seconds for one leg at the shared drive power (0 if skipped). */
+    public double odometryLegSeconds(int leg) {
+        return legCm(leg) <= 0 ? 0 : PollenOdometryDrive.plannedSeconds(legCm(leg), value(Field.DRIVE_POWER));
+    }
     public double value(Field f) { return values[f.ordinal()]; }
     public String notice() { return notice; }
     public void lock() { locked = true; }
@@ -173,7 +220,18 @@ public final class PollenShootTuning {
 
     /** Seconds from START until feeding begins (delay + spin-up), assuming a normal loop. */
     public double feedStartSeconds() {
-        return value(Field.START_DELAY) + value(Field.SPINUP);
+        return shotStartSeconds() + value(Field.SPINUP);
+    }
+
+    /** Seconds from START until the launcher turns on. In odometry mode the squaring and zero
+     * come first, inside the start delay when it is long enough. */
+    private double shotStartSeconds() {
+        return odometry ? Math.max(value(Field.START_DELAY), odometryPrepSeconds()) : value(Field.START_DELAY);
+    }
+
+    /** Odometry mode: wall square (if on) plus the zero, done before anything else. */
+    private double odometryPrepSeconds() {
+        return (wallSquare() ? PollenOdometryDrive.SQUARE_SECONDS : 0) + PollenOdometryDrive.ZERO_SETTLE_SECONDS;
     }
 
     private String overBudgetNotice() {
@@ -213,8 +271,15 @@ public final class PollenShootTuning {
         return names[leg - 1];
     }
 
+    /** Timed mode: every leg's fixed time. Odometry mode: each leg's expected time, plus the
+     * wall square and zero; the hard stop at DEADLINE still applies if the robot is slower. */
     public double worstCaseSeconds() {
         double drive = 0;
+        if (odometry) {
+            for (int leg = 1; leg <= LEGS; leg++) drive += odometryLegSeconds(leg);
+            return shotStartSeconds() + drive
+                    + (value(Field.FEED_SECONDS) > 0 ? value(Field.SPINUP) + value(Field.FEED_SECONDS) : 0);
+        }
         for (int leg = 1; leg <= LEGS; leg++) drive += legMove(leg).seconds;
         return value(Field.START_DELAY) + drive + HOLD_SECONDS
                 + (value(Field.FEED_SECONDS) > 0 ? value(Field.SPINUP) + value(Field.FEED_SECONDS) : 0);
@@ -236,6 +301,13 @@ public final class PollenShootTuning {
     /** Shooter-init fallback follows THIS starting pose's departure, never Park A's route. */
     public PollenSequence sequence(boolean shooterAvailable) {
         List<PollenSequence.Step> route = new ArrayList<>();
+        if (odometry) {
+            if (wallSquare()) route.add(PollenSequence.Step.drive("SQUARE TO WALL",
+                    PollenOdometryDrive.SQUARE_SECONDS, -PollenOdometryDrive.SQUARE_POWER, 0, 0));
+            // Every leg is measured from here, so the legs end at the same field spots even if
+            // the robot gets nudged while it shoots.
+            route.add(PollenSequence.Step.zeroOdometry(PollenOdometryDrive.ZERO_SETTLE_SECONDS));
+        }
         if (shooterAvailable && value(Field.FEED_SECONDS) > 0) route.add(PollenSequence.Step.continuousShoot(value(Field.FEED_SECONDS)));
         if (supporting && !shooterAvailable && value(Field.FEED_SECONDS) > 0)
             // Hold still through the spin-up and feed slot so C still departs after the partner.
@@ -243,11 +315,21 @@ public final class PollenShootTuning {
                     value(Field.SPINUP) + value(Field.FEED_SECONDS), 0, 0, 0));
         for (int leg = 1; leg <= LEGS; leg++) {
             if (legCm(leg) <= 0) continue;
+            if (odometry) {
+                double[] end = legEndInches(leg);
+                double power = value(Field.DRIVE_POWER);
+                route.add(PollenSequence.Step.moveTo(legName(leg), end[0], end[1], power,
+                        PollenOdometryDrive.plannedSeconds(legCm(leg), power),
+                        PollenOdometryDrive.timeoutSeconds(legCm(leg), power)));
+                continue;
+            }
             PollenDriveCalibration.Move m = legMove(leg);
             route.add(PollenSequence.Step.drive(legName(leg), m.seconds, m.forward, m.strafe, 0));
         }
-        route.add(PollenSequence.Step.drive("PARK / HOLD", HOLD_SECONDS, 0, 0, 0));
+        if (!odometry) route.add(PollenSequence.Step.drive("PARK / HOLD", HOLD_SECONDS, 0, 0, 0));
+        // Odometry: the prep steps run inside the start delay, so the shot still starts on time.
+        double delay = odometry ? Math.max(0, value(Field.START_DELAY) - odometryPrepSeconds()) : value(Field.START_DELAY);
         return new PollenSequence(route.toArray(new PollenSequence.Step[0]), value(Field.FLYWHEEL),
-                value(Field.SPINUP), DEADLINE, value(Field.START_DELAY));
+                value(Field.SPINUP), DEADLINE, delay);
     }
 }

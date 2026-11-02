@@ -1,10 +1,14 @@
 # Pollen autonomous code
 
-Build identifier: **pollen-mat-v9** (`PollenConfig.BUILD`). Three autonomous OpModes preselect PollenBot:
+Build identifier: **pollen-odo-v1** (`PollenConfig.BUILD`). Three autonomous OpModes preselect PollenBot:
 `Pollen ROBOT Park`, `Pollen ROBOT Shoot + Park`, and
 `Pollen Supporting Shooter Auto`. The PollenBot TeleOp itself
 (`../BioBuzzStarterbotOpMode.java`, outside this package) uses `PollenTeleOpTuning`
 for its INIT launcher-speed and drive-power menu and shows the same build id.
+
+**Odometry versions** (group *Pollen Odometry*): `Odo ROBOT Park`, `Odo ROBOT Shoot + Park`,
+`Odo Supporting Shooter Auto` do the same jobs, driving each leg to a measured end point. See
+[docs/POLLEN_ODOMETRY_AUTOS.md](../../../../../../../../../docs/POLLEN_ODOMETRY_AUTOS.md).
 
 ## Where to start reading
 
@@ -46,6 +50,10 @@ The experimental profiles/routes are not validated robot settings.
 | PollenDriveCalibration | Unchanged baseline; opt-in B / default C mat trial; A forward estimate |
 | PollenFieldGeometry | Nominal CAD-derived start/parking coordinates and preset displacements |
 | PollenSequence | Hardware-free timing: fixed spin-up then feed, drive legs, stall/STOP/deadline, mixer |
+| PollenOdometryDrive | Odometry legs: drive-to-point controller, time estimates, wall-square and zero constants |
+| PollenOdometryHardware | Opens the Pinpoint through Pedro's localizer (pedroPathing/Constants); pose telemetry |
+| PollenOdoPark, PollenOdoParkTuning | Option A with odometry: zero, drive a measured distance, stop; distance menu |
+| PollenOdoRobotShoot, PollenOdoSupportingShooter | B and C with odometry: same shared OpMode with odometry() on |
 | PollenTeleOpTuning | PollenBot TeleOp (`BioBuzzStarterbotOpMode`) INIT menu: launcher target and drive-power scale, defaults from that OpMode's constants |
 
 B and C use distinct static snapshots in the shared OpMode. Their INIT loads
