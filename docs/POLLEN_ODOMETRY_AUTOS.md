@@ -31,9 +31,9 @@ them on the field. Run [the odometry baseline test](ODOMETRY_BASELINE_TEST.md) f
   farther than its model predicted. As real distances they would stop B about 19 in short and C about 8 in
   short of the planned park spot. The plan is the route `tools/check-pollen-field-routes.py`
   checks against the field CAD:
-  - B, Square (field preset): legs 10 cm @ 0, 63.5 cm @ +90, 217.5 cm @ +12.3.
+  - B default (Triangle): legs 10 cm @ 0, 63.5 cm @ +90, 217.5 cm @ +12.3.
   - C: legs 20.3 cm @ 0, 118.0 cm @ -81.85.
-  - B Triangle: the same 2-foot move as before, 60.96 cm @ +25.87.
+  - B Circle (leave-the-wall fallback): the 2-foot move, 60.96 cm @ +25.87. Square does nothing.
 - **The Calibration row is now "Wall square first (0=off, 1=on)"** for B and C, and is on by default.
 - **Odo ROBOT Park:** LEFT/RIGHT changes the distance by 5 cm (default 55 cm: the mat model's
   estimate for the tested 2 s at 0.20 power; that power is below the measured ones, so check it in test 1). UP/DOWN delay, L1/R1 power, Triangle reset are as before.
@@ -112,12 +112,12 @@ Do these on the practice field if you can. A slippery floor makes squaring and s
 
 1. **Odo ROBOT Park**, defaults. Tape-measure the travel: 55 cm, within 1 in. Robot should not drift sideways.
    Try it at 0.30 power first (L1 to lower), then the 0.60 default.
-2. **Odo ROBOT Shoot + Park**, Triangle defaults, **feed seconds 0** (skips the shot, saves 13 s).
+2. **Odo ROBOT Shoot + Park**, **Circle** (short move), **feed seconds 0** (skips the shot, saves 13 s).
    Ends 21.6 in forward and 10.5 in left of the start, within 1 in, not rotated.
 3. **Wall square**, same as 2, but start the robot visibly crooked (3-5 deg) against a wall. With the
    row on, the robot should square up, then drive straight. With it off, it ends off by about
    (distance x angle). If the robot does anything strange while backing up, turn it off and tell us.
-4. On the field: **B Square preset** and **C**. Mark where each robot actually parks and compare
+4. On the field: **B with its defaults** (the full route) and **C**. Mark where each robot actually parks and compare
    with the planned spot. Check the C finish time on the Driver Hub.
 
 Write down for each run: OpMode, settings changed, where it ended (fwd/left from the start), time,

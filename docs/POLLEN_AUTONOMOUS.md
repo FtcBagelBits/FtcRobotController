@@ -1,8 +1,10 @@
 # Pollen autonomous operating manual
 
-All three autonomous modes and PollenBot TeleOp show build **`pollen-odo-v4`** (the three Odo modes too).
+All autonomous modes and PollenBot TeleOp show build **`pollen-odo-v5`**.
 Keep these instructions with the installed code. The new mat calibration and field routes are **experimental**.
-The previously tested B settings remain its default and are restored by Triangle.
+**Drive team:** use the [drive-team guides](drive-team/README.md); this manual is the full reference.
+Since `pollen-odo-v5`, B's default (and Triangle) is the full shoot-and-park route that Square used to
+load; **Circle** loads the short leave-the-wall move (the old default); **Square does nothing**.
 
 ## Choose the routine
 
@@ -63,16 +65,17 @@ the motor commands are unchanged. See [calibration analysis](POLLEN_MAT_CALIBRAT
 
 - **D-pad UP / DOWN:** select the row marked `>`.
 - **D-pad RIGHT / LEFT:** edit the selected row. Tap/release; held keys do not repeat.
-- **Triangle:** restore that mode's defaults. B restores its tested short baseline;
-  C restores its experimental supporting field preset.
-- **Square:** B loads the experimental three-leg field preset, replacing all
-  selections. C: same as Triangle. It does not move the robot. Check every row.
+- **Triangle:** restore that mode's defaults. B: the three-leg route to the parking
+  slot. C: its supporting route. It does not move the robot.
+- **Circle (B only):** the leave-the-wall fallback: shoot, then only the short 2-foot
+  move (the old tested default). Earns LEAVE but not PARK. Circle does nothing in C.
+- **Square:** does nothing. It used to load B's three-leg route, which is now the default.
 
 Every speed, distance and angle that the routes use is a row, so tuning needs
 no rebuild. After the shot the robot drives **leg 1, leg 2, leg 3** in order,
 all at the one drive power; a leg set to 0 cm is skipped.
 
-| Row | B default (Triangle) | B Square preset | C default | Increment / range |
+| Row | B Circle (leave the wall) | B default (Triangle) | C default | Increment / range |
 | --- | ---: | ---: | ---: | --- |
 | Launcher ticks/s | 1180 | 1180 | 1180 | 20; 500-2500 |
 | Feed seconds | 10 | 10 | 7.5 | 0.5; 0-20; 0 skips shooting |
@@ -100,9 +103,9 @@ duration by direction. Baseline preserves the old `cm / (129 * power)` timing
 and direct sine/cosine command. MAT_TRIAL assumes unconfirmed original test
 settings: verify it with short trials before relying on a field route.
 
-## Primary field preset: Square in B
+## Primary route: B's default
 
-The default 60.96-cm baseline is a short test, not a full-field park. Square loads:
+The short 60.96-cm move (Circle) only leaves the wall; it does not park. B's default (Triangle) is:
 
 - MAT_TRIAL, power **0.25**, normal 10-second feed and zero delay;
 - leg 1: **10 cm forward** off the wall after shooting;
@@ -113,8 +116,8 @@ The default 60.96-cm baseline is a short test, not a full-field park. Square loa
 
 This avoids the floor-level frame bar in the nominal CAD. It budgets about
 **22.0 s**: 3 s spin-up, 10 s feed, about 8.5 s of driving and the 0.5 s hold.
-Drive starts at about 13 s. Triangle restores the tested
-short route (leg 3 only). Editing any leg changes the route; check the geometry
+Drive starts at about 13 s. Circle loads the short
+leave-the-wall route (leg 3 only). Editing any leg changes the route; check the geometry
 again after such edits.
 
 ## Supporting field preset: C

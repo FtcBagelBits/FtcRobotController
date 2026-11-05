@@ -65,7 +65,7 @@ public final class PollenLoopTimingTest {
     public static void main(String[] args) {
         PollenShootTuning c = new PollenShootTuning(null, true);
         PollenShootTuning b = new PollenShootTuning(null);
-        b.update(false, false, false, false, false, true);   // Square: B field preset
+        // B's default is the full 3-leg route (formerly the Square preset).
         b.update(false, false, false, false, false, false);
 
         // Reviewer's case: a 350 ms pause right after each step change, at a steady 20 ms loop.
@@ -83,7 +83,9 @@ public final class PollenLoopTimingTest {
         double[] jitter = {.005, .03, .012, .24, .018, .09, .007, .15, .021, .06, .2, .011};
         fullLegs(simulate(c.sequence(), i -> jitter[i % jitter.length], .3), c, .24, "C, irregular loop");
         fullLegs(simulate(b.sequence(), i -> jitter[i % jitter.length], .3), b, .24, "B Square, irregular loop");
-        PollenShootTuning tested = new PollenShootTuning(null);  // B Triangle: the tested baseline
+        PollenShootTuning tested = new PollenShootTuning(null);  // B Circle: the tested 2-foot baseline
+        tested.update(false, false, false, false, false, true);
+        tested.update(false, false, false, false, false, false);
         fullLegs(simulate(tested.sequence(), i -> jitter[i % jitter.length], .3), tested, .24, "B Triangle, irregular loop");
 
         // A pause while the drive is moving: 250 ms is tolerated, anything longer stops everything.

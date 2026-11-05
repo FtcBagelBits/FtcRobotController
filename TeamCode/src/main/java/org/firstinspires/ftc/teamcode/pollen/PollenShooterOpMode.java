@@ -111,13 +111,15 @@ public abstract class PollenShooterOpMode extends OpMode {
 
     @Override public final void init_loop() {
         if (gamepad1 != null) tuning.update(gamepad1.dpad_up, gamepad1.dpad_down,
-                gamepad1.dpad_left, gamepad1.dpad_right, gamepad1.triangle, gamepad1.square);
+                gamepad1.dpad_left, gamepad1.dpad_right, gamepad1.triangle, gamepad1.circle);
         remember(tuning.snapshot());
         if (localizer != null) localizer.update();
         showSettings();
         telemetry.addData("Controls", "D-pad UP/DOWN selects; LEFT/RIGHT edits; tap then release");
-        telemetry.addData("Reset", supportingShooter() ? "Triangle=supporting flush preset" : "Triangle=tested baseline (2 ft, leg 3 only)");
-        telemetry.addData("Square", supportingShooter() ? "Same as Triangle for C" : "Load UNTESTED 3-leg field route; check all rows");
+        telemetry.addData("Triangle", supportingShooter() ? "Restore defaults (flush route to the outer slot)"
+                : "Restore defaults: shoot, then 3 legs to the parking slot");
+        if (!supportingShooter()) telemetry.addData("Circle", "Fallback: shoot, then only leave the wall (2 ft; no park)");
+        telemetry.addData("Square", "Does nothing (the full route is already the default)");
         telemetry.addData("Tune", "Launcher speed, feed, power and each leg's cm/angle are rows above");
         telemetry.addData("Status", blocked != null ? "BLOCKED: " + blocked
                 : !tuning.budgetOk() ? "NOT READY - over time budget; START will not move the robot"

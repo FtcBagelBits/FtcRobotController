@@ -2,7 +2,8 @@ import org.firstinspires.ftc.teamcode.pollen.PollenSequence;
 import org.firstinspires.ftc.teamcode.pollen.PollenShootTuning;
 import static org.firstinspires.ftc.teamcode.pollen.PollenShootTuning.Field.*;
 
-/** Behavioral checks for the new shoot-first mode; no FTC/Android dependencies. */
+/** Behavioral checks for shoot-first B's short leave-the-wall route (Circle), its INIT menu and
+ * budget; no FTC/Android dependencies. B's default full route is covered by the other tests. */
 public final class PollenShootFirstTest {
     private static int checks;
     private static void check(boolean condition, String message) {
@@ -17,6 +18,13 @@ public final class PollenShootFirstTest {
                 && out.launcherVelocity == 0 && out.feederPower == 0, "zero outputs");
     }
     private static void release(PollenShootTuning t) { t.update(false, false, false, false, false); }
+    /** Circle: B's leave-the-wall fallback, the old tested 2-foot default. */
+    private static void circle(PollenShootTuning t) { t.update(false, false, false, false, false, true); release(t); }
+    private static PollenShootTuning shortRoute() {
+        PollenShootTuning t = new PollenShootTuning(null);
+        circle(t);
+        return t;
+    }
     private static void select(PollenShootTuning t, PollenShootTuning.Field field) {
         while (t.selected() != field) {
             t.update(false, true, false, false, false);
@@ -34,8 +42,12 @@ public final class PollenShootFirstTest {
         return out;
     }
     public static void main(String[] args) {
-        PollenShootTuning t = new PollenShootTuning(null);
-        near(t.value(LEG3_CM), 60.96, "two-foot default");
+        PollenShootTuning full = new PollenShootTuning(null);
+        check(full.legCm(1) > 0 && full.legCm(2) > 0 && full.value(LEG3_CM) == PollenShootTuning.B_FIELD_LEG3_CM,
+                "B default is now the full 3-leg route to the parking slot");
+        PollenShootTuning t = shortRoute();
+        check(t.legCm(1) == 0 && t.legCm(2) == 0 && t.notice().startsWith("LEAVE-THE-WALL"), "Circle: leave-the-wall fallback");
+        near(t.value(LEG3_CM), 60.96, "two-foot leave-the-wall move");
         near(t.driveSeconds(), 2.3627906976744186, "two-foot time with measured diagonal factor");
         near(t.value(FEED_SECONDS), 10, "ten seconds excludes spinup");
         near(t.value(FEED_POWER), .5, "intake matches the neutral-trigger TeleOp feed boost");
@@ -120,7 +132,7 @@ public final class PollenShootFirstTest {
         change(t, -1); t.update(false, false, false, false, true);
         near(t.value(START_DELAY), before, "START locks edits and reset");
 
-        t = new PollenShootTuning(null);
+        t = shortRoute();
         select(t, FEED_SECONDS); for (int i = 0; i < 25; i++) change(t, -1);
         near(t.value(FEED_SECONDS), 0, "skip shot for motion calibration");
         s = t.sequence(); s.start(0); near(s.tick(0).forward, t.forward(), "skip-shot route");
@@ -130,16 +142,19 @@ public final class PollenShootFirstTest {
         near(t.value(LEG3_CM), 0, "zero distance for stationary test");
         s = t.sequence(); s.start(0); zero(s.tick(0));
         check(s.tick(.5).finished, "both zero gives hold only");
+        circle(t);
+        near(t.value(LEG3_CM), 60.96, "circle restores short test");
+        near(t.value(FEED_SECONDS), 10, "circle restores feed duration");
         t.update(false, false, false, false, true); release(t);
-        near(t.value(LEG3_CM), 60.96, "triangle restores short test");
-        near(t.value(FEED_SECONDS), 10, "triangle restores feed duration");
+        check(t.legCm(1) > 0 && t.legCm(2) > 0, "triangle restores the full route");
+        circle(t);
         select(t, LEG3_CM); for (int i = 0; i < 44; i++) change(t, 1);
         check(t.worstCaseSeconds() < 26, "longer selected distance remains within time budget");
         select(t, DRIVE_POWER); for (int i = 0; i < 10; i++) change(t, -1);
         check(t.worstCaseSeconds() < 26, "slowing drive cannot silently exhaust budget");
         t.sequence(); // Still a valid sequence after refused changes.
         // Angle editing changes translation only; retain the calibrated default.
-        t = new PollenShootTuning(null);
+        t = shortRoute();
         near(t.value(LEG3_ANGLE), 25.87, "tested default angle preserved");
         double duration = t.driveSeconds(), budget = t.worstCaseSeconds();
         select(t, LEG3_ANGLE); change(t, 1);
@@ -179,8 +194,8 @@ public final class PollenShootFirstTest {
         move = s.tick(13.01);
         near(move.strafe, -.2, "successful shot departs at selected angle");
         near(move.turn, 0, "successful shot departure does not turn");
-        t.update(false, false, false, false, true); release(t);
-        near(t.value(LEG3_ANGLE), 25.87, "reset restores fractional calibrated angle");
+        circle(t);
+        near(t.value(LEG3_ANGLE), 25.87, "circle restores fractional calibrated angle");
         change(t, -1);
         near(t.value(LEG3_ANGLE), 25, "first left reaches next whole degree");
         t.lock(); change(t, 1);

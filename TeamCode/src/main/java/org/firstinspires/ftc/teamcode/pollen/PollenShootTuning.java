@@ -97,7 +97,27 @@ public final class PollenShootTuning {
         }
     }
 
+    /** Triangle, and every INIT without remembered settings. B: shoot, then the 3-leg route to
+     * the parking slot. C: its flush route to the outer slot. */
     private void reset() {
+        initialValues();
+        if (!supporting) fullRoute();
+        notice = supporting
+                ? (odometry ? "Defaults: forward clear of flower, then right to the planned park spot"
+                            : "Flush preset: forward clear of flower, then right to park (leg 3 field-tuned)")
+                : (odometry ? "Defaults: shoot, then 3 legs to the parking slot (planned spot)"
+                            : "Defaults: shoot, then 3 legs to the parking slot (leg 3 field-tuned)");
+    }
+
+    /** Circle, B only: shoot, then just leave the wall with the short 2-foot move. Earns LEAVE,
+     * not PARK. For when the full route is not safe (partner in the lane, untested field). */
+    private void leaveWall() {
+        initialValues();
+        notice = "LEAVE-THE-WALL FALLBACK: shoot, then a 2-foot move; does NOT park. Triangle = full route";
+    }
+
+    /** Row defaults before a route is chosen: for B that is the short 2-foot move. */
+    private void initialValues() {
         for (Field f : Field.values()) values[f.ordinal()] = f.initial;
         if (supporting) {
             values[Field.START_DELAY.ordinal()] = SUPPORT_START_DELAY;
@@ -108,35 +128,24 @@ public final class PollenShootTuning {
             set(2, 0, -90);
             set(3, C_LEG3_CM, C_LEG3_DEGREES);
         }
-        notice = supporting ? "Flush preset: forward clear of flower, then right to park (leg 3 field-tuned)"
-                : "Defaults restored: tested baseline, 2-foot move";
         if (odometry) {
             values[Field.CALIBRATION.ordinal()] = 1; // wall square ON
             values[Field.DRIVE_POWER.ordinal()] = PollenOdometryDrive.DEFAULT_LEG_POWER;
-            if (supporting) {
-                set(3, PollenFieldGeometry.supportDistanceCm(), PollenFieldGeometry.supportAngleDegrees());
-                notice = "Odometry: forward clear of flower, then right to the planned park spot";
-            } else {
-                notice = "Odometry defaults: 2-foot move";
-            }
+            if (supporting) set(3, PollenFieldGeometry.supportDistanceCm(), PollenFieldGeometry.supportAngleDegrees());
         }
     }
 
-    private void fieldPreset() {
-        reset();
-        if (!supporting) {
-            set(1, PollenFieldGeometry.PRIMARY_WALL_CLEARANCE_CM, 0);
-            set(2, PollenFieldGeometry.PRIMARY_SIDE_CLEARANCE_INCHES * PollenFieldGeometry.INCH_TO_CM, 90);
-            set(3, B_FIELD_LEG3_CM, B_FIELD_LEG3_DEGREES);
-            values[Field.DRIVE_POWER.ordinal()] = .25;
-            values[Field.CALIBRATION.ordinal()] = 1;
-            if (odometry) {
-                set(3, PollenFieldGeometry.primaryDistanceCm(), PollenFieldGeometry.primaryAngleDegrees());
-                values[Field.DRIVE_POWER.ordinal()] = PollenOdometryDrive.DEFAULT_LEG_POWER;
-            }
+    /** B's full route: off the wall, left past the frame, then to the inner parking slot. */
+    private void fullRoute() {
+        set(1, PollenFieldGeometry.PRIMARY_WALL_CLEARANCE_CM, 0);
+        set(2, PollenFieldGeometry.PRIMARY_SIDE_CLEARANCE_INCHES * PollenFieldGeometry.INCH_TO_CM, 90);
+        set(3, B_FIELD_LEG3_CM, B_FIELD_LEG3_DEGREES);
+        values[Field.DRIVE_POWER.ordinal()] = .25;
+        values[Field.CALIBRATION.ordinal()] = 1;
+        if (odometry) {
+            set(3, PollenFieldGeometry.primaryDistanceCm(), PollenFieldGeometry.primaryAngleDegrees());
+            values[Field.DRIVE_POWER.ordinal()] = PollenOdometryDrive.DEFAULT_LEG_POWER;
         }
-        notice = odometry ? "Field preset loaded (planned park spot); verify pose, footprint and partner route"
-                : "Field preset loaded (leg 3 field-tuned); verify pose, footprint and partner route";
     }
 
     private void set(int leg, double cm, double angle) {
@@ -150,15 +159,17 @@ public final class PollenShootTuning {
         update(up, down, left, right, reset, false);
     }
 
-    /** Square loads the field preset; triangle restores the mode's own defaults. */
+    /** Triangle restores the defaults (B: full route). Circle loads B's leave-the-wall fallback;
+     * it does nothing in C. Square is not read at all: it used to load B's full route, which is
+     * now the default, so a habitual press changes nothing. */
     public void update(boolean up, boolean down, boolean left, boolean right,
-            boolean reset, boolean fieldPreset) {
+            boolean reset, boolean leaveWall) {
         if (locked) return;
-        boolean[] keys = {up, down, left, right, reset, fieldPreset};
+        boolean[] keys = {up, down, left, right, reset, leaveWall};
         if (reset) {
             if (!previous[4]) reset();
-        } else if (fieldPreset) {
-            if (!previous[5]) fieldPreset();
+        } else if (leaveWall) {
+            if (!previous[5] && !supporting) leaveWall();
         } else {
             if (up && !down && !previous[0]) selected = (selected + Field.values().length - 1) % Field.values().length;
             if (down && !up && !previous[1]) selected = (selected + 1) % Field.values().length;

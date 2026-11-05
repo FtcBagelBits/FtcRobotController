@@ -146,8 +146,6 @@ public final class PollenOdometryTest {
                         c.worstCaseSeconds(), l1[0], l1[1], l3[0], l3[1], endError(run, c.legEndInches(3)));
 
                 PollenShootTuning b = new PollenShootTuning(null, false, true);
-                b.update(false, false, false, false, false, true);
-                b.update(false, false, false, false, false, false);
                 setRow(b, DRIVE_POWER, power);
                 SimRobot rb = startCrooked(2);
                 rb.lagSeconds = lag;
@@ -207,9 +205,14 @@ public final class PollenOdometryTest {
                 "timed B has no zero step");
 
         PollenShootTuning b = new PollenShootTuning(null, false, true);
+        check(b.legCm(1) > 0 && b.legCm(2) > 0 && Math.abs(b.legCm(3) - 217.47) < 0.05,
+                "odometry B default is the full route to the planned park spot");
+        b.update(false, false, false, false, false, true); // Circle: leave-the-wall fallback
+        b.update(false, false, false, false, false, false);
+        check(b.legCm(1) == 0 && b.legCm(2) == 0, "odometry B Circle: short move only");
         check(b.wallSquare() && b.label(CALIBRATION).startsWith("Wall square"), "odometry B: wall square on by default");
         check(b.value(LEG3_CM) == 60.96 && b.value(LEG3_ANGLE) == PollenShootTuning.PARK_ANGLE_DEGREES,
-                "odometry B Triangle default is the same 2-foot move");
+                "odometry B Circle is the same 2-foot move");
         check(b.value(DRIVE_POWER) == PollenOdometryDrive.DEFAULT_LEG_POWER, "odometry legs default to 0.6 power");
         setRow(b, DRIVE_POWER, 0.8);
         check(b.value(DRIVE_POWER) == 0.8, "odometry power row reaches 0.8");
@@ -225,8 +228,12 @@ public final class PollenOdometryTest {
         run = simulate(b.sequence(), new SimRobot());
         check(run.steps.toString().equals("[ZERO ODOMETRY, SHOOT, LEG 3 TO PARK]"),
                 "wall square off: zero only; got " + run.steps);
-        check(simulate(timed.sequence(), new SimRobot()).steps.toString().equals("[SHOOT, LEG 3 TO PARK, PARK / HOLD]"),
-                "timed B order unchanged");
+        check(simulate(timed.sequence(), new SimRobot()).steps.toString()
+                        .equals("[SHOOT, LEG 1 OFF WALL, LEG 2 CLEAR HIVE, LEG 3 TO PARK, PARK / HOLD]"),
+                "timed B default: shoot, the three timed legs, hold");
+        Run full = simulate(new PollenShootTuning(null, false, true).sequence(), new SimRobot());
+        check(full.steps.toString().equals("[SQUARE TO WALL, ZERO ODOMETRY, SHOOT, LEG 1 OFF WALL, LEG 2 CLEAR HIVE, LEG 3 TO PARK]"),
+                "odometry B default order: " + full.steps);
 
         PollenShootTuning c = new PollenShootTuning(null, true, true);
         check(Math.abs(c.legCm(3) - 117.96) < 0.05 && Math.abs(c.legAngle(3) + 81.85) < 0.01,
@@ -248,8 +255,6 @@ public final class PollenOdometryTest {
 
         // The comparison uses the long field-preset route, where a crooked start matters most.
         PollenShootTuning field = new PollenShootTuning(null, false, true);
-        field.update(false, false, false, false, false, true);
-        field.update(false, false, false, false, false, false);
         double[] fieldTarget = field.legEndInches(3);
         Run fieldSquared = simulate(field.sequence(), startCrooked(3));
         setRow(field, CALIBRATION, 0);
@@ -281,8 +286,7 @@ public final class PollenOdometryTest {
 
     static void fieldPresetRun() {
         PollenShootTuning b = new PollenShootTuning(null, false, true);
-        b.update(false, false, false, false, false, true); // Square: field preset
-        b.update(false, false, false, false, false, false);
+        // Default: the full 3-leg route (formerly the Square preset).
         check(b.legCm(1) > 0 && b.legCm(2) > 0 && b.wallSquare(), "B field preset: three legs, squaring on");
         check(b.budgetOk(), "B field preset fits the budget: " + b.worstCaseSeconds());
         Run run = simulate(b.sequence(), startCrooked(2));
