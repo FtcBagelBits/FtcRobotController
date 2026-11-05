@@ -79,6 +79,10 @@ public class BioBuzzStarterbotOpMode extends OpMode {
      */
     public final int LAUNCHER_TARGET_VELOCITY = 1180; //2529 RPM (was 1250)
     public final double LAUNCHER_SPINUP_SECONDS = PollenConfig.LAUNCHER_SPINUP_SECONDS; // 3 s
+    // Hold L1 to run the launcher BACKWARDS slowly and push a jammed ball back out.
+    // 300 RPM = 300 x 28 / 60 = 140 ticks per second.
+    public final int LAUNCHER_REVERSE_VELOCITY = 140; //300 RPM
+    private boolean reversing = false;
     private final ElapsedTime launchTimer = new ElapsedTime();
     private boolean launching = false;
     private boolean feeding = false;   // latched on until R1 is released
@@ -279,7 +283,8 @@ public class BioBuzzStarterbotOpMode extends OpMode {
         telemetry.addData("Launcher target / measured", "%.0f / %.0f ticks/s%s",
                 tuning.launcherVelocity(), launcher.getVelocity(),
                 launching && launcher.getVelocity() < 50 ? "  (measured ~0: check launcher encoder cable)" : "");
-        telemetry.addData("Feed", !launching ? "off (hold R1)"
+        telemetry.addData("Feed", reversing ? "REVERSING launcher (L1) - no feed"
+                : !launching ? "off (hold R1; L1 = reverse to clear a jam)"
                 : feeding ? String.format("FEEDING (started at %.1f s: %s)", feedStartedAt, feedStartedBy)
                 : "spinning up");
         telemetry.addData("Intake / agitator command", "%.2f / %.2f",
@@ -335,7 +340,16 @@ public class BioBuzzStarterbotOpMode extends OpMode {
          * holding down the right gamepad. If they are, then we want to start spinning up the launcher.
          * Otherwise, we start spinning the launcher down.
          */
-        if (gamepad1.right_bumper) {
+        /*
+         * L1 clears a jam: the launcher runs backwards at 300 RPM while L1 is held. L1 wins over
+         * R1, and nothing feeds while reversing, so no ball is pushed into a wheel turning the
+         * wrong way. Let go of L1 and R1 works as normal (with a fresh spin-up).
+         */
+        reversing = gamepad1.left_bumper;
+        if (reversing) {
+            launching = false;
+            launcher.setVelocity(-LAUNCHER_REVERSE_VELOCITY);
+        } else if (gamepad1.right_bumper) {
             if (!launching) launchTimer.reset(); // R1 just pressed: start the spin-up clock
             launching = true;
             launcher.setVelocity(tuning.launcherVelocity());

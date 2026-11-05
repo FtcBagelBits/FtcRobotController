@@ -1,6 +1,6 @@
 # Pollen autonomous operating manual
 
-All three autonomous modes and PollenBot TeleOp show build **`pollen-odo-v3`** (the three Odo modes too).
+All three autonomous modes and PollenBot TeleOp show build **`pollen-odo-v4`** (the three Odo modes too).
 Keep these instructions with the installed code. The new mat calibration and field routes are **experimental**.
 The previously tested B settings remain its default and are restored by Triangle.
 
@@ -178,6 +178,10 @@ up to speed: check the battery and the encoder cable. If measured stays near 0 w
 spinning, the launcher's encoder cable is loose or unplugged: the screen says
 so. Without the encoder, the launcher's speed control does not work properly,
 so fix the cable before relying on shot distance.
+
+**Jammed?** Hold **L1**: the launcher runs backwards at 300 RPM (140 ticks/s) to push the ball
+back out. L1 wins over R1 and nothing feeds while it is held; the screen shows
+`REVERSING launcher (L1)`. The left trigger still reverses the intake and agitator.
 
 ## Shooting, memory and failure handling
 

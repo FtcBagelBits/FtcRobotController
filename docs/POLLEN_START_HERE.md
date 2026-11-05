@@ -4,13 +4,13 @@ This is the one page to read first. It explains what the PollenBot code does,
 how it is built, and the order to read it in, with questions to answer as you
 go. Every other document and code file is linked from here.
 
-Build: `pollen-odo-v3`. The INIT screen of every Pollen OpMode shows it.
+Build: `pollen-odo-v4`. The INIT screen of every Pollen OpMode shows it.
 
 ## What the robot runs
 
 | Driver Station name | File | What it does |
 | --- | --- | --- |
-| **PollenBot** (TeleOp) | [`BioBuzzStarterbotOpMode.java`](../TeamCode/src/main/java/org/firstinspires/ftc/teamcode/BioBuzzStarterbotOpMode.java) | Mecanum driving, intake on the triggers, launcher on R1 |
+| **PollenBot** (TeleOp) | [`BioBuzzStarterbotOpMode.java`](../TeamCode/src/main/java/org/firstinspires/ftc/teamcode/BioBuzzStarterbotOpMode.java) | Mecanum driving, intake on the triggers, launcher on R1, L1 reverses the launcher to clear a jam |
 | **Pollen ROBOT Park** (A) | [`PollenRobotPark.java`](../TeamCode/src/main/java/org/firstinspires/ftc/teamcode/pollen/PollenRobotPark.java) | Optional start delay, then drives forward 2 s at power 0.20 |
 | **Pollen ROBOT Shoot + Park** (B) | [`PollenRobotShoot.java`](../TeamCode/src/main/java/org/firstinspires/ftc/teamcode/pollen/PollenRobotShoot.java) | Shoots the 4 pre-loads, then drives up to three legs to park |
 | **Pollen Supporting Shooter Auto** (C) | [`PollenSupportingShooter.java`](../TeamCode/src/main/java/org/firstinspires/ftc/teamcode/pollen/PollenSupportingShooter.java) | Waits 12 s for a partner to shoot, shoots, then parks |
@@ -134,7 +134,7 @@ bash tools/test-pollen-sequence.sh && ./gradlew :TeamCode:assembleDebug
 
 The first command runs the computer tests; the second builds the robot app
 only if they pass. Install it from Android Studio over the team's Wi-Fi
-connection to the Control Hub, then check that INIT shows `pollen-odo-v3`.
+connection to the Control Hub, then check that INIT shows `pollen-odo-v4`.
 
 ## What comes next
 
