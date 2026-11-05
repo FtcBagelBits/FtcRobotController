@@ -4,7 +4,7 @@ package org.firstinspires.ftc.teamcode.pollen;
  * hardware calls. Defaults come from the TeleOp's own constants and PollenConfig. */
 public final class PollenTeleOpTuning {
     public enum Row { LAUNCHER, SPINUP, AGITATOR, DRIVE }
-    public static final double MIN_LAUNCHER = 500, MAX_LAUNCHER = 2500, LAUNCHER_STEP = 50;
+    public static final double MIN_LAUNCHER = 500, MAX_LAUNCHER = 2500, LAUNCHER_STEP = 20;
     public static final double MIN_SPINUP = 0, MAX_SPINUP = 6, SPINUP_STEP = .5;
     public static final double MIN_AGITATOR = .10, MAX_AGITATOR = 1.0, AGITATOR_STEP = .05;
     public static final double MIN_DRIVE = .20, MAX_DRIVE = 1.0, DRIVE_STEP = .05;
