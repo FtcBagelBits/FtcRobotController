@@ -77,7 +77,7 @@ public class BioBuzzStarterbotOpMode extends OpMode {
      * launcher reads 96% of target or when the spin-up time runs out, whichever is first, so a
      * low encoder reading can delay feeding by at most the spin-up time but never block it.
      */
-    public final int LAUNCHER_TARGET_VELOCITY = 1250; //2678 RPM
+    public final int LAUNCHER_TARGET_VELOCITY = 1180; //2529 RPM (was 1250)
     public final double LAUNCHER_SPINUP_SECONDS = PollenConfig.LAUNCHER_SPINUP_SECONDS; // 3 s
     private final ElapsedTime launchTimer = new ElapsedTime();
     private boolean launching = false;
@@ -346,7 +346,7 @@ public class BioBuzzStarterbotOpMode extends OpMode {
 
         /*
          * When do we start feeding balls into the launcher? Whichever happens FIRST:
-         *   1. the encoder says the launcher is up to speed (1200 ticks/s for a 1250 target), or
+         *   1. the encoder says the launcher is up to speed (96%: about 1133 ticks/s for an 1180 target), or
          *   2. R1 has been held for the spin-up time (3 s), in case the encoder reading is wrong.
          * Once feeding starts, keep feeding until R1 is released. Each ball slows the wheel a
          * little, and we don't want that dip to switch the agitator off in the middle of a volley.

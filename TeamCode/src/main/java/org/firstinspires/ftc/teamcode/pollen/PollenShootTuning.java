@@ -16,7 +16,7 @@ import java.util.List;
  * overshooting its model, so as true distances they would stop B about 19 in and C about 8 in short of the planned spot. */
 public final class PollenShootTuning {
     public enum Field {
-        FLYWHEEL("Launcher ticks/s", 500, 2500, 50, 1250),
+        FLYWHEEL("Launcher ticks/s", 500, 2500, 20, 1180),
         SPINUP("Spin-up seconds before feed", 0, 6, .5, PollenConfig.LAUNCHER_SPINUP_SECONDS),
         FEED_SECONDS("Feed seconds (0 = skip shot)", 0, 20, .5, 10),
         FEED_POWER("Intake power while feeding", .10, 1, .05, .50),

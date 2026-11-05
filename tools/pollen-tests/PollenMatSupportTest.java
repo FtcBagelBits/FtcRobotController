@@ -108,7 +108,7 @@ public final class PollenMatSupportTest {
         PollenSequence s = t.sequence(); s.start(0);
         zero(s.tick(0)); zero(s.tick(11.99));
         PollenSequence.Output o = s.tick(12);
-        near(o.launcherVelocity, 1250, "launcher starts at t=12, after the delay"); near(o.feederPower, 0, "no early feed");
+        near(o.launcherVelocity, 1180, "launcher starts at t=12, after the delay"); near(o.feederPower, 0, "no early feed");
         o = s.tick(14.99); near(o.feederPower, 0, "launcher alone until t=15");
         o = s.tick(15); near(o.feederPower, 1, "feed at t=15 without checking speed");
         near(o.forward, 0, "stationary shot"); near(o.strafe, 0, "stationary shot strafe");
@@ -189,7 +189,7 @@ public final class PollenMatSupportTest {
         near(remembered.value(LEG3_CM), calibratedLeg3, "edits that lengthen an over-budget route are refused");
         check(remembered.notice().contains("longer"), "refusal explained");
         set(remembered, FLYWHEEL, 1, 1);
-        near(remembered.value(FLYWHEEL), 1300, "edits that do not change the time are allowed");
+        near(remembered.value(FLYWHEEL), 1200, "edits that do not change the time are allowed");
         set(remembered, START_DELAY, -1, 1);
         check(remembered.worstCaseSeconds() < worst, "lowering delay is allowed while over budget");
         while (!remembered.budgetOk()) set(remembered, START_DELAY, -1, 1);
@@ -252,14 +252,14 @@ public final class PollenMatSupportTest {
         set(tune, LEG2_ANGLE, -1, 3); near(tune.value(LEG2_ANGLE), 87, "leg 2 angle editable");
         double fractional = tune.value(LEG3_ANGLE);
         set(tune, LEG3_ANGLE, 1, 1); near(tune.value(LEG3_ANGLE), Math.floor(fractional) + 1, "leg 3 angle snaps to whole degree");
-        set(tune, FLYWHEEL, 1, 4); near(tune.value(FLYWHEEL), 1450, "launcher speed editable");
+        set(tune, FLYWHEEL, 1, 4); near(tune.value(FLYWHEEL), 1260, "launcher speed editable");
         for (int leg = 1; leg <= 3; leg++) {
             PollenDriveCalibration.Move expect = PollenDriveCalibration.move(mat, tune.legCm(leg), .25, tune.legAngle(leg));
             near(tune.legMove(leg).seconds, expect.seconds, "leg " + leg + " time uses its own edited values");
             near(tune.legMove(leg).strafe, expect.strafe, "leg " + leg + " direction uses its edited angle");
         }
         s = tune.sequence(); s.start(0);
-        near(s.tick(0).launcherVelocity, 1450, "edited launcher target reaches sequence");
+        near(s.tick(0).launcherVelocity, 1260, "edited launcher target reaches sequence");
         check(tune.legMove(1).strafe > 0, "negative leg 1 angle drifts right");
         for (PollenShootTuning.Field f : new PollenShootTuning.Field[] {LEG1_ANGLE, LEG2_ANGLE, LEG3_ANGLE}) {
             set(tune, f, 1, 200); near(tune.value(f), 90, "angle upper limit");
@@ -272,13 +272,13 @@ public final class PollenMatSupportTest {
         set(shortRoute, LEG1_CM, 1, 100); near(shortRoute.value(LEG1_CM), 60, "leg 1 upper limit");
         PollenShootTuning kept = new PollenShootTuning(tune.snapshot());
         near(kept.value(LEG2_ANGLE), tune.value(LEG2_ANGLE), "leg edits survive next INIT");
-        near(kept.value(FLYWHEEL), 1450, "launcher edit survives next INIT");
+        near(kept.value(FLYWHEEL), 1260, "launcher edit survives next INIT");
         PollenShootTuning cTune = support();
         set(cTune, LEG2_CM, 1, 1); near(cTune.value(LEG2_CM), 5, "C optional leg 2 can be enabled");
         near(cTune.value(LEG2_ANGLE), -90, "C leg 2 defaults to robot-right");
-        set(cTune, FLYWHEEL, -1, 2); near(cTune.value(FLYWHEEL), 1150, "C launcher speed editable");
+        set(cTune, FLYWHEEL, -1, 2); near(cTune.value(FLYWHEEL), 1140, "C launcher speed editable");
         s = cTune.sequence(); s.start(0); s.tick(11.99);
-        near(s.tick(12).launcherVelocity, 1150, "C spin-up uses edited speed");
+        near(s.tick(12).launcherVelocity, 1140, "C spin-up uses edited speed");
         set(cTune, SPINUP, -1, 2); near(cTune.value(SPINUP), 2, "spin-up row editable");
         near(cTune.feedStartSeconds(), 14, "shorter spin-up moves the feed earlier");
         s = cTune.sequence(); s.start(0); s.tick(12);

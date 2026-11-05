@@ -1,6 +1,6 @@
 # Pollen autonomous operating manual
 
-All three autonomous modes and PollenBot TeleOp show build **`pollen-mat-v9`**.
+All three autonomous modes and PollenBot TeleOp show build **`pollen-odo-v2`** (the three Odo modes too).
 Keep these instructions with the installed code. The new mat calibration and field routes are **experimental**.
 The previously tested B settings remain its default and are restored by Triangle.
 
@@ -74,7 +74,7 @@ all at the one drive power; a leg set to 0 cm is skipped.
 
 | Row | B default (Triangle) | B Square preset | C default | Increment / range |
 | --- | ---: | ---: | ---: | --- |
-| Launcher ticks/s | 1250 | 1250 | 1250 | 50; 500-2500 |
+| Launcher ticks/s | 1180 | 1180 | 1180 | 20; 500-2500 |
 | Feed seconds | 10 | 10 | 7.5 | 0.5; 0-20; 0 skips shooting |
 | Intake power while feeding | 0.50 | 0.50 | 0.50 | 0.05; 0.10-1.00 |
 | Agitator power while feeding | 1.00 | 1.00 | 1.00 | 0.05; 0.10-1.00 |
@@ -159,8 +159,8 @@ autonomous menus. Driving controls are unchanged.
 
 | Row | Default | Increment / range | Effect during the match |
 | --- | ---: | --- | --- |
-| Launcher ticks/s | 1250 | 50; 500-2500 | Target while R1 is held. |
-| Spin-up before feed | 3.0 s | 0.5; 0-6 s | Longest R1 hold before feeding starts. Feeding starts sooner if the launcher reads 96% of target (1200 at default); a low reading can never block it. |
+| Launcher ticks/s | 1180 | 50; 500-2500 | Target while R1 is held. |
+| Spin-up before feed | 3.0 s | 0.5; 0-6 s | Longest R1 hold before feeding starts. Feeding starts sooner if the launcher reads 96% of target (about 1133 at default); a low reading can never block it. |
 | Agitator power while feeding | 1.00 | 0.05; 0.10-1.00 | Agitator power once feeding starts. The intake gets +0.5 on top of the triggers, capped at 1. |
 | Drive power | 100% | 5%; 20-100% | Multiplies all wheel powers after the usual mixing, so slower but same stick feel. |
 
