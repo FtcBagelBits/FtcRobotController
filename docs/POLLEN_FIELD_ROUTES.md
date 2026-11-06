@@ -89,7 +89,7 @@ well before the loading-zone row. It therefore does not solve the parking task.
 The reported 45-degree *motor command* also traveled at only 29.86 degrees;
 do not confuse commanded angle with measured path direction.
 
-**Primary field preset (Square in B):**
+**Primary route (B's default; Square loaded it before `pollen-odo-v5`):**
 
 1. Shoot from the starting position (flush and square to the audience wall).
 2. Leg 1: drive **10 cm forward** to (-12.742, +57.648) so the left strafe is
@@ -106,7 +106,7 @@ do not confuse commanded angle with measured path direction.
 The preset uses MAT_TRIAL and power 0.25. With the field-tuned leg 3 its
 calculated drive time is about 8.5 seconds; with the 3-second spin-up, the
 default 10-second feed and the 0.5-second hold, the total is about **22.0 seconds**. Short loop transitions
-consume part of the reserved margin. Triangle restores B's tested short baseline.
+consume part of the reserved margin. Circle loads B's short leave-the-wall move.
 
 Swept-square checks clear the fixed frame, both hive projections and all four
 flowers. The smallest nominal obstacle clearance along this three-leg route is

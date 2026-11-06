@@ -24,6 +24,8 @@
 
 package org.firstinspires.ftc.teamcode.pollen;
 
+import com.pedropathing.math.Pose;
+import com.pedropathing.revhub.localizers.PinpointLocalizer;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -32,10 +34,15 @@ import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import static org.firstinspires.ftc.teamcode.pollen.PollenShootTuning.Field.*;
 
-/** Shared hardware lifecycle for the two stationary shooting routines. */
+/** Shared hardware lifecycle for the two stationary shooting routines, timed or odometry. */
 public abstract class PollenShooterOpMode extends OpMode {
-    private static PollenShootTuning.Snapshot shootRemembered, supportRemembered;
+    // Each of the four modes remembers its own settings: odometry defaults differ from timed ones.
+    private static PollenShootTuning.Snapshot shootRemembered, supportRemembered,
+            odoShootRemembered, odoSupportRemembered;
     protected abstract boolean supportingShooter();
+    /** Odometry OpModes drive each leg to a measured end point instead of by time. */
+    protected boolean odometry() { return false; }
+    private PinpointLocalizer localizer;
     private final DcMotor[] drive = new DcMotor[4];
     private DcMotorEx launcher;
     private DcMotor intake, agitator;
@@ -49,9 +56,11 @@ public abstract class PollenShooterOpMode extends OpMode {
         blocked = fallback = null;
         sequence = null;
         shooterAvailable = true;
-        tuning = new PollenShootTuning(supportingShooter() ? supportRemembered : shootRemembered, supportingShooter());
+        tuning = new PollenShootTuning(remembered(), supportingShooter(), odometry());
         try {
             mapDrive();
+            // Odometry first: the Pinpoint recalibrates its IMU now, while the robot is still.
+            if (odometry()) localizer = PollenOdometryHardware.open(hardwareMap);
             try {
                 mapShooter();
             } catch (RuntimeException ex) {
@@ -102,13 +111,15 @@ public abstract class PollenShooterOpMode extends OpMode {
 
     @Override public final void init_loop() {
         if (gamepad1 != null) tuning.update(gamepad1.dpad_up, gamepad1.dpad_down,
-                gamepad1.dpad_left, gamepad1.dpad_right, gamepad1.triangle, gamepad1.square);
-        if (supportingShooter()) supportRemembered = tuning.snapshot();
-        else shootRemembered = tuning.snapshot();
+                gamepad1.dpad_left, gamepad1.dpad_right, gamepad1.triangle, gamepad1.circle);
+        remember(tuning.snapshot());
+        if (localizer != null) localizer.update();
         showSettings();
         telemetry.addData("Controls", "D-pad UP/DOWN selects; LEFT/RIGHT edits; tap then release");
-        telemetry.addData("Reset", supportingShooter() ? "Triangle=supporting flush preset" : "Triangle=tested baseline (2 ft, leg 3 only)");
-        telemetry.addData("Square", supportingShooter() ? "Same as Triangle for C" : "Load UNTESTED 3-leg field route; check all rows");
+        telemetry.addData("Triangle", supportingShooter() ? "Restore defaults (flush route to the outer slot)"
+                : "Restore defaults: shoot, then 3 legs to the parking slot");
+        if (!supportingShooter()) telemetry.addData("Circle", "Fallback: shoot, then only leave the wall (2 ft; no park)");
+        telemetry.addData("Square", "Does nothing (the full route is already the default)");
         telemetry.addData("Tune", "Launcher speed, feed, power and each leg's cm/angle are rows above");
         telemetry.addData("Status", blocked != null ? "BLOCKED: " + blocked
                 : !tuning.budgetOk() ? "NOT READY - over time budget; START will not move the robot"
@@ -117,27 +128,44 @@ public abstract class PollenShooterOpMode extends OpMode {
         telemetry.update();
     }
 
+    private PollenShootTuning.Snapshot remembered() {
+        if (odometry()) return supportingShooter() ? odoSupportRemembered : odoShootRemembered;
+        return supportingShooter() ? supportRemembered : shootRemembered;
+    }
+
+    private void remember(PollenShootTuning.Snapshot snapshot) {
+        if (odometry()) {
+            if (supportingShooter()) odoSupportRemembered = snapshot; else odoShootRemembered = snapshot;
+        } else if (supportingShooter()) supportRemembered = snapshot; else shootRemembered = snapshot;
+    }
+
     private void showSettings() {
         telemetry.addData("Build", PollenConfig.BUILD);
-        telemetry.addData("Mode", supportingShooter() ? "Supporting Shooter - real motors on START" : "Shoot + Park - real motors on START");
+        telemetry.addData("Mode", (odometry() ? "ODOMETRY " : "")
+                + (supportingShooter() ? "Supporting Shooter - real motors on START" : "Shoot + Park - real motors on START"));
+        if (localizer != null) PollenOdometryHardware.showPose(telemetry, localizer.pose());
         telemetry.addData("Selections", tuning.locked() ? "LOCKED at START" : "INIT editing");
         telemetry.addData("Start pose", supportingShooter() ? "End wall, FLUSH + SQUARE, centered between flower and midline"
                 : "End wall, flush + square, aligned with initially UP cell");
         for (PollenShootTuning.Field f : PollenShootTuning.Field.values()) {
-            telemetry.addData((f == tuning.selected() ? "> " : "  ") + f.label, "%.2f", tuning.value(f));
+            telemetry.addData((f == tuning.selected() ? "> " : "  ") + tuning.label(f), "%.2f", tuning.value(f));
         }
-        for (int leg = 1; leg <= PollenShootTuning.LEGS; leg++) {
+        if (odometry()) {
+            showOdometryRoute();
+        } else for (int leg = 1; leg <= PollenShootTuning.LEGS; leg++) {
             PollenDriveCalibration.Move m = tuning.legMove(leg);
             telemetry.addData(tuning.legName(leg), tuning.legCm(leg) <= 0 ? "skipped (0 cm)"
                     : String.format(java.util.Locale.US, "%.1f cm @ %+.1f deg -> %.2f s; command %+.1f deg; NO TURN",
                     tuning.legCm(leg), tuning.legAngle(leg), m.seconds, m.commandAngleDegrees));
         }
-        telemetry.addData("Worst case", "%.2f s; must be < %.0f s (hard stop at %.0f s)",
+        telemetry.addData(odometry() ? "Planned" : "Worst case", "%.2f s; must be < %.0f s (hard stop at %.0f s)",
                 tuning.worstCaseSeconds(), PollenShootTuning.DEADLINE - 1, PollenShootTuning.DEADLINE);
-        telemetry.addData("Calibration", tuning.profile());
-        telemetry.addData("Angles", "+left / -right of start heading; MAT TRIAL converts desired path to command");
-        if (tuning.profile() == PollenDriveCalibration.Profile.MAT_TRIAL)
-            telemetry.addData("MAT TRIAL", "UNVERIFIED: assumes unchanged 129 test settings; repeat short tests");
+        if (!odometry()) {
+            telemetry.addData("Calibration", tuning.profile());
+            telemetry.addData("Angles", "+left / -right of start heading; MAT TRIAL converts desired path to command");
+            if (tuning.profile() == PollenDriveCalibration.Profile.MAT_TRIAL)
+                telemetry.addData("MAT TRIAL", "UNVERIFIED: assumes unchanged 129 test settings; repeat short tests");
+        }
         if (supportingShooter()) {
             telemetry.addData("Support placement", "Center %.1f cm toward midline from hive center; gaps %.1f cm flower / %.1f cm midline",
                     PollenFieldGeometry.supportOffsetFromHiveCm(), PollenFieldGeometry.supportFlowerGapCm(),
@@ -150,12 +178,28 @@ public abstract class PollenShooterOpMode extends OpMode {
         }
         if (tuning.value(FEED_SECONDS) > 0) telemetry.addData("Shot timing",
                 "launcher on at %.1f s, feed %.1f-%.1f s (fixed times; speed is not checked)",
-                tuning.value(START_DELAY), tuning.feedStartSeconds(), tuning.feedStartSeconds() + tuning.value(FEED_SECONDS));
+                tuning.feedStartSeconds() - tuning.value(SPINUP), tuning.feedStartSeconds(),
+                tuning.feedStartSeconds() + tuning.value(FEED_SECONDS));
         if (!tuning.budgetOk()) telemetry.addData("OVER TIME BUDGET",
                 "%.2f s planned, must be < %.0f s: lower delay or feed, raise power, or shorten legs",
                 tuning.worstCaseSeconds(), PollenShootTuning.DEADLINE - 1);
         if (fallback != null) telemetry.addData("SHOOTER INIT FAILED", fallback);
         if (!tuning.notice().isEmpty()) telemetry.addData("Settings notice", tuning.notice());
+    }
+
+    /** Odometry mode: where each leg ends, measured from the zero point at the start. */
+    private void showOdometryRoute() {
+        telemetry.addData("First", tuning.wallSquare()
+                ? "back into the end wall %.2f s at %.2f power, then zero odometry (inside the start delay)"
+                : "zero odometry where the robot stands (wall square OFF)",
+                PollenOdometryDrive.SQUARE_SECONDS, PollenOdometryDrive.SQUARE_POWER);
+        for (int leg = 1; leg <= PollenShootTuning.LEGS; leg++) {
+            double[] end = tuning.legEndInches(leg);
+            telemetry.addData(tuning.legName(leg), tuning.legCm(leg) <= 0 ? "skipped (0 cm)"
+                    : String.format(java.util.Locale.US, "%.1f cm @ %+.1f deg -> ends %.1f in fwd, %.1f in left; about %.1f s",
+                    tuning.legCm(leg), tuning.legAngle(leg), end[0], end[1], tuning.odometryLegSeconds(leg)));
+        }
+        telemetry.addData("Angles", "+left / -right of the zeroed heading; distances are measured, not timed");
     }
 
     @Override public final void start() {
@@ -179,7 +223,15 @@ public abstract class PollenShooterOpMode extends OpMode {
         if (blocked != null || sequence == null) return;
         try {
             double now = clock.seconds();
-            PollenSequence.Output out = sequence.tick(now);
+            PollenSequence.Output out;
+            if (localizer != null) {
+                localizer.update();
+                Pose pose = localizer.pose();
+                out = sequence.tick(now, pose.x(), pose.y(), pose.heading());
+                if (out.zeroOdometry) localizer.setPose(Pose.zero());
+            } else {
+                out = sequence.tick(now);
+            }
             double velocity = shooterAvailable ? launcher.getVelocity() : 0; // shown on screen only
             double[] powers = PollenSequence.wheelPowers(out);
             // Stop the shooting mechanisms BEFORE the first parking drive command.
@@ -197,6 +249,7 @@ public abstract class PollenShooterOpMode extends OpMode {
                     out.feederPower * tuning.value(FEED_POWER), out.feederPower * tuning.value(AGITATOR_POWER));
             telemetry.addData("Commanded feed time", "%.2f s", out.activeFeedSeconds);
             telemetry.addData("FL FR BL BR", "%.3f %.3f %.3f %.3f", powers[0], powers[1], powers[2], powers[3]);
+            if (!Double.isNaN(out.inchesToGo)) telemetry.addData("Inches to go", "%.1f", out.inchesToGo);
             if (!sequence.warning().isEmpty()) telemetry.addData("Warning", sequence.warning());
             telemetry.update();
         } catch (RuntimeException ex) {

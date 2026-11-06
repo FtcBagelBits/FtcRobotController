@@ -5,15 +5,15 @@ public final class PollenConfig {
     private PollenConfig() { }
 
     /** Shown in INIT by the three Pollen autonomous modes and PollenBot TeleOp; change with Pollen code. */
-    public static final String BUILD = "pollen-mat-v9";
+    public static final String BUILD = "pollen-odo-v5";
 
     /** Launcher runs alone this long before feeding starts, in auto and TeleOp (team-measured). */
     public static final double LAUNCHER_SPINUP_SECONDS = 3.0;
     /** Agitator power while feeding the launcher, in auto and TeleOp. It replaced a windmill
      * servo that ran at full power while shooting; half power can stall the hopper. */
     public static final double AGITATOR_FEED_POWER = 1.0;
-    /** TeleOp: the launcher counts as "up to speed" at this fraction of its target (1200 of
-     * 1250, the original StarterBot check). Feeding starts at that speed or after the spin-up
+    /** TeleOp: the launcher counts as "up to speed" at this fraction of its target (about
+     * 1133 of the 1180 target; originally 1200 of 1250, the StarterBot check). Feeding starts at that speed or after the spin-up
      * time, whichever comes first, so a bad encoder reading can never stop the feed. */
     public static final double LAUNCHER_READY_FRACTION = 0.96;
 

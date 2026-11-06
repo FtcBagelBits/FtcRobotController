@@ -14,9 +14,9 @@ a clock. `loop()` asks the hardware-independent sequencer for outputs and sends
 them to motors. `stop()` latches the sequence stopped and attempts to zero every
 mapped motor. A, B and C have separate process-local settings memory.
 
-Use [the operating manual](POLLEN_AUTONOMOUS.md) for controls. In B, Triangle
-restores the tested short baseline; Square loads the experimental three-leg field
-preset. In C, both restore the supporting preset. Those presets are plans to
+Use [the operating manual](POLLEN_AUTONOMOUS.md) for controls. In B, the default
+and Triangle are the three-leg field route; Circle loads the short leave-the-wall
+move; Square does nothing. In C, Triangle restores the supporting preset. Those presets are plans to
 validate, not previously tested robot behavior.
 
 ## Field geometry and motor calibration solve different problems

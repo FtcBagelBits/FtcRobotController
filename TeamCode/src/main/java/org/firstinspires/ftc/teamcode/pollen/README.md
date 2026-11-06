@@ -1,10 +1,14 @@
 # Pollen autonomous code
 
-Build identifier: **pollen-mat-v9** (`PollenConfig.BUILD`). Three autonomous OpModes preselect PollenBot:
+Build identifier: **pollen-odo-v5** (`PollenConfig.BUILD`). Three autonomous OpModes preselect PollenBot:
 `Pollen ROBOT Park`, `Pollen ROBOT Shoot + Park`, and
 `Pollen Supporting Shooter Auto`. The PollenBot TeleOp itself
 (`../BioBuzzStarterbotOpMode.java`, outside this package) uses `PollenTeleOpTuning`
 for its INIT launcher-speed and drive-power menu and shows the same build id.
+
+**Odometry versions** (group *Pollen Odometry*): `Odo ROBOT Park`, `Odo ROBOT Shoot + Park`,
+`Odo Supporting Shooter Auto` do the same jobs, driving each leg to a measured end point. See
+[docs/POLLEN_ODOMETRY_AUTOS.md](../../../../../../../../../docs/POLLEN_ODOMETRY_AUTOS.md).
 
 ## Where to start reading
 
@@ -46,6 +50,10 @@ The experimental profiles/routes are not validated robot settings.
 | PollenDriveCalibration | Unchanged baseline; opt-in B / default C mat trial; A forward estimate |
 | PollenFieldGeometry | Nominal CAD-derived start/parking coordinates and preset displacements |
 | PollenSequence | Hardware-free timing: fixed spin-up then feed, drive legs, stall/STOP/deadline, mixer |
+| PollenOdometryDrive | Odometry legs: drive-to-point controller, time estimates, wall-square and zero constants |
+| PollenOdometryHardware | Opens the Pinpoint through Pedro's localizer (pedroPathing/Constants); pose telemetry |
+| PollenOdoPark, PollenOdoParkTuning | Option A with odometry: zero, drive a measured distance, stop; distance menu |
+| PollenOdoRobotShoot, PollenOdoSupportingShooter | B and C with odometry: same shared OpMode with odometry() on |
 | PollenTeleOpTuning | PollenBot TeleOp (`BioBuzzStarterbotOpMode`) INIT menu: launcher target and drive-power scale, defaults from that OpMode's constants |
 
 B and C use distinct static snapshots in the shared OpMode. Their INIT loads
@@ -54,7 +62,7 @@ snapshot that no longer fits the budget is kept as is: `budgetOk()` is false,
 INIT shows OVER TIME BUDGET, `init()` skips building the sequence, and `start()`
 refuses to run. While over budget, `adjust()` accepts only edits that do not
 lengthen the route. START locks every control, including
-Triangle and Square. These are process-local snapshots, not persisted files.
+Triangle and Circle (Square is not read). These are process-local snapshots, not persisted files.
 PollenBot TeleOp keeps its own static snapshot the same way; its defaults are the
 OpMode's `LAUNCHER_TARGET_VELOCITY` / `LAUNCHER_MIN_VELOCITY` and 100% drive power.
 
@@ -82,10 +90,10 @@ Wheel order is front-left, front-right, back-left, back-right; mixer commands ar
 ## Routes and timing
 
 - A: delay -> timed forward -> hold.
-- B baseline: delay -> spinup -> feed -> leg 3 only (tested 60.96 cm) -> hold.
-- B Square field preset: same stationary shot -> leg 1 forward 10 cm off the
+- B default (Triangle): stationary shot -> leg 1 forward 10 cm off the
   wall -> leg 2 left 63.5 cm -> leg 3 172.47 cm at +17 deg (field-tuned) -> hold.
-  Triangle restores the original short baseline.
+- B Circle, leave the wall: delay -> spinup -> feed -> leg 3 only (tested 60.96 cm) -> hold.
+  Square does nothing (it loaded the three-leg route before pollen-odo-v5).
 - C: 12 s delay -> 3 s spin-up -> feed 15-22.5 s -> leg 1 forward flower
   clearance -> (leg 2 unused) -> leg 3 97.96 cm at -81.85 deg (field-tuned) -> hold.
 
@@ -133,7 +141,7 @@ original 129 model at +25.87 degrees, 60.96 cm and power 0.20. The mat trial use
 separate measured direction/distance knots, not a direction-independent scalar.
 See the calibration document for assumptions and exact measurements.
 
-Square loads complete nominal field settings. C's default start is flush and
+B's default is the complete three-leg field route. C's default start is flush and
 square, centered between the flower and the midline (6.89 cm toward the midline
 from the hive center); a hive-centered start overlaps the flower.
 The field guide records the CAD geometry, tight initial margins and 180-degree
@@ -155,7 +163,7 @@ The Java script uses Java 8 compatibility and covers original A/B behavior,
 mat arithmetic, field-preset selection, fixed spin-up/feed timing (including a launcher reading zero), C's slot, all three
 movement legs, controller edits of each leg and launcher speed, budgets, memory and STOP,
 plus the TeleOp INIT menu (defaults, limits, the two feed rules, memory, lock at START).
-`PollenLoopTimingTest` drives B Square, B Triangle and C through irregular loop
+`PollenLoopTimingTest` drives B's full route, B's Circle route and C through irregular loop
 timing and 350 ms pauses at each step change, and checks that no leg is skipped
 or shortened and that a pause while driving stops the run. The standard-library
 Python script checks nominal swept polygons, including the rejected direct route
@@ -176,6 +184,6 @@ is unavailable.
 
 Deploy a freshly built APK through the team's working Wi-Fi/ADB connection or
 Android Studio TeamCode run configuration to the Control Hub. USB-C has not
-worked. Verify `pollen-mat-v9` in INIT. Check the actual installed commit and all
+worked. Verify `pollen-odo-v5` in INIT. Check the actual installed commit and all
 settings before physical tests. Java changes require rebuild/reinstall; INIT
 settings and documentation edits do not.

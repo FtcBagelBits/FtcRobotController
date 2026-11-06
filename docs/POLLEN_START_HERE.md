@@ -4,19 +4,19 @@ This is the one page to read first. It explains what the PollenBot code does,
 how it is built, and the order to read it in, with questions to answer as you
 go. Every other document and code file is linked from here.
 
-Build: `pollen-mat-v9`. The INIT screen of every Pollen OpMode shows it.
+Build: `pollen-odo-v5`. The INIT screen of every Pollen OpMode shows it.
 
 ## What the robot runs
 
 | Driver Station name | File | What it does |
 | --- | --- | --- |
-| **PollenBot** (TeleOp) | [`BioBuzzStarterbotOpMode.java`](../TeamCode/src/main/java/org/firstinspires/ftc/teamcode/BioBuzzStarterbotOpMode.java) | Mecanum driving, intake on the triggers, launcher on R1 |
+| **PollenBot** (TeleOp) | [`BioBuzzStarterbotOpMode.java`](../TeamCode/src/main/java/org/firstinspires/ftc/teamcode/BioBuzzStarterbotOpMode.java) | Mecanum driving, intake on the triggers, launcher on R1, L1 reverses the launcher to clear a jam |
 | **Pollen ROBOT Park** (A) | [`PollenRobotPark.java`](../TeamCode/src/main/java/org/firstinspires/ftc/teamcode/pollen/PollenRobotPark.java) | Optional start delay, then drives forward 2 s at power 0.20 |
 | **Pollen ROBOT Shoot + Park** (B) | [`PollenRobotShoot.java`](../TeamCode/src/main/java/org/firstinspires/ftc/teamcode/pollen/PollenRobotShoot.java) | Shoots the 4 pre-loads, then drives up to three legs to park |
 | **Pollen Supporting Shooter Auto** (C) | [`PollenSupportingShooter.java`](../TeamCode/src/main/java/org/firstinspires/ftc/teamcode/pollen/PollenSupportingShooter.java) | Waits 12 s for a partner to shoot, shoots, then parks |
 
-**What has worked on the real robot:** A with its defaults, and B with its
-Triangle defaults. Everything else, including the TeleOp feed rule in this
+**What has worked on the real robot:** A with its defaults, and B's short
+2-foot route (its default until `pollen-odo-v5`; now the Circle fallback). Everything else, including the TeleOp feed rule in this
 build, has only been checked by computer tests. See
 [tested behavior](POLLEN_ROBOT_BEHAVIOR.md) for the details.
 
@@ -50,7 +50,7 @@ Code paths are under `TeamCode/src/main/java/org/firstinspires/ftc/teamcode/`.
   `intake.setPower(...)`.
   *Question:* why does `launch()` have to run before the intake power is written?
 - **`launch()`**: the feed rule. Holding R1 spins the launcher. Feeding starts
-  when the launcher is up to speed (1200 ticks/s) **or** R1 has been held for
+  when the launcher is up to speed (96% of target, about 1133 ticks/s) **or** R1 has been held for
   the spin-up time (3 s), whichever comes first, and stays on until R1 is
   released.
   *Questions:* if the encoder cable falls out, when does feeding start? Why
@@ -118,7 +118,7 @@ Positions from the official field CAD, in inches from the field center. The
   [`tools/pollen-tests/PollenTeleOpTuningTest.java`](../tools/pollen-tests/PollenTeleOpTuningTest.java),
   rerun, read the error, then change it back.
 - **Trace by hand:** walk through `launch()` at 0.5 s, 1.2 s and 3.0 s of
-  holding R1, once with the launcher reading 1250 and once reading 0.
+  holding R1, once with the launcher reading 1180 and once reading 0.
 - **Explain it:** what happens if `loop()` freezes for half a second while the
   robot is driving in autonomous? (Hint: `MAX_DRIVE_LOOP_GAP_SECONDS`.)
 
@@ -134,7 +134,7 @@ bash tools/test-pollen-sequence.sh && ./gradlew :TeamCode:assembleDebug
 
 The first command runs the computer tests; the second builds the robot app
 only if they pass. Install it from Android Studio over the team's Wi-Fi
-connection to the Control Hub, then check that INIT shows `pollen-mat-v9`.
+connection to the Control Hub, then check that INIT shows `pollen-odo-v5`.
 
 ## What comes next
 

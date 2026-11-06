@@ -25,7 +25,7 @@ public final class PollenPresetExport {
 
     public static void main(String[] args) {
         PollenShootTuning b = new PollenShootTuning(null);
-        b.update(false, false, false, false, false, true);  // Square: B field preset
+        // B's default is the full 3-leg route (formerly the Square preset).
         PollenShootTuning c = new PollenShootTuning(null, true);
         double startZ = PollenFieldGeometry.END_WALL_INCHES - PollenFieldGeometry.ROBOT_HALF_INCHES;
         String bPlan = plan(new double[][] {{PollenFieldGeometry.PRIMARY_WALL_CLEARANCE_CM, 0},

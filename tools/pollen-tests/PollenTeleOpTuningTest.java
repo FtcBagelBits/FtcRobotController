@@ -37,11 +37,11 @@ public final class PollenTeleOpTuningTest {
         check(!t.spinUpTimeIsOver(0) && !t.spinUpTimeIsOver(2.99), "backup timer not over before 3 s");
         check(t.spinUpTimeIsOver(3) && t.spinUpTimeIsOver(10), "backup timer over from 3 s on");
 
-        tap(t, 1, 3); near(t.launcherVelocity(), 1400, "launcher +50 per tap");
-        near(t.launcherReadyVelocity(), 1344, "up-to-speed level follows the edited target");
+        tap(t, 1, 3); near(t.launcherVelocity(), 1310, "launcher +20 per tap");
+        near(t.launcherReadyVelocity(), 1257.6, "up-to-speed level follows the edited target");
         t.update(false, false, false, true, false); t.update(false, false, false, true, false);
-        near(t.launcherVelocity(), 1450, "held button does not repeat"); release(t);
-        t.update(false, false, true, true, false); near(t.launcherVelocity(), 1450, "opposite arrows cancel"); release(t);
+        near(t.launcherVelocity(), 1330, "held button does not repeat"); release(t);
+        t.update(false, false, true, true, false); near(t.launcherVelocity(), 1330, "opposite arrows cancel"); release(t);
         tap(t, 1, 100); near(t.launcherVelocity(), 2500, "launcher upper limit");
         tap(t, -1, 100); near(t.launcherVelocity(), 500, "launcher lower limit");
 
@@ -81,7 +81,7 @@ public final class PollenTeleOpTuningTest {
         release(t);
 
         tap(t, 1, 2); t.lock(); tap(t, 1, 5); t.update(false, false, false, false, true);
-        near(t.launcherVelocity(), 1350, "START locks edits and reset");
+        near(t.launcherVelocity(), 1290, "START locks edits and reset");
         check(t.locked(), "locked flag");
 
         boolean rejected = false;

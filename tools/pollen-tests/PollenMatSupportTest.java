@@ -108,7 +108,7 @@ public final class PollenMatSupportTest {
         PollenSequence s = t.sequence(); s.start(0);
         zero(s.tick(0)); zero(s.tick(11.99));
         PollenSequence.Output o = s.tick(12);
-        near(o.launcherVelocity, 1250, "launcher starts at t=12, after the delay"); near(o.feederPower, 0, "no early feed");
+        near(o.launcherVelocity, 1180, "launcher starts at t=12, after the delay"); near(o.feederPower, 0, "no early feed");
         o = s.tick(14.99); near(o.feederPower, 0, "launcher alone until t=15");
         o = s.tick(15); near(o.feederPower, 1, "feed at t=15 without checking speed");
         near(o.forward, 0, "stationary shot"); near(o.strafe, 0, "stationary shot strafe");
@@ -189,7 +189,7 @@ public final class PollenMatSupportTest {
         near(remembered.value(LEG3_CM), calibratedLeg3, "edits that lengthen an over-budget route are refused");
         check(remembered.notice().contains("longer"), "refusal explained");
         set(remembered, FLYWHEEL, 1, 1);
-        near(remembered.value(FLYWHEEL), 1300, "edits that do not change the time are allowed");
+        near(remembered.value(FLYWHEEL), 1200, "edits that do not change the time are allowed");
         set(remembered, START_DELAY, -1, 1);
         check(remembered.worstCaseSeconds() < worst, "lowering delay is allowed while over budget");
         while (!remembered.budgetOk()) set(remembered, START_DELAY, -1, 1);
@@ -201,11 +201,13 @@ public final class PollenMatSupportTest {
         near(shortDelay.value(START_DELAY), 12, "triangle support wait");
         near(shortDelay.value(FEED_SECONDS), 7.5, "triangle support feed");
         near(shortDelay.value(LEG3_CM), 97.96, "triangle support field-tuned distance");
+        set(shortDelay, LEG3_CM, 1, 2);
+        shortDelay.update(false, false, false, false, false, true); release(shortDelay);
+        near(shortDelay.value(LEG3_CM), 107.96, "Circle does nothing in C (keeps the edit)");
         check(new PollenShootTuning(null).value(FEED_SECONDS) == 10, "B defaults independent of support");
 
-        // Square gives B a three-leg route without changing triangle's tested default.
+        // B's default (and Triangle) is the three-leg route; Circle is the short leave-the-wall move.
         PollenShootTuning primary = new PollenShootTuning(null);
-        primary.update(false, false, false, false, false, true); release(primary);
         near(primary.value(LEG1_CM), 10, "field preset first leaves the wall by 10 cm");
         near(primary.value(LEG1_ANGLE), 0, "wall clearance is straight forward");
         near(primary.value(LEG2_CM), 63.5, "then clears the frame to the left");
@@ -233,33 +235,32 @@ public final class PollenMatSupportTest {
         s = primary.sequence(false); s.start(0); near(s.tick(0).forward, .25, "zero main leg still performs leg 1");
         set(primary, LEG1_CM, -1, 20); near(primary.value(LEG1_CM), 0, "leg 1 can be skipped");
         s = primary.sequence(false); s.start(0); near(s.tick(0).strafe, -.25, "skipped leg 1 starts with leg 2");
-        primary.update(false, false, false, false, true); release(primary);
-        near(primary.value(LEG1_CM), 0, "triangle removes wall leg");
-        near(primary.value(LEG2_CM), 0, "triangle removes dogleg");
-        near(primary.value(LEG3_ANGLE), 25.87, "triangle baseline angle");
-        near(primary.driveSeconds(), 2.3627906976744186, "triangle original duration");
+        primary.update(false, false, false, false, false, true); release(primary);
+        near(primary.value(LEG1_CM), 0, "circle removes wall leg");
+        near(primary.value(LEG2_CM), 0, "circle removes dogleg");
+        near(primary.value(LEG3_ANGLE), 25.87, "circle baseline angle");
+        near(primary.driveSeconds(), 2.3627906976744186, "circle original duration");
         select(primary, CALIBRATION); tap(primary, 1);
         remembered = new PollenShootTuning(primary.snapshot()); check(remembered.profile() == mat, "B profile memory");
-        primary.lock(); primary.update(false, false, false, false, false, true);
-        near(primary.value(LEG2_CM), 0, "START locks field-preset button");
+        primary.lock(); primary.update(false, false, false, false, true);
+        near(primary.value(LEG2_CM), 0, "START locks Triangle (no switch back to the full route)");
 
         // Every leg distance/angle and the launcher speed are controller rows that reach the sequence.
-        PollenShootTuning tune = new PollenShootTuning(null);
-        tune.update(false, false, false, false, false, true); release(tune);
+        PollenShootTuning tune = new PollenShootTuning(null); // default: full route
         set(tune, LEG1_CM, 1, 3); near(tune.value(LEG1_CM), 13, "leg 1 cm in 1-cm steps");
         set(tune, LEG1_ANGLE, -1, 2); near(tune.value(LEG1_ANGLE), -2, "leg 1 angle editable");
         set(tune, LEG2_CM, -1, 1); near(tune.value(LEG2_CM), 58.5, "leg 2 cm in 5-cm steps");
         set(tune, LEG2_ANGLE, -1, 3); near(tune.value(LEG2_ANGLE), 87, "leg 2 angle editable");
         double fractional = tune.value(LEG3_ANGLE);
         set(tune, LEG3_ANGLE, 1, 1); near(tune.value(LEG3_ANGLE), Math.floor(fractional) + 1, "leg 3 angle snaps to whole degree");
-        set(tune, FLYWHEEL, 1, 4); near(tune.value(FLYWHEEL), 1450, "launcher speed editable");
+        set(tune, FLYWHEEL, 1, 4); near(tune.value(FLYWHEEL), 1260, "launcher speed editable");
         for (int leg = 1; leg <= 3; leg++) {
             PollenDriveCalibration.Move expect = PollenDriveCalibration.move(mat, tune.legCm(leg), .25, tune.legAngle(leg));
             near(tune.legMove(leg).seconds, expect.seconds, "leg " + leg + " time uses its own edited values");
             near(tune.legMove(leg).strafe, expect.strafe, "leg " + leg + " direction uses its edited angle");
         }
         s = tune.sequence(); s.start(0);
-        near(s.tick(0).launcherVelocity, 1450, "edited launcher target reaches sequence");
+        near(s.tick(0).launcherVelocity, 1260, "edited launcher target reaches sequence");
         check(tune.legMove(1).strafe > 0, "negative leg 1 angle drifts right");
         for (PollenShootTuning.Field f : new PollenShootTuning.Field[] {LEG1_ANGLE, LEG2_ANGLE, LEG3_ANGLE}) {
             set(tune, f, 1, 200); near(tune.value(f), 90, "angle upper limit");
@@ -272,13 +273,13 @@ public final class PollenMatSupportTest {
         set(shortRoute, LEG1_CM, 1, 100); near(shortRoute.value(LEG1_CM), 60, "leg 1 upper limit");
         PollenShootTuning kept = new PollenShootTuning(tune.snapshot());
         near(kept.value(LEG2_ANGLE), tune.value(LEG2_ANGLE), "leg edits survive next INIT");
-        near(kept.value(FLYWHEEL), 1450, "launcher edit survives next INIT");
+        near(kept.value(FLYWHEEL), 1260, "launcher edit survives next INIT");
         PollenShootTuning cTune = support();
         set(cTune, LEG2_CM, 1, 1); near(cTune.value(LEG2_CM), 5, "C optional leg 2 can be enabled");
         near(cTune.value(LEG2_ANGLE), -90, "C leg 2 defaults to robot-right");
-        set(cTune, FLYWHEEL, -1, 2); near(cTune.value(FLYWHEEL), 1150, "C launcher speed editable");
+        set(cTune, FLYWHEEL, -1, 2); near(cTune.value(FLYWHEEL), 1140, "C launcher speed editable");
         s = cTune.sequence(); s.start(0); s.tick(11.99);
-        near(s.tick(12).launcherVelocity, 1150, "C spin-up uses edited speed");
+        near(s.tick(12).launcherVelocity, 1140, "C spin-up uses edited speed");
         set(cTune, SPINUP, -1, 2); near(cTune.value(SPINUP), 2, "spin-up row editable");
         near(cTune.feedStartSeconds(), 14, "shorter spin-up moves the feed earlier");
         s = cTune.sequence(); s.start(0); s.tick(12);
