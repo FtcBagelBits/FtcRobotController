@@ -31,7 +31,7 @@ Both are in the autonomous list, group *Pollen* (no "Odo").
 
 | Line | Should say |
 | --- | --- |
-| Build | `pollen-odo-v5` |
+| Build | `pollen-odo-v6` |
 | Mode | `Shoot + Park - real motors on START` (or `Supporting Shooter ...`) |
 | Status | `READY - no movement until START` |
 

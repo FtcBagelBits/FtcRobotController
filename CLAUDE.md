@@ -36,7 +36,7 @@ the *FIRST* Tech Challenge SDK (`FtcRobotController` **12.0**). The build produc
 asked. **Pedro Test** reads a `flywheel` motor that only Lox has, so on PollenBot it stops at INIT.
 
 Every Pollen and Odo mode shows a build id on the INIT screen (`PollenConfig.BUILD`, e.g.
-`pollen-odo-v5`). **Bump it whenever behavior changes**, so the drive team can confirm which code is installed.
+`pollen-odo-v6`). **Bump it whenever behavior changes**, so the drive team can confirm which code is installed.
 
 ## Hardware configuration names (PollenBot)
 
@@ -91,6 +91,22 @@ ftcgradle :TeamCode:installDebug         # builds and installs; ends with BUILD 
 
 The Robot Controller app restarts on the hub. On the Driver Hub, open any Pollen mode's INIT and
 check the build id. The team has never got USB-C to the hub working, so use Wi-Fi.
+
+## After an event: pull the robot logs
+
+The Pollen shoot autos write each run to the robot log (tag `PollenAuto`): the route chosen in INIT,
+every setting at START, each phase with position and battery, warnings, and the final result. The
+log rotates and old runs get overwritten, so **pull it after every event, before more testing**:
+
+```bash
+adb connect $HUB
+mkdir -p ~/ftc/robot-logs/$(date +%Y-%m-%d) && cd ~/ftc/robot-logs/$(date +%Y-%m-%d)
+for f in $(adb shell ls /sdcard/ | tr -d '\r' | grep -i robotControllerLog); do adb pull "/sdcard/$f"; done
+adb pull /sdcard/FIRST/matchlogs         # per-run match logs, if the SDK wrote any
+grep -h PollenAuto robotControllerLog*   # just our lines: START ... route=..., PHASE, WARNING, RESULT
+```
+
+Without adb: the Control Hub's Manage page (`http://192.168.43.1:8080`) has **Download Logs**.
 
 ## When the robot won't connect: start over from scratch
 
@@ -151,11 +167,16 @@ ftcgradle :TeamCode:installDebug
 
 - **INIT edits, START freezes.** Every auto shows a menu (D-pad selects and edits rows; Triangle
   restores the defaults). START locks it. Settings are remembered until the app restarts; the
-  start delay resets every INIT. Details: [docs/POLLEN_AUTONOMOUS.md](docs/POLLEN_AUTONOMOUS.md).
+  start delay resets every INIT, and B's Circle fallback is never carried into the next INIT.
+  The first INIT line, **ROUTE**, says which route will run. Details: [docs/POLLEN_AUTONOMOUS.md](docs/POLLEN_AUTONOMOUS.md).
 - **B's buttons since `pollen-odo-v5`:** the default and Triangle give the full shoot-and-park route.
   Circle loads the short leave-the-wall move. Square does nothing (it used to load the full route).
 - `PollenSequence` runs a list of steps without blocking (timed drives, shots, odometry moves),
-  with a time budget checked at INIT and a hard stop at 27 s.
+  with a time budget checked at INIT and a hard stop at 27 s. An odometry leg that runs out of
+  time more than 2 in from its end, or stops making progress, stops the whole route: it never
+  starts the next leg from an unplanned spot.
+- `PollenAutoLog` writes each shoot-auto run to RobotLog (see "After an event" above). It is pure
+  Java with computer tests, and it can never throw: logging must not stop the robot.
 - **Odo modes** drive each leg to a measured end point (`PollenOdometryDrive`). They square
   against the start wall first, then zero the odometry. Leg cm/angle are real distances. Timed
   modes turn the same numbers into drive times. See [docs/POLLEN_ODOMETRY_AUTOS.md](docs/POLLEN_ODOMETRY_AUTOS.md).

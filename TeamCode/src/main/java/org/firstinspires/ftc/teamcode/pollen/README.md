@@ -1,6 +1,6 @@
 # Pollen autonomous code
 
-Build identifier: **pollen-odo-v5** (`PollenConfig.BUILD`). Three autonomous OpModes preselect PollenBot:
+Build identifier: **pollen-odo-v6** (`PollenConfig.BUILD`). Three autonomous OpModes preselect PollenBot:
 `Pollen ROBOT Park`, `Pollen ROBOT Shoot + Park`, and
 `Pollen Supporting Shooter Auto`. The PollenBot TeleOp itself
 (`../BioBuzzStarterbotOpMode.java`, outside this package) uses `PollenTeleOpTuning`
@@ -63,6 +63,10 @@ INIT shows OVER TIME BUDGET, `init()` skips building the sequence, and `start()`
 refuses to run. While over budget, `adjust()` accepts only edits that do not
 lengthen the route. START locks every control, including
 Triangle and Circle (Square is not read). These are process-local snapshots, not persisted files.
+Each snapshot also stores the `Route` (FULL_PARK, LEAVE_ONLY, SUPPORT_PARK, EDITED), shown as the first INIT
+line. A LEAVE_ONLY (Circle) snapshot is not carried over: the next INIT keeps its other rows and reloads the
+full route's legs. `PollenAutoLog` writes INIT route changes, START settings, phases, warnings, the result and
+0.25 s samples to RobotLog (tag `PollenAuto`); it is pure Java and never throws.
 PollenBot TeleOp keeps its own static snapshot the same way; its defaults are the
 OpMode's `LAUNCHER_TARGET_VELOCITY` / `LAUNCHER_MIN_VELOCITY` and 100% drive power.
 
@@ -184,6 +188,6 @@ is unavailable.
 
 Deploy a freshly built APK through the team's working Wi-Fi/ADB connection or
 Android Studio TeamCode run configuration to the Control Hub. USB-C has not
-worked. Verify `pollen-odo-v5` in INIT. Check the actual installed commit and all
+worked. Verify `pollen-odo-v6` in INIT. Check the actual installed commit and all
 settings before physical tests. Java changes require rebuild/reinstall; INIT
 settings and documentation edits do not.

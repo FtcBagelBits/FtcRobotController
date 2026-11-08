@@ -30,8 +30,11 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
+import com.qualcomm.robotcore.hardware.VoltageSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.RobotLog;
 import static org.firstinspires.ftc.teamcode.pollen.PollenShootTuning.Field.*;
 
 /** Shared hardware lifecycle for the two stationary shooting routines, timed or odometry. */
@@ -43,6 +46,10 @@ public abstract class PollenShooterOpMode extends OpMode {
     /** Odometry OpModes drive each leg to a measured end point instead of by time. */
     protected boolean odometry() { return false; }
     private PinpointLocalizer localizer;
+    private GoBildaPinpointDriver pinpoint;
+    private String pinpointStatus = "";
+    /** Writes this run to the robot log (robotControllerLog.txt); see PollenAutoLog. */
+    private PollenAutoLog log;
     private final DcMotor[] drive = new DcMotor[4];
     private DcMotorEx launcher;
     private DcMotor intake, agitator;
@@ -56,11 +63,15 @@ public abstract class PollenShooterOpMode extends OpMode {
         blocked = fallback = null;
         sequence = null;
         shooterAvailable = true;
+        log = new PollenAutoLog(modeName(), line -> RobotLog.ii(PollenAutoLog.TAG, "%s", line));
         tuning = new PollenShootTuning(remembered(), supportingShooter(), odometry());
         try {
             mapDrive();
             // Odometry first: the Pinpoint recalibrates its IMU now, while the robot is still.
-            if (odometry()) localizer = PollenOdometryHardware.open(hardwareMap);
+            if (odometry()) {
+                localizer = PollenOdometryHardware.open(hardwareMap);
+                pinpoint = PollenOdometryHardware.device(hardwareMap);
+            }
             try {
                 mapShooter();
             } catch (RuntimeException ex) {
@@ -113,7 +124,11 @@ public abstract class PollenShooterOpMode extends OpMode {
         if (gamepad1 != null) tuning.update(gamepad1.dpad_up, gamepad1.dpad_down,
                 gamepad1.dpad_left, gamepad1.dpad_right, gamepad1.triangle, gamepad1.circle);
         remember(tuning.snapshot());
-        if (localizer != null) localizer.update();
+        log.initRoute(tuning.route().name());
+        if (localizer != null) {
+            localizer.update();
+            readPinpointStatus();
+        }
         showSettings();
         telemetry.addData("Controls", "D-pad UP/DOWN selects; LEFT/RIGHT edits; tap then release");
         telemetry.addData("Triangle", supportingShooter() ? "Restore defaults (flush route to the outer slot)"
@@ -123,8 +138,10 @@ public abstract class PollenShooterOpMode extends OpMode {
         telemetry.addData("Tune", "Launcher speed, feed, power and each leg's cm/angle are rows above");
         telemetry.addData("Status", blocked != null ? "BLOCKED: " + blocked
                 : !tuning.budgetOk() ? "NOT READY - over time budget; START will not move the robot"
+                : PollenOdometryDrive.pinpointFault(pinpointStatus)
+                ? "PINPOINT FAULT - odometry will not work: use the timed Pollen mode"
                 : fallback != null ? "READY FOR DEPARTURE ONLY - SHOOTER FAILED" : "READY - no movement until START");
-        telemetry.addData("Memory", "Settings kept until app restart; start delay resets every INIT");
+        telemetry.addData("Memory", "Settings kept until app restart, except Circle; start delay resets every INIT");
         telemetry.update();
     }
 
@@ -140,10 +157,16 @@ public abstract class PollenShooterOpMode extends OpMode {
     }
 
     private void showSettings() {
+        // First line on purpose: which route will run is the thing to check before every match.
+        telemetry.addData("ROUTE", tuning.route().label);
         telemetry.addData("Build", PollenConfig.BUILD);
         telemetry.addData("Mode", (odometry() ? "ODOMETRY " : "")
                 + (supportingShooter() ? "Supporting Shooter - real motors on START" : "Shoot + Park - real motors on START"));
-        if (localizer != null) PollenOdometryHardware.showPose(telemetry, localizer.pose());
+        if (localizer != null) {
+            PollenOdometryHardware.showPose(telemetry, localizer.pose());
+            telemetry.addData("Pinpoint status", PollenOdometryDrive.pinpointFault(pinpointStatus)
+                    ? pinpointStatus + "  <-- FAULT: check the pod cables" : pinpointStatus);
+        }
         telemetry.addData("Selections", tuning.locked() ? "LOCKED at START" : "INIT editing");
         telemetry.addData("Start pose", supportingShooter() ? "End wall, FLUSH + SQUARE, centered between flower and midline"
                 : "End wall, flush + square, aligned with initially UP cell");
@@ -205,12 +228,14 @@ public abstract class PollenShooterOpMode extends OpMode {
     @Override public final void start() {
         tuning.lock();
         clock.reset();
+        log.start(tuning.settingsLine(), "shooter=" + (shooterAvailable ? "ok" : "MISSING")
+                + (odometry() ? " pinpoint=" + pinpointStatus : ""), this::batteryVolts);
         if (blocked == null && !tuning.budgetOk()) {
             blocked = "NOT STARTED: settings over time budget (fix in INIT, or Triangle for defaults)";
             telemetry.addData("Status", blocked);
             telemetry.update();
         }
-        if (blocked != null) { zeroHardware(); requestOpModeStop(); return; }
+        if (blocked != null) { log.notStarted(blocked); zeroHardware(); requestOpModeStop(); return; }
         try {
             sequence = tuning.sequence(shooterAvailable);
             sequence.start(0);
@@ -224,15 +249,20 @@ public abstract class PollenShooterOpMode extends OpMode {
         try {
             double now = clock.seconds();
             PollenSequence.Output out;
+            double x = Double.NaN, y = Double.NaN, heading = Double.NaN; // stay NaN in timed modes
             if (localizer != null) {
                 localizer.update();
+                readPinpointStatus();
                 Pose pose = localizer.pose();
-                out = sequence.tick(now, pose.x(), pose.y(), pose.heading());
+                x = pose.x();
+                y = pose.y();
+                heading = pose.heading();
+                out = sequence.tick(now, x, y, heading);
                 if (out.zeroOdometry) localizer.setPose(Pose.zero());
             } else {
                 out = sequence.tick(now);
             }
-            double velocity = shooterAvailable ? launcher.getVelocity() : 0; // shown on screen only
+            double velocity = shooterAvailable ? launcher.getVelocity() : 0; // screen and log only; never used for timing
             double[] powers = PollenSequence.wheelPowers(out);
             // Stop the shooting mechanisms BEFORE the first parking drive command.
             if (shooterAvailable) {
@@ -252,12 +282,14 @@ public abstract class PollenShooterOpMode extends OpMode {
             if (!Double.isNaN(out.inchesToGo)) telemetry.addData("Inches to go", "%.1f", out.inchesToGo);
             if (!sequence.warning().isEmpty()) telemetry.addData("Warning", sequence.warning());
             telemetry.update();
+            log.loop(now, out, sequence.warning(), x, y, heading, powers, velocity, this::batteryVolts);
         } catch (RuntimeException ex) {
             fail(ex);
         }
     }
 
     private void fail(RuntimeException ex) {
+        RobotLog.ee(PollenAutoLog.TAG, ex, "ERROR - all outputs stopped");
         blocked = ex.toString();
         if (sequence != null) sequence.stop("HARDWARE ERROR");
         zeroHardware();
@@ -270,6 +302,28 @@ public abstract class PollenShooterOpMode extends OpMode {
         if (tuning != null) tuning.lock();
         if (sequence != null) sequence.stop("STOPPED");
         zeroHardware();
+        if (log != null) log.stop(clock.seconds());
+    }
+
+    /** Name as shown on the Driver Hub, for the log. */
+    private String modeName() {
+        return (odometry() ? "Odo " : "Pollen ") + (supportingShooter() ? "Supporting Shooter" : "ROBOT Shoot + Park");
+    }
+
+    /** Pinpoint status for the screen and the log (refreshed by localizer.update()). */
+    private void readPinpointStatus() {
+        pinpointStatus = PollenOdometryHardware.status(pinpoint);
+        log.status(pinpointStatus);
+    }
+
+    /** Lowest reading of the hub voltage sensors, for the log. NaN if none. */
+    private double batteryVolts() {
+        double volts = Double.NaN;
+        for (VoltageSensor sensor : hardwareMap.voltageSensor) {
+            double v = sensor.getVoltage();
+            if (v > 0 && (Double.isNaN(volts) || v < volts)) volts = v;
+        }
+        return volts;
     }
 
     private void zeroHardware() {

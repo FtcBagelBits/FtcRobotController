@@ -94,8 +94,16 @@ Pedro Pathing's path follower is not used yet: it needs AutoTune values for this
 ones in `pedroPathing/Constants` belong to another robot. The pose already comes from Pedro's
 Pinpoint localizer, so switching to the follower later changes only how each leg is driven.
 
-Safety: a leg that hasn't arrived within 2 x its estimate + 1 s gives up, and the next leg
-starts toward its own end point. If the pose is lost (no reading), everything stops. The 27 s hard stop still applies.
+Safety (since `pollen-odo-v6`):
+- A leg that hasn't arrived within 2 x its estimate + 1 s **stops the whole route** (`LEG n ... TIMED OUT - STOPPED`)
+  unless it is within 2 in of its end point; then the next leg starts and the Warning says `close enough`.
+  The legs are planned to go around the wall, hive and flower; a straight line to the next end point from
+  wherever a stuck robot is could cut through them.
+- If the wheels are driven but odometry shows less than 0.5 in of movement in 0.75 s while the robot is more
+  than 2 in from the end point, everything stops (`... NOT MOVING - STOPPED`): blocked robot, unplugged pod or
+  frozen reading.
+- If the pose is lost (no reading), everything stops. The 27 s hard stop still applies.
+- Constants: `NEAR_ENOUGH_IN`, `NO_PROGRESS_SECONDS`, `NO_PROGRESS_MIN_IN` in `PollenOdometryDrive`.
 
 ## Time budget
 

@@ -59,11 +59,23 @@ public final class PollenShootTuning {
     public static final double B_FIELD_LEG3_CM = 172.47, B_FIELD_LEG3_DEGREES = 17;
     public static final double C_LEG3_CM = 97.96, C_LEG3_DEGREES = -81.85;
 
+    /** Which route the rows hold, shown as the first line of the INIT screen and in the log. */
+    public enum Route {
+        FULL_PARK("FULL PARK: shoot, then 3 legs to the parking slot"),
+        LEAVE_ONLY("LEAVE ONLY (Circle): shoot, then a 2-ft move. WILL NOT PARK"),
+        SUPPORT_PARK("SUPPORT PARK: wait, shoot, then park in the outer slot"),
+        EDITED("EDITED LEGS: check every leg row before START");
+        public final String label;
+        Route(String label) { this.label = label; }
+    }
+
     /** Process-local memory, not saved across a Robot Controller app restart. */
     public static final class Snapshot {
         private final double[] values;
-        private Snapshot(double[] values) {
+        private final Route route;
+        private Snapshot(double[] values, Route route) {
             this.values = values.clone();
+            this.route = route;
         }
     }
 
@@ -73,6 +85,7 @@ public final class PollenShootTuning {
     private boolean locked;
     private final boolean[] previous = new boolean[6];
     private String notice = "";
+    private Route route;
 
     public PollenShootTuning(Snapshot remembered) {
         this(remembered, false);
@@ -86,8 +99,19 @@ public final class PollenShootTuning {
         this.supporting = supporting;
         this.odometry = odometry;
         reset();
-        if (remembered != null) {
+        if (remembered != null && remembered.route == Route.LEAVE_ONLY) {
+            // The Circle fallback is for one match, when the coach asks. Never carry it into the
+            // next INIT without anyone noticing: keep the other rows (launcher speed, feed...),
+            // but put the full route's legs back.
             values = remembered.values.clone();
+            values[Field.START_DELAY.ordinal()] = 0;
+            fullRoute();
+            route = Route.FULL_PARK;
+            notice = budgetOk() ? "Last run used the Circle fallback. It was NOT kept: full route loaded. "
+                    + "Press Circle again only if the coach says." : overBudgetNotice();
+        } else if (remembered != null) {
+            values = remembered.values.clone();
+            route = remembered.route;
             values[Field.START_DELAY.ordinal()] = supporting ? SUPPORT_START_DELAY : 0;
             // Keep the remembered (possibly calibrated) route even if the restored delay makes it
             // too long: the robot will not start until the operator fixes the budget or presses
@@ -101,6 +125,7 @@ public final class PollenShootTuning {
      * the parking slot. C: its flush route to the outer slot. */
     private void reset() {
         initialValues();
+        route = supporting ? Route.SUPPORT_PARK : Route.FULL_PARK;
         if (!supporting) fullRoute();
         notice = supporting
                 ? (odometry ? "Defaults: forward clear of flower, then right to the planned park spot"
@@ -113,6 +138,7 @@ public final class PollenShootTuning {
      * not PARK. For when the full route is not safe (partner in the lane, untested field). */
     private void leaveWall() {
         initialValues();
+        route = Route.LEAVE_ONLY;
         notice = "LEAVE-THE-WALL FALLBACK: shoot, then a 2-foot move; does NOT park. Triangle = full route";
     }
 
@@ -200,6 +226,21 @@ public final class PollenShootTuning {
             notice = wasOk ? "Change rejected: total must be <26s."
                     : overBudgetNotice() + " That change made it longer.";
         } else notice = budgetOk() ? "" : overBudgetNotice();
+        if (accepted && value(f) != old && isLegRow(f)) route = Route.EDITED;
+    }
+
+    private static boolean isLegRow(Field f) {
+        for (int i = 0; i < LEGS; i++) if (f == LEG_CM[i] || f == LEG_ANGLE[i]) return true;
+        return false;
+    }
+
+    public Route route() { return route; }
+
+    /** One line with every setting, for the robot log at START. */
+    public String settingsLine() {
+        StringBuilder b = new StringBuilder("route=").append(route);
+        for (Field f : Field.values()) b.append(' ').append(f.name()).append('=').append(value(f));
+        return b.toString();
     }
 
     public Field selected() { return Field.values()[selected]; }
@@ -228,7 +269,7 @@ public final class PollenShootTuning {
     public String notice() { return notice; }
     public void lock() { locked = true; }
     public boolean locked() { return locked; }
-    public Snapshot snapshot() { return new Snapshot(values); }
+    public Snapshot snapshot() { return new Snapshot(values, route); }
 
     /** True when these settings fit the time budget; START refuses otherwise. */
     public boolean budgetOk() {

@@ -1,10 +1,13 @@
 # Pollen autonomous operating manual
 
-All autonomous modes and PollenBot TeleOp show build **`pollen-odo-v5`**.
+All autonomous modes and PollenBot TeleOp show build **`pollen-odo-v6`**.
 Keep these instructions with the installed code. The new mat calibration and field routes are **experimental**.
 **Drive team:** use the [drive-team guides](drive-team/README.md); this manual is the full reference.
 Since `pollen-odo-v5`, B's default (and Triangle) is the full shoot-and-park route that Square used to
 load; **Circle** loads the short leave-the-wall move (the old default); **Square does nothing**.
+Since `pollen-odo-v6`, the first INIT line, **ROUTE**, names the route that will run (FULL PARK,
+LEAVE ONLY, SUPPORT PARK or EDITED LEGS), Circle is **not** remembered into the next INIT, and the
+shoot autos write each run to the robot log ([below](#robot-log)).
 
 ## Choose the routine
 
@@ -197,7 +200,9 @@ windmill feeder is used. Encoder target is ticks/s, not RPM; feed time is
 commanded motor time, not a ball count.
 
 A, B, C and PollenBot TeleOp remember settings separately while the Robot
-Controller app runs.
+Controller app runs. The one exception is B's **Circle** fallback: the next INIT
+keeps the other rows but puts the full route's legs back, and says so in the
+Settings notice. Circle has to be pressed again for each match that needs it.
 Start delay resets every INIT: zero for A/B, 12 for C. If C's remembered route
 no longer fits once its delay is back to 12 s (for example after testing at a
 4 s delay), INIT keeps every remembered value, shows **OVER TIME BUDGET** with
@@ -217,7 +222,22 @@ stops outputs. This is the program's guard, not the official autonomous duration
 | Change rejected | Requested settings exceed the 26 s budget. |
 | OVER TIME BUDGET / NOT READY | Remembered settings no longer fit after the delay reset. START will not move the robot until fixed or Triangle is pressed. |
 | LOOP STALL WHILE DRIVING - STOPPED | The program paused for more than 0.25 s while the wheels were moving. Every output stops, because the robot's position is no longer known. Report it with the elapsed time shown. |
+| *leg* NOT MOVING - STOPPED | Odometry modes: the wheels were driven but the robot moved less than 0.5 in in 0.75 s while more than 2 in from the leg's end (blocked, pod unplugged, or a frozen reading). Everything stops; the next leg never starts. |
+| *leg* TIMED OUT - STOPPED | Odometry modes: the leg ran out of time (2 x estimate + 1 s) more than 2 in from its end. Everything stops rather than cutting straight to the next leg's end point. Within 2 in, the next leg starts and the Warning says `close enough`. |
+| PINPOINT FAULT | Odometry modes: the Pinpoint reports a missing pod or IMU runaway. START still runs (so the shot still happens), but driving will stop as NOT MOVING; use the timed mode instead. |
 | Hardware error | Attempts to zero every device and requests OpMode stop. |
+
+## Robot log
+
+The four shoot autos (Odo and timed B and C) write what happened to the robot
+log, tag `PollenAuto`: the ROUTE whenever it changes during INIT, every setting
+at START (with build, shooter and Pinpoint status, battery), each phase change
+with position and battery, warnings, the final RESULT, Pinpoint status changes,
+and a position/wheel/launcher sample every 0.25 s while anything moves. Errors
+are logged with their stack trace. The lines go to `robotControllerLog.txt` on
+the Control Hub and into the per-run match logs (`FIRST/matchlogs`). The log
+rotates, so pull it after every event: see CLAUDE.md, "After an event: pull the
+robot logs".
 
 ## Verification and settings record
 

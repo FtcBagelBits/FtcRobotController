@@ -115,14 +115,16 @@ public class OdometryCheck extends OpMode {
         if (driveReady) {
             // Same mixing as PollenBot TeleOp and PollenSequence.wheelPowers:
             // forward +, strafe + = right, turn + = clockwise. Order FL, FR, BL, BR.
-            double forward = -gamepad1.left_stick_y * DRIVE_SCALE;
-            double strafe = gamepad1.left_stick_x * DRIVE_SCALE;
-            double turn = gamepad1.right_stick_x * DRIVE_SCALE;
+            // Mix and normalize the full stick values first, THEN scale, so no wheel ever goes
+            // above DRIVE_SCALE (scaling first let stick combinations reach 100% on one wheel).
+            double forward = -gamepad1.left_stick_y;
+            double strafe = gamepad1.left_stick_x;
+            double turn = gamepad1.right_stick_x;
             double[] powers = {forward + strafe + turn, forward - strafe - turn,
                     forward - strafe + turn, forward + strafe - turn};
             double max = 1;
             for (double p : powers) max = Math.max(max, Math.abs(p));
-            for (int i = 0; i < drive.length; i++) drive[i].setPower(powers[i] / max);
+            for (int i = 0; i < drive.length; i++) drive[i].setPower(powers[i] / max * DRIVE_SCALE);
         }
         readAndShow(driveReady ? "RUNNING - sticks drive at " + (int) (DRIVE_SCALE * 100) + "%"
                 : "RUNNING - drive motors missing, sticks do nothing");

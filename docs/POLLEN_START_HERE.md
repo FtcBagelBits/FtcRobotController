@@ -4,7 +4,7 @@ This is the one page to read first. It explains what the PollenBot code does,
 how it is built, and the order to read it in, with questions to answer as you
 go. Every other document and code file is linked from here.
 
-Build: `pollen-odo-v5`. The INIT screen of every Pollen OpMode shows it.
+Build: `pollen-odo-v6`. The INIT screen of every Pollen OpMode shows it.
 
 ## What the robot runs
 
@@ -134,7 +134,7 @@ bash tools/test-pollen-sequence.sh && ./gradlew :TeamCode:assembleDebug
 
 The first command runs the computer tests; the second builds the robot app
 only if they pass. Install it from Android Studio over the team's Wi-Fi
-connection to the Control Hub, then check that INIT shows `pollen-odo-v5`.
+connection to the Control Hub, then check that INIT shows `pollen-odo-v6`.
 
 ## What comes next
 

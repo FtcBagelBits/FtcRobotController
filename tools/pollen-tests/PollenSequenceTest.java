@@ -1,4 +1,6 @@
+import org.firstinspires.ftc.teamcode.pollen.PollenAutoLog;
 import org.firstinspires.ftc.teamcode.pollen.PollenConfig;
+import org.firstinspires.ftc.teamcode.pollen.PollenOdometryDrive;
 import org.firstinspires.ftc.teamcode.pollen.PollenSequence;
 import org.firstinspires.ftc.teamcode.pollen.PollenShootTuning;
 
@@ -25,6 +27,125 @@ public final class PollenSequenceTest {
         PollenSequence.Output out = null;
         for (double t = from; t < to - 1e-9; t += 0.02) out = s.tick(t);
         return out;
+    }
+    /** Odometry move steps fed a scripted pose: pose[0..2] = x, y, heading as functions of time. */
+    interface Pose { double[] at(double t); }
+    private static PollenSequence.Output runMove(PollenSequence s, double from, double to, Pose pose,
+                                                 java.util.List<String> phases) {
+        PollenSequence.Output out = null;
+        for (double t = from; t < to - 1e-9; t += 0.02) {
+            double[] p = pose.at(t);
+            out = s.tick(t, p[0], p[1], p[2]);
+            phases.add(out.phase);
+            if (out.finished) break;
+        }
+        return out;
+    }
+    private static void odometryFailures() {
+        java.util.List<String> phases = new java.util.ArrayList<>();
+        // 1. Frozen but finite pose (unplugged pods, frozen reading, or a blocked robot): stop
+        //    after the stuck time instead of driving blind for the leg's whole timeout.
+        PollenSequence frozen = PollenSequence.park(new PollenSequence.Step[]{
+                PollenSequence.Step.moveTo("CLEAR", 20, 0, 0.6, 1, 3),
+                PollenSequence.Step.moveTo("SIDE", 20, 20, 0.6, 1, 3)}, 27, 0);
+        frozen.start(0);
+        PollenSequence.Output out = runMove(frozen, 0, 5, t -> new double[]{0, 0, 0}, phases);
+        check(out.finished && out.phase.equals("CLEAR NOT MOVING - STOPPED"), "Frozen pose stops: " + out.phase);
+        check(!phases.contains("SIDE"), "Frozen pose never starts the next leg");
+        int driven = 0;
+        for (String p : phases) if (p.equals("CLEAR")) driven++;
+        check(driven * 0.02 <= PollenOdometryDrive.NO_PROGRESS_SECONDS + 0.05, "Frozen pose drives at most the stuck time: " + driven * 0.02);
+        zero(frozen.tick(5.02, 0, 0, 0));
+        check(frozen.warning().contains("short"), "Stuck warning says how far short: " + frozen.warning());
+
+        // 2. Slow progress (so not "stuck") that runs out of time far from the end: STOP, do
+        //    not cut across to the next leg's end point.
+        phases.clear();
+        PollenSequence slow = PollenSequence.park(new PollenSequence.Step[]{
+                PollenSequence.Step.moveTo("CLEAR", 10, 0, 0.6, 0.5, 1),
+                PollenSequence.Step.moveTo("SIDE", 10, 20, 0.6, 1, 3)}, 27, 0);
+        slow.start(0);
+        out = runMove(slow, 0, 3, t -> new double[]{t, 0, 0}, phases); // 1 in/s
+        check(out.phase.equals("CLEAR TIMED OUT - STOPPED"), "Far timeout stops the route: " + out.phase);
+        check(!phases.contains("SIDE"), "Far timeout never starts the sideways leg: " + phases);
+        check(slow.warning().contains("ran out of time"), "Timeout warning: " + slow.warning());
+
+        // 3. Timeout while almost there (within NEAR_ENOUGH_IN): carry on to the next leg.
+        phases.clear();
+        PollenSequence near = PollenSequence.park(new PollenSequence.Step[]{
+                PollenSequence.Step.moveTo("CLEAR", 10, 0, 0.6, 0.5, 1),
+                PollenSequence.Step.drive("HOLD", 0.5, 0, 0, 0)}, 27, 0);
+        near.start(0);
+        out = runMove(near, 0, 3, t -> new double[]{9, 0, 0}, phases); // 1 in short, not settling in
+        check(out.phase.startsWith("DONE"), "Near-enough timeout carries on: " + out.phase);
+        check(phases.contains("HOLD"), "Near-enough timeout runs the next step");
+        check(near.warning().contains("close enough"), "Near-enough warning: " + near.warning());
+
+        // 4. A final leg that runs out of time far away is not reported as DONE.
+        PollenSequence last = PollenSequence.park(new PollenSequence.Step[]{
+                PollenSequence.Step.moveTo("PARK", 10, 0, 0.6, 0.5, 1)}, 27, 0);
+        last.start(0);
+        out = runMove(last, 0, 3, t -> new double[]{t, 0, 0}, new java.util.ArrayList<String>());
+        check(out.phase.equals("PARK TIMED OUT - STOPPED") && last.result().equals(out.phase), "Final-leg timeout is not DONE: " + out.phase);
+
+        // 5. A robot that is standing still ON its end point is fine: unchanged numbers alone are not a fault.
+        PollenSequence still = PollenSequence.park(new PollenSequence.Step[]{
+                PollenSequence.Step.moveTo("PARK", 10, 0, 0.6, 0.5, 2)}, 27, 0);
+        still.start(0);
+        out = runMove(still, 0, 3, t -> new double[]{10, 0, 0}, new java.util.ArrayList<String>());
+        check(out.phase.startsWith("DONE") && still.warning().isEmpty(), "Stationary at the end point is DONE: " + out.phase);
+
+        // 6. Pinpoint statuses that block a start (hardware faults) vs. ones that do not.
+        check(PollenOdometryDrive.pinpointFault("FAULT_X_POD_NOT_DETECTED"), "X pod missing is a fault");
+        check(PollenOdometryDrive.pinpointFault("FAULT_IMU_RUNAWAY"), "IMU runaway is a fault");
+        check(!PollenOdometryDrive.pinpointFault("FAULT_BAD_READ"), "A single bad read is not");
+        check(!PollenOdometryDrive.pinpointFault("READY") && !PollenOdometryDrive.pinpointFault("CALIBRATING")
+                && !PollenOdometryDrive.pinpointFault(null), "READY / CALIBRATING / unknown are not");
+    }
+    /** The robot log: every line the run needs to be explained later, and never an exception. */
+    private static void autoLog() {
+        final java.util.List<String> lines = new java.util.ArrayList<>();
+        PollenAutoLog log = new PollenAutoLog("Odo ROBOT Shoot + Park", lines::add);
+        log.initRoute("FULL_PARK");
+        log.initRoute("FULL_PARK");
+        log.initRoute("LEAVE_ONLY");
+        check(lines.size() == 2 && lines.get(1).equals("INIT Odo ROBOT Shoot + Park route=LEAVE_ONLY"),
+                "INIT route logged once per change: " + lines);
+        log.status("READY"); log.status("READY");
+        check(lines.size() == 3 && lines.get(2).equals("PINPOINT status=READY"), "Pinpoint status logged on change");
+        log.start("route=LEAVE_ONLY LEG3_CM=60.96", "shooter=ok", () -> 12.7);
+        check(lines.get(3).startsWith("START Odo ROBOT Shoot + Park build=" + PollenConfig.BUILD + " route=LEAVE_ONLY")
+                && lines.get(3).endsWith("battery=12.70V"), "START line: " + lines.get(3));
+
+        PollenSequence frozen = PollenSequence.park(new PollenSequence.Step[]{
+                PollenSequence.Step.moveTo("CLEAR", 20, 0, 0.6, 1, 3)}, 27, 0);
+        frozen.start(0);
+        for (double t = 0; t < 2; t += 0.02) {
+            PollenSequence.Output out = frozen.tick(t, 0, 0, 0);
+            log.loop(t, out, frozen.warning(), 0, 0, 0, PollenSequence.wheelPowers(out), 0, () -> 12.5);
+        }
+        log.stop(2);
+        String all = String.join("\n", lines);
+        check(all.contains("PHASE CLEAR | x=0.0 y=0.0 h=0.0 battery=12.50V"), "phase line with pose: " + all);
+        check(all.contains("WARNING CLEAR: wheels driven"), "warning line");
+        check(all.contains("RESULT CLEAR NOT MOVING - STOPPED"), "result line");
+        check(lines.get(lines.size() - 1).contains("STOP (OpMode ended; last phase: CLEAR NOT MOVING - STOPPED)"), "stop line");
+        int samples = 0, results = 0;
+        for (String l : lines) { if (l.contains(" togo=")) samples++; if (l.contains("RESULT")) results++; }
+        check(samples >= 3 && samples <= 5, "about one sample per 0.25 s while driving: " + samples);
+        check(results == 1, "one RESULT line");
+
+        // Logging never throws: a broken sink, a broken battery read, NaN pose (timed modes).
+        PollenAutoLog broken = new PollenAutoLog("X", text -> { throw new IllegalStateException("disk full"); });
+        PollenSequence s = shot(); s.start(0);
+        PollenSequence.Output out = s.tick(0);
+        broken.loop(0, out, "", Double.NaN, Double.NaN, Double.NaN, PollenSequence.wheelPowers(out), 0, () -> 1 / 0);
+        broken.start("x", "y", null); broken.stop(1); broken.initRoute("R"); broken.status("S");
+        lines.clear();
+        PollenAutoLog timed = new PollenAutoLog("Pollen ROBOT Shoot + Park", lines::add);
+        timed.loop(0, out, "", Double.NaN, Double.NaN, Double.NaN, PollenSequence.wheelPowers(out), 0,
+                () -> { throw new IllegalStateException("no hub"); });
+        check(lines.get(0).contains("x=NaN") && lines.get(0).contains("battery=?"), "NaN pose and failed battery read still log: " + lines);
     }
     public static void main(String[] args) {
         PollenSequence park = sequence(new PollenSequence.Step[]{
@@ -158,6 +279,8 @@ public final class PollenSequenceTest {
             catch (IllegalArgumentException expected) { rejected = true; }
             check(rejected, "Reject invalid or over-budget delay");
         }
+        odometryFailures();
+        autoLog();
         System.out.println("PASS: " + checks + " checks (pure Java sequence; not Android/hardware validation)");
     }
 }

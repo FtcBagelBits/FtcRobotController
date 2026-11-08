@@ -25,4 +25,4 @@ is clear and ends partly in the loading zone if you want PARK points too. Ask a 
 how far to set the distance for that start. Don't drive the straight diagonal from the middle of
 the audience wall: it hits the hive frame.
 
-Check for **Build `pollen-odo-v5`** and `READY - waiting for START` before START.
+Check for **Build `pollen-odo-v6`** and `READY - waiting for START` before START.
