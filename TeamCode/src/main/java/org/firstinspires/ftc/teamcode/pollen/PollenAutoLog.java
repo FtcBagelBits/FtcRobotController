@@ -8,8 +8,8 @@ import java.util.Locale;
  * SDK's RobotLog, which puts it in robotControllerLog.txt and in the match log. Pull those files
  * after every event (see CLAUDE.md, "After an event: pull the robot logs").
  *
- * What gets logged: the route line during INIT whenever it changes (for example someone pressed
- * Circle), every setting at START, each phase change, warnings, the final result, the Pinpoint
+ * What gets logged: the route line during INIT whenever it changes (for example someone edited a
+ * leg), every setting at START, each phase change, warnings, the final result, the Pinpoint
  * status when it changes, and a short sample of position, wheel powers and battery every
  * SAMPLE_SECONDS while anything is moving.
  *

@@ -77,14 +77,13 @@ changes the coach asks for (usually none).
 <div class="side buttons" markdown="1">
 <div markdown="1">
 
-![Buttons during INIT: Triangle defaults, Circle short fallback, Square does nothing](img/shoot-and-park-buttons.svg)
+![Buttons during INIT: Triangle defaults, Circle and Square do nothing](img/shoot-and-park-buttons.svg)
 
 </div>
 <div markdown="1">
 
 - **Triangle:** back to the defaults. Always safe.
-- **Square:** does nothing. (It used to load this route; now it's the default.)
-- **Circle:** the short fallback. Only if the coach says. See [Leave-the-wall fallback](fallback-leave-the-wall.md).
+- **Square** and **Circle:** do nothing.
 - **D-pad:** changes settings. Only if the coach says.
 
 </div>
@@ -98,7 +97,7 @@ changes the coach asks for (usually none).
 | `Odometry ...: NOT VALID` | The odometry sensor isn't reading | Press STOP, then INIT again with the robot still. Still bad: use the timed fallback. |
 | `READY FOR DEPARTURE ONLY - SHOOTER FAILED` | The launcher didn't start up | The robot will still drive and park, but won't shoot. Tell a programmer; check the launcher cables. |
 | `NOT READY - over time budget` | Someone's settings take too long | Press Triangle. |
-| ROUTE isn't `FULL PARK` (and the coach didn't ask) | Someone pressed Circle or changed a leg | Press Triangle. |
+| ROUTE isn't `FULL PARK` (and the coach didn't ask) | Someone changed a leg | Press Triangle. |
 | `PINPOINT FAULT` | A pod cable is loose | Check both pod cables. Still there: [timed fallback](fallback-timed-autos.md). |
 | Any other `BLOCKED` | Something isn't plugged in, or the wrong robot configuration is active | Tell a programmer. |
 

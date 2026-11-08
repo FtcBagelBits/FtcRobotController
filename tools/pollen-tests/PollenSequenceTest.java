@@ -108,13 +108,13 @@ public final class PollenSequenceTest {
         PollenAutoLog log = new PollenAutoLog("Odo ROBOT Shoot + Park", lines::add);
         log.initRoute("FULL_PARK");
         log.initRoute("FULL_PARK");
-        log.initRoute("LEAVE_ONLY");
-        check(lines.size() == 2 && lines.get(1).equals("INIT Odo ROBOT Shoot + Park route=LEAVE_ONLY"),
+        log.initRoute("EDITED");
+        check(lines.size() == 2 && lines.get(1).equals("INIT Odo ROBOT Shoot + Park route=EDITED"),
                 "INIT route logged once per change: " + lines);
         log.status("READY"); log.status("READY");
         check(lines.size() == 3 && lines.get(2).equals("PINPOINT status=READY"), "Pinpoint status logged on change");
-        log.start("route=LEAVE_ONLY LEG3_CM=60.96", "shooter=ok", () -> 12.7);
-        check(lines.get(3).startsWith("START Odo ROBOT Shoot + Park build=" + PollenConfig.BUILD + " route=LEAVE_ONLY")
+        log.start("route=EDITED LEG3_CM=60.96", "shooter=ok", () -> 12.7);
+        check(lines.get(3).startsWith("START Odo ROBOT Shoot + Park build=" + PollenConfig.BUILD + " route=EDITED")
                 && lines.get(3).endsWith("battery=12.70V"), "START line: " + lines.get(3));
 
         PollenSequence frozen = PollenSequence.park(new PollenSequence.Step[]{

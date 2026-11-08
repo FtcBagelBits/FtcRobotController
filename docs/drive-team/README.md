@@ -17,7 +17,6 @@ TeleOp front and back); the PDFs are in [print/](print/). Build `pollen-odo-v6`.
 | Page | When |
 | --- | --- |
 | [Timed autos](fallback-timed-autos.md) ([PDF](print/fallback-timed-autos.pdf)) | The odometry sensor isn't working. |
-| [Leave the wall only](fallback-leave-the-wall.md) ([PDF](print/fallback-leave-the-wall.pdf)) | The coach says the full route isn't safe this match. |
 | [Park only](fallback-park-only.md) ([PDF](print/fallback-park-only.pdf)) | Testing, or the launcher is broken. |
 
 ## Rules for every match

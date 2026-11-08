@@ -167,10 +167,10 @@ ftcgradle :TeamCode:installDebug
 
 - **INIT edits, START freezes.** Every auto shows a menu (D-pad selects and edits rows; Triangle
   restores the defaults). START locks it. Settings are remembered until the app restarts; the
-  start delay resets every INIT, and B's Circle fallback is never carried into the next INIT.
+  start delay resets every INIT.
   The first INIT line, **ROUTE**, says which route will run. Details: [docs/POLLEN_AUTONOMOUS.md](docs/POLLEN_AUTONOMOUS.md).
-- **B's buttons since `pollen-odo-v5`:** the default and Triangle give the full shoot-and-park route.
-  Circle loads the short leave-the-wall move. Square does nothing (it used to load the full route).
+- **B's buttons:** the default and Triangle give the full shoot-and-park route. Circle and Square do
+  nothing (Square loaded the full route before `pollen-odo-v5`; Circle's leave-the-wall move was removed in v6).
 - `PollenSequence` runs a list of steps without blocking (timed drives, shots, odometry moves),
   with a time budget checked at INIT and a hard stop at 27 s. An odometry leg that runs out of
   time more than 2 in from its end, or stops making progress, stops the whole route: it never

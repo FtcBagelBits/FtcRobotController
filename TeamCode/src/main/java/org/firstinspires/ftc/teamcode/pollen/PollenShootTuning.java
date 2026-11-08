@@ -28,8 +28,8 @@ public final class PollenShootTuning {
         LEG1_ANGLE("Leg 1 angle deg (+left)", -90, 90, 1, 0),
         LEG2_CM("Leg 2 cm, side clear (0 = skip)", 0, 150, 5, 0),
         LEG2_ANGLE("Leg 2 angle deg (+left)", -90, 90, 1, 90),
-        LEG3_CM("Leg 3 cm, to park (0 = skip)", 0, 350, 5, 60.96),
-        LEG3_ANGLE("Leg 3 angle deg (+left)", -90, 90, 1, PARK_ANGLE_DEGREES);
+        LEG3_CM("Leg 3 cm, to park (0 = skip)", 0, 350, 5, 0),
+        LEG3_ANGLE("Leg 3 angle deg (+left)", -90, 90, 1, 0);
 
         public final String label;
         private final double min, max, step, initial;
@@ -49,8 +49,6 @@ public final class PollenShootTuning {
     private static final Field[] LEG_ANGLE = {Field.LEG1_ANGLE, Field.LEG2_ANGLE, Field.LEG3_ANGLE};
 
     public static final double CM_PER_SECOND_PER_POWER = PollenDriveCalibration.BASELINE_COEFFICIENT;
-    // Robot-relative translation angle: positive left, zero forward, negative right.
-    public static final double PARK_ANGLE_DEGREES = 25.87;
     public static final double HOLD_SECONDS = .5, DEADLINE = 27;
     /** C waits this long, then spins up for 3 s, so its feed starts at 15 s as agreed with partners. */
     public static final double SUPPORT_START_DELAY = 12;
@@ -62,7 +60,6 @@ public final class PollenShootTuning {
     /** Which route the rows hold, shown as the first line of the INIT screen and in the log. */
     public enum Route {
         FULL_PARK("FULL PARK: shoot, then 3 legs to the parking slot"),
-        LEAVE_ONLY("LEAVE ONLY (Circle): shoot, then a 2-ft move. WILL NOT PARK"),
         SUPPORT_PARK("SUPPORT PARK: wait, shoot, then park in the outer slot"),
         EDITED("EDITED LEGS: check every leg row before START");
         public final String label;
@@ -83,7 +80,7 @@ public final class PollenShootTuning {
     private final boolean supporting, odometry;
     private int selected;
     private boolean locked;
-    private final boolean[] previous = new boolean[6];
+    private final boolean[] previous = new boolean[5];
     private String notice = "";
     private Route route;
 
@@ -99,17 +96,7 @@ public final class PollenShootTuning {
         this.supporting = supporting;
         this.odometry = odometry;
         reset();
-        if (remembered != null && remembered.route == Route.LEAVE_ONLY) {
-            // The Circle fallback is for one match, when the coach asks. Never carry it into the
-            // next INIT without anyone noticing: keep the other rows (launcher speed, feed...),
-            // but put the full route's legs back.
-            values = remembered.values.clone();
-            values[Field.START_DELAY.ordinal()] = 0;
-            fullRoute();
-            route = Route.FULL_PARK;
-            notice = budgetOk() ? "Last run used the Circle fallback. It was NOT kept: full route loaded. "
-                    + "Press Circle again only if the coach says." : overBudgetNotice();
-        } else if (remembered != null) {
+        if (remembered != null) {
             values = remembered.values.clone();
             route = remembered.route;
             values[Field.START_DELAY.ordinal()] = supporting ? SUPPORT_START_DELAY : 0;
@@ -126,7 +113,6 @@ public final class PollenShootTuning {
     private void reset() {
         initialValues();
         route = supporting ? Route.SUPPORT_PARK : Route.FULL_PARK;
-        if (!supporting) fullRoute();
         notice = supporting
                 ? (odometry ? "Defaults: forward clear of flower, then right to the planned park spot"
                             : "Flush preset: forward clear of flower, then right to park (leg 3 field-tuned)")
@@ -134,17 +120,10 @@ public final class PollenShootTuning {
                             : "Defaults: shoot, then 3 legs to the parking slot (leg 3 field-tuned)");
     }
 
-    /** Circle, B only: shoot, then just leave the wall with the short 2-foot move. Earns LEAVE,
-     * not PARK. For when the full route is not safe (partner in the lane, untested field). */
-    private void leaveWall() {
-        initialValues();
-        route = Route.LEAVE_ONLY;
-        notice = "LEAVE-THE-WALL FALLBACK: shoot, then a 2-foot move; does NOT park. Triangle = full route";
-    }
-
-    /** Row defaults before a route is chosen: for B that is the short 2-foot move. */
+    /** Every row's default: B's full route, or C's support route. */
     private void initialValues() {
         for (Field f : Field.values()) values[f.ordinal()] = f.initial;
+        if (!supporting) fullRoute();
         if (supporting) {
             values[Field.START_DELAY.ordinal()] = SUPPORT_START_DELAY;
             values[Field.FEED_SECONDS.ordinal()] = 7.5;
@@ -154,10 +133,10 @@ public final class PollenShootTuning {
             set(2, 0, -90);
             set(3, C_LEG3_CM, C_LEG3_DEGREES);
         }
-        if (odometry) {
+        if (odometry && supporting) {
             values[Field.CALIBRATION.ordinal()] = 1; // wall square ON
             values[Field.DRIVE_POWER.ordinal()] = PollenOdometryDrive.DEFAULT_LEG_POWER;
-            if (supporting) set(3, PollenFieldGeometry.supportDistanceCm(), PollenFieldGeometry.supportAngleDegrees());
+            set(3, PollenFieldGeometry.supportDistanceCm(), PollenFieldGeometry.supportAngleDegrees());
         }
     }
 
@@ -179,23 +158,14 @@ public final class PollenShootTuning {
         values[LEG_ANGLE[leg - 1].ordinal()] = angle;
     }
 
-    /** D-pad selects/edits; triangle resets. Tap/release. */
-    public void update(boolean up, boolean down, boolean left, boolean right,
-            boolean reset) {
-        update(up, down, left, right, reset, false);
-    }
-
-    /** Triangle restores the defaults (B: full route). Circle loads B's leave-the-wall fallback;
-     * it does nothing in C. Square is not read at all: it used to load B's full route, which is
-     * now the default, so a habitual press changes nothing. */
-    public void update(boolean up, boolean down, boolean left, boolean right,
-            boolean reset, boolean leaveWall) {
+    /** D-pad selects/edits; Triangle (reset) restores the defaults. Tap/release. Circle and
+     * Square are not read: Square used to load B's full route (now the default), and Circle
+     * loaded a short "leave the wall" move that was removed in pollen-odo-v6. */
+    public void update(boolean up, boolean down, boolean left, boolean right, boolean reset) {
         if (locked) return;
-        boolean[] keys = {up, down, left, right, reset, leaveWall};
+        boolean[] keys = {up, down, left, right, reset};
         if (reset) {
             if (!previous[4]) reset();
-        } else if (leaveWall) {
-            if (!previous[5] && !supporting) leaveWall();
         } else {
             if (up && !down && !previous[0]) selected = (selected + Field.values().length - 1) % Field.values().length;
             if (down && !up && !previous[1]) selected = (selected + 1) % Field.values().length;

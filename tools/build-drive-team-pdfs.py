@@ -16,7 +16,7 @@ BUILD = re.search(r'BUILD = "([^"]+)"', (ROOT / 'TeamCode/src/main/java/org/firs
 PAGES = ROOT / 'docs' / 'drive-team'
 OUT = PAGES / 'print'
 SHEETS = ['1-shoot-and-park', '2-supporting-shooter', '3-teleop',
-          'fallback-timed-autos', 'fallback-leave-the-wall', 'fallback-park-only']
+          'fallback-timed-autos', 'fallback-park-only']
 
 CSS = """
 @page { size: Letter; margin: 0.45in 0.55in; }

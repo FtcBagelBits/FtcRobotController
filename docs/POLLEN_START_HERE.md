@@ -16,7 +16,7 @@ Build: `pollen-odo-v6`. The INIT screen of every Pollen OpMode shows it.
 | **Pollen Supporting Shooter Auto** (C) | [`PollenSupportingShooter.java`](../TeamCode/src/main/java/org/firstinspires/ftc/teamcode/pollen/PollenSupportingShooter.java) | Waits 12 s for a partner to shoot, shoots, then parks |
 
 **What has worked on the real robot:** A with its defaults, and B's short
-2-foot route (its default until `pollen-odo-v5`; now the Circle fallback). Everything else, including the TeleOp feed rule in this
+2-foot route (its default until `pollen-odo-v5`; the Circle fallback in v5; removed in v6). Everything else, including the TeleOp feed rule in this
 build, has only been checked by computer tests. See
 [tested behavior](POLLEN_ROBOT_BEHAVIOR.md) for the details.
 

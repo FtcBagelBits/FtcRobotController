@@ -122,7 +122,7 @@ public abstract class PollenShooterOpMode extends OpMode {
 
     @Override public final void init_loop() {
         if (gamepad1 != null) tuning.update(gamepad1.dpad_up, gamepad1.dpad_down,
-                gamepad1.dpad_left, gamepad1.dpad_right, gamepad1.triangle, gamepad1.circle);
+                gamepad1.dpad_left, gamepad1.dpad_right, gamepad1.triangle);
         remember(tuning.snapshot());
         log.initRoute(tuning.route().name());
         if (localizer != null) {
@@ -133,15 +133,14 @@ public abstract class PollenShooterOpMode extends OpMode {
         telemetry.addData("Controls", "D-pad UP/DOWN selects; LEFT/RIGHT edits; tap then release");
         telemetry.addData("Triangle", supportingShooter() ? "Restore defaults (flush route to the outer slot)"
                 : "Restore defaults: shoot, then 3 legs to the parking slot");
-        if (!supportingShooter()) telemetry.addData("Circle", "Fallback: shoot, then only leave the wall (2 ft; no park)");
-        telemetry.addData("Square", "Does nothing (the full route is already the default)");
+        telemetry.addData("Circle / Square", "Do nothing");
         telemetry.addData("Tune", "Launcher speed, feed, power and each leg's cm/angle are rows above");
         telemetry.addData("Status", blocked != null ? "BLOCKED: " + blocked
                 : !tuning.budgetOk() ? "NOT READY - over time budget; START will not move the robot"
                 : PollenOdometryDrive.pinpointFault(pinpointStatus)
                 ? "PINPOINT FAULT - odometry will not work: use the timed Pollen mode"
                 : fallback != null ? "READY FOR DEPARTURE ONLY - SHOOTER FAILED" : "READY - no movement until START");
-        telemetry.addData("Memory", "Settings kept until app restart, except Circle; start delay resets every INIT");
+        telemetry.addData("Memory", "Settings kept until app restart; start delay resets every INIT");
         telemetry.update();
     }
 

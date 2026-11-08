@@ -220,7 +220,7 @@ if __name__ == '__main__':
         'DPAD': 'D-pad: INIT menu only\n(UP/DOWN pick a row,\nLEFT/RIGHT change it)', 'TRIANGLE': 'Triangle: INIT menu defaults',
     })
     init_buttons_picture('shoot-and-park-buttons.svg', 'Buttons during INIT (before START)',
-                         'Circle: SHORT fallback\n(coach decides)')
+                         'Circle: does nothing')
     init_buttons_picture('supporting-shooter-buttons.svg', 'Buttons during INIT (before START)',
                          'Circle: does nothing\nin this mode')
     print('wrote', ', '.join(sorted(os.listdir(OUT))))

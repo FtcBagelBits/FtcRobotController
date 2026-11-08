@@ -3,11 +3,10 @@
 All autonomous modes and PollenBot TeleOp show build **`pollen-odo-v6`**.
 Keep these instructions with the installed code. The new mat calibration and field routes are **experimental**.
 **Drive team:** use the [drive-team guides](drive-team/README.md); this manual is the full reference.
-Since `pollen-odo-v5`, B's default (and Triangle) is the full shoot-and-park route that Square used to
-load; **Circle** loads the short leave-the-wall move (the old default); **Square does nothing**.
-Since `pollen-odo-v6`, the first INIT line, **ROUTE**, names the route that will run (FULL PARK,
-LEAVE ONLY, SUPPORT PARK or EDITED LEGS), Circle is **not** remembered into the next INIT, and the
-shoot autos write each run to the robot log ([below](#robot-log)).
+Since `pollen-odo-v5`, B's default (and Triangle) is the full shoot-and-park route.
+Since `pollen-odo-v6`, the short "leave the wall" fallback (Circle) is gone: **Circle and Square do
+nothing**. The first INIT line, **ROUTE**, names the route that will run (FULL PARK, SUPPORT PARK or
+EDITED LEGS), and the shoot autos write each run to the robot log ([below](#robot-log)).
 
 ## Choose the routine
 
@@ -70,29 +69,28 @@ the motor commands are unchanged. See [calibration analysis](POLLEN_MAT_CALIBRAT
 - **D-pad RIGHT / LEFT:** edit the selected row. Tap/release; held keys do not repeat.
 - **Triangle:** restore that mode's defaults. B: the three-leg route to the parking
   slot. C: its supporting route. It does not move the robot.
-- **Circle (B only):** the leave-the-wall fallback: shoot, then only the short 2-foot
-  move (the old tested default). Earns LEAVE but not PARK. Circle does nothing in C.
-- **Square:** does nothing. It used to load B's three-leg route, which is now the default.
+- **Circle, Square:** do nothing. (Square used to load B's three-leg route, now the default;
+  Circle loaded a short leave-the-wall move, removed in `pollen-odo-v6`.)
 
 Every speed, distance and angle that the routes use is a row, so tuning needs
 no rebuild. After the shot the robot drives **leg 1, leg 2, leg 3** in order,
 all at the one drive power; a leg set to 0 cm is skipped.
 
-| Row | B Circle (leave the wall) | B default (Triangle) | C default | Increment / range |
-| --- | ---: | ---: | ---: | --- |
-| Launcher ticks/s | 1180 | 1180 | 1180 | 20; 500-2500 |
-| Feed seconds | 10 | 10 | 7.5 | 0.5; 0-20; 0 skips shooting |
-| Intake power while feeding | 0.50 | 0.50 | 0.50 | 0.05; 0.10-1.00 |
-| Agitator power while feeding | 1.00 | 1.00 | 1.00 | 0.05; 0.10-1.00 |
-| Start delay seconds | 0 | 0 | 12 | 0.5; 0-20, subject to budget |
-| Calibration | 0: tested baseline | 1: MAT_TRIAL | 1: MAT_TRIAL | 0 or 1 |
-| Drive power, all legs | 0.20 | 0.25 | 0.45 | 0.05; 0.10-0.50 |
-| Leg 1 cm, off wall | 0 | 10 | 20.32 | 1; 0-60 |
-| Leg 1 angle deg (+left) | 0 | 0 | 0 | 1; -90 to +90 |
-| Leg 2 cm, side clear | 0 | 63.50 | 0 | 5; 0-150 |
-| Leg 2 angle deg (+left) | +90 | +90 | -90 | 1; -90 to +90 |
-| Leg 3 cm, to park | 60.96 | 172.47 (field-tuned) | 97.96 (field-tuned) | 5; 0-350 |
-| Leg 3 angle deg (+left) | +25.87 | +17 (field-tuned) | -81.85 (field-tuned) | 1; -90 to +90 |
+| Row | B default (Triangle) | C default | Increment / range |
+| --- | ---: | ---: | --- |
+| Launcher ticks/s | 1180 | 1180 | 20; 500-2500 |
+| Feed seconds | 10 | 7.5 | 0.5; 0-20; 0 skips shooting |
+| Intake power while feeding | 0.50 | 0.50 | 0.05; 0.10-1.00 |
+| Agitator power while feeding | 1.00 | 1.00 | 0.05; 0.10-1.00 |
+| Start delay seconds | 0 | 12 | 0.5; 0-20, subject to budget |
+| Calibration | 1: MAT_TRIAL | 1: MAT_TRIAL | 0 (baseline) or 1 |
+| Drive power, all legs | 0.25 | 0.45 | 0.05; 0.10-0.50 |
+| Leg 1 cm, off wall | 10 | 20.32 | 1; 0-60 |
+| Leg 1 angle deg (+left) | 0 | 0 | 1; -90 to +90 |
+| Leg 2 cm, side clear | 63.50 | 0 | 5; 0-150 |
+| Leg 2 angle deg (+left) | +90 | -90 | 1; -90 to +90 |
+| Leg 3 cm, to park | 172.47 (field-tuned) | 97.96 (field-tuned) | 5; 0-350 |
+| Leg 3 angle deg (+left) | +17 (field-tuned) | -81.85 (field-tuned) | 1; -90 to +90 |
 
 Fractional angles step to the next whole degree first, then by 1, so exactly 0
 is reachable. To shoot in place, set **all three leg distances to zero**. To test
@@ -108,7 +106,7 @@ settings: verify it with short trials before relying on a field route.
 
 ## Primary route: B's default
 
-The short 60.96-cm move (Circle) only leaves the wall; it does not park. B's default (Triangle) is:
+B's default (Triangle) is:
 
 - MAT_TRIAL, power **0.25**, normal 10-second feed and zero delay;
 - leg 1: **10 cm forward** off the wall after shooting;
@@ -119,9 +117,8 @@ The short 60.96-cm move (Circle) only leaves the wall; it does not park. B's def
 
 This avoids the floor-level frame bar in the nominal CAD. It budgets about
 **22.0 s**: 3 s spin-up, 10 s feed, about 8.5 s of driving and the 0.5 s hold.
-Drive starts at about 13 s. Circle loads the short
-leave-the-wall route (leg 3 only). Editing any leg changes the route; check the geometry
-again after such edits.
+Drive starts at about 13 s. Editing any leg changes the route (ROUTE shows EDITED LEGS);
+check the geometry again after such edits.
 
 ## Supporting field preset: C
 
@@ -200,9 +197,7 @@ windmill feeder is used. Encoder target is ticks/s, not RPM; feed time is
 commanded motor time, not a ball count.
 
 A, B, C and PollenBot TeleOp remember settings separately while the Robot
-Controller app runs. The one exception is B's **Circle** fallback: the next INIT
-keeps the other rows but puts the full route's legs back, and says so in the
-Settings notice. Circle has to be pressed again for each match that needs it.
+Controller app runs.
 Start delay resets every INIT: zero for A/B, 12 for C. If C's remembered route
 no longer fits once its delay is back to 12 s (for example after testing at a
 4 s delay), INIT keeps every remembered value, shows **OVER TIME BUDGET** with

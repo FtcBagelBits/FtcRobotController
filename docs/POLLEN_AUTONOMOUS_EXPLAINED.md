@@ -15,8 +15,7 @@ them to motors. `stop()` latches the sequence stopped and attempts to zero every
 mapped motor. A, B and C have separate process-local settings memory.
 
 Use [the operating manual](POLLEN_AUTONOMOUS.md) for controls. In B, the default
-and Triangle are the three-leg field route; Circle loads the short leave-the-wall
-move; Square does nothing. In C, Triangle restores the supporting preset. Those presets are plans to
+and Triangle are the three-leg field route; Circle and Square do nothing. In C, Triangle restores the supporting preset. Those presets are plans to
 validate, not previously tested robot behavior.
 
 ## Field geometry and motor calibration solve different problems
