@@ -4,7 +4,7 @@ This is the one page to read first. It explains what the PollenBot code does,
 how it is built, and the order to read it in, with questions to answer as you
 go. Every other document and code file is linked from here.
 
-Build: `pollen-odo-v7`. The INIT screen of every Pollen OpMode shows it.
+Build: `pollen-odo-v8`. The INIT screen of every Pollen OpMode shows it.
 
 **New to the project?** First get Android Studio working and the code building:
 [set up, test, install, and share your changes](ROBOT_CONNECTION.md) (Windows and Mac).
@@ -36,9 +36,10 @@ be diagnosed. Everything else has only been checked by the computer tests. See
    until START, then `start()` once, then `loop()` about 50 times a second
    until STOP, then `stop()`. Each `loop()` reads the controller, the clock and
    the sensors, decides, sets the motors and returns. Nothing in it sleeps.
-2. **Decide first, then write each motor once.** A loop works out every
-   command in a variable, then calls `setPower` once per motor at the end.
-   Setting the same motor more than once per loop can make it behave erratically.
+2. **Read once, decide, then write each motor once.** A loop reads each sensor
+   once, works out every command in a variable, then calls `setPower` once per
+   motor at the end. Setting the same motor more than once per loop can make it
+   behave erratically, and reading a sensor twice can give two different answers.
 3. **"What should happen right now?"** Autonomous is not written as "drive,
    wait, shoot". Every loop it looks at the clock (and, in the Odo modes, where
    the robot is), works out which step it is in, and returns that step's motor commands.
@@ -56,7 +57,8 @@ Code paths are under `TeamCode/src/main/java/org/firstinspires/ftc/teamcode/`.
 - **`init_loop()`**: the INIT menu (launcher speed, spin-up time, agitator
   power, drive power). It only shows and edits settings; nothing moves.
 - **`loop()`**: follow `intakePower` from the triggers, through `launch()`, to
-  `intake.setPower(...)`.
+  `intake.setPower(...)`. The launcher's measured speed is read once, near the
+  top, into `launcherMeasuredVelocity`.
   *Question:* why does `launch()` have to run before the intake power is written?
 - **`launch()`**: the feed rule. Holding R1 spins the launcher. Feeding starts
   when the launcher is up to speed (96% of target, about 1133 ticks/s) **or** R1 has been held for
@@ -78,23 +80,34 @@ Code paths are under `TeamCode/src/main/java/org/firstinspires/ftc/teamcode/`.
 
 ### 3. The autonomous engine: [`pollen/PollenSequence.java`](../TeamCode/src/main/java/org/firstinspires/ftc/teamcode/pollen/PollenSequence.java) (15 min)
 
-- A route is a list of `Step`s: a shoot step (launcher alone for the spin-up
-  time, then feed), an odometry move (drive to an end point, in inches from
-  where the odometry was zeroed), or a timed drive (the fallback modes).
+- A route is a list of `Step`s. There are four kinds (`Kind`): `DRIVE` (fixed
+  powers for a set time; the timed fallback modes, and waits), `SHOOT`
+  (launcher alone for the spin-up time, then feed), `MOVE` (drive to an end
+  point, in inches from where the odometry was zeroed) and `ZERO_ODOMETRY`.
 - **`tick(now, x, y, heading)`** is called every loop with the clock and the
   robot's position, and returns an `Output`: what every motor should do right now.
-- *Question:* each step's clock starts on the first loop that runs it, not when
-  the previous step ended. What goes wrong with the other choice if one loop
-  is slow?
+- **`compute()`** does the work. Read it top to bottom: first the checks that
+  apply to every step (clock, loop gap, time limit, start delay), then one
+  line per kind of step. Each kind has its own short method. Read them in this
+  order: `driveStep`, `zeroOdometryStep`, `shootStep`, then `moveStep`.
+- **`moveStep()`** asks four questions in order: has the robot arrived, is the
+  leg out of time, is the robot stuck, and otherwise what powers does the
+  drive controller want?
+- *Question:* each step's clock starts on the first loop that runs it
+  (`beginStep`), not when the previous step ended. What goes wrong with the
+  other choice if one loop is slow?
 - *Question:* find every `stop(` call. What are the ways a run ends early?
+- *Exercise:* on paper, add a fifth kind of step, "wait until the hive tips".
+  What would its method return each loop, and what new input would `tick` need?
 - This file never touches hardware, which is why the computer tests can run it.
 
 ### 4. Driving to a point: [`pollen/PollenOdometryDrive.java`](../TeamCode/src/main/java/org/firstinspires/ftc/teamcode/pollen/PollenOdometryDrive.java) (10 min)
 
 - Read the constants at the top first: each has a comment saying what it does.
 - **`command(...)`** turns "how far is the end point, and in which direction" into
-  forward, strafe and turn powers. It slows down as the robot gets close and
-  braking is based on where the robot will be a moment from now.
+  a `Command`: forward, strafe and turn powers, plus `inchesToGo`. It slows
+  down as the robot gets close, and braking is based on where the robot will
+  be a moment from now.
 - *Question:* a leg ends when the robot is within `POSITION_TOLERANCE_IN` **and**
   has stopped. Why isn't being close enough on its own?
 - *Question:* what does the robot do if a partner robot is in the way? (Hint:
@@ -102,8 +115,10 @@ Code paths are under `TeamCode/src/main/java/org/firstinspires/ftc/teamcode/`.
 
 ### 5. The autonomous OpMode: [`pollen/PollenShooterOpMode.java`](../TeamCode/src/main/java/org/firstinspires/ftc/teamcode/pollen/PollenShooterOpMode.java) (10 min)
 
-- The same five methods as TeleOp. **`loop()`** reads the odometry, calls
-  `sequence.tick(...)`, and sends the result to the motors.
+- The same five methods as TeleOp. **`loop()`** has four numbered parts:
+  **read** the clock and the odometry, **decide** by calling
+  `sequence.tick(...)`, **act** by writing each motor once, and **report** to
+  the Driver Hub screen and the robot log.
 - *Question:* why are the launcher, intake and agitator set before the wheels?
 - The Odo modes and the timed B and C are 10-line files that extend this class
   and only say "supporting shooter or not" and "odometry or not".

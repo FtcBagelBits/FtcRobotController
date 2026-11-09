@@ -39,7 +39,7 @@ robots' code (DECODE 2025-26). They share some hardware names but nothing else w
 them alone unless asked. `TeamCode/.../teamcode/readme.md` is the student-facing list of what's live.
 
 Every Pollen and Odo mode shows a build id on the INIT screen (`PollenConfig.BUILD`, e.g.
-`pollen-odo-v7`). **Bump it whenever behavior changes**, so the drive team can confirm which code is installed.
+`pollen-odo-v8`). **Bump it whenever behavior changes**, so the drive team can confirm which code is installed.
 
 ## Hardware configuration names (PollenBot)
 
@@ -175,10 +175,11 @@ ftcgradle :TeamCode:installDebug
   The first INIT line, **ROUTE**, says which route will run. Details: [docs/POLLEN_AUTONOMOUS.md](docs/POLLEN_AUTONOMOUS.md).
 - **B's buttons:** the default and Triangle give the full shoot-and-park route. Circle and Square do
   nothing (Square loaded the full route before `pollen-odo-v5`; Circle's leave-the-wall move was removed in v6).
-- `PollenSequence` runs a list of steps without blocking (timed drives, shots, odometry moves),
-  with a time budget checked at INIT and a hard stop at 27 s. An odometry leg that runs out of
-  time more than 2 in from its end, or stops making progress, stops the whole route: it never
-  starts the next leg from an unplanned spot.
+- `PollenSequence` runs a list of steps without blocking, with a time budget checked at INIT and
+  a hard stop at 27 s. There are four kinds of step (`Kind`: DRIVE, SHOOT, MOVE, ZERO_ODOMETRY) and
+  one short method per kind; a new kind of step gets its own method the same way. An odometry
+  leg that runs out of time more than 2 in from its end, or stops making progress, stops the
+  whole route: it never starts the next leg from an unplanned spot.
 - `PollenAutoLog` writes each shoot-auto run to RobotLog (see "After an event" above). It is pure
   Java with computer tests, and it can never throw: logging must not stop the robot.
 - **Odo modes** drive each leg to a measured end point (`PollenOdometryDrive`). They square

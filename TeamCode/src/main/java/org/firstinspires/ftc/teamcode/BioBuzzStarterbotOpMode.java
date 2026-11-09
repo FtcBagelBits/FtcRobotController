@@ -82,6 +82,14 @@ public class BioBuzzStarterbotOpMode extends OpMode {
     // Hold L1 to run the launcher BACKWARDS slowly and push a jammed ball back out.
     // 300 RPM = 300 x 28 / 60 = 140 ticks per second.
     public final int LAUNCHER_REVERSE_VELOCITY = 140; //300 RPM
+    // While feeding the launcher, this much is added to the intake power from the triggers,
+    // so the intake keeps pushing balls toward the launcher. (Autonomous has its own
+    // "Intake power while feeding" row, which also defaults to 0.5.)
+    public final double INTAKE_FEED_BOOST = 0.5;
+    // The launcher's MEASURED speed in ticks per second (the target is tuning.launcherVelocity()).
+    // We read it ONCE in each loop, so the feed decision and the Driver Station screen always
+    // use the same number.
+    double launcherMeasuredVelocity;
     private boolean reversing = false;
     private final ElapsedTime launchTimer = new ElapsedTime();
     private boolean launching = false;
@@ -160,7 +168,7 @@ public class BioBuzzStarterbotOpMode extends OpMode {
         intake.setZeroPowerBehavior(BRAKE);
 
         /*
-         * Here we set our launcher to the RUN_USING_ENCODER runmode.dddd
+         * Here we set our launcher to the RUN_USING_ENCODER runmode.
          * If you notice that you have no control over the velocity of the motor, it just jumps
          * right to a number much higher than your set point, make sure that your encoders are plugged
          * into the port right beside the motor itself. And that the motors polarity is consistent
@@ -242,6 +250,9 @@ public class BioBuzzStarterbotOpMode extends OpMode {
          */
         mecanumDrive(-gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
 
+        // Read the launcher's speed sensor (its encoder) once for this loop.
+        launcherMeasuredVelocity = launcher.getVelocity();
+
         /*
          * Set the intake power variable to equal the right trigger, minus the left trigger.
          * Each trigger outputs a signal from 0-1, with 0 as fully released, and 1 fully depressed.
@@ -284,10 +295,10 @@ public class BioBuzzStarterbotOpMode extends OpMode {
          * Show motor powers on the Driver Station via telemetry.
          */
         telemetry.addData("Motors", "left (%.2f), right (%.2f)", leftFrontPower, rightFrontPower);
-        telemetry.addData("Triggers", "left (%.2f, right (%.2f)",gamepad1.left_trigger, gamepad1.right_trigger);
+        telemetry.addData("Triggers", "left (%.2f), right (%.2f)", gamepad1.left_trigger, gamepad1.right_trigger);
         telemetry.addData("Launcher target / measured", "%.0f / %.0f ticks/s%s",
-                tuning.launcherVelocity(), launcher.getVelocity(),
-                launching && launcher.getVelocity() < 50 ? "  (measured ~0: check launcher encoder cable)" : "");
+                tuning.launcherVelocity(), launcherMeasuredVelocity,
+                launching && launcherMeasuredVelocity < 50 ? "  (measured ~0: check launcher encoder cable)" : "");
         telemetry.addData("Feed", reversing ? "REVERSING launcher (L1) - no feed"
                 : !launching ? "off (hold R1; L1 = reverse to clear a jam)"
                 : feeding ? String.format("FEEDING (started at %.1f s: %s)", feedStartedAt, feedStartedBy)
@@ -370,7 +381,7 @@ public class BioBuzzStarterbotOpMode extends OpMode {
          * Once feeding starts, keep feeding until R1 is released. Each ball slows the wheel a
          * little, and we don't want that dip to switch the agitator off in the middle of a volley.
          */
-        boolean upToSpeed = tuning.launcherIsUpToSpeed(launcher.getVelocity());
+        boolean upToSpeed = tuning.launcherIsUpToSpeed(launcherMeasuredVelocity);
         boolean spinUpTimeIsOver = tuning.spinUpTimeIsOver(launchTimer.seconds());
         if (!launching) {
             feeding = false;
@@ -381,7 +392,7 @@ public class BioBuzzStarterbotOpMode extends OpMode {
         }
         if (feeding) {
             //agitator.setPower(1);
-            intakePower += 0.5;
+            intakePower += INTAKE_FEED_BOOST;
         } else {
             //agitator.setPower(0);
         }

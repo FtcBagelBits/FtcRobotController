@@ -4,8 +4,9 @@ package org.firstinspires.ftc.teamcode.pollen;
 public final class PollenConfig {
     private PollenConfig() { }
 
-    /** Shown in INIT by the three Pollen autonomous modes and PollenBot TeleOp; change with Pollen code. */
-    public static final String BUILD = "pollen-odo-v7";
+    /** Shown in INIT by every Pollen and Odo autonomous mode and by PollenBot TeleOp, and written to
+     * the robot log at START. Change it whenever the Pollen code changes. */
+    public static final String BUILD = "pollen-odo-v8";
 
     /** Launcher runs alone this long before feeding starts, in auto and TeleOp (team-measured). */
     public static final double LAUNCHER_SPINUP_SECONDS = 3.0;

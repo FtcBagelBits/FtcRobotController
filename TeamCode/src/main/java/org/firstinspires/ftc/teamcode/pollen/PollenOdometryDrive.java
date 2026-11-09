@@ -72,7 +72,8 @@ public final class PollenOdometryDrive {
     public static final double ZERO_SETTLE_SECONDS = 0.10;
 
     /** Pinpoint statuses that mean the hardware is not working (a pod not plugged in, or the IMU
-     * spinning by itself): odometry autos refuse to start, and stop if one appears mid-run.
+     * spinning by itself). INIT shows PINPOINT FAULT so the drive team can switch to a timed mode.
+     * START still runs, so the shot still happens; the stuck check then stops the driving.
      * FAULT_BAD_READ is not here: a single bad read happens and the next one is fine (the stuck
      * check catches a reading that stays frozen). Takes the status's name so this is testable. */
     public static boolean pinpointFault(String status) {
@@ -90,29 +91,47 @@ public final class PollenOdometryDrive {
         return TIMEOUT_FACTOR * plannedSeconds(distanceCm, maxPower) + TIMEOUT_EXTRA_SECONDS;
     }
 
-    /** Same, for a robot that is standing still. */
-    public static double[] command(double targetForwardIn, double targetLeftIn, double maxPower,
-                                   double x, double y, double heading) {
+    /** What {@link #command} returns: this loop's drive powers, and how far the leg has left to go. */
+    public static final class Command {
+        /** Drive powers in PollenSequence's directions: forward +, strafe + = RIGHT, turn + = CLOCKWISE. */
+        public final double forward, strafe, turn;
+        /** Straight-line inches from the robot to the leg's end point. */
+        public final double inchesToGo;
+
+        Command(double forward, double strafe, double turn, double inchesToGo) {
+            this.forward = forward;
+            this.strafe = strafe;
+            this.turn = turn;
+            this.inchesToGo = inchesToGo;
+        }
+
+        /** False when all three powers are zero: inside the tolerance, or coasting up to the end point. */
+        public boolean driving() { return forward != 0 || strafe != 0 || turn != 0; }
+    }
+
+    /** Same as the command below, for a robot that is standing still. */
+    public static Command command(double targetForwardIn, double targetLeftIn, double maxPower,
+                                  double x, double y, double heading) {
         return command(targetForwardIn, targetLeftIn, maxPower, x, y, heading, 0, 0);
     }
 
     /**
      * Drive command toward (targetForwardIn, targetLeftIn) from pose (x, y, heading), with the
      * robot moving at (vx, vy) inches per second in the same frame.
-     * @return {forward, strafe, turn, inchesToGo}; all three powers are 0 once within tolerance,
-     * or when coasting LOOKAHEAD_SECONDS would carry it to the end point.
+     * All three powers are 0 once within tolerance, or when coasting LOOKAHEAD_SECONDS would
+     * carry the robot to the end point.
      */
-    public static double[] command(double targetForwardIn, double targetLeftIn, double maxPower,
-                                   double x, double y, double heading, double vx, double vy) {
+    public static Command command(double targetForwardIn, double targetLeftIn, double maxPower,
+                                  double x, double y, double heading, double vx, double vy) {
         double toGoForward = targetForwardIn - x, toGoLeft = targetLeftIn - y;
         double distance = Math.hypot(toGoForward, toGoLeft);
-        if (distance <= POSITION_TOLERANCE_IN) return new double[] {0, 0, 0, distance};
+        if (distance <= POSITION_TOLERANCE_IN) return new Command(0, 0, 0, distance);
         // How far it will still be after coasting LOOKAHEAD_SECONDS toward the end point.
         double towardSpeed = (vx * toGoForward + vy * toGoLeft) / distance;
         double brakingDistance = distance - Math.max(0, towardSpeed) * LOOKAHEAD_SECONDS;
         // Cut power only if it would coast right up to the end point anyway; cutting it any
         // earlier leaves the robot stopping short and creeping in.
-        if (brakingDistance <= 0) return new double[] {0, 0, 0, distance};
+        if (brakingDistance <= 0) return new Command(0, 0, 0, distance);
 
         // The error is measured on the field (zeroed frame); the wheels need it relative to the
         // robot, so turn it by the robot's heading.
@@ -126,7 +145,7 @@ public final class PollenOdometryDrive {
         double strafe = -power * robotLeft / distance; // strafe + is RIGHT
         // Heading counterclockwise of zero -> turn clockwise (turn +) to come back.
         double turn = Math.max(-MAX_TURN, Math.min(MAX_TURN, HEADING_KP * wrap(heading)));
-        return new double[] {forward, strafe, turn, distance};
+        return new Command(forward, strafe, turn, distance);
     }
 
     /** Leg power allowed {@code secondsIntoLeg} after the leg started: ramps up from MIN_POWER. */
