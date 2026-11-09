@@ -258,6 +258,11 @@ public class BioBuzzStarterbotOpMode extends OpMode {
 
         launch();
 
+        // While L1 reverses the launcher, nothing may feed forward (the drive-team guide promises
+        // this): a ball pushed into a wheel spinning backwards jams again. The left trigger can
+        // still run the intake backwards to pull balls out.
+        if (reversing) intakePower = Math.min(intakePower, 0);
+
         /*
          * Here we set our intake motor and servos to their intake power. The order of operations
          * here is important though. The gamepad triggers define the starting point for the intake

@@ -35,8 +35,9 @@ public final class PollenOdometryDrive {
     /** Least power used while outside the tolerance, so the robot does not stall just short. */
     public static final double MIN_POWER = 0.08;
     /** Default leg power for the odometry autos, and the most the INIT menus allow. Faster than
-     * the timed autos (0.20-0.45): odometry measures where the robot is, so speed no longer
-     * costs accuracy, only stopping distance, which the slow-down below handles. */
+     * the timed autos (0.20-0.45): odometry measures where the robot is, so the slow-down can
+     * correct for speed. Faster still costs something: wheel slip, overshoot and pod bounce grow
+     * with speed, so check stopping on field tiles before raising it. */
     public static final double DEFAULT_LEG_POWER = 0.60, MAX_LEG_POWER = 0.80;
     /** Power may rise this fast at the start of a leg (per second), so the wheels don't spin. */
     public static final double RAMP_POWER_PER_SECOND = 2.0;
@@ -49,9 +50,18 @@ public final class PollenOdometryDrive {
     public static final double ESTIMATE_CM_PER_SECOND_PER_POWER = 120;
     /** Added to each leg's estimate for slowing down at the end. */
     public static final double LEG_SETTLE_SECONDS = 0.2;
-    /** A leg that has not arrived after (2 x estimate + 1 s) gives up and the next leg starts.
-     * Legs end at fixed points, so the next leg still heads for its own correct end point. */
+    /** A leg that has not arrived after (2 x estimate + 1 s) has run out of time. If it is within
+     * NEAR_ENOUGH_IN of its end point the next leg starts; otherwise the whole route STOPS. Never
+     * just start the next leg from far away: the legs are planned to go around things (wall, hive,
+     * flower), and a straight line from where a stuck robot is could cut right through them. */
     public static final double TIMEOUT_FACTOR = 2, TIMEOUT_EXTRA_SECONDS = 1;
+    /** "Almost there": a leg this close to its end point may hand over to the next leg. */
+    public static final double NEAR_ENOUGH_IN = 2.0;
+    /** Stuck check: if the wheels are being driven, the robot is farther than NEAR_ENOUGH_IN from
+     * the end point, and odometry shows it moved less than NO_PROGRESS_MIN_IN in
+     * NO_PROGRESS_SECONDS, something is wrong (blocked robot, unplugged pod, frozen reading):
+     * stop everything. */
+    public static final double NO_PROGRESS_SECONDS = 0.75, NO_PROGRESS_MIN_IN = 0.5;
 
     /** Wall squaring (B and C, before the first leg): back gently into the end wall so the
      * robot's back sits flat against it, then zero the odometry there. The wall stops the robot;
@@ -60,6 +70,14 @@ public final class PollenOdometryDrive {
     public static final double SQUARE_POWER = 0.30, SQUARE_SECONDS = 0.35;
     /** Zero-output pause right after zeroing, so no loop acts on a pose read from before the zero. */
     public static final double ZERO_SETTLE_SECONDS = 0.10;
+
+    /** Pinpoint statuses that mean the hardware is not working (a pod not plugged in, or the IMU
+     * spinning by itself): odometry autos refuse to start, and stop if one appears mid-run.
+     * FAULT_BAD_READ is not here: a single bad read happens and the next one is fine (the stuck
+     * check catches a reading that stays frozen). Takes the status's name so this is testable. */
+    public static boolean pinpointFault(String status) {
+        return status != null && status.startsWith("FAULT_") && !status.equals("FAULT_BAD_READ");
+    }
 
     /** Seconds a leg is expected to take: used for the time budget. */
     public static double plannedSeconds(double distanceCm, double maxPower) {

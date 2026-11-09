@@ -14,8 +14,7 @@ Both are in the autonomous list, group *Pollen* (no "Odo").
 
 - Same job, same lane, same parking slot, same placement on the field. Use the pictures on the
   [Shoot + Park](1-shoot-and-park.md) and [Supporting Shooter](2-supporting-shooter.md) pages.
-- Same buttons: **Triangle** = defaults (press it once), **Square** does nothing,
-  **Circle** = short fallback (Shoot + Park only).
+- Same buttons: **Triangle** = defaults (press it once); **Circle** and **Square** do nothing.
 - Same shooting times. The Supporting Shooter still waits 12 s and shoots at 15 s.
 
 ## What's different
@@ -31,7 +30,7 @@ Both are in the autonomous list, group *Pollen* (no "Odo").
 
 | Line | Should say |
 | --- | --- |
-| Build | `pollen-odo-v5` |
+| Build | `pollen-odo-v6` |
 | Mode | `Shoot + Park - real motors on START` (or `Supporting Shooter ...`) |
 | Status | `READY - no movement until START` |
 

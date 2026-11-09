@@ -1,6 +1,6 @@
 # Pollen autonomous code
 
-Build identifier: **pollen-odo-v5** (`PollenConfig.BUILD`). Three autonomous OpModes preselect PollenBot:
+Build identifier: **pollen-odo-v6** (`PollenConfig.BUILD`). Three autonomous OpModes preselect PollenBot:
 `Pollen ROBOT Park`, `Pollen ROBOT Shoot + Park`, and
 `Pollen Supporting Shooter Auto`. The PollenBot TeleOp itself
 (`../BioBuzzStarterbotOpMode.java`, outside this package) uses `PollenTeleOpTuning`
@@ -62,7 +62,10 @@ snapshot that no longer fits the budget is kept as is: `budgetOk()` is false,
 INIT shows OVER TIME BUDGET, `init()` skips building the sequence, and `start()`
 refuses to run. While over budget, `adjust()` accepts only edits that do not
 lengthen the route. START locks every control, including
-Triangle and Circle (Square is not read). These are process-local snapshots, not persisted files.
+Triangle (Circle and Square are not read). These are process-local snapshots, not persisted files.
+Each snapshot also stores the `Route` (FULL_PARK, SUPPORT_PARK, EDITED), shown as the first INIT
+line. `PollenAutoLog` writes INIT route changes, START settings, phases, warnings, the result and
+0.25 s samples to RobotLog (tag `PollenAuto`); it is pure Java and never throws.
 PollenBot TeleOp keeps its own static snapshot the same way; its defaults are the
 OpMode's `LAUNCHER_TARGET_VELOCITY` / `LAUNCHER_MIN_VELOCITY` and 100% drive power.
 
@@ -92,8 +95,8 @@ Wheel order is front-left, front-right, back-left, back-right; mixer commands ar
 - A: delay -> timed forward -> hold.
 - B default (Triangle): stationary shot -> leg 1 forward 10 cm off the
   wall -> leg 2 left 63.5 cm -> leg 3 172.47 cm at +17 deg (field-tuned) -> hold.
-- B Circle, leave the wall: delay -> spinup -> feed -> leg 3 only (tested 60.96 cm) -> hold.
-  Square does nothing (it loaded the three-leg route before pollen-odo-v5).
+- Circle and Square do nothing. (Square loaded the three-leg route before pollen-odo-v5; Circle's
+  leave-the-wall move, leg 3 only at 60.96 cm, was removed in pollen-odo-v6.)
 - C: 12 s delay -> 3 s spin-up -> feed 15-22.5 s -> leg 1 forward flower
   clearance -> (leg 2 unused) -> leg 3 97.96 cm at -81.85 deg (field-tuned) -> hold.
 
@@ -163,7 +166,7 @@ The Java script uses Java 8 compatibility and covers original A/B behavior,
 mat arithmetic, field-preset selection, fixed spin-up/feed timing (including a launcher reading zero), C's slot, all three
 movement legs, controller edits of each leg and launcher speed, budgets, memory and STOP,
 plus the TeleOp INIT menu (defaults, limits, the two feed rules, memory, lock at START).
-`PollenLoopTimingTest` drives B's full route, B's Circle route and C through irregular loop
+`PollenLoopTimingTest` drives B's full route and C through irregular loop
 timing and 350 ms pauses at each step change, and checks that no leg is skipped
 or shortened and that a pause while driving stops the run. The standard-library
 Python script checks nominal swept polygons, including the rejected direct route
@@ -184,6 +187,6 @@ is unavailable.
 
 Deploy a freshly built APK through the team's working Wi-Fi/ADB connection or
 Android Studio TeamCode run configuration to the Control Hub. USB-C has not
-worked. Verify `pollen-odo-v5` in INIT. Check the actual installed commit and all
+worked. Verify `pollen-odo-v6` in INIT. Check the actual installed commit and all
 settings before physical tests. Java changes require rebuild/reinstall; INIT
 settings and documentation edits do not.

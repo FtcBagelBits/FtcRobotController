@@ -65,15 +65,14 @@ public final class PollenLoopTimingTest {
     public static void main(String[] args) {
         PollenShootTuning c = new PollenShootTuning(null, true);
         PollenShootTuning b = new PollenShootTuning(null);
-        // B's default is the full 3-leg route (formerly the Square preset).
-        b.update(false, false, false, false, false, false);
+        // B's default is the full 3-leg route.
 
         // Reviewer's case: a 350 ms pause right after each step change, at a steady 20 ms loop.
         fullLegs(simulate(c.sequence(), i -> .02, .35), c, .02, "C, 350 ms gap after each step change");
-        fullLegs(simulate(b.sequence(), i -> .02, .35), b, .02, "B Square, 350 ms gap after each step change");
+        fullLegs(simulate(b.sequence(), i -> .02, .35), b, .02, "B full route, 350 ms gap after each step change");
         // Same with the shooter unavailable (C keeps its feed slot; B departs at once).
         fullLegs(simulate(c.sequence(false), i -> .02, .35), c, .02, "C, no shooter");
-        fullLegs(simulate(b.sequence(false), i -> .02, .35), b, .02, "B Square, no shooter");
+        fullLegs(simulate(b.sequence(false), i -> .02, .35), b, .02, "B full route, no shooter");
 
         // Margin at a steady 20 ms loop: C's last leg ends with about 1.5 s to spare before 27 s.
         Run steady = simulate(c.sequence(), i -> .02, 0);
@@ -82,11 +81,7 @@ public final class PollenLoopTimingTest {
         // Irregular loops: a repeating 5-240 ms pattern, every gap under the 250 ms stall limit.
         double[] jitter = {.005, .03, .012, .24, .018, .09, .007, .15, .021, .06, .2, .011};
         fullLegs(simulate(c.sequence(), i -> jitter[i % jitter.length], .3), c, .24, "C, irregular loop");
-        fullLegs(simulate(b.sequence(), i -> jitter[i % jitter.length], .3), b, .24, "B Square, irregular loop");
-        PollenShootTuning tested = new PollenShootTuning(null);  // B Circle: the tested 2-foot baseline
-        tested.update(false, false, false, false, false, true);
-        tested.update(false, false, false, false, false, false);
-        fullLegs(simulate(tested.sequence(), i -> jitter[i % jitter.length], .3), tested, .24, "B Triangle, irregular loop");
+        fullLegs(simulate(b.sequence(), i -> jitter[i % jitter.length], .3), b, .24, "B full route, irregular loop");
 
         // A pause while the drive is moving: 250 ms is tolerated, anything longer stops everything.
         PollenSequence s = c.sequence(false); s.start(0);

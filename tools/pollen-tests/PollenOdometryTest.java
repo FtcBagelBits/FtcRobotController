@@ -29,6 +29,7 @@ public final class PollenOdometryTest {
         double lagSeconds = 0.10;           // velocity follows command with this time constant
         double wallAlignRadPerSecPerPower = 1.0; // how fast pushing into the wall squares it
         boolean stuck;                      // nothing moves (e.g. blocked by another robot)
+        double leftLimit = Double.POSITIVE_INFINITY; // field y it cannot pass (an obstacle on its left)
         double x, y, h, vf, vl, w;
         double ox, oy, oh;                  // where odometry was last zeroed
 
@@ -49,6 +50,7 @@ public final class PollenOdometryTest {
                 vf = 0;
                 w = 0;
             }
+            if (ny > leftLimit) { ny = leftLimit; vl = 0; }
             x = nx; y = ny; h += w * dt;
         }
 
@@ -98,8 +100,8 @@ public final class PollenOdometryTest {
     }
 
     static void tap(PollenShootTuning t, boolean up, boolean down, boolean left, boolean right) {
-        t.update(up, down, left, right, false, false);
-        t.update(false, false, false, false, false, false);
+        t.update(up, down, left, right, false);
+        t.update(false, false, false, false, false);
     }
 
     static void setRow(PollenShootTuning t, PollenShootTuning.Field f, double value) {
@@ -207,12 +209,27 @@ public final class PollenOdometryTest {
         PollenShootTuning b = new PollenShootTuning(null, false, true);
         check(b.legCm(1) > 0 && b.legCm(2) > 0 && Math.abs(b.legCm(3) - 217.47) < 0.05,
                 "odometry B default is the full route to the planned park spot");
-        b.update(false, false, false, false, false, true); // Circle: leave-the-wall fallback
-        b.update(false, false, false, false, false, false);
-        check(b.legCm(1) == 0 && b.legCm(2) == 0, "odometry B Circle: short move only");
         check(b.wallSquare() && b.label(CALIBRATION).startsWith("Wall square"), "odometry B: wall square on by default");
-        check(b.value(LEG3_CM) == 60.96 && b.value(LEG3_ANGLE) == PollenShootTuning.PARK_ANGLE_DEGREES,
-                "odometry B Circle is the same 2-foot move");
+        check(b.value(DRIVE_POWER) == PollenOdometryDrive.DEFAULT_LEG_POWER, "odometry B: default leg power");
+        b.update(false, false, false, false, false); // Circle and Square are not inputs any more
+        check(b.route() == PollenShootTuning.Route.FULL_PARK && b.route().label.startsWith("FULL PARK"),
+                "B shows FULL PARK on the route line");
+        setRow(b, FLYWHEEL, 1220);
+        PollenShootTuning next = new PollenShootTuning(b.snapshot(), false, true);
+        check(next.route() == PollenShootTuning.Route.FULL_PARK && next.value(FLYWHEEL) == 1220,
+                "remembered settings keep the route and the edited launcher speed");
+        check(new PollenShootTuning(null, false, true).route() == PollenShootTuning.Route.FULL_PARK
+                && new PollenShootTuning(null, true, true).route() == PollenShootTuning.Route.SUPPORT_PARK,
+                "default route lines: B full park, C support park");
+        PollenShootTuning edited = new PollenShootTuning(null, false, true);
+        setRow(edited, LEG2_CM, edited.value(LEG2_CM) + 5);
+        check(edited.route() == PollenShootTuning.Route.EDITED, "editing a leg row shows EDITED LEGS");
+        check(new PollenShootTuning(edited.snapshot(), false, true).route() == PollenShootTuning.Route.EDITED,
+                "edited legs are remembered and still flagged");
+        edited.update(false, false, false, false, true);
+        check(edited.route() == PollenShootTuning.Route.FULL_PARK, "Triangle restores FULL PARK");
+        check(edited.settingsLine().startsWith("route=FULL_PARK") && edited.settingsLine().contains(" LEG3_CM="),
+                "log line lists the route and every row");
         check(b.value(DRIVE_POWER) == PollenOdometryDrive.DEFAULT_LEG_POWER, "odometry legs default to 0.6 power");
         setRow(b, DRIVE_POWER, 0.8);
         check(b.value(DRIVE_POWER) == 0.8, "odometry power row reaches 0.8");
@@ -220,13 +237,13 @@ public final class PollenOdometryTest {
         check(b.value(DRIVE_POWER) == 0.8, "odometry power row stops at 0.8");
         setRow(b, DRIVE_POWER, 0.6);
         Run run = simulate(b.sequence(), new SimRobot());
-        check(run.steps.toString().equals("[SQUARE TO WALL, ZERO ODOMETRY, SHOOT, LEG 3 TO PARK]"),
-                "B order: square, zero, shoot, leg; got " + run.steps);
+        check(run.steps.toString().equals("[SQUARE TO WALL, ZERO ODOMETRY, SHOOT, LEG 1 OFF WALL, LEG 2 CLEAR HIVE, LEG 3 TO PARK]"),
+                "B order: square, zero, shoot, legs; got " + run.steps);
         check(Math.abs(run.feedAt - b.feedStartSeconds()) < 0.1 && Math.abs(b.feedStartSeconds() - 3.45) < 1e-9,
                 "B (no delay): squaring delays the feed by 0.45 s (+ step-change loops), to " + run.feedAt);
         setRow(b, CALIBRATION, 0);
         run = simulate(b.sequence(), new SimRobot());
-        check(run.steps.toString().equals("[ZERO ODOMETRY, SHOOT, LEG 3 TO PARK]"),
+        check(run.steps.toString().equals("[ZERO ODOMETRY, SHOOT, LEG 1 OFF WALL, LEG 2 CLEAR HIVE, LEG 3 TO PARK]"),
                 "wall square off: zero only; got " + run.steps);
         check(simulate(timed.sequence(), new SimRobot()).steps.toString()
                         .equals("[SHOOT, LEG 1 OFF WALL, LEG 2 CLEAR HIVE, LEG 3 TO PARK, PARK / HOLD]"),
@@ -317,8 +334,17 @@ public final class PollenOdometryTest {
         SimRobot stuck = new SimRobot();
         stuck.stuck = true;
         Run run = simulate(b.sequence(), stuck);
-        check(run.warning.contains("gave up"), "blocked leg gives up: " + run.warning);
-        check(run.result.startsWith("DONE"), "after giving up the route still ends cleanly");
+        check(run.result.equals("LEG 1 OFF WALL NOT MOVING - STOPPED"), "robot that cannot move stops: " + run.result);
+        check(!run.steps.contains("LEG 2 CLEAR HIVE"), "and never starts the next leg: " + run.steps);
+        check(run.finishedAt - run.feedAt < 13 + 1.5, "stops within about a second of starting to drive: " + run.finishedAt);
+
+        // The review's case: the clearance leg is blocked part way (5 in into the 25 in side move).
+        SimRobot blocked = new SimRobot();
+        blocked.leftLimit = 5;
+        run = simulate(new PollenShootTuning(null, false, true).sequence(), blocked);
+        check(run.result.equals("LEG 2 CLEAR HIVE NOT MOVING - STOPPED"), "blocked clearance leg stops the route: " + run.result);
+        check(!run.steps.contains("LEG 3 TO PARK"), "leg 3 never starts from the blocked spot: " + run.steps);
+        check(run.warning.contains("short"), "warning says how far short: " + run.warning);
 
         PollenSequence seq = new PollenShootTuning(null, false, true).sequence();
         seq.start(0);

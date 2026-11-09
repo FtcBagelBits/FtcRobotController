@@ -5,7 +5,11 @@ package org.firstinspires.ftc.teamcode.pollen;
  * PollenOdometryDrive. Move steps need the pose every loop: call tick(now, x, y, heading).
  * Each step's clock starts on the first loop that runs it (when its motion is first
  * commanded), so a slow loop between steps cannot use up a step. A loop gap longer
- * than MAX_DRIVE_LOOP_GAP_SECONDS while the drive is moving stops everything. */
+ * than MAX_DRIVE_LOOP_GAP_SECONDS while the drive is moving stops everything.
+ *
+ * A move that runs out of time far from its end point, or stops making progress, STOPS the whole
+ * route (see PollenOdometryDrive.NEAR_ENOUGH_IN and NO_PROGRESS_SECONDS): the next leg is never
+ * started from somewhere the plan did not expect. */
 public final class PollenSequence {
     /** Longest loop gap allowed while drive motors hold a nonzero command. The motors keep
      * their last power during a gap, so a longer gap means unplanned, unmeasured travel. */
@@ -96,6 +100,8 @@ public final class PollenSequence {
     private boolean stepActive, wasDriving;
     /** Odometry move: last loop's position, to tell whether the robot has stopped. */
     private double lastMoveX = Double.NaN, lastMoveY = Double.NaN;
+    /** Odometry move, stuck check: where and when the robot last made real progress. */
+    private double progressX = Double.NaN, progressY = Double.NaN, progressAt;
     private double startedAt, stepStartedAt, previousTime;
     private boolean started, finished;
     private String result = "READY";
@@ -192,6 +198,7 @@ public final class PollenSequence {
             stepActive = true;
             stepStartedAt = now;
             lastMoveX = lastMoveY = Double.NaN;
+            progressX = progressY = Double.NaN;
         }
         double elapsed = now - stepStartedAt;
         Output out = new Output(step.name);
@@ -215,9 +222,28 @@ public final class PollenSequence {
             if (cmd[3] <= PollenOdometryDrive.POSITION_TOLERANCE_IN
                     && speed <= PollenOdometryDrive.SETTLED_IN_PER_SECOND) return advance(now);
             if (elapsed >= step.timeoutSeconds) {
-                warning = String.format(java.util.Locale.US, "%s gave up %.1f in short after %.1f s",
+                if (cmd[3] <= PollenOdometryDrive.NEAR_ENOUGH_IN) {
+                    // Almost there (still settling): close enough to hand over to the next leg.
+                    warning = String.format(java.util.Locale.US, "%s ended %.1f in short after %.1f s (close enough)",
+                            step.name, cmd[3], elapsed);
+                    return advance(now);
+                }
+                warning = String.format(java.util.Locale.US, "%s ran out of time %.1f in short after %.1f s",
                         step.name, cmd[3], elapsed);
-                return advance(now);
+                return stop(step.name + " TIMED OUT - STOPPED");
+            }
+            boolean driving = cmd[0] != 0 || cmd[1] != 0 || cmd[2] != 0;
+            if (!driving || cmd[3] <= PollenOdometryDrive.NEAR_ENOUGH_IN || Double.isNaN(progressX)
+                    || Math.hypot(x - progressX, y - progressY) >= PollenOdometryDrive.NO_PROGRESS_MIN_IN) {
+                // Progress (or coasting, or almost there): restart the stuck clock from here.
+                progressX = x;
+                progressY = y;
+                progressAt = now;
+            } else if (now - progressAt >= PollenOdometryDrive.NO_PROGRESS_SECONDS) {
+                warning = String.format(java.util.Locale.US,
+                        "%s: wheels driven but odometry moved < %.1f in in %.2f s, %.1f in short",
+                        step.name, PollenOdometryDrive.NO_PROGRESS_MIN_IN, now - progressAt, cmd[3]);
+                return stop(step.name + " NOT MOVING - STOPPED");
             }
             out.forward = cmd[0];
             out.strafe = cmd[1];
@@ -264,6 +290,8 @@ public final class PollenSequence {
     }
 
     public String warning() { return warning; }
+    /** Final (or current) result line, e.g. "DONE - all outputs zero" or "LEG 2 CLEAR HIVE TIMED OUT - STOPPED". */
+    public String result() { return result; }
 
     /** Output order: frontLeft, frontRight, backLeft, backRight. */
     public static double[] wheelPowers(Output out) {

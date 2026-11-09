@@ -24,6 +24,9 @@ It measures where it is as it drives (odometry), so it ends up in the same place
 
 Points if it works: **LEAVE 3 + PARK 5**. Our partner parks in the **OUTER** slot.
 
+If something blocks it on the way, it **stops where it is**. It never skips ahead to the next
+leg from the wrong spot, because that straight line could go through the hive.
+
 </div>
 </div>
 
@@ -63,10 +66,10 @@ changes the coach asks for (usually none).
 
 | Line | Should say |
 | --- | --- |
-| Build | `pollen-odo-v5` |
+| **ROUTE** (the first line) | `FULL PARK: shoot, then 3 legs to the parking slot` |
+| Build | `pollen-odo-v6` |
 | Mode | `ODOMETRY Shoot + Park` |
 | Odometry x fwd / y left / heading | numbers near 0 (not `NOT VALID`) |
-| Settings notice | `Defaults: shoot, then 3 legs to the parking slot` |
 | Status | `READY - no movement until START` |
 
 **7. Press START** when the match starts.
@@ -74,14 +77,13 @@ changes the coach asks for (usually none).
 <div class="side buttons" markdown="1">
 <div markdown="1">
 
-![Buttons during INIT: Triangle defaults, Circle short fallback, Square does nothing](img/shoot-and-park-buttons.svg)
+![Buttons during INIT: Triangle defaults, Circle and Square do nothing](img/shoot-and-park-buttons.svg)
 
 </div>
 <div markdown="1">
 
 - **Triangle:** back to the defaults. Always safe.
-- **Square:** does nothing. (It used to load this route; now it's the default.)
-- **Circle:** the short fallback. Only if the coach says. See [Leave-the-wall fallback](fallback-leave-the-wall.md).
+- **Square** and **Circle:** do nothing.
 - **D-pad:** changes settings. Only if the coach says.
 
 </div>
@@ -95,10 +97,12 @@ changes the coach asks for (usually none).
 | `Odometry ...: NOT VALID` | The odometry sensor isn't reading | Press STOP, then INIT again with the robot still. Still bad: use the timed fallback. |
 | `READY FOR DEPARTURE ONLY - SHOOTER FAILED` | The launcher didn't start up | The robot will still drive and park, but won't shoot. Tell a programmer; check the launcher cables. |
 | `NOT READY - over time budget` | Someone's settings take too long | Press Triangle. |
+| ROUTE isn't `FULL PARK` (and the coach didn't ask) | Someone changed a leg | Press Triangle. |
+| `PINPOINT FAULT` | A pod cable is loose | Check both pod cables. Still there: [timed fallback](fallback-timed-autos.md). |
 | Any other `BLOCKED` | Something isn't plugged in, or the wrong robot configuration is active | Tell a programmer. |
 
 ## After the match, tell the programmers
 
+- **The match number** (the robot keeps a log; a programmer pulls it after the event).
 - Did it shoot all 4? Did it park in the slot? Was it touching the side wall?
-- Anything under **Warning** on the screen, for example `LEG 3 TO PARK gave up 4.0 in short`.
-- If it stopped early: the last **Phase** shown, for example `NO ODOMETRY POSE - STOPPED` or `TIME LIMIT - STOPPED`.
+- **Photograph the screen before you INIT TeleOp**: it shows the last **Phase** and any **Warning**.

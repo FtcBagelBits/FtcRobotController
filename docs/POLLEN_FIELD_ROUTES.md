@@ -106,7 +106,7 @@ do not confuse commanded angle with measured path direction.
 The preset uses MAT_TRIAL and power 0.25. With the field-tuned leg 3 its
 calculated drive time is about 8.5 seconds; with the 3-second spin-up, the
 default 10-second feed and the 0.5-second hold, the total is about **22.0 seconds**. Short loop transitions
-consume part of the reserved margin. Circle loads B's short leave-the-wall move.
+consume part of the reserved margin.
 
 Swept-square checks clear the fixed frame, both hive projections and all four
 flowers. The smallest nominal obstacle clearance along this three-leg route is

@@ -201,12 +201,9 @@ public final class PollenMatSupportTest {
         near(shortDelay.value(START_DELAY), 12, "triangle support wait");
         near(shortDelay.value(FEED_SECONDS), 7.5, "triangle support feed");
         near(shortDelay.value(LEG3_CM), 97.96, "triangle support field-tuned distance");
-        set(shortDelay, LEG3_CM, 1, 2);
-        shortDelay.update(false, false, false, false, false, true); release(shortDelay);
-        near(shortDelay.value(LEG3_CM), 107.96, "Circle does nothing in C (keeps the edit)");
         check(new PollenShootTuning(null).value(FEED_SECONDS) == 10, "B defaults independent of support");
 
-        // B's default (and Triangle) is the three-leg route; Circle is the short leave-the-wall move.
+        // B's default (and Triangle) is the three-leg route.
         PollenShootTuning primary = new PollenShootTuning(null);
         near(primary.value(LEG1_CM), 10, "field preset first leaves the wall by 10 cm");
         near(primary.value(LEG1_ANGLE), 0, "wall clearance is straight forward");
@@ -235,15 +232,10 @@ public final class PollenMatSupportTest {
         s = primary.sequence(false); s.start(0); near(s.tick(0).forward, .25, "zero main leg still performs leg 1");
         set(primary, LEG1_CM, -1, 20); near(primary.value(LEG1_CM), 0, "leg 1 can be skipped");
         s = primary.sequence(false); s.start(0); near(s.tick(0).strafe, -.25, "skipped leg 1 starts with leg 2");
-        primary.update(false, false, false, false, false, true); release(primary);
-        near(primary.value(LEG1_CM), 0, "circle removes wall leg");
-        near(primary.value(LEG2_CM), 0, "circle removes dogleg");
-        near(primary.value(LEG3_ANGLE), 25.87, "circle baseline angle");
-        near(primary.driveSeconds(), 2.3627906976744186, "circle original duration");
         select(primary, CALIBRATION); tap(primary, 1);
         remembered = new PollenShootTuning(primary.snapshot()); check(remembered.profile() == mat, "B profile memory");
         primary.lock(); primary.update(false, false, false, false, true);
-        near(primary.value(LEG2_CM), 0, "START locks Triangle (no switch back to the full route)");
+        near(primary.value(LEG1_CM), 0, "START locks Triangle (the skipped leg 1 is not restored)");
 
         // Every leg distance/angle and the launcher speed are controller rows that reach the sequence.
         PollenShootTuning tune = new PollenShootTuning(null); // default: full route

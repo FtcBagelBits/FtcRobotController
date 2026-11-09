@@ -23,6 +23,19 @@ public final class PollenOdometryHardware {
         return new PinpointLocalizer(hardwareMap, Constants.localizerConfig);
     }
 
+    /** The Pinpoint itself: the same device object Pedro's localizer reads, so its status is
+     * refreshed every time the localizer updates. */
+    public static GoBildaPinpointDriver device(HardwareMap hardwareMap) {
+        return hardwareMap.get(GoBildaPinpointDriver.class, Constants.localizerConfig.name.get());
+    }
+
+    /** The Pinpoint's own status (READY, CALIBRATING, FAULT_...), as text. Never throws. */
+    public static String status(GoBildaPinpointDriver pinpoint) {
+        if (pinpoint == null) return "NO PINPOINT";
+        try { return String.valueOf(pinpoint.getDeviceStatus()); }
+        catch (RuntimeException ex) { return "UNKNOWN (" + ex + ")"; }
+    }
+
     /** Pose since the last zero. Before START it should sit near 0 while the robot is still. */
     public static void showPose(Telemetry telemetry, Pose pose) {
         boolean valid = Double.isFinite(pose.x()) && Double.isFinite(pose.y()) && Double.isFinite(pose.heading());

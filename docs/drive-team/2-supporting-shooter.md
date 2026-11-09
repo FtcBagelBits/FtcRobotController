@@ -67,10 +67,10 @@ Then make only the changes the coach asks for. A different wait is a *Start dela
 
 | Line | Should say |
 | --- | --- |
-| Build | `pollen-odo-v5` |
+| **ROUTE** (the first line) | `SUPPORT PARK: wait, shoot, then park in the outer slot` |
+| Build | `pollen-odo-v6` |
 | Mode | `ODOMETRY Supporting Shooter` |
 | Odometry x fwd / y left / heading | numbers near 0 (not `NOT VALID`) |
-| Settings notice | `Defaults: forward clear of flower, then right to the planned park spot` |
 | Start delay seconds | `12.00` |
 | Status | `READY - no movement until START` |
 
@@ -99,10 +99,11 @@ Then make only the changes the coach asks for. A different wait is a *Start dela
 | `Odometry ...: NOT VALID` | The odometry sensor isn't reading | Press STOP, then INIT again with the robot still. Still bad: use the timed fallback. |
 | `READY FOR DEPARTURE ONLY - SHOOTER FAILED` | The launcher didn't start up | The robot still waits out the shooting time, then parks. Tell a programmer. |
 | `NOT READY - over time budget` | Someone's settings take too long | Press Triangle. |
+| `PINPOINT FAULT` | A pod cable is loose | Check both pod cables. Still there: [timed fallback](fallback-timed-autos.md). |
 | Any other `BLOCKED` | Something isn't plugged in, or the wrong robot configuration is active | Tell a programmer. |
 
 ## After the match, tell the programmers
 
 - Did the partner tip the hive before 15 s? Did we shoot all 4? Did we park in the slot?
 - Did the robot touch the flower when it drove forward?
-- If it stopped before parking: the last **Phase** shown (`TIME LIMIT - STOPPED` means it ran out of time), and anything under **Warning**.
+- **The match number** (the robot keeps a log). If it stopped before parking: **photograph the screen before you INIT TeleOp**.

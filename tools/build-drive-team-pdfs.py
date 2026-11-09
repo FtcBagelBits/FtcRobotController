@@ -5,14 +5,18 @@ Needs: pip install markdown playwright && python3 -m playwright install chromium
 Edit the Markdown, not the PDFs. Redraw pictures first with tools/draw-drive-team-figures.py."""
 import os
 import pathlib
+import re
 import markdown
 from playwright.sync_api import sync_playwright
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
+# Footer build id comes from the code, so a reprint can't show an old build.
+BUILD = re.search(r'BUILD = "([^"]+)"', (ROOT / 'TeamCode/src/main/java/org/firstinspires/ftc/teamcode/pollen/PollenConfig.java')
+                  .read_text()).group(1)
 PAGES = ROOT / 'docs' / 'drive-team'
 OUT = PAGES / 'print'
 SHEETS = ['1-shoot-and-park', '2-supporting-shooter', '3-teleop',
-          'fallback-timed-autos', 'fallback-leave-the-wall', 'fallback-park-only']
+          'fallback-timed-autos', 'fallback-park-only']
 
 CSS = """
 @page { size: Letter; margin: 0.45in 0.55in; }
@@ -46,7 +50,7 @@ def html_for(name):
     body = markdown.markdown(text, extensions=['tables', 'md_in_html'])
     base = PAGES.as_uri() + '/'
     return (f'<!DOCTYPE html><html><head><meta charset="utf-8"><base href="{base}"><style>{CSS}</style></head>'
-            f'<body>{body}<div class="footer">Team 31452 drive team guide - build pollen-odo-v5 - '
+            f'<body>{body}<div class="footer">Team 31452 drive team guide - build {BUILD} - '
             f'source: docs/drive-team/{name}.md</div></body></html>')
 
 

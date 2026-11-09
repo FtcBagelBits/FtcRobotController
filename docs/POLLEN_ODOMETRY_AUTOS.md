@@ -33,7 +33,7 @@ them on the field. Run [the odometry baseline test](ODOMETRY_BASELINE_TEST.md) f
   checks against the field CAD:
   - B default (Triangle): legs 10 cm @ 0, 63.5 cm @ +90, 217.5 cm @ +12.3.
   - C: legs 20.3 cm @ 0, 118.0 cm @ -81.85.
-  - B Circle (leave-the-wall fallback): the 2-foot move, 60.96 cm @ +25.87. Square does nothing.
+  - Circle and Square do nothing (the Circle leave-the-wall fallback was removed in `pollen-odo-v6`).
 - **The Calibration row is now "Wall square first (0=off, 1=on)"** for B and C, and is on by default.
 - **Odo ROBOT Park:** LEFT/RIGHT changes the distance by 5 cm (default 55 cm: the mat model's
   estimate for the tested 2 s at 0.20 power; that power is below the measured ones, so check it in test 1). UP/DOWN delay, L1/R1 power, Triangle reset are as before.
@@ -94,8 +94,16 @@ Pedro Pathing's path follower is not used yet: it needs AutoTune values for this
 ones in `pedroPathing/Constants` belong to another robot. The pose already comes from Pedro's
 Pinpoint localizer, so switching to the follower later changes only how each leg is driven.
 
-Safety: a leg that hasn't arrived within 2 x its estimate + 1 s gives up, and the next leg
-starts toward its own end point. If the pose is lost (no reading), everything stops. The 27 s hard stop still applies.
+Safety (since `pollen-odo-v6`):
+- A leg that hasn't arrived within 2 x its estimate + 1 s **stops the whole route** (`LEG n ... TIMED OUT - STOPPED`)
+  unless it is within 2 in of its end point; then the next leg starts and the Warning says `close enough`.
+  The legs are planned to go around the wall, hive and flower; a straight line to the next end point from
+  wherever a stuck robot is could cut through them.
+- If the wheels are driven but odometry shows less than 0.5 in of movement in 0.75 s while the robot is more
+  than 2 in from the end point, everything stops (`... NOT MOVING - STOPPED`): blocked robot, unplugged pod or
+  frozen reading.
+- If the pose is lost (no reading), everything stops. The 27 s hard stop still applies.
+- Constants: `NEAR_ENOUGH_IN`, `NO_PROGRESS_SECONDS`, `NO_PROGRESS_MIN_IN` in `PollenOdometryDrive`.
 
 ## Time budget
 
@@ -112,8 +120,9 @@ Do these on the practice field if you can. A slippery floor makes squaring and s
 
 1. **Odo ROBOT Park**, defaults. Tape-measure the travel: 55 cm, within 1 in. Robot should not drift sideways.
    Try it at 0.30 power first (L1 to lower), then the 0.60 default.
-2. **Odo ROBOT Shoot + Park**, **Circle** (short move), **feed seconds 0** (skips the shot, saves 13 s).
-   Ends 21.6 in forward and 10.5 in left of the start, within 1 in, not rotated.
+2. **Odo ROBOT Shoot + Park**, **feed seconds 0** (skips the shot, saves 13 s), **legs 1 and 2 set to 0 cm**
+   (one diagonal leg; ROUTE shows EDITED LEGS). Needs about 8 ft of open floor. Ends 83.6 in forward and
+   18.3 in left of the start (217.5 cm @ +12.3), within 1 in, not rotated. Press Triangle afterward.
 3. **Wall square**, same as 2, but start the robot visibly crooked (3-5 deg) against a wall. With the
    row on, the robot should square up, then drive straight. With it off, it ends off by about
    (distance x angle). If the robot does anything strange while backing up, turn it off and tell us.
