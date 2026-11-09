@@ -1,10 +1,6 @@
-import org.firstinspires.ftc.teamcode.pollen.PollenAutoLog;
-import org.firstinspires.ftc.teamcode.pollen.PollenConfig;
-import org.firstinspires.ftc.teamcode.pollen.PollenOdometryDrive;
-import org.firstinspires.ftc.teamcode.pollen.PollenSequence;
-import org.firstinspires.ftc.teamcode.pollen.PollenShootTuning;
+package org.firstinspires.ftc.teamcode.pollen;
 
-/** Run with tools/test-pollen-sequence.sh. No Android SDK or simulated FTC classes. */
+/** Run from Android Studio (PollenTests) or tools/test-pollen-sequence.sh. No Android SDK or simulated FTC classes. */
 public final class PollenSequenceTest {
     private static int checks;
     private static void check(boolean condition, String message) {

@@ -1,7 +1,7 @@
 # Drive team guides
 
 For the students who run the robot at matches. Each guide prints on one sheet (the two autos and
-TeleOp front and back); the PDFs are in [print/](print/). Build `pollen-odo-v6`.
+TeleOp front and back); the PDFs are in [print/](print/). Build `pollen-odo-v7`.
 
 ## Print these for the pit (one copy each, plus one for the drive coach)
 
@@ -23,7 +23,7 @@ TeleOp front and back); the PDFs are in [print/](print/). Build `pollen-odo-v6`.
 
 1. **Agree with the partner first:** who shoots first, who parks in which slot.
 2. **Place the robot, then INIT, then press Triangle once.** Make only the changes the coach asks for.
-3. **Check the first line, ROUTE, is the route you want**, the Build line says `pollen-odo-v6`, and Status says `READY`.
+3. **Check the first line, ROUTE, is the route you want**, the Build line says `pollen-odo-v7`, and Status says `READY`.
 4. After the match, photograph the Driver Hub screen **before** INIT on TeleOp, and tell a programmer the
    match number and what happened, especially any **Warning** on the screen.
 

@@ -1,0 +1,17 @@
+# Line endings: the repository stores every text file with LF (Unix) line endings, whatever
+# computer it was edited on, so a Windows laptop and a Mac don't turn a one-line change into a
+# whole-file diff. Git converts on checkout where needed; Android Studio handles either.
+* text=auto eol=lf
+
+# Windows scripts need CRLF to run.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Never touch binary files.
+*.pdf binary
+*.png binary
+*.PNG binary
+*.jpg binary
+*.wav binary
+*.jar binary
+*.keystore binary

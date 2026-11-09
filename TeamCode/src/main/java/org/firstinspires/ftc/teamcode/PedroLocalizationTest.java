@@ -104,12 +104,13 @@ public class PedroLocalizationTest extends OpMode {
     /** True while a path button is held, so the path is built once on the way down. */
     private boolean pathArmed;
 
+    /** Lox's launcher motor; null on robots without one (PollenBot), so the test still runs. */
     private DcMotorEx flywheel;
 
     @Override
     public void init() {
-        flywheel = hardwareMap.get(DcMotorEx.class, "flywheel");
-        flywheel.setDirection(DcMotor.Direction.REVERSE);
+        flywheel = hardwareMap.tryGet(DcMotorEx.class, "flywheel");
+        if (flywheel != null) flywheel.setDirection(DcMotor.Direction.REVERSE);
 
         follower = Constants.create(hardwareMap);
         follower.setPose(new Pose(135, 9, Math.toRadians(90)));
@@ -134,15 +135,12 @@ public class PedroLocalizationTest extends OpMode {
         telemetry.addData("field flipX/flipY/reverseXY",
                 preset.getFlipX() + " / " + preset.getFlipY() + " / " + preset.getReverseXY());
         telemetry.addLine("Drive the robot, then compare the pose below to what it actually did.");
+        if (flywheel == null) telemetry.addLine("No 'flywheel' motor (fine on PollenBot): A only picks the straight test path.");
     }
 
     @Override
     public void loop() {
-        if (gamepad1.a) {
-            flywheel.setVelocity(velocity);
-        } else {
-            flywheel.setVelocity(0);
-        }
+        if (flywheel != null) flywheel.setVelocity(gamepad1.a ? velocity : 0);
 
         if (gamepad1.b) {
             // Rising edge only: the path is anchored to where the robot stood when the button

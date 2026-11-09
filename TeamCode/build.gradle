@@ -53,4 +53,7 @@ dependencies {
     // pedropathing:telemetry is the adapter that lets Pedro draw to Panels.
     implementation 'com.pedropathing:telemetry:1.0.0'
     implementation 'com.bylazar:fullpanels:1.0.12'
+
+    // Computer tests (TeamCode/src/test): run PollenTests from Android Studio, no robot needed.
+    testImplementation 'junit:junit:4.13.2'
 }

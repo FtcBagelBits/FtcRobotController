@@ -1,6 +1,6 @@
 # Pollen autonomous operating manual
 
-All autonomous modes and PollenBot TeleOp show build **`pollen-odo-v6`**.
+All autonomous modes and PollenBot TeleOp show build **`pollen-odo-v7`**.
 Keep these instructions with the installed code. The new mat calibration and field routes are **experimental**.
 **Drive team:** use the [drive-team guides](drive-team/README.md); this manual is the full reference.
 Since `pollen-odo-v5`, B's default (and Triangle) is the full shoot-and-park route.

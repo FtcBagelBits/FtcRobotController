@@ -67,7 +67,7 @@ changes the coach asks for (usually none).
 | Line | Should say |
 | --- | --- |
 | **ROUTE** (the first line) | `FULL PARK: shoot, then 3 legs to the parking slot` |
-| Build | `pollen-odo-v6` |
+| Build | `pollen-odo-v7` |
 | Mode | `ODOMETRY Shoot + Park` |
 | Odometry x fwd / y left / heading | numbers near 0 (not `NOT VALID`) |
 | Status | `READY - no movement until START` |

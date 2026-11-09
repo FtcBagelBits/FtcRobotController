@@ -1,25 +1,31 @@
 #!/usr/bin/env bash
+# Computer tests for the PollenBot code, plus the field-route checker (needs Java 17+ and python3).
+# Students: the same tests run from Android Studio (TeamCode/src/test/.../pollen/PollenTests.java).
 set -euo pipefail
 repo_dir="$(cd "$(dirname "$0")/.." && pwd)"
 test_build_dir="$(mktemp -d)"
 trap 'rm -rf "$test_build_dir"' EXIT
 src="$repo_dir/TeamCode/src/main/java/org/firstinspires/ftc/teamcode/pollen"
+tests="$repo_dir/TeamCode/src/test/java/org/firstinspires/ftc/teamcode/pollen"
+pkg=org.firstinspires.ftc.teamcode.pollen
+# PollenTests.java (the JUnit wrapper for Android Studio) is left out: it needs JUnit, which
+# Gradle supplies. Everything else here is plain Java.
 javac --release 8 -d "$test_build_dir" "$src/PollenSequence.java" "$src/PollenConfig.java" "$src/PollenParkTuning.java" "$src/PollenShootTuning.java" "$src/PollenDriveCalibration.java" "$src/PollenFieldGeometry.java" "$src/PollenTeleOpTuning.java" "$src/PollenOdometryDrive.java" "$src/PollenOdoParkTuning.java" "$src/PollenAutoLog.java" \
-  "$repo_dir/tools/pollen-tests/PollenSequenceTest.java" \
-  "$repo_dir/tools/pollen-tests/PollenParkTuningTest.java" \
-  "$repo_dir/tools/pollen-tests/PollenShootFirstTest.java" \
-  "$repo_dir/tools/pollen-tests/PollenMatSupportTest.java" \
-  "$repo_dir/tools/pollen-tests/PollenTeleOpTuningTest.java" \
-  "$repo_dir/tools/pollen-tests/PollenLoopTimingTest.java" \
-  "$repo_dir/tools/pollen-tests/PollenPresetExport.java" \
-  "$repo_dir/tools/pollen-tests/PollenOdometryTest.java"
-java -cp "$test_build_dir" PollenSequenceTest
-java -cp "$test_build_dir" PollenParkTuningTest
-java -cp "$test_build_dir" PollenShootFirstTest
-java -cp "$test_build_dir" PollenMatSupportTest
-java -cp "$test_build_dir" PollenTeleOpTuningTest
-java -cp "$test_build_dir" PollenLoopTimingTest
-java -cp "$test_build_dir" PollenOdometryTest
+  "$tests/PollenSequenceTest.java" \
+  "$tests/PollenParkTuningTest.java" \
+  "$tests/PollenShootFirstTest.java" \
+  "$tests/PollenMatSupportTest.java" \
+  "$tests/PollenTeleOpTuningTest.java" \
+  "$tests/PollenLoopTimingTest.java" \
+  "$tests/PollenPresetExport.java" \
+  "$tests/PollenOdometryTest.java"
+java -cp "$test_build_dir" $pkg.PollenSequenceTest
+java -cp "$test_build_dir" $pkg.PollenParkTuningTest
+java -cp "$test_build_dir" $pkg.PollenShootFirstTest
+java -cp "$test_build_dir" $pkg.PollenMatSupportTest
+java -cp "$test_build_dir" $pkg.PollenTeleOpTuningTest
+java -cp "$test_build_dir" $pkg.PollenLoopTimingTest
+java -cp "$test_build_dir" $pkg.PollenOdometryTest
 # Check the routes the Java presets actually drive against the CAD field model.
-java -cp "$test_build_dir" PollenPresetExport > "$test_build_dir/presets.json"
+java -cp "$test_build_dir" $pkg.PollenPresetExport > "$test_build_dir/presets.json"
 python3 "$repo_dir/tools/check-pollen-field-routes.py" --presets "$test_build_dir/presets.json"

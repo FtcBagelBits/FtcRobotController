@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Nominal CAD geometry checks; see docs/POLLEN_FIELD_ROUTES.md. Not physical validation.
 Usage: python3 tools/check-pollen-field-routes.py [--presets presets.json]
-With --presets (written by tools/pollen-tests/PollenPresetExport.java; tools/test-pollen-sequence.sh
+With --presets (written by TeamCode/src/test/.../pollen/PollenPresetExport.java; tools/test-pollen-sequence.sh
 does this), the routes checked are rebuilt from the Java presets and must match this file's plan."""
 import json, math, sys
 R=9; W=70.585; hx=-12.74164098

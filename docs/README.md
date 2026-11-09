@@ -6,6 +6,7 @@ Read [Start here](POLLEN_START_HERE.md) first.
 | Document | Audience and purpose |
 | --- | --- |
 | [Start here](POLLEN_START_HERE.md) | Everyone new to the code: what runs, the three core ideas, a guided reading path, exercises, build commands. |
+| [Set up, test, install, share](ROBOT_CONNECTION.md) | Students on Windows or Mac: Android Studio notes, running the computer tests, installing over the Control Hub's Wi-Fi, fixing connection problems, branches and pull requests. |
 | [Operating manual](POLLEN_AUTONOMOUS.md) | Drivers and students: choose a routine, position the robot, use INIT controls (autonomous and PollenBot TeleOp), interpret warnings and record tested settings. |
 | [Code README](../TeamCode/src/main/java/org/firstinspires/ftc/teamcode/pollen/README.md) | Programmers: file map, hardware, sequencing, calibration, tests and deployment. |
 | [How autonomous works](POLLEN_AUTONOMOUS_EXPLAINED.md) | Students: hardware names, lifecycle, timed movement, shooting and failure handling. |
@@ -17,7 +18,7 @@ Read [Start here](POLLEN_START_HERE.md) first.
 | [Odometry autos](POLLEN_ODOMETRY_AUTOS.md) and [baseline test](ODOMETRY_BASELINE_TEST.md) | Programmers: how the Odo modes drive, tuning knobs, Pinpoint checks. |
 
 Menu controls belong in the operating manual; the drive-team guides are its short, student version,
-so update both. Menu controls belong in the operating manual. Implementation details belong in
+so update both. Implementation details belong in
 the code README. Field facts that do not depend on our robot belong in the field
 layout; physical robot results belong in the tested-behavior record. Update documentation with behavior changes, and record the
 installed commit with physical test results.

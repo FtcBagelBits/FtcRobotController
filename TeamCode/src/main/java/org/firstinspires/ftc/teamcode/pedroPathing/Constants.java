@@ -34,7 +34,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 public class Constants {
 
     /*
-     * Motor names and directions are copied from MecanumDrive.java so that Pedro drives Lox
+     * Motor names and directions are copied from lox/MecanumDrive.java so that Pedro drives Lox
      * the same way the TeleOp does. If a motor is ever re-wired or re-configured, change it
      * in BOTH places - they are independent.
      *
