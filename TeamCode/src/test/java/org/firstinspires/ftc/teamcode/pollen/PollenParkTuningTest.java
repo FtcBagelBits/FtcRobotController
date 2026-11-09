@@ -1,6 +1,4 @@
-import org.firstinspires.ftc.teamcode.pollen.PollenConfig;
-import org.firstinspires.ftc.teamcode.pollen.PollenParkTuning;
-import org.firstinspires.ftc.teamcode.pollen.PollenSequence;
+package org.firstinspires.ftc.teamcode.pollen;
 
 public final class PollenParkTuningTest {
     private static int checks;

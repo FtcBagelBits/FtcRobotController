@@ -1,6 +1,6 @@
 # Pollen autonomous code
 
-Build identifier: **pollen-odo-v6** (`PollenConfig.BUILD`). Three autonomous OpModes preselect PollenBot:
+Build identifier: **pollen-odo-v7** (`PollenConfig.BUILD`). Three autonomous OpModes preselect PollenBot:
 `Pollen ROBOT Park`, `Pollen ROBOT Shoot + Park`, and
 `Pollen Supporting Shooter Auto`. The PollenBot TeleOp itself
 (`../BioBuzzStarterbotOpMode.java`, outside this package) uses `PollenTeleOpTuning`
@@ -153,16 +153,18 @@ Pinpoint, AprilTags, voltage compensation or position/heading feedback.
 
 ## Tests and Android build
 
-From the repository root on the team's Mac, use the existing `ftcgradle` helper:
+The test programs are in `TeamCode/src/test/java/org/firstinspires/ftc/teamcode/pollen/`.
+In Android Studio, run `PollenTests` there (green arrow; Windows or Mac). From the repository root
+on the team's Mac, use the existing `ftcgradle` helper:
 
 ```bash
 PATH="/Applications/Android Studio.app/Contents/jbr/Contents/Home/bin:$PATH" \
-  bash tools/test-pollen-sequence.sh
-python3 tools/check-pollen-field-routes.py
+  bash tools/test-pollen-sequence.sh     # the 7 programs, plus the field-route checker
+ftcgradle :TeamCode:testDebugUnitTest    # the same 7 programs through JUnit (PollenTests)
 ftcgradle :TeamCode:assembleDebug
 ```
 
-The Java script uses Java 8 compatibility and covers original A/B behavior,
+The test programs use Java 8 compatibility and cover original A/B behavior,
 mat arithmetic, field-preset selection, fixed spin-up/feed timing (including a launcher reading zero), C's slot, all three
 movement legs, controller edits of each leg and launcher speed, budgets, memory and STOP,
 plus the TeleOp INIT menu (defaults, limits, the two feed rules, memory, lock at START).
@@ -187,6 +189,6 @@ is unavailable.
 
 Deploy a freshly built APK through the team's working Wi-Fi/ADB connection or
 Android Studio TeamCode run configuration to the Control Hub. USB-C has not
-worked. Verify `pollen-odo-v6` in INIT. Check the actual installed commit and all
+worked. Verify `pollen-odo-v7` in INIT. Check the actual installed commit and all
 settings before physical tests. Java changes require rebuild/reinstall; INIT
 settings and documentation edits do not.

@@ -1,12 +1,14 @@
 # Team 31452 — Pollen robot
 
-- **Drivers and students:** [Pollen autonomous operating manual](docs/POLLEN_AUTONOMOUS.md).
-- **Programmers:** [Pollen autonomous code README](TeamCode/src/main/java/org/firstinspires/ftc/teamcode/pollen/README.md).
+- **New programmers, start here:** [PollenBot code: start here](docs/POLLEN_START_HERE.md), then
+  [set up, test, install, and share your changes](docs/ROBOT_CONNECTION.md) (Windows and Mac).
+- **Drive team:** [drive team guides](docs/drive-team/README.md); full reference in the
+  [operating manual](docs/POLLEN_AUTONOMOUS.md).
+- **Programmers:** [Pollen autonomous code README](TeamCode/src/main/java/org/firstinspires/ftc/teamcode/pollen/README.md),
+  [what's in TeamCode](TeamCode/src/main/java/org/firstinspires/ftc/teamcode/readme.md).
 - **More context:** [Documentation index](docs/README.md).
 
-Use the documentation from the branch/commit installed on the robot. The current
-manual covers Park and Shoot + Park with controller angle tuning; short test
-defaults are not verified match settings.
+Use the documentation from the branch/commit installed on the robot.
 
 ---
 

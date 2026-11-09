@@ -1,5 +1,5 @@
-import org.firstinspires.ftc.teamcode.pollen.PollenConfig;
-import org.firstinspires.ftc.teamcode.pollen.PollenTeleOpTuning;
+package org.firstinspires.ftc.teamcode.pollen;
+
 import static org.firstinspires.ftc.teamcode.pollen.PollenTeleOpTuning.Row.*;
 
 /** PollenBot TeleOp INIT menu: defaults, edits, limits, memory, locking and the two feeding rules. */

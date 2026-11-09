@@ -56,7 +56,7 @@ end at the same spots.
 
 What it fixes and what it doesn't: it fixes the starting **angle**, the error that grows with distance.
 A 3 deg crooked start puts B's field-preset park spot about 5 in off (98 in of travel x 3 deg);
-the simulation in `tools/pollen-tests` shows the squared run within 0.5 in. It does not fix
+the simulation in `PollenOdometryTest` (TeamCode/src/test) shows the squared run within 0.5 in. It does not fix
 left/right placement. That is still set by hand at the start line.
 
 It only works if the robot's back is flat and square to the drivetrain, and nothing on the back

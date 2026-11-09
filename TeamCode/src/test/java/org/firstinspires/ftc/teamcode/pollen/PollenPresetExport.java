@@ -1,5 +1,4 @@
-import org.firstinspires.ftc.teamcode.pollen.PollenFieldGeometry;
-import org.firstinspires.ftc.teamcode.pollen.PollenShootTuning;
+package org.firstinspires.ftc.teamcode.pollen;
 
 /** Prints the field presets exactly as the Java code builds them, as JSON, so
  * tools/check-pollen-field-routes.py checks the real routes rather than its own copy.

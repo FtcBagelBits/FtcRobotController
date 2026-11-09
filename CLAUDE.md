@@ -1,8 +1,8 @@
 # CLAUDE.md
 
 Guidance for anyone working in this repository: team members, mentors, and Claude Code (claude.ai/code).
-Commands are for the team's Macs. On Windows or Linux use `gradlew.bat` / `./gradlew` and the `adb`
-from your Android SDK's `platform-tools`.
+Commands are for the team's Macs. Students on Windows or Mac working from Android Studio: see
+[docs/ROBOT_CONNECTION.md](docs/ROBOT_CONNECTION.md) for setup, tests, Wi-Fi install and pull requests.
 
 ## What this is
 
@@ -13,11 +13,13 @@ the *FIRST* Tech Challenge SDK (`FtcRobotController` **12.0**). The build produc
 - `TeamCode/src/main/java/org/firstinspires/ftc/teamcode/`: all team code. Changes go here.
   - `pollen/`: this season's robot, **PollenBot**: autonomous modes, INIT menus, odometry driving.
   - `pedroPathing/Constants.java`: Pedro Pathing and Pinpoint settings.
+  - `lox/`: last season's robot (Lox, DECODE 2025-26). Kept so it still runs; leave it alone.
+- `TeamCode/src/test/java/.../teamcode/pollen/`: computer tests for `pollen/` (`PollenTests` runs them all).
 - `FtcRobotController/`, `build.common.gradle`, `build.dependencies.gradle`: the upstream SDK.
   **Do not edit**; they are replaced wholesale on SDK updates. Team build changes go in `TeamCode/build.gradle`.
 - `docs/`: start at [docs/README.md](docs/README.md). The drive team's printable guides are in
   [docs/drive-team/](docs/drive-team/README.md).
-- `tools/`: computer tests, the field-route checker, and the scripts that draw the diagrams and print the guides.
+- `tools/`: the test script, the field-route checker, and the scripts that draw the diagrams and print the guides.
 
 ## What runs on the robot
 
@@ -29,14 +31,15 @@ the *FIRST* Tech Challenge SDK (`FtcRobotController` **12.0**). The build produc
 | Pollen ROBOT Shoot + Park / Pollen Supporting Shooter Auto | Same as the Odo ones but timed | Fallback if the Pinpoint fails |
 | Odo ROBOT Park / Pollen ROBOT Park | Drive forward only (no shot) | Fallback, testing |
 | Odometry Check | Pinpoint wiring and settings test ([docs/ODOMETRY_BASELINE_TEST.md](docs/ODOMETRY_BASELINE_TEST.md)) | Programmers |
-| Pedro Test, LauncherTest, AprilTagTest, Sensor: GoBilda Pinpoint | Older diagnostics | Programmers |
+| Pedro Test | Pedro pose on the Panels dashboard, plus a short test path (A also spins Lox's `flywheel` if the robot has one) | Programmers |
+| LauncherTest | PollenBot's launcher, intake and agitator on their own | Programmers |
 
-`MecanumOpMode`, `BioBuzzOpMode` ("Lox") and `BB2DecodeOpMode` are older robots' code (DECODE
-2025-26). They share some hardware names but nothing else with PollenBot. Leave them alone unless
-asked. **Pedro Test** reads a `flywheel` motor that only Lox has, so on PollenBot it stops at INIT.
+`lox/` holds `MecanumOpMode`, `BioBuzzOpMode` ("Lox"), `BB2DecodeOpMode` and their helpers: older
+robots' code (DECODE 2025-26). They share some hardware names but nothing else with PollenBot. Leave
+them alone unless asked. `TeamCode/.../teamcode/readme.md` is the student-facing list of what's live.
 
 Every Pollen and Odo mode shows a build id on the INIT screen (`PollenConfig.BUILD`, e.g.
-`pollen-odo-v6`). **Bump it whenever behavior changes**, so the drive team can confirm which code is installed.
+`pollen-odo-v7`). **Bump it whenever behavior changes**, so the drive team can confirm which code is installed.
 
 ## Hardware configuration names (PollenBot)
 
@@ -76,6 +79,7 @@ Run these from the repository root.
 
 ```bash
 bash tools/test-pollen-sequence.sh       # computer tests: 7 test programs + the field-route checker (needs Java and python3)
+ftcgradle :TeamCode:testDebugUnitTest    # the same 7 programs through Gradle/JUnit (PollenTests; what Android Studio runs)
 ftcgradle :TeamCode:assembleDebug        # build only: fastest check that it compiles for Android
 ```
 
@@ -148,15 +152,15 @@ ftcgradle :TeamCode:installDebug
 
 - Branch from `main`, open a PR to merge. Keep diffs small and readable: students maintain this
   code during competition. Keep existing commented-out code; it is often a hardware option toggled between matches.
-- **Run `bash tools/test-pollen-sequence.sh` before every commit** that touches `pollen/`. The tests
-  run on a computer with no SDK and no robot. They check sequencing, menus, time budgets and loop
+- **Run the tests before every commit** that touches `pollen/`: `bash tools/test-pollen-sequence.sh`,
+  or `PollenTests` in Android Studio. The test programs live in `TeamCode/src/test/` and are plain
+  Java with a `main`; add a new one to both `PollenTests` and the script. They run on a computer with no SDK and no robot. They check sequencing, menus, time budgets and loop
   timing, and they run the odometry autos against a simulated robot. The field-route checker compares the
   Java presets with the field CAD. A pass is not a robot test: say which you did.
 - Update the docs listed in [docs/README.md](docs/README.md) when behavior changes, including the
   drive-team guides; then rebuild their PDFs: `python3 tools/build-drive-team-pdfs.py`.
-- **`BioBuzzStarterbotOpMode.java` has Windows (CRLF) line endings.** Keep them: edit it in an
-  editor that preserves them, and apply patches that touch it with `git am --keep-cr` (plain
-  `git am` strips the endings and the patch fails).
+- **Every text file uses LF line endings**, enforced by `.gitattributes` (Windows `.bat`/`.cmd`
+  excepted). Git converts on checkout and commit, so Windows editors are fine; plain `git am` works.
 - Patches shared outside git (for example from a Claude chat that can only read the repo): name
   them `description-YYYYMMDD-HHMM.patch` (Pacific time) so downloads don't collide; apply with
   `git am`; push from a team Mac. Don't add `Co-Authored-By` trailers to commit messages.
@@ -200,7 +204,7 @@ ftcgradle :TeamCode:installDebug
   repo) is why `compileSdk` is 36 and the app is ~76 MB. It draws Lox mirrored. That is a drawing
   fix in `PedroLocalizationTest.REVERSE_XY`; never fix it by changing encoder or motor directions.
 
-## Older robots
+## Older robots (`lox/`)
 
 - `MecanumOpMode` owns `MecanumDriveTrain`, `Launcher`, `Camera` and `Auto` (time-based).
   `BioBuzzOpMode` (Lox) pairs with `MecanumDrive`. `BB2DecodeOpMode` is a monolith for a two-motor tank robot.
@@ -208,6 +212,5 @@ ftcgradle :TeamCode:installDebug
   Motor directions differ between `MecanumDrive` and `MecanumDriveTrain` because the robots are
   wired differently. Don't "harmonize" them.
 - `Launcher` and `BB2DecodeOpMode` hold tuned shot constants and PIDF gains (`P = 265`, `F = 14.098`).
-  They are data from `FlywheelTuner`. `FlywheelTuner.java` sits in `teamcode/` but declares package
-  `...teamcode.tutorials`: move the file rather than "fix" the package.
+  They are data from a flywheel tuner (not in this repo).
 - AprilTag vision: `AprilTagProcessor` + `VisionPortal` on `Webcam 1`; `Camera` wraps it; tag 20 is the blue goal.

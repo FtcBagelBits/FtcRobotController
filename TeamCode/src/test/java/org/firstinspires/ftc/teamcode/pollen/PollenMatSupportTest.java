@@ -1,4 +1,5 @@
-import org.firstinspires.ftc.teamcode.pollen.*;
+package org.firstinspires.ftc.teamcode.pollen;
+
 import static org.firstinspires.ftc.teamcode.pollen.PollenShootTuning.Field.*;
 
 /** Mat arithmetic and supporting-shot timing/failure regressions; no robot required. */
