@@ -1,12 +1,16 @@
 # Pollen autonomous operating manual
 
-All autonomous modes and PollenBot TeleOp show build **`pollen-odo-v10`**.
+All autonomous modes and PollenBot TeleOp show build **`pollen-odo-v11`**.
 Keep these instructions with the installed code. The new mat calibration and field routes are **experimental**.
 **Drive team:** use the [drive-team guides](drive-team/README.md); this manual is the full reference.
 Since `pollen-odo-v5`, B's default (and Triangle) is the full shoot-and-park route.
 Since `pollen-odo-v6`, the short "leave the wall" fallback (Circle) is gone: **Circle and Square do
 nothing**. The first INIT line, **ROUTE**, names the route that will run (FULL PARK, SUPPORT PARK or
 EDITED LEGS), and the shoot autos write each run to the robot log ([below](#robot-log)).
+**Since `pollen-odo-v11` the launcher shoots out of the robot's back: every mode, timed and Odo,
+starts with the robot's front against the wall and its back to the hive, and drives its route
+backward.** "Forward", "left" and the leg angles below are route directions, as seen from the
+start looking at the hive ([details](POLLEN_ODOMETRY_AUTOS.md#which-way-the-robot-faces-since-pollen-odo-v11)).
 
 ## Choose the routine
 
@@ -18,8 +22,8 @@ A, B and C are the names this manual uses for the three jobs.
 
 | Driver Hub choice | Behavior | Starting pose |
 | --- | --- | --- |
-| **EMERGENCY Timed Park** (A) | Selected delay, timed forward drive, hold | Manually aligned with the team's tested forward parking path |
-| **EMERGENCY Timed Shoot + Park** (B) | Delay, stationary shot, up to three selected drive legs, hold | End wall, flush and square, centerline aimed into the initially upward-facing cell |
+| **EMERGENCY Timed Park** (A) | Selected delay, timed straight drive (backward, launcher end first), hold | Manually aligned with the team's tested parking path, back toward where it should go |
+| **EMERGENCY Timed Shoot + Park** (B) | Delay, stationary shot, up to three selected drive legs, hold | End wall, front flush and square, back (launcher) centerline aimed into the initially upward-facing cell |
 | **EMERGENCY Timed Supporting Shooter** (C) | Wait 12 s, spin up 3 s, stationary forward shot, forward flower clearance, mostly-right travel, hold | Opposite end wall, **flush and square, centered between flower and midline** (below); partner tips the cell before our shot |
 
 All preselect **PollenBot** for TeleOp, without automatically starting it. There
@@ -134,7 +138,7 @@ Start **flush against the scoring end wall and square to it**. Slide the robot
 toward the midline from the hive center until the gap to the flower equals the
 gap to the alliance midline: nominally **2.6 cm each side**, which puts the robot
 centerline **6.9 cm toward the midline** from the hive center. The shot goes
-straight forward and lands about 6.9 cm off the cell center (opening about 51 cm
+straight out of the robot's back (toward the hive) and lands about 6.9 cm off the cell center (opening about 51 cm
 wide) at the same distance as a centered start. Measure on the real field:
 the total slack between flower and midline is only about 5.2 cm.
 

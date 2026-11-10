@@ -93,11 +93,11 @@ public final class PollenOdoParkTuning {
         return max;
     }
 
-    /** Zero the odometry, drive straight forward cm, then hold still. */
+    /** Zero the odometry, drive straight cm (route forward: see PollenFacing), then hold still. */
     public PollenSequence sequence() {
         PollenSequence.Step[] steps = {
                 PollenSequence.Step.zeroOdometry(PollenOdometryDrive.ZERO_SETTLE_SECONDS),
-                PollenSequence.Step.moveTo("FORWARD TO PARK", cm / PollenOdometryDrive.CM_PER_INCH, 0, power,
+                PollenSequence.Step.moveTo("DRIVE TO PARK", cm / PollenOdometryDrive.CM_PER_INCH, 0, power,
                         PollenOdometryDrive.plannedSeconds(cm, power), PollenOdometryDrive.timeoutSeconds(cm, power)),
                 PollenSequence.Step.drive("PARK / HOLD", holdSeconds, 0, 0, 0)
         };

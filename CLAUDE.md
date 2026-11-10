@@ -28,8 +28,8 @@ the *FIRST* Tech Challenge SDK (`FtcRobotController` **12.0**). The build produc
 | **Odo ROBOT Shoot + Park** | Shoots the preloads, drives to the inner parking slot using odometry | Drive team, primary auto |
 | **Odo Supporting Shooter Auto** | Waits 12 s for the partner, shoots, parks in the outer slot | Drive team, when the partner shoots first |
 | **PollenBot** (TeleOp) | Driving, intake, R1 shoots, L1 reverses the launcher | Drive team |
-| Odo ROBOT Park | Drive forward only (no shot), measured with odometry | Testing, or the launcher is broken |
-| Angled Primary Shooter | **Experimental.** Odo ROBOT Shoot + Park with an angled shot: two legs to a spot off the wall and to the side, turn to face the hive, shoot, turn back, park | Programmers, until it has been tried on a field |
+| Odo ROBOT Park | Drive straight only (no shot), measured with odometry | Testing, or the launcher is broken |
+| Angled Primary Shooter | **Experimental.** Odo ROBOT Shoot + Park with an angled shot: two legs to a spot off the wall and to the side, turn the launcher toward the hive, shoot, turn back, park (on hold since v11: the robot now shoots straight from the wall; it still runs, back to the hive like every auto) | Programmers, until it has been tried on a field |
 | EMERGENCY Timed Shoot + Park / EMERGENCY Timed Supporting Shooter / EMERGENCY Timed Park | The same three jobs with timed driving (no odometry) | **Emergency only:** a match where the Pinpoint is not working |
 | Odometry Check | Pinpoint wiring and settings test ([docs/ODOMETRY_BASELINE_TEST.md](docs/ODOMETRY_BASELINE_TEST.md)) | Programmers |
 | Pedro Test | Pedro pose on the Panels dashboard, plus a short test path (A also spins Lox's `flywheel` if the robot has one) | Programmers |
@@ -40,7 +40,16 @@ robots' code (DECODE 2025-26). They share some hardware names but nothing else w
 them alone unless asked. `TeamCode/.../teamcode/readme.md` is the student-facing list of what's live.
 
 Every Pollen and Odo mode shows a build id on the INIT screen (`PollenConfig.BUILD`, e.g.
-`pollen-odo-v10`). **Bump it whenever behavior changes**, so the drive team can confirm which code is installed.
+`pollen-odo-v11`). **Bump it whenever behavior changes**, so the drive team can confirm which code is installed.
+
+**Which way the robot faces (since `pollen-odo-v11`).** The launcher shoots out of the robot's back,
+so every autonomous starts with the robot's front against the end wall and its back to the hive.
+Routes, leg angles, menus, budgets, the field-route checker and the robot log stay in **route
+directions** (as if the robot faced the hive: x forward toward the hive, y left). `pollen/PollenFacing`
+is the only code that knows the robot is turned around: each autonomous OpMode passes the Pinpoint
+pose through `PollenFacing.routePose` and its output through `PollenFacing.wheelPowers`. Keep it that
+way: a new autonomous OpMode must use both, and nothing else should flip signs. TeleOp, LauncherTest,
+Odometry Check and Pedro Test are unaffected.
 
 ## Hardware configuration names (PollenBot)
 

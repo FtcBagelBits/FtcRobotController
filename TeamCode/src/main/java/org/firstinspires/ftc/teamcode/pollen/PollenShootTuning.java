@@ -3,12 +3,17 @@ package org.firstinspires.ftc.teamcode.pollen;
 import java.util.ArrayList;
 import java.util.List;
 
-/** INIT-only selections for the end-wall, forward-facing shooting start. No hardware calls.
+/** INIT-only selections for the end-wall shooting start. No hardware calls.
+ *
+ * Every leg, angle and end point here is in ROUTE directions, as if the robot faced the hive:
+ * forward = toward the hive, +angle = left as seen looking at the hive. The robot really starts
+ * with its back (launcher) to the hive, so it drives each leg backward; PollenFacing does that
+ * turn-around in the OpModes, and nothing in this file needs to know.
  *
  * ODOMETRY MODE (the "Odo" OpModes): the same menu, but each leg's cm and angle are a real
  * distance and direction, driven to with odometry (PollenOdometryDrive) instead of being turned
- * into seconds. The CALIBRATION row becomes "wall square first": at the very start, back into
- * the end wall so the robot sits flat against it, then zero the odometry there. Doing it first
+ * into seconds. The CALIBRATION row becomes "wall square first": at the very start, push into
+ * the end wall (the robot drives front first: see PollenFacing) so the robot sits flat against it, then zero the odometry there. Doing it first
  * squares the shot as well as the route, and it runs inside the start delay when there is one
  * (C's 12 s), so C still feeds at 15 s. There is no end hold: a leg only ends once the robot is
  * stopped inside the tolerance. Leg 3 defaults to the CAD plan (PollenFieldGeometry), not the
@@ -290,7 +295,7 @@ public final class PollenShootTuning {
         if (angled && f == Field.LEG2_CM) return "Leg 2 cm, to the shooting spot (0 = skip)";
         return odometry && f == Field.CALIBRATION ? "Wall square first (0=off, 1=on)" : f.label;
     }
-    /** Odometry mode: at the start, back into the end wall and zero the odometry there. */
+    /** Odometry mode: at the start, push into the end wall and zero the odometry there. */
     public boolean wallSquare() { return odometry && value(Field.CALIBRATION) == 1; }
 
     /** Odometry mode: where leg 1, 2 or 3 ends, in inches from the zero point {forward, left}.
@@ -399,8 +404,8 @@ public final class PollenShootTuning {
                 + (value(Field.FEED_SECONDS) > 0 ? value(Field.SPINUP) + value(Field.FEED_SECONDS) : 0);
     }
 
-    // Both alliance starts are related by a 180-degree rotation. Humans position
-    // the robot facing its hive; the same robot-relative vector works on either side.
+    // Both alliance starts are related by a 180-degree rotation. Humans position the robot
+    // square to its end wall (back to its hive); the same route vector works on either side.
     public double forward() {
         return move().forward;
     }

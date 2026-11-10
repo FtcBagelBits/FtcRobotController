@@ -425,79 +425,82 @@ z
     <text style="font-weight: 700; font-size: 11.5px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #111111" x="491.04" y="47.860625" transform="rotate(-0 491.04 47.860625)">Lane assignments</text>
    </g>
    <g id="text_20">
-    <text style="font-size: 9.2px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #111111" x="491.04" y="66.0121" transform="rotate(-0 491.04 66.0121)">P = shoots first.  S = shoots second (waits for the tip).</text>
+    <text style="font-size: 9.2px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #111111" x="491.04" y="65.1859" transform="rotate(-0 491.04 65.1859)">P = shoots first.  S = shoots second (waits for the tip).</text>
    </g>
    <g id="text_21">
-    <text style="font-size: 9.2px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #111111" x="491.04" y="86.3917" transform="rotate(-0 491.04 86.3917)">Each alliance: P parks in the INNER slot (zone end toward</text>
+    <text style="font-size: 9.2px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #111111" x="491.04" y="84.7393" transform="rotate(-0 491.04 84.7393)">Each alliance: P parks in the INNER slot (zone end toward</text>
    </g>
    <g id="text_22">
-    <text style="font-size: 9.2px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #111111" x="491.04" y="106.7713" transform="rotate(-0 491.04 106.7713)">midfield), S in the OUTER slot (zone end toward its wall).</text>
+    <text style="font-size: 9.2px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #111111" x="491.04" y="104.2927" transform="rotate(-0 491.04 104.2927)">midfield), S in the OUTER slot (zone end toward its wall).</text>
    </g>
    <g id="text_23">
-    <text style="font-size: 9.2px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #111111" x="491.04" y="127.1509" transform="rotate(-0 491.04 127.1509)">Red P starts at the audience wall; blue P at the scoring wall.</text>
+    <text style="font-size: 9.2px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #111111" x="491.04" y="123.8461" transform="rotate(-0 491.04 123.8461)">Red P starts at the audience wall; blue P at the scoring wall.</text>
    </g>
    <g id="text_24">
-    <text style="font-weight: 700; font-size: 11.5px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #111111" x="491.04" y="160.774625" transform="rotate(-0 491.04 160.774625)">Auto-SWARM: 16 points by end of AUTO</text>
+    <text style="font-weight: 700; font-size: 11.5px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #111111" x="491.04" y="156.643625" transform="rotate(-0 491.04 156.643625)">Auto-SWARM: 16 points by end of AUTO</text>
    </g>
    <g id="text_25">
-    <text style="font-size: 9.2px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #111111" x="491.04" y="178.9261" transform="rotate(-0 491.04 178.9261)">Each robot: LEAVE 3 + AUTO PARK 5. Both robots = 16 =</text>
+    <text style="font-size: 9.2px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #111111" x="491.04" y="173.9689" transform="rotate(-0 491.04 173.9689)">Each robot: LEAVE 3 + AUTO PARK 5. Both robots = 16 =</text>
    </g>
    <g id="text_26">
-    <text style="font-size: 9.2px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #111111" x="491.04" y="199.3057" transform="rotate(-0 491.04 199.3057)">SWARM RP at events using the default threshold (Table 10-3).</text>
+    <text style="font-size: 9.2px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #111111" x="491.04" y="193.5223" transform="rotate(-0 491.04 193.5223)">SWARM RP at events using the default threshold (Table 10-3).</text>
    </g>
    <g id="text_27">
-    <text style="font-size: 9.2px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #111111" x="491.04" y="219.6853" transform="rotate(-0 491.04 219.6853)">Judged at the END of AUTO: a robot touching the perimeter</text>
+    <text style="font-size: 9.2px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #111111" x="491.04" y="213.0757" transform="rotate(-0 491.04 213.0757)">Judged at the END of AUTO: a robot touching the perimeter</text>
    </g>
    <g id="text_28">
-    <text style="font-size: 9.2px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #111111" x="491.04" y="240.0649" transform="rotate(-0 491.04 240.0649)">wall then gets no LEAVE. PARK = partly in the loading zone.</text>
+    <text style="font-size: 9.2px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #111111" x="491.04" y="232.6291" transform="rotate(-0 491.04 232.6291)">wall then gets no LEAVE. PARK = partly in the loading zone.</text>
    </g>
    <g id="text_29">
-    <text style="font-size: 9.2px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #111111" x="491.04" y="260.4445" transform="rotate(-0 491.04 260.4445)">Our slots stop 5.6 in off the wall and 5.4 in into the tape.</text>
+    <text style="font-size: 9.2px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #111111" x="491.04" y="252.1825" transform="rotate(-0 491.04 252.1825)">Our slots stop 5.6 in off the wall and 5.4 in into the tape.</text>
    </g>
    <g id="text_30">
-    <text style="font-weight: 700; font-size: 11.5px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #111111" x="491.04" y="294.068225" transform="rotate(-0 491.04 294.068225)">Setup rules (G304)</text>
+    <text style="font-weight: 700; font-size: 11.5px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #111111" x="491.04" y="284.980025" transform="rotate(-0 491.04 284.980025)">Setup rules (G304)</text>
    </g>
    <g id="text_31">
-    <text style="font-size: 9.2px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #111111" x="491.04" y="312.2197" transform="rotate(-0 491.04 312.2197)">Touch a wall, own half, not in the loading zone, not</text>
+    <text style="font-size: 9.2px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #111111" x="491.04" y="302.3053" transform="rotate(-0 491.04 302.3053)">Touch a wall, own half, not in the loading zone, not</text>
    </g>
    <g id="text_32">
-    <text style="font-size: 9.2px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #111111" x="491.04" y="332.5993" transform="rotate(-0 491.04 332.5993)">touching a flower, exactly 4 pollen preloaded.</text>
+    <text style="font-size: 9.2px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #111111" x="491.04" y="321.8587" transform="rotate(-0 491.04 321.8587)">touching a flower, exactly 4 pollen preloaded.</text>
    </g>
    <g id="text_33">
-    <text style="font-size: 9.2px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #111111" x="491.04" y="352.9789" transform="rotate(-0 491.04 352.9789)">P: square to wall; midline-side edge 3.7 in from center seam.</text>
+    <text style="font-size: 9.2px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #111111" x="491.04" y="341.4121" transform="rotate(-0 491.04 341.4121)">Our robot starts facing the wall: it shoots out of its back.</text>
    </g>
    <g id="text_34">
-    <text style="font-size: 9.2px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #111111" x="491.04" y="373.3585" transform="rotate(-0 491.04 373.3585)">S: square to wall; 1.0 in gap to flower AND to center seam.</text>
+    <text style="font-size: 9.2px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #111111" x="491.04" y="360.9655" transform="rotate(-0 491.04 360.9655)">P: square to wall; midline-side edge 3.7 in from center seam.</text>
    </g>
    <g id="text_35">
-    <text style="font-size: 9.2px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #111111" x="491.04" y="393.7381" transform="rotate(-0 491.04 393.7381)">Spacer gauges allowed (G302); remove before the match (G303).</text>
+    <text style="font-size: 9.2px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #111111" x="491.04" y="380.5189" transform="rotate(-0 491.04 380.5189)">S: square to wall; 1.0 in gap to flower AND to center seam.</text>
    </g>
    <g id="text_36">
-    <text style="font-weight: 700; font-size: 11.5px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #111111" x="491.04" y="427.361825" transform="rotate(-0 491.04 427.361825)">Partner timing</text>
+    <text style="font-size: 9.2px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #111111" x="491.04" y="400.0723" transform="rotate(-0 491.04 400.0723)">Spacer gauges allowed (G302); remove before the match (G303).</text>
    </g>
    <g id="text_37">
-    <text style="font-size: 9.2px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #111111" x="491.04" y="445.5133" transform="rotate(-0 491.04 445.5133)">Our S feeds from t=15 s: partner P must finish shooting by</text>
+    <text style="font-weight: 700; font-size: 11.5px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #111111" x="491.04" y="432.869825" transform="rotate(-0 491.04 432.869825)">Partner timing</text>
    </g>
    <g id="text_38">
-    <text style="font-size: 9.2px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #111111" x="491.04" y="465.8929" transform="rotate(-0 491.04 465.8929)">~14 s and clear its lane. S delay is an INIT row if needed.</text>
+    <text style="font-size: 9.2px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #111111" x="491.04" y="450.1951" transform="rotate(-0 491.04 450.1951)">Our S feeds from t=15 s: partner P must finish shooting by</text>
    </g>
    <g id="text_39">
-    <text style="font-size: 9.2px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #111111" x="491.04" y="486.2725" transform="rotate(-0 491.04 486.2725)">Our robots first back into their wall ~0.5 s to square up.</text>
+    <text style="font-size: 9.2px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #111111" x="491.04" y="469.7485" transform="rotate(-0 491.04 469.7485)">~14 s and clear its lane. S delay is an INIT row if needed.</text>
    </g>
    <g id="text_40">
-    <text style="font-size: 9.2px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #111111" x="491.04" y="506.6521" transform="rotate(-0 491.04 506.6521)">Park-only partner: take the opposite lane and slot; end</text>
+    <text style="font-size: 9.2px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #111111" x="491.04" y="489.3019" transform="rotate(-0 491.04 489.3019)">Our robots first push into their wall ~0.5 s to square up.</text>
    </g>
    <g id="text_41">
-    <text style="font-size: 9.2px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #111111" x="491.04" y="527.0317" transform="rotate(-0 491.04 527.0317)">partly in the zone and OFF the wall. From mid audience</text>
+    <text style="font-size: 9.2px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #111111" x="491.04" y="508.8553" transform="rotate(-0 491.04 508.8553)">Park-only partner: take the opposite lane and slot; end</text>
    </g>
    <g id="text_42">
-    <text style="font-size: 9.2px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #111111" x="491.04" y="547.4113" transform="rotate(-0 491.04 547.4113)">wall, do not drive the straight diagonal: it hits the frame.</text>
+    <text style="font-size: 9.2px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #111111" x="491.04" y="528.4087" transform="rotate(-0 491.04 528.4087)">partly in the zone and OFF the wall. From mid audience</text>
    </g>
    <g id="text_43">
-    <text style="font-size: 8px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #555555" x="491.04" y="577.6444" transform="rotate(-0 491.04 577.6444)">Drawn from FTC field CAD v26-27.2 with an 18 in robot.</text>
+    <text style="font-size: 9.2px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #111111" x="491.04" y="547.9621" transform="rotate(-0 491.04 547.9621)">wall, do not drive the straight diagonal: it hits the frame.</text>
    </g>
    <g id="text_44">
-    <text style="font-size: 8px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #555555" x="491.04" y="598.024" transform="rotate(-0 491.04 598.024)">Times are planned, not measured. Verify on a real field.</text>
+    <text style="font-size: 8px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #555555" x="491.04" y="577.369" transform="rotate(-0 491.04 577.369)">Drawn from FTC field CAD v26-27.2 with an 18 in robot.</text>
+   </g>
+   <g id="text_45">
+    <text style="font-size: 8px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #555555" x="491.04" y="596.9224" transform="rotate(-0 491.04 596.9224)">Times are planned, not measured. Verify on a real field.</text>
    </g>
   </g>
  </g>

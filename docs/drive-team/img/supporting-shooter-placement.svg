@@ -59,7 +59,7 @@ L 224.120377 384.912
     <text style="font-size: 13.6px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; fill: #333333" transform="translate(338.78016 364.2182)">(alliance midline)</text>
    </g>
    <g id="text_2">
-    <text style="font-weight: 700; font-size: 14.4px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start" x="35.6544" y="29.447561" transform="rotate(-0 35.6544 29.447561)">FIELD WALL (behind the robot)</text>
+    <text style="font-weight: 700; font-size: 14.4px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start" x="35.6544" y="29.447561" transform="rotate(-0 35.6544 29.447561)">FIELD WALL (the robot faces it)</text>
    </g>
    <g id="text_3">
     <text style="font-weight: 700; font-size: 13.6px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: middle; fill: #8a5a00" x="133.937424" y="131.609666" transform="rotate(-0 133.937424 131.609666)">flower</text>
@@ -76,8 +76,9 @@ z
     <text style="font-size: 13.6px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: middle; fill: #555555" x="224.120377" y="372.924866" transform="rotate(-0 224.120377 372.924866)">hive center</text>
    </g>
    <g id="text_5">
-    <text style="font-weight: 700; font-size: 14.4px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif" transform="translate(257.249491 237.496162)">faces</text>
-    <text style="font-weight: 700; font-size: 14.4px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif" transform="translate(257.249491 254.9196)">the hive</text>
+    <text style="font-weight: 700; font-size: 14.4px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif" transform="translate(257.249491 228.784444)">BACK</text>
+    <text style="font-weight: 700; font-size: 14.4px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif" transform="translate(257.249491 246.207881)">(launcher)</text>
+    <text style="font-weight: 700; font-size: 14.4px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif" transform="translate(257.249491 263.631319)">to the hive</text>
    </g>
    <g id="text_6">
     <text style="font-weight: 700; font-size: 14.4px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif" transform="translate(35.6544 304.989244)">Equal gaps, about 1 in (2.6 cm).</text>
@@ -102,8 +103,8 @@ z
    </g>
    <g id="text_7">
     <text style="font-weight: 700; font-size: 14.4px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; fill: #ffffff" transform="translate(221.924851 110.243644)">ROBOT</text>
-    <text style="font-weight: 700; font-size: 14.4px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; fill: #ffffff" transform="translate(205.943101 127.667081)">back flat on</text>
-    <text style="font-weight: 700; font-size: 14.4px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; fill: #ffffff" transform="translate(219.771601 145.090519)">the wall</text>
+    <text style="font-weight: 700; font-size: 14.4px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; fill: #ffffff" transform="translate(208.954726 127.667081)">FRONT flat</text>
+    <text style="font-weight: 700; font-size: 14.4px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; fill: #ffffff" transform="translate(209.168476 145.090519)">on the wall</text>
    </g>
    <g id="patch_7">
     <path d="M 247.088851 204.865912

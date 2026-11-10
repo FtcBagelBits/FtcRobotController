@@ -57,6 +57,7 @@ lines = [
     ('Setup rules (G304)', 'h'),
     ('Touch a wall, own half, not in the loading zone, not', ''),
     ('touching a flower, exactly 4 pollen preloaded.', ''),
+    ('Our robot starts facing the wall: it shoots out of its back.', ''),
     ('P: square to wall; midline-side edge 3.7 in from center seam.', ''),
     ('S: square to wall; 1.0 in gap to flower AND to center seam.', ''),
     ('Spacer gauges allowed (G302); remove before the match (G303).', ''),
@@ -64,7 +65,7 @@ lines = [
     ('Partner timing', 'h'),
     ('Our S feeds from t=15 s: partner P must finish shooting by', ''),
     ('~14 s and clear its lane. S delay is an INIT row if needed.', ''),
-    ('Our robots first back into their wall ~0.5 s to square up.', ''),
+    ('Our robots first push into their wall ~0.5 s to square up.', ''),
     ('Park-only partner: take the opposite lane and slot; end', ''),
     ('partly in the zone and OFF the wall. From mid audience', ''),
     ('wall, do not drive the straight diagonal: it hits the frame.', ''),
@@ -76,7 +77,7 @@ y = 1.0
 for text, kind in lines:
     tx.text(0, y, text, fontsize=11.5 if kind == 'h' else (8 if kind == 's' else 9.2),
             weight='bold' if kind == 'h' else 'normal', va='top', color='#555' if kind == 's' else '#111')
-    y -= .037 if text else .02
+    y -= .0355 if text else .02
 out = sys.argv[1] if len(sys.argv) > 1 else 'docs/POLLEN_PIT_SHEET.svg'
 fig.savefig(out, metadata={'Date': None} if out.endswith(('.svg', '.pdf')) else None)
 if out.endswith('.svg'):  # matplotlib leaves trailing spaces in path data; keep git diff --check clean

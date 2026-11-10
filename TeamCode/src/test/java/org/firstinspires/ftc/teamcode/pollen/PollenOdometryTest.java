@@ -28,23 +28,32 @@ public final class PollenOdometryTest {
         boolean stuck;                      // nothing moves (e.g. blocked by another robot)
         boolean cannotTurnInPlace;          // drives normally, but a turn in place does nothing (a corner against the wall)
         double leftLimit = Double.POSITIVE_INFINITY; // field y it cannot pass (an obstacle on its left)
+        /** Starts with its FRONT to the wall and its back to the hive (heading about 180 deg):
+         * then driving FORWARD pushes it into the wall, which squares it to 180 deg. */
+        boolean frontToWall;
         double x, y, h, vf, vl, w;
         double ox, oy, oh;                  // where odometry was last zeroed
 
         void step(PollenSequence.Output out, double dt) {
-            if (out.zeroOdometry) { ox = x; oy = y; oh = h; }
+            step(out.forward, out.strafe, out.turn, out.zeroOdometry, dt);
+        }
+
+        /** Powers in the robot's OWN directions (forward +, strafe + = right, turn + = clockwise). */
+        void step(double forward, double strafe, double turn, boolean zeroOdometry, double dt) {
+            if (zeroOdometry) { ox = x; oy = y; oh = h; }
             double a = dt / (lagSeconds + dt);
-            vf += a * (out.forward * speedInPerSec - vf);
-            vl += a * (-out.strafe * speedInPerSec * strafeEfficiency - vl);
-            w += a * (-out.turn * turnRadPerSec + yawPerStrafe * out.strafe - w);
+            vf += a * (forward * speedInPerSec - vf);
+            vl += a * (-strafe * speedInPerSec * strafeEfficiency - vl);
+            w += a * (-turn * turnRadPerSec + yawPerStrafe * strafe - w);
             if (stuck) { vf = vl = w = 0; return; }
-            if (cannotTurnInPlace && out.turn != 0 && out.forward == 0 && out.strafe == 0) { vf = vl = w = 0; return; }
+            if (cannotTurnInPlace && turn != 0 && forward == 0 && strafe == 0) { vf = vl = w = 0; return; }
             double c = Math.cos(h), s = Math.sin(h);
             double nx = x + (c * vf - s * vl) * dt, ny = y + (s * vf + c * vl) * dt;
-            if (nx < 0 && out.forward < 0) {
+            if (nx < 0 && (frontToWall ? forward > 0 : forward < 0)) {
                 // Pushed into the wall: it stops the robot and turns it flat against itself.
-                double turnBy = Math.min(Math.abs(h), wallAlignRadPerSecPerPower * -out.forward * dt);
-                h -= Math.signum(h) * turnBy;
+                double off = frontToWall ? PollenOdometryDrive.wrap(h - Math.PI) : h;
+                double turnBy = Math.min(Math.abs(off), wallAlignRadPerSecPerPower * Math.abs(forward) * dt);
+                h -= Math.signum(off) * turnBy;
                 nx = 0;
                 vf = 0;
                 w = 0;
@@ -396,6 +405,7 @@ public final class PollenOdometryTest {
         feedWhenUpToSpeed();
         turns();
         angledShot();
+        backToHive();
         speedRuns();
         System.out.println("PollenOdometryTest: " + checks + " checks passed (simulated robot, not robot validation)");
     }
@@ -552,11 +562,148 @@ public final class PollenOdometryTest {
         a.update(false, false, false, false, false, false, true);
         check(a.cm() == 55, "A Triangle resets");
         Run run = simulate(a.sequence(), startCrooked(0));
-        check(run.steps.toString().equals("[ZERO ODOMETRY, FORWARD TO PARK, PARK / HOLD]"), "A order: " + run.steps);
+        check(run.steps.toString().equals("[ZERO ODOMETRY, DRIVE TO PARK, PARK / HOLD]"), "A order: " + run.steps);
         check(Math.abs(run.robot.x - 55 / 2.54) < 0.6 && Math.abs(run.robot.y) < 0.6, "A ends 55 cm ahead: x " + run.robot.x + " y " + run.robot.y + " want " + 55 / 2.54);
         PollenOdoParkTuning kept = new PollenOdoParkTuning(.20, 0, 27, .5, a.snapshot());
         check(kept.cm() == a.cm() && kept.power() == a.power(), "A snapshot keeps distance and power");
         check(a.maximumDelaySeconds() >= 20, "A default leaves the full 20 s delay range");
+    }
+
+    /** Like simulate(), but the way the OpModes really do it (PollenFacing): the odometry pose
+     * goes through routePose(), the output goes through wheelPowers(), and the simulated robot is
+     * driven by those four wheel powers. backToHive = the robot starts facing the wall. */
+    static Run simulateFacing(PollenSequence seq, SimRobot robot, boolean backToHive) {
+        Run run = new Run();
+        run.robot = robot;
+        double dt = 0.02;
+        seq.start(0);
+        for (double t = 0; t < 40; t += dt) {
+            double[] p = robot.odometry();
+            double[] route = PollenFacing.routePose(p[0], p[1], p[2], backToHive);
+            PollenSequence.Output out = seq.tick(t, route[0], route[1], route[2], Double.NaN);
+            if (run.steps.isEmpty() && !out.phase.equals("START DELAY"))
+                run.steps.add(out.phase.startsWith("SPINUP") ? "SHOOT" : out.phase);
+            if (out.phase.startsWith("NEXT: ")) run.steps.add(out.phase.substring(6));
+            if (out.phase.equals("FEED") && Double.isNaN(run.feedAt)) {
+                run.feedAt = t;
+                run.feedPose = new double[] {robot.x, robot.y, robot.h};
+            }
+            if (out.finished) { run.result = out.phase; run.finishedAt = t; break; }
+            // The robot's own forward/strafe/turn, worked back out of the four wheel powers.
+            double[] w = PollenFacing.wheelPowers(out, backToHive); // FL, FR, BL, BR
+            double forward = (w[0] + w[1] + w[2] + w[3]) / 4, strafe = (w[0] - w[1] - w[2] + w[3]) / 4,
+                    turn = (w[0] - w[1] + w[2] - w[3]) / 4;
+            run.trackPhase.add(out.phase);
+            run.track.add(new double[] {robot.x, robot.y, forward, strafe, turn});
+            robot.step(forward, strafe, turn, out.zeroOdometry, dt);
+        }
+        run.warning = seq.warning();
+        return run;
+    }
+
+    /** The robot's own forward power on the first loop that drives in this phase (NaN if none). */
+    static double firstForward(Run run, String phase) {
+        for (int i = 0; i < run.track.size(); i++) {
+            double[] k = run.track.get(i);
+            if (run.trackPhase.get(i).equals(phase) && (k[2] != 0 || k[3] != 0 || k[4] != 0)) return k[2];
+        }
+        return Double.NaN;
+    }
+
+    /** pollen-odo-v11: the launcher shoots out of the back, so every auto starts with the robot's
+     * FRONT against the end wall and its back to the hive. The routes are unchanged (written as
+     * if facing the hive); PollenFacing turns the pose and the drive powers around. On the field
+     * the robot must drive the very same path, backward. */
+    static void backToHive() {
+        check(PollenFacing.START_BACK_TO_HIVE, "this build starts every auto with the robot's back to the hive");
+
+        // The two conversions on their own.
+        double[] r = PollenFacing.routePose(3, 2, 0.1, true);
+        check(r[0] == -3 && r[1] == -2 && r[2] == 0.1, "pose: x and y turn around, the heading does not");
+        double[] same = PollenFacing.routePose(3, 2, 0.1, false);
+        check(same[0] == 3 && same[1] == 2 && same[2] == 0.1, "front-facing: pose unchanged");
+        double[] zero = PollenFacing.routePose(0, 0, 0, true);
+        check(1 / zero[0] > 0 && 1 / zero[1] > 0, "a zero pose stays +0 (no -0.0 on the screen)");
+        PollenSequence drive = PollenSequence.park(new PollenSequence.Step[] {
+                PollenSequence.Step.drive("TEST", 1, 0.5, 0.2, 0.1)}, 27, 0);
+        drive.start(0);
+        PollenSequence.Output out = drive.tick(0);
+        double[] back = PollenFacing.wheelPowers(out, true), mixed = PollenSequence.wheelPowers(-0.5, -0.2, 0.1);
+        for (int i = 0; i < 4; i++) check(back[i] == mixed[i], "wheels: forward and strafe reversed, turn kept, wheel " + i);
+        check(java.util.Arrays.equals(PollenFacing.wheelPowers(out, false), PollenSequence.wheelPowers(out)),
+                "front-facing: wheels unchanged");
+        check(java.util.Arrays.equals(PollenFacing.wheelPowers(out), back), "the build's setting is used by default");
+        PollenSequence still = PollenSequence.park(new PollenSequence.Step[] {
+                PollenSequence.Step.drive("WAIT", 1, 0, 0, 0)}, 27, 0);
+        still.start(0);
+        for (double w : PollenFacing.wheelPowers(still.tick(0), true)) check(1 / w > 0, "all-zero output: +0 on every wheel");
+
+        // Every autonomous mode, driven both ways round on the same field. With no sideways yaw
+        // drift in the simulation the two robots should drive exactly the same path.
+        String[] names = {"Odo ROBOT Shoot + Park", "Odo Supporting Shooter", "Angled Primary Shooter",
+                "Odo ROBOT Park", "EMERGENCY Timed Shoot + Park", "EMERGENCY Timed Supporting Shooter",
+                "EMERGENCY Timed Park"};
+        for (String name : names) {
+            SimRobot front = new SimRobot(), backward = new SimRobot();
+            front.yawPerStrafe = backward.yawPerStrafe = 0;
+            backward.frontToWall = true;
+            backward.h = Math.PI;
+            Run f = simulateFacing(sequenceFor(name), front, false);
+            Run b = simulateFacing(sequenceFor(name), backward, true);
+            check(f.steps.equals(b.steps) && f.result.equals(b.result) && f.result.startsWith("DONE"),
+                    name + ": same steps and result both ways round: " + f.steps + " " + f.result + " / " + b.steps + " " + b.result);
+            check(Math.abs(f.finishedAt - b.finishedAt) < 1e-9 && (Double.isNaN(f.feedAt) ? Double.isNaN(b.feedAt)
+                    : Math.abs(f.feedAt - b.feedAt) < 1e-9), name + ": same timing");
+            double worst = 0;
+            for (int i = 0; i < Math.min(f.track.size(), b.track.size()); i++)
+                worst = Math.max(worst, Math.hypot(f.track.get(i)[0] - b.track.get(i)[0], f.track.get(i)[1] - b.track.get(i)[1]));
+            check(f.track.size() == b.track.size() && worst < 1e-6, name + ": the same path on the field, worst gap " + worst + " in");
+            check(Math.abs(PollenOdometryDrive.wrap(b.robot.h - Math.PI)) < 1e-6 && Math.abs(f.robot.h) < 1e-6,
+                    name + ": the back-to-hive robot ends still facing the wall (turned around), the other still facing the hive");
+            // Which way the robot itself drives: the wall square is FORWARD (front first into the
+            // wall), and the first leg, away from the wall, is BACKWARD (launcher end first).
+            String firstLeg = name.contains("Park") && !name.contains("Shoot") ? "DRIVE TO PARK"
+                    : name.contains("Supporting") ? "LEG 1 CLEAR FLOWER" : "LEG 1 OFF WALL";
+            check(firstForward(b, firstLeg) < 0 && firstForward(f, firstLeg) > 0,
+                    name + ": first leg drives the back-to-hive robot BACKWARD (" + firstForward(b, firstLeg) + ")");
+            if (b.steps.contains("SQUARE TO WALL")) check(firstForward(b, "SQUARE TO WALL") > 0 && firstForward(f, "SQUARE TO WALL") < 0,
+                    name + ": wall square drives the back-to-hive robot FORWARD into the wall");
+        }
+
+        // The realistic simulation (yaw drift while strafing, a crooked start): the wall square
+        // still squares the robot facing the wall, and the legs still end on their planned spots.
+        PollenShootTuning b = new PollenShootTuning(null, false, true), c = new PollenShootTuning(null, true, true);
+        for (PollenShootTuning t : new PollenShootTuning[] {b, c}) {
+            SimRobot robot = new SimRobot();
+            robot.frontToWall = true;
+            robot.h = Math.PI + Math.toRadians(3);
+            Run run = simulateFacing(t.sequence(), robot, true);
+            String who = t.supporting() ? "C" : "B";
+            check(run.result.startsWith("DONE"), who + " back to the hive finishes: " + run.result + " " + run.warning);
+            check(Math.abs(Math.toDegrees(PollenOdometryDrive.wrap(run.feedPose[2] - Math.PI))) < 0.5,
+                    who + ": started 3 deg crooked, squared to the wall before the shot: "
+                            + Math.toDegrees(PollenOdometryDrive.wrap(run.feedPose[2] - Math.PI)));
+            check(endError(run, t.legEndInches(3)) < 0.75, who + " back to the hive ends on the planned spot: " + endError(run, t.legEndInches(3)));
+            check(Math.abs(run.feedAt - t.feedStartSeconds()) < 0.1, who + " feeds on time: " + run.feedAt);
+            System.out.printf(java.util.Locale.US, "  %s back to the hive, 3 deg crooked start: square %.2f deg at the shot, end error %.2f in, finish %.2f s%n",
+                    who, Math.toDegrees(PollenOdometryDrive.wrap(run.feedPose[2] - Math.PI)),
+                    endError(run, t.legEndInches(3)), run.finishedAt);
+        }
+    }
+
+    static PollenSequence sequenceFor(String name) {
+        switch (name) {
+            case "Odo ROBOT Shoot + Park": return new PollenShootTuning(null, false, true).sequence();
+            case "Odo Supporting Shooter": return new PollenShootTuning(null, true, true).sequence();
+            case "Angled Primary Shooter": return new PollenShootTuning(null, false, true, true).sequence();
+            case "Odo ROBOT Park": return new PollenOdoParkTuning(PollenOdometryDrive.DEFAULT_LEG_POWER,
+                    PollenConfig.START_DELAY_SECONDS, PollenConfig.TOTAL_TIME_LIMIT, PollenConfig.PARK_HOLD_SECONDS, null).sequence();
+            case "EMERGENCY Timed Shoot + Park": return new PollenShootTuning(null, false, false).sequence();
+            case "EMERGENCY Timed Supporting Shooter": return new PollenShootTuning(null, true, false).sequence();
+            case "EMERGENCY Timed Park": return PollenSequence.park(PollenConfig.parkRoute(),
+                    PollenConfig.TOTAL_TIME_LIMIT, PollenConfig.START_DELAY_SECONDS);
+            default: throw new IllegalArgumentException(name);
+        }
     }
 
     static void failures() {

@@ -46,7 +46,7 @@ public abstract class PollenShooterOpMode extends OpMode {
             odoShootRemembered, odoSupportRemembered, angledRemembered;
     protected abstract boolean supportingShooter();
     /** EXPERIMENTAL Angled Primary Shooter: drive to a spot off the wall and to the side, turn
-     * to face the hive, shoot, turn back, then park. Needs odometry. */
+     * to point the launcher at the hive, shoot, turn back, then park. Needs odometry. */
     protected boolean angledShot() { return false; }
     /** Odometry OpModes drive each leg to a measured end point instead of by time. The timed
      * ones (false) are for emergencies only: a match where the odometry sensor is not working. */
@@ -183,6 +183,7 @@ public abstract class PollenShooterOpMode extends OpMode {
         telemetry.addData("Selections", tuning.locked() ? "LOCKED at START" : "INIT editing");
         telemetry.addData("Start pose", supportingShooter() ? "End wall, FLUSH + SQUARE, centered between flower and midline"
                 : "End wall, flush + square, aligned with initially UP cell");
+        telemetry.addData("Facing", PollenFacing.placement());
         for (PollenShootTuning.Field f : tuning.rows()) {
             telemetry.addData((f == tuning.selected() ? "> " : "  ") + tuning.label(f), "%.2f", tuning.value(f));
         }
@@ -198,7 +199,8 @@ public abstract class PollenShooterOpMode extends OpMode {
                 tuning.worstCaseSeconds(), PollenShootTuning.DEADLINE - 1, PollenShootTuning.DEADLINE);
         if (!odometry()) {
             telemetry.addData("Calibration", tuning.profile());
-            telemetry.addData("Angles", "+left / -right of start heading; MAT TRIAL converts desired path to command");
+            telemetry.addData("Angles", "+left / -right as seen from the start looking at the hive; MAT TRIAL converts desired path to command");
+            if (PollenFacing.START_BACK_TO_HIVE) telemetry.addData("Backward", "The robot drives these legs launcher end first");
             if (tuning.profile() == PollenDriveCalibration.Profile.MAT_TRIAL)
                 telemetry.addData("MAT TRIAL", "UNVERIFIED: assumes unchanged 129 test settings; repeat short tests");
         }
@@ -230,7 +232,7 @@ public abstract class PollenShooterOpMode extends OpMode {
     /** Odometry mode: where each leg ends, measured from the zero point at the start. */
     private void showOdometryRoute() {
         telemetry.addData("First", tuning.wallSquare()
-                ? "back into the end wall %.2f s at %.2f power, then zero odometry (inside the start delay)"
+                ? PollenFacing.squareMove() + " %.2f s at %.2f power, then zero odometry (inside the start delay)"
                 : "zero odometry where the robot stands (wall square OFF)",
                 PollenOdometryDrive.SQUARE_SECONDS, PollenOdometryDrive.SQUARE_POWER);
         for (int leg = 1; leg <= PollenShootTuning.LEGS; leg++) {
@@ -245,14 +247,17 @@ public abstract class PollenShooterOpMode extends OpMode {
                     + "corner clears the wall by %.1f in while turning", tuning.aimDegrees(), tuning.aimTurnSeconds(),
                     tuning.turnWallGapInches()));
         }
-        telemetry.addData("Angles", "+left / -right of the zeroed heading; distances are measured, not timed");
+        telemetry.addData("Angles", "+left / -right as seen from the start looking at the hive; fwd = toward the hive; "
+                + "distances are measured, not timed");
+        if (PollenFacing.START_BACK_TO_HIVE) telemetry.addData("Backward", "The robot drives these legs launcher end first");
     }
 
     @Override public final void start() {
         tuning.lock();
         clock.reset();
         log.start(tuning.settingsLine(), "shooter=" + (shooterAvailable ? "ok" : "MISSING")
-                + (odometry() ? " pinpoint=" + pinpointStatus : ""), this::batteryVolts);
+                + (odometry() ? " pinpoint=" + pinpointStatus : "") + " facing=" + PollenFacing.logName(),
+                this::batteryVolts);
         if (blocked == null && !tuning.budgetOk()) {
             blocked = "NOT STARTED: settings over time budget (fix in INIT, or Triangle for defaults)";
             telemetry.addData("Status", blocked);
@@ -278,10 +283,12 @@ public abstract class PollenShooterOpMode extends OpMode {
             if (localizer != null) {
                 localizer.update();
                 readPinpointStatus();
+                // Route directions (as if facing the hive): the robot starts with its back to it.
                 Pose pose = localizer.pose();
-                x = pose.x();
-                y = pose.y();
-                heading = pose.heading();
+                double[] route = PollenFacing.routePose(pose.x(), pose.y(), pose.heading());
+                x = route[0];
+                y = route[1];
+                heading = route[2];
             }
             // The launcher's speed in ticks per second. A shot feeds when this is up to speed,
             // or when the spin-up time is over (PollenFeedRule). NaN means "no reading".
@@ -289,7 +296,8 @@ public abstract class PollenShooterOpMode extends OpMode {
 
             // 2. DECIDE: the sequence says what every motor should do right now.
             PollenSequence.Output out = sequence.tick(now, x, y, heading, launcherMeasured);
-            double[] wheels = PollenSequence.wheelPowers(out); // frontLeft, frontRight, backLeft, backRight
+            // frontLeft, frontRight, backLeft, backRight, in the robot's own directions (PollenFacing)
+            double[] wheels = PollenFacing.wheelPowers(out);
             double intakePower = out.feederPower * tuning.value(FEED_POWER);
             double agitatorPower = out.feederPower * tuning.value(AGITATOR_POWER);
 

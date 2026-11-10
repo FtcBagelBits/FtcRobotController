@@ -17,10 +17,10 @@ It measures where it is as it drives (odometry).
 
 | Time | What happens |
 | --- | --- |
-| 0 - 12 s | Waits. Just before 12 s it backs gently into the wall to line itself up. This is normal. |
+| 0 - 12 s | Waits. Just before 12 s it drives gently **forward** into the wall to line itself up. This is normal. |
 | 12 - 15 s | Launcher spins up. |
 | 15 - 22.5 s | Shoots the pollen. |
-| about 22.5 - 26 s | Drives: (1) forward, clear of the flower, (2) right to the **OUTER** parking slot. Then it stops. |
+| about 22.5 - 26 s | Drives **backward** (launcher end first): (1) away from the wall, clear of the flower, (2) right to the **OUTER** parking slot. Then it stops. |
 
 Points if it works: **LEAVE 3 + PARK 5**. Our partner parks in the **INNER** slot.
 
@@ -40,13 +40,13 @@ INNER slot. We start shooting at **15 s**. Show them the pit sheet.
 <div class="side" markdown="1">
 <div markdown="1">
 
-![Placement: back flat on the wall, equal 1 in gaps to the flower and the center seam](img/supporting-shooter-placement.svg)
+![Placement: front flat on the wall, back (launcher) to the hive, equal 1 in gaps to the flower and the center seam](img/supporting-shooter-placement.svg)
 
 </div>
 <div markdown="1">
 
 - **Red:** at the **scoring-end** wall. **Blue:** at the **audience** wall.
-- Back of the robot **flat against the wall**, facing the hive.
+- **Front** of the robot **flat against the wall**. The **back (the launcher) faces the hive**.
 - **Between the flower and the center seam, with the same gap on both sides: about 1 in (2.6 cm).**
   It's tight. Use a spacer gauge to set the gaps, then take it away before the match.
 - Exactly **4 pollen** loaded. **Not touching the flower.** Not in the loading zone.
@@ -68,7 +68,7 @@ Then make only the changes the coach asks for. A different wait is a *Start dela
 | Line | Should say |
 | --- | --- |
 | **ROUTE** (the first line) | `SUPPORT PARK: wait, shoot, then park in the outer slot` |
-| Build | `pollen-odo-v10` |
+| Build | `pollen-odo-v11` |
 | Mode | `ODOMETRY Supporting Shooter` |
 | Odometry x fwd / y left / heading | numbers near 0 (not `NOT VALID`) |
 | Start delay seconds | `12.00` |

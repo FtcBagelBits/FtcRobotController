@@ -495,12 +495,20 @@ public final class PollenSequence {
     public String result() { return result; }
 
     /** Mecanum mixer: turns forward/strafe/turn into four wheel powers, scaled down together if
-     * any would be over 1. Output order: frontLeft, frontRight, backLeft, backRight. */
+     * any would be over 1. Output order: frontLeft, frontRight, backLeft, backRight. An Output's
+     * forward and strafe are in ROUTE directions (as if facing the hive); the autonomous OpModes
+     * use PollenFacing.wheelPowers, which turns them into the robot's own directions first. */
     public static double[] wheelPowers(Output out) {
-        double[] powers = {out.forward + out.strafe + out.turn,
-                out.forward - out.strafe - out.turn,
-                out.forward - out.strafe + out.turn,
-                out.forward + out.strafe - out.turn};
+        return wheelPowers(out.forward, out.strafe, out.turn);
+    }
+
+    /** The same mixer for powers in the robot's own directions (forward +, strafe + = right,
+     * turn + = clockwise). PollenFacing uses it to drive a robot that starts with its back to the hive. */
+    public static double[] wheelPowers(double forward, double strafe, double turn) {
+        double[] powers = {forward + strafe + turn,
+                forward - strafe - turn,
+                forward - strafe + turn,
+                forward + strafe - turn};
         double max = 1;
         for (double power : powers) max = Math.max(max, Math.abs(power));
         for (int i = 0; i < powers.length; i++) powers[i] /= max;

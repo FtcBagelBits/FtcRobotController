@@ -71,11 +71,14 @@ Verify the actual bumper contact height, wall span, tape and flower position.
 
 ## Primary shooter: the direct diagonal hits the frame
 
-Primary red starts at **(-12.742, +61.585)**, with its rear edge on the audience
-end wall, facing the initially upward-facing red cell. For a nominal near
-parking position **(-56, -26)**, the direct path is:
+Primary red starts at **(-12.742, +61.585)**, with one edge on the audience
+end wall and the launcher toward the initially upward-facing red cell. Since
+`pollen-odo-v11` that is the robot's FRONT on the wall and its BACK (launcher)
+to the hive; the robot drives every path below backward. "Forward" and "left"
+here are route directions: as seen from the start looking at the hive. For a
+nominal near parking position **(-56, -26)**, the direct path is:
 
-- 222.47 cm robot-forward and 109.88 cm robot-left;
+- 222.47 cm route-forward and 109.88 cm route-left;
 - 248.12 cm total at +26.285 degrees left of forward.
 
 Expanding the floor-level frame bar by the robot's 9-inch half-width/half-length
@@ -142,11 +145,12 @@ The robot must fit between the flower's inboard edge (**X=-20.058**) and the
 alliance midline (**X=0**): 20.058 inches for an 18-inch robot, leaving only
 **2.058 inches (5.2 cm)** of slack in total. The preset splits it evenly:
 
-- Robot center: **X=-10.029, Z=-61.585 inches**; rear edge flush on the end
-  wall, chassis square to it. No aiming yaw.
+- Robot center: **X=-10.029, Z=-61.585 inches**; one edge flush on the end
+  wall (since `pollen-odo-v11` the front, launcher to the hive), chassis square
+  to it. No aiming yaw.
 - Gap to flower and gap to midline: **1.029 inch (2.61 cm) each**.
 - Robot centerline **2.713 inches (6.89 cm) toward the midline** from the hive
-  center. The shot goes straight forward from the same distance as a centered
+  center. The shot goes straight toward the hive from the same distance as a centered
   start (center 45.9 inches from the estimated opening at Z=-15.7), so it lands
   about 6.9 cm off the cell center; the opening is about 20 inches (51 cm) wide.
   This assumes a launcher on the robot centerline; confirm the real shot.
