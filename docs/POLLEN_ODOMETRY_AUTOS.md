@@ -19,9 +19,11 @@ with **EMERGENCY Timed**. Run [the odometry baseline test](ODOMETRY_BASELINE_TES
 
 - INIT menus, buttons, memory and the time-budget check. B and C keep every row, and START
   still refuses settings that do not fit.
-- Shooting: launcher speed, spin-up, feed time, intake and agitator power.
-- C still starts feeding at 15 s.
-- Nothing turns the chassis. Angles are directions of travel: + left, - right, 0 straight ahead.
+- Shooting: launcher speed, spin-up, feed time, intake and agitator power. Since `pollen-odo-v10`
+  B feeds as soon as its launcher is up to speed (or when the spin-up time is over), like TeleOp.
+- C still starts feeding at 15 s, never sooner.
+- In B, C and Park nothing turns the chassis. Angles are directions of travel: + left, - right,
+  0 straight ahead. (Only the experimental Angled Primary Shooter, below, turns.)
 
 ## What is different
 
@@ -115,6 +117,57 @@ for slowing down. If the tuned timed routes reached their planned spots, they mo
 simulation finished at 25.6-26.2 s (0.60-0.80 power, quick or sluggish robot), with the hard stop at 27 s.
 The time goes to the two stops (end of leg 1 and end of leg 3) as much as to cruising, so more power helps
 only a little. If C hits the hard stop on the field, take 0.5 s off its feed time.
+
+## Angled Primary Shooter (experimental)
+
+`Angled Primary Shooter` (group **Pollen Experimental**, `PollenAngledPrimaryShooter`) is Odo ROBOT
+Shoot + Park with the shot taken from an angle. **It has not been run on the robot.** Same start
+(back flat on the end wall, lined up with the hive cell that starts up) and same parking slot.
+
+| Step | What it does |
+|---|---|
+| Square, zero | As in B |
+| Leg 1 | 12.7 cm (5 in) straight off the wall |
+| Leg 2 | 76.2 cm (30 in) to the left: the shooting spot |
+| TURN TO AIM | Turns in place to the **Aim angle** row: -36 deg (36 deg to the right), which points the robot at the middle of the hive opening, about 51 in away |
+| Shoot | The normal feed rule |
+| TURN BACK | Turns back to 0 |
+| Leg 3 | 212.5 cm @ +9.1 deg to the same parking spot as B |
+
+- **The spot is the team's assumption** (strategy canvas, 2026-11-08), not a tested position, and
+  the aim angle is plain geometry from the field CAD. Nothing looks at the hive. Expect to change
+  Leg 1, Leg 2, the Aim angle and the Launcher ticks/s rows after the first shots; the launcher
+  speed is still the wall shot's 1180.
+- **The turn is close to the wall.** For an 18 x 18 in robot the nearest corner passes 1.4 in from
+  the end wall while turning. INIT shows this gap on the AT THE SHOOTING SPOT line and refuses an
+  edit that brings it under 0.5 in. Anything that sticks out past 18 in is not counted. For the
+  first runs, raise Leg 1 by two steps, to 22.7 cm (gap about 5 in). The Aim angle does not follow
+  the legs: from there it should be about -39.
+- **It drives before it shoots**, so it needs odometry to shoot at all. With a Pinpoint problem at
+  INIT, use Odo ROBOT Shoot + Park (shoots first) or the EMERGENCY Timed mode.
+- If the shooter fails at INIT, or Feed seconds is 0, there are no turns: it drives legs 1, 2, 3.
+- A turn that is more than 5 deg short when it gives up, or a robot that does not turn while the
+  wheels are driven (`TURN TO AIM NOT TURNING - STOPPED`), stops the whole route **without
+  shooting**: it never shoots or drives on from a heading the plan did not expect.
+- Simulated (assumed robot): feeds at about 5 s, parks at about 19 s, planned worst case 20.0 s.
+  The route checker clears leg 3 of the left flower by 6.5 in (B: 8.5 in).
+
+Turn constants, in `PollenOdometryDrive` under TURNING IN PLACE. **None has been tuned on the robot:**
+
+| Symptom | Change |
+|---|---|
+| Stops short of the angle and sits there | raise `MIN_TURN_POWER` (0.15) |
+| Swings past the angle and comes back | lower `TURN_POWER_PER_SQRT_DEGREE` (0.10) or raise `LOOKAHEAD_SECONDS` |
+| Turns too slowly | raise `DEFAULT_TURN_POWER` (0.40) |
+| `TIMED OUT` on a turn that was still moving | lower `ESTIMATE_DEG_PER_SECOND_PER_POWER` (150): the robot turns slower than assumed |
+| Shots land left or right | change the Aim angle row, one degree at a time |
+
+First tests, in this order, on open floor away from walls first:
+1. Feed seconds 0 is no use here (it skips the turns). Instead set Leg 3 to 0 cm and keep the feed
+   short (2 s), with no pollen loaded: watch leg 1, leg 2, the turn, the turn back.
+2. Read the heading on the Driver Hub at the end of TURN TO AIM. It should be within 2 deg of the Aim angle.
+3. Against the real wall, with Leg 1 raised to 22.7 cm: check the corner clears the wall.
+4. With pollen: adjust the Aim angle and Launcher ticks/s until shots go in, then write the numbers down.
 
 ## First tests
 

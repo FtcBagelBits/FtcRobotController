@@ -37,12 +37,17 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.RobotLog;
 import static org.firstinspires.ftc.teamcode.pollen.PollenShootTuning.Field.*;
 
-/** Shared hardware lifecycle for the two stationary shooting routines, timed or odometry. */
+/** Shared hardware lifecycle for the shooting routines: primary or supporting shooter, timed or
+ * odometry, and the experimental angled shot. Each OpMode is a tiny subclass that only answers
+ * the three questions below. */
 public abstract class PollenShooterOpMode extends OpMode {
-    // Each of the four modes remembers its own settings: odometry defaults differ from timed ones.
+    // Each of the five modes remembers its own settings: their defaults differ.
     private static PollenShootTuning.Snapshot shootRemembered, supportRemembered,
-            odoShootRemembered, odoSupportRemembered;
+            odoShootRemembered, odoSupportRemembered, angledRemembered;
     protected abstract boolean supportingShooter();
+    /** EXPERIMENTAL Angled Primary Shooter: drive to a spot off the wall and to the side, turn
+     * to face the hive, shoot, turn back, then park. Needs odometry. */
+    protected boolean angledShot() { return false; }
     /** Odometry OpModes drive each leg to a measured end point instead of by time. The timed
      * ones (false) are for emergencies only: a match where the odometry sensor is not working. */
     protected boolean odometry() { return false; }
@@ -65,7 +70,7 @@ public abstract class PollenShooterOpMode extends OpMode {
         sequence = null;
         shooterAvailable = true;
         log = new PollenAutoLog(modeName(), line -> RobotLog.ii(PollenAutoLog.TAG, "%s", line));
-        tuning = new PollenShootTuning(remembered(), supportingShooter(), odometry());
+        tuning = new PollenShootTuning(remembered(), supportingShooter(), odometry(), angledShot());
         try {
             mapDrive();
             // Odometry first: the Pinpoint recalibrates its IMU now, while the robot is still.
@@ -133,25 +138,30 @@ public abstract class PollenShooterOpMode extends OpMode {
         showSettings();
         telemetry.addData("Controls", "D-pad UP/DOWN selects; LEFT/RIGHT edits; tap then release");
         telemetry.addData("Triangle", supportingShooter() ? "Restore defaults (flush route to the outer slot)"
+                : angledShot() ? "Restore defaults: to the shooting spot, turn, shoot, turn back, park"
                 : "Restore defaults: shoot, then 3 legs to the parking slot");
         telemetry.addData("Circle / Square", "Do nothing");
         telemetry.addData("Tune", "Launcher speed, feed, power and each leg's cm/angle are rows above");
         telemetry.addData("Status", blocked != null ? "BLOCKED: " + blocked
                 : !tuning.budgetOk() ? "NOT READY - over time budget; START will not move the robot"
                 : PollenOdometryDrive.pinpointFault(pinpointStatus)
-                ? "PINPOINT FAULT - odometry will not work: use the EMERGENCY Timed mode"
+                ? (angledShot() ? "PINPOINT FAULT - this mode cannot reach its shooting spot: use Odo ROBOT Shoot + Park or the EMERGENCY Timed mode"
+                        : "PINPOINT FAULT - odometry will not work: use the EMERGENCY Timed mode")
                 : fallback != null ? "READY FOR DEPARTURE ONLY - SHOOTER FAILED" : "READY - no movement until START");
         telemetry.addData("Memory", "Settings kept until app restart; start delay resets every INIT");
         telemetry.update();
     }
 
     private PollenShootTuning.Snapshot remembered() {
+        if (angledShot()) return angledRemembered;
         if (odometry()) return supportingShooter() ? odoSupportRemembered : odoShootRemembered;
         return supportingShooter() ? supportRemembered : shootRemembered;
     }
 
     private void remember(PollenShootTuning.Snapshot snapshot) {
-        if (odometry()) {
+        if (angledShot()) {
+            angledRemembered = snapshot;
+        } else if (odometry()) {
             if (supportingShooter()) odoSupportRemembered = snapshot; else odoShootRemembered = snapshot;
         } else if (supportingShooter()) supportRemembered = snapshot; else shootRemembered = snapshot;
     }
@@ -161,8 +171,10 @@ public abstract class PollenShooterOpMode extends OpMode {
         telemetry.addData("ROUTE", tuning.route().label);
         telemetry.addData("Build", PollenConfig.BUILD);
         if (!odometry()) telemetry.addData("EMERGENCY ONLY", "Timed driving, no odometry. Use the Odo mode unless odometry has failed.");
+        if (angledShot()) telemetry.addData("EXPERIMENTAL", "Angled shot: not field-tested. It drives and turns BEFORE it shoots.");
         telemetry.addData("Mode", (odometry() ? "ODOMETRY " : "TIMED ")
-                + (supportingShooter() ? "Supporting Shooter - real motors on START" : "Shoot + Park - real motors on START"));
+                + (supportingShooter() ? "Supporting Shooter - real motors on START"
+                : angledShot() ? "Angled Primary Shooter - real motors on START" : "Shoot + Park - real motors on START"));
         if (localizer != null) {
             PollenOdometryHardware.showPose(telemetry, localizer.pose());
             telemetry.addData("Pinpoint status", PollenOdometryDrive.pinpointFault(pinpointStatus)
@@ -171,7 +183,7 @@ public abstract class PollenShooterOpMode extends OpMode {
         telemetry.addData("Selections", tuning.locked() ? "LOCKED at START" : "INIT editing");
         telemetry.addData("Start pose", supportingShooter() ? "End wall, FLUSH + SQUARE, centered between flower and midline"
                 : "End wall, flush + square, aligned with initially UP cell");
-        for (PollenShootTuning.Field f : PollenShootTuning.Field.values()) {
+        for (PollenShootTuning.Field f : tuning.rows()) {
             telemetry.addData((f == tuning.selected() ? "> " : "  ") + tuning.label(f), "%.2f", tuning.value(f));
         }
         if (odometry()) {
@@ -200,9 +212,13 @@ public abstract class PollenShooterOpMode extends OpMode {
             if (tuning.legCm(1) == 0 && tuning.legCm(2) == 0 && tuning.legCm(3) == 0)
                 telemetry.addData("NO PARKING MOVE", "All legs are 0 cm: enter measured travel before match");
         }
-        if (tuning.value(FEED_SECONDS) > 0) telemetry.addData("Shot timing",
-                "launcher on at %.1f s, feed %.1f-%.1f s (fixed times; speed is not checked)",
-                tuning.feedStartSeconds() - tuning.value(SPINUP), tuning.feedStartSeconds(),
+        if (tuning.value(FEED_SECONDS) > 0 && tuning.feedsWhenUpToSpeed()) telemetry.addData("Shot timing",
+                "launcher on at about %.1f s; feeds %.1f s, starting when up to speed (%.0f ticks/s) or at %.1f s at the latest",
+                tuning.shotStartSeconds(), tuning.value(FEED_SECONDS),
+                tuning.value(FLYWHEEL) * PollenConfig.LAUNCHER_READY_FRACTION, tuning.feedStartSeconds());
+        if (tuning.value(FEED_SECONDS) > 0 && !tuning.feedsWhenUpToSpeed()) telemetry.addData("Shot timing",
+                "launcher on at %.1f s, feed %.1f-%.1f s (the agreed time: never sooner, even if up to speed)",
+                tuning.shotStartSeconds(), tuning.feedStartSeconds(),
                 tuning.feedStartSeconds() + tuning.value(FEED_SECONDS));
         if (!tuning.budgetOk()) telemetry.addData("OVER TIME BUDGET",
                 "%.2f s planned, must be < %.0f s: lower delay or feed, raise power, or shorten legs",
@@ -222,6 +238,12 @@ public abstract class PollenShooterOpMode extends OpMode {
             telemetry.addData(tuning.legName(leg), tuning.legCm(leg) <= 0 ? "skipped (0 cm)"
                     : String.format(java.util.Locale.US, "%.1f cm @ %+.1f deg -> ends %.1f in fwd, %.1f in left; about %.1f s",
                     tuning.legCm(leg), tuning.legAngle(leg), end[0], end[1], tuning.odometryLegSeconds(leg)));
+            // Angled mode: the turn and the shot come between leg 2 and leg 3.
+            if (angledShot() && leg == 2) telemetry.addData("AT THE SHOOTING SPOT", tuning.aimDegrees() == 0
+                    ? "shoot without turning (aim angle is 0)"
+                    : String.format(java.util.Locale.US, "turn to %+.0f deg (about %.1f s), shoot, turn back to 0; "
+                    + "corner clears the wall by %.1f in while turning", tuning.aimDegrees(), tuning.aimTurnSeconds(),
+                    tuning.turnWallGapInches()));
         }
         telemetry.addData("Angles", "+left / -right of the zeroed heading; distances are measured, not timed");
     }
@@ -261,10 +283,12 @@ public abstract class PollenShooterOpMode extends OpMode {
                 y = pose.y();
                 heading = pose.heading();
             }
-            double launcherMeasured = shooterAvailable ? launcher.getVelocity() : 0; // screen and log only; never used for timing
+            // The launcher's speed in ticks per second. A shot feeds when this is up to speed,
+            // or when the spin-up time is over (PollenFeedRule). NaN means "no reading".
+            double launcherMeasured = shooterAvailable ? launcher.getVelocity() : Double.NaN;
 
             // 2. DECIDE: the sequence says what every motor should do right now.
-            PollenSequence.Output out = sequence.tick(now, x, y, heading);
+            PollenSequence.Output out = sequence.tick(now, x, y, heading, launcherMeasured);
             double[] wheels = PollenSequence.wheelPowers(out); // frontLeft, frontRight, backLeft, backRight
             double intakePower = out.feederPower * tuning.value(FEED_POWER);
             double agitatorPower = out.feederPower * tuning.value(AGITATOR_POWER);
@@ -285,9 +309,11 @@ public abstract class PollenShooterOpMode extends OpMode {
             telemetry.addData("Elapsed", "%.2f s", now);
             telemetry.addData("Launcher target / measured", "%.0f / %.0f ticks/s", out.launcherVelocity, launcherMeasured);
             telemetry.addData("Intake / agitator command", "%.2f / %.2f", intakePower, agitatorPower);
-            telemetry.addData("Commanded feed time", "%.2f s", out.activeFeedSeconds);
+            telemetry.addData("Feed", out.feederPower == 0 ? "off" : String.format(java.util.Locale.US,
+                    "FEEDING for %.2f s (started by: %s)", out.activeFeedSeconds, out.feedStartedBy));
             telemetry.addData("FL FR BL BR", "%.3f %.3f %.3f %.3f", wheels[0], wheels[1], wheels[2], wheels[3]);
             if (!Double.isNaN(out.inchesToGo)) telemetry.addData("Inches to go", "%.1f", out.inchesToGo);
+            if (!Double.isNaN(out.degreesToGo)) telemetry.addData("Degrees to go", "%.1f", out.degreesToGo);
             if (!sequence.warning().isEmpty()) telemetry.addData("Warning", sequence.warning());
             telemetry.update();
             log.loop(now, out, sequence.warning(), x, y, heading, wheels, launcherMeasured, this::batteryVolts);
@@ -316,6 +342,7 @@ public abstract class PollenShooterOpMode extends OpMode {
     /** Name as shown on the Driver Hub, for the log. */
     private String modeName() {
         if (!odometry()) return supportingShooter() ? "EMERGENCY Timed Supporting Shooter" : "EMERGENCY Timed Shoot + Park";
+        if (angledShot()) return "Angled Primary Shooter";
         return supportingShooter() ? "Odo Supporting Shooter" : "Odo ROBOT Shoot + Park";
     }
 

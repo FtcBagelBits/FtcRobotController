@@ -36,7 +36,7 @@ You can change four settings before START. Usually leave them alone.
 - **D-pad UP/DOWN:** pick a row (marked `>`). **D-pad LEFT/RIGHT:** change it. Tap and let go.
 - **Triangle:** all back to the defaults. The screen says `Settings: DEFAULTS` or `CHANGED - check before START`.
 - Settings stay until the robot app restarts, so **check the INIT screen before every match**.
-- The screen should show **Build `pollen-odo-v9`**.
+- The screen should show **Build `pollen-odo-v10`**.
 
 ## What the screen tells you during the match
 

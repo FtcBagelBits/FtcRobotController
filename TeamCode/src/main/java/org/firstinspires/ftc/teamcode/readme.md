@@ -10,7 +10,8 @@ All of team 31452's robot code lives in this folder. New here? Start with
 | --- | --- | --- |
 | **PollenBot** (TeleOp) | `BioBuzzStarterbotOpMode.java` | The match TeleOp |
 | Odo ROBOT Shoot + Park, Odo Supporting Shooter Auto, Odo ROBOT Park, and the EMERGENCY Timed autos | `pollen/` | All the autonomous code; see `pollen/README.md` |
-| LauncherTest (group Test) | `LauncherTestOpMode.java` | Runs PollenBot's launcher, intake and agitator on their own, for testing |
+| Angled Primary Shooter (group Pollen Experimental) | `pollen/PollenAngledPrimaryShooter.java` | **Experimental:** the primary auto with an angled shot. Not yet tried on a field |
+| LauncherTest (group Test) | `LauncherTestOpMode.java` | Runs PollenBot's launcher, intake and agitator on their own, for testing. Same buttons, INIT menu and feed rule as the TeleOp |
 | Odometry Check (group Pedro) | `OdometryCheck.java` | Checks the Pinpoint odometry pods; steps in `docs/ODOMETRY_BASELINE_TEST.md` |
 | Pedro Test (group Pedro) | `PedroLocalizationTest.java` | Shows Pedro Pathing's position on the Panels dashboard and follows a short test path |
 | (not an OpMode) | `pedroPathing/Constants.java` | Robot measurements and settings for Pedro Pathing and the Pinpoint |

@@ -89,7 +89,7 @@ that a mentor reviews.
 2. **Change code** only under `TeamCode/src/main/java/org/firstinspires/ftc/teamcode/` (and its
    tests under `TeamCode/src/test/`) unless a mentor says otherwise.
 3. **If what the robot does changes**, bump `BUILD` in `pollen/PollenConfig.java`
-   (for example `pollen-odo-v9` → `pollen-odo-v10`), so the drive team can see which code is installed.
+   (for example `pollen-odo-v10` → `pollen-odo-v11`), so the drive team can see which code is installed.
 4. **Run the tests** (section 2) and **build** (Build → Make Project).
 5. **Commit:** Git → Commit. Write one line saying what changed and why.
 6. **Push:** Git → Push. Android Studio asks you to log in to GitHub the first time.

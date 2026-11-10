@@ -6,17 +6,31 @@ public final class PollenConfig {
 
     /** Shown in INIT by every Pollen and Odo autonomous mode and by PollenBot TeleOp, and written to
      * the robot log at START. Change it whenever the Pollen code changes. */
-    public static final String BUILD = "pollen-odo-v9";
+    public static final String BUILD = "pollen-odo-v10";
 
-    /** Launcher runs alone this long before feeding starts, in auto and TeleOp (team-measured). */
+    /** Launcher speed in encoder ticks per second: the default in TeleOp, autonomous and
+     * LauncherTest (the INIT menus can change it). The encoder counts 28 ticks per turn, so
+     * 1180 ticks/s = 1180 / 28 x 60 = 2529 RPM. */
+    public static final int LAUNCHER_TARGET_VELOCITY = 1180;
+    /** The longest the launcher runs alone before feeding starts, in auto, TeleOp and
+     * LauncherTest (team-measured). Feeding starts sooner if the launcher is already up to
+     * speed: see PollenFeedRule. */
     public static final double LAUNCHER_SPINUP_SECONDS = 3.0;
     /** Agitator power while feeding the launcher, in auto and TeleOp. It replaced a windmill
      * servo that ran at full power while shooting; half power can stall the hopper. */
     public static final double AGITATOR_FEED_POWER = 1.0;
-    /** TeleOp: the launcher counts as "up to speed" at this fraction of its target (about
-     * 1133 of the 1180 target; originally 1200 of 1250, the StarterBot check). Feeding starts at that speed or after the spin-up
-     * time, whichever comes first, so a bad encoder reading can never stop the feed. */
+    /** The launcher counts as "up to speed" at this fraction of its target (about 1133 of the
+     * 1180 target; originally 1200 of 1250, the StarterBot check). Feeding starts at that speed
+     * or after the spin-up time, whichever comes first, so a bad encoder reading can never stop
+     * the feed. The rule itself is in PollenFeedRule. */
     public static final double LAUNCHER_READY_FRACTION = 0.96;
+    /** TeleOp and LauncherTest: hold L1 to run the launcher BACKWARDS this fast and push a
+     * jammed ball back out. 300 RPM = 300 x 28 / 60 = 140 ticks per second. */
+    public static final int LAUNCHER_REVERSE_VELOCITY = 140;
+    /** TeleOp and LauncherTest: while feeding, this much is added to the intake power from the
+     * triggers, so the intake keeps pushing balls toward the launcher. (Autonomous has its own
+     * "Intake power while feeding" row, which also defaults to 0.5.) */
+    public static final double INTAKE_FEED_BOOST = 0.5;
 
     // Device names in the active PollenBot hardware configuration.
     public static final String[] DRIVE_NAMES = {"frontLeft", "frontRight", "backLeft", "backRight"};

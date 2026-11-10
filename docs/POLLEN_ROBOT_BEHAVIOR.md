@@ -88,8 +88,8 @@ same. Code: `PollenDriveCalibration.move()`.
 
 | Setting | Auto (B and C) | TeleOp | Measured? |
 | --- | --- | --- | --- |
-| Launcher target | 1250 ticks/s (INIT row) | 1250 ticks/s (INIT menu) | Used in matches; exit speed not measured |
-| Feed starts | after the Spin-up row (3 s), whatever the measured speed | at 96% of target or 3 s after R1, whichever is first | 3 s is team-measured |
+| Launcher target | 1180 ticks/s (INIT row; 1250 before `pollen-odo-v2`) | 1180 ticks/s (INIT menu) | Used in matches; exit speed not measured |
+| Feed starts | B: at 96% of target or after the Spin-up row (3 s), whichever is first (since `pollen-odo-v10`; before that, after the Spin-up row only). C: after the Spin-up row, whatever the measured speed | at 96% of target or 3 s after R1, whichever is first | 3 s is team-measured; auto feeding on speed not yet run on the robot |
 | Feed power | intake + agitator 0.50 | trigger, +0.50 while firing | Code |
 | Feed duration | B 10 s, C 7.5 s | while R1 held | Pollen per second not measured |
 

@@ -1,6 +1,6 @@
 # Pollen autonomous code
 
-Build identifier: **pollen-odo-v9** (`PollenConfig.BUILD`). The match autos are the odometry
+Build identifier: **pollen-odo-v10** (`PollenConfig.BUILD`). The match autos are the odometry
 ones (below). Three timed OpModes are kept for **emergencies only** (a match where the Pinpoint
 is not working), in the group *Pollen Emergency (timed)*: `EMERGENCY Timed Park`,
 `EMERGENCY Timed Shoot + Park`, and `EMERGENCY Timed Supporting Shooter` (before `pollen-odo-v9`
@@ -51,9 +51,11 @@ The experimental profiles/routes are not validated robot settings.
 | PollenParkTuning | A controller editing, bounds, delay budget and lock |
 | PollenShootTuning | B/C menus (launcher, feed, power, three legs' cm/angle), defaults, field presets, budget and route construction |
 | PollenDriveCalibration | Unchanged baseline; opt-in B / default C mat trial; A forward estimate |
-| PollenFieldGeometry | Nominal CAD-derived start/parking coordinates and preset displacements |
-| PollenSequence | Hardware-free step runner. Four kinds of step (`Kind`: DRIVE, SHOOT, MOVE, ZERO_ODOMETRY), one short method each (`driveStep`, `shootStep`, `moveStep`, `zeroOdometryStep`); stall/STOP/deadline checks; mixer |
-| PollenOdometryDrive | Odometry legs: drive-to-point controller (`command()` returns a `Command`: forward, strafe, turn, inchesToGo), time estimates, wall-square and zero constants |
+| PollenFieldGeometry | Nominal CAD-derived start/parking coordinates and preset displacements; the assumed angled shooting spot and its aim angle |
+| PollenFeedRule | The one feed rule (up to speed, or the spin-up time is over), used by TeleOp, LauncherTest and every autonomous shot |
+| PollenAngledPrimaryShooter | EXPERIMENTAL registered wrapper: B with odometry and `angledShot()` on |
+| PollenSequence | Hardware-free step runner. Five kinds of step (`Kind`: DRIVE, SHOOT, MOVE, TURN, ZERO_ODOMETRY), one short method each (`driveStep`, `shootStep`, `moveStep`, `turnStep`, `zeroOdometryStep`); stall/STOP/deadline checks; mixer |
+| PollenOdometryDrive | Odometry legs: drive-to-point controller (`command()` returns a `Command`: forward, strafe, turn, inchesToGo), time estimates, wall-square and zero constants; turning in place (`turnPower()` and the TURNING IN PLACE constants, untuned) |
 | PollenOdometryHardware | Opens the Pinpoint through Pedro's localizer (pedroPathing/Constants); pose telemetry |
 | PollenOdoPark, PollenOdoParkTuning | Option A with odometry: zero, drive a measured distance, stop; distance menu |
 | PollenOdoRobotShoot, PollenOdoSupportingShooter | B and C with odometry: same shared OpMode with odometry() on |
@@ -108,15 +110,23 @@ A shoot step runs the launcher alone for `SPINUP` seconds (default
 `PollenConfig.LAUNCHER_SPINUP_SECONDS` = 3), then launcher, intake and agitator
 together for `FEED_SECONDS`, the intake at `FEED_POWER` (0.5) and the agitator at
 `AGITATOR_POWER` (`PollenConfig.AGITATOR_FEED_POWER`, 1.0; it replaced a windmill
-servo that ran at full power). Measured launcher speed is never used to delay,
-pause, skip or stop feeding in auto; `PollenSequence.tick(now)` takes only the clock.
-PollenBot TeleOp feeds on R1 when the launcher reads `LAUNCHER_READY_FRACTION`
-(0.96) of target or its spin-up row elapses, whichever is first
-(`launcherIsUpToSpeed` or `spinUpTimeIsOver` in `PollenTeleOpTuning`), and latches feeding until R1
-is released: the intake gets +0.5 (`INTAKE_FEED_BOOST`, clipped to 1) and the
-agitator its own feed power. The TeleOp reads the launcher's speed once per loop
-(`launcherMeasuredVelocity`). Auto keeps fixed times so C never feeds before its
-15 s slot.
+servo that ran at full power).
+
+The feed rule is in `PollenFeedRule` and is the same everywhere (since `pollen-odo-v10`):
+feeding may start when the launcher reads `LAUNCHER_READY_FRACTION` (0.96) of target, or
+when the spin-up time is over, whichever is first. Once started it is latched. A speed
+reading can only make the feed start sooner; a low, zero or missing reading leaves the
+timer in charge, so it can never delay, pause, skip or stop the feed.
+- Autonomous: `PollenSequence.tick(now, x, y, heading, launcherVelocity)`; `shootStep`
+  latches the feed for the step's feed time. `tick(now)` and `tick(now, x, y, heading)`
+  pass no speed, so the timer decides. B (odometry, timed and angled) uses
+  `Step.continuousShoot`. C uses `Step.shootAtSetTime`, which ignores the speed, so C
+  never feeds before its 15 s slot.
+- PollenBot TeleOp and LauncherTest: `launch()` latches the feed until R1 is released
+  (`launcherIsUpToSpeed` and `spinUpTimeIsOver` in `PollenTeleOpTuning` call the rule):
+  the intake gets +0.5 (`PollenConfig.INTAKE_FEED_BOOST`, clipped to 1) and the agitator
+  its own feed power. Both read the launcher's speed once per loop
+  (`launcherMeasuredVelocity`).
 
 Leg 3 defaults (`B_FIELD_LEG3_CM/DEGREES`, `C_LEG3_CM` in `PollenShootTuning`) are
 field-tuned and no longer equal the CAD plan in `PollenFieldGeometry`; the route
@@ -171,14 +181,18 @@ ftcgradle :TeamCode:assembleDebug
 ```
 
 The test programs use Java 8 compatibility and cover original A/B behavior,
-mat arithmetic, field-preset selection, fixed spin-up/feed timing (including a launcher reading zero), C's slot, all three
+mat arithmetic, field-preset selection, the feed rule (up to speed, the spin-up timer, a launcher reading zero), C's slot, all three
 movement legs, controller edits of each leg and launcher speed, budgets, memory and STOP,
 plus the TeleOp INIT menu (defaults, limits, the two feed rules, memory, lock at START).
 `PollenLoopTimingTest` drives B's full route and C through irregular loop
 timing and 350 ms pauses at each step change, and checks that no leg is skipped
-or shortened and that a pause while driving stops the run. The standard-library
+or shortened and that a pause while driving stops the run. `PollenOdometryTest`
+runs the odometry routes on a simulated robot (an assumed robot, not ours),
+including the feed rule in whole runs, turning in place with quicker and
+slower robots, and the Angled Primary Shooter from start to park. The standard-library
 Python script checks nominal swept polygons, including the rejected direct route
-and rejected centered support start. The test script also exports the Java
+and rejected centered support start, plus the angled route and every degree of
+its turn against the end wall and the obstacles. The test script also exports the Java
 presets (`PollenPresetExport`) and runs the checker with `--presets`, so the
 checker fails if the Java routes and its plan disagree. Neither establishes
 actual physical clearance.
@@ -194,6 +208,6 @@ is unavailable.
 
 Deploy a freshly built APK through the team's working Wi-Fi/ADB connection or
 Android Studio TeamCode run configuration to the Control Hub. USB-C has not
-worked. Verify `pollen-odo-v9` in INIT. Check the actual installed commit and all
+worked. Verify `pollen-odo-v10` in INIT. Check the actual installed commit and all
 settings before physical tests. Java changes require rebuild/reinstall; INIT
 settings and documentation edits do not.

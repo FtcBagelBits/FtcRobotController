@@ -46,7 +46,12 @@ obstacles={'frame':box(-24.729,24.742,-19.476,19.476),
 foot=box(-24.729,-22.75,-19.472,19.472)
 assert intersects(hull(robot(start)+robot(primary)),foot), 'direct primary diagonal should hit the frame foot'
 assert intersects(robot((hx,-W+R)),obstacles['scoring flower']), 'centered support start should overlap the flower'
-routes={'primary':[start,off_wall,corner,primary],'support':[ss,sc,support]}
+# Angled Primary Shooter (EXPERIMENTAL): 5 in off the wall, 30 in left, turn in place to face the
+# hive opening, shoot, turn back, then straight to the primary's parking spot.
+angled_spot=(start[0]-30,start[1]-5); opening=(hx,15.7)
+angled_aim=math.degrees(math.atan2(angled_spot[0]-opening[0],angled_spot[1]-opening[1])) # negative = to the robot's right
+routes={'primary':[start,off_wall,corner,primary],'support':[ss,sc,support],
+        'angled':[start,(start[0],angled_spot[1]),angled_spot,primary]}
 
 def java_route(preset, legs):
     """Waypoints for a preset's start and the given legs (cm, +left deg); 0-cm legs are skipped."""
@@ -62,7 +67,8 @@ if '--presets' in sys.argv:
     with open(sys.argv[sys.argv.index('--presets')+1]) as f: java=json.load(f)
     for k,v in (('wall',W),('half',R),('red_hive_x',hx),('flower_inboard_x',flower_x)):
         assert abs(java[k]-v)<1e-9,('Java constant differs from checker',k,java[k],v)
-    for name,key in (('primary','b_square'),('support','c')):
+    assert abs(java['angled']['aim_degrees']-angled_aim)<1e-6,('Java aim angle differs from checker',java['angled']['aim_degrees'],angled_aim)
+    for name,key in (('primary','b_square'),('support','c'),('angled','angled')):
         p=java[key]; tuned=set(p.get('field_tuned_legs',[]))
         got=java_route(p,p['plan_legs']); want=routes[name]
         assert len(got)==len(want),(name,'Java plan has a different number of legs',got)
@@ -85,6 +91,18 @@ for name,p in plans.items():
  for obstacle,b in obstacles.items():
   assert not intersects(p,b),(name,obstacle)
  print(name,'closest',min((distance(p,b),n) for n,b in obstacles.items()))
+# The angled shot's turn in place: at every degree from square to the aim angle, the robot must
+# stay inside the field and clear of every obstacle. (A square robot is the same turned either way.)
+turn=[robot(angled_spot,math.radians(d)) for d in range(0,int(math.ceil(abs(angled_aim)))+1)]
+turn_wall_gap=min(W-max(z for x,z in poly) for poly in turn)
+assert turn_wall_gap>0.5,('angled turn would hit the end wall',turn_wall_gap)
+for poly in turn:
+ assert all(abs(x)<W for x,z in poly)
+ for obstacle,b in obstacles.items():
+  assert not intersects(poly,b),('angled turn',obstacle)
+print(f'angled shot: aim {angled_aim:+.2f} deg, {math.dist(angled_spot,opening):.1f} in from the opening; '
+      f'turn clears the end wall by {turn_wall_gap:.2f} in, nearest obstacle '
+      f'{min(distance(poly,b) for poly in turn for b in obstacles.values()):.1f} in')
 flower_gap=distance(robot(ss),obstacles['scoring flower']); half_gap=-max(p[0] for p in robot(ss))
 assert half_gap>0 and abs(flower_gap-half_gap)<1e-9, 'support start must split the gap evenly'
 assert abs(min(p[1] for p in robot(ss))+W)<1e-9, 'support rear edge flush on the wall'
@@ -96,7 +114,7 @@ wall_gaps={n:min(x for x,z in robot(p))+W for n,p in (('primary',primary),('supp
 assert all(g>0 for g in wall_gaps.values()), wall_gaps
 print('parked side-wall gaps (in)',wall_gaps)
 assert not intersects(robot(primary),robot(support))
-assert all(not intersects(plans[p],plans[s]) for p in plans if p.startswith('primary') for s in plans if s.startswith('support'))
+assert all(not intersects(plans[p],plans[s]) for p in plans if p.startswith(('primary','angled')) for s in plans if s.startswith('support'))
 print('support start',ss,'flower gap',flower_gap,'half-field gap',half_gap,'offset from hive center',ss[0]-hx)
 print('parking gap',distance(robot(primary),robot(support)))
 assert not intersects(robot((-56,-W+R)),zone), 'pure strafe should miss parking'

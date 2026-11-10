@@ -1,6 +1,6 @@
 # Pollen autonomous operating manual
 
-All autonomous modes and PollenBot TeleOp show build **`pollen-odo-v9`**.
+All autonomous modes and PollenBot TeleOp show build **`pollen-odo-v10`**.
 Keep these instructions with the installed code. The new mat calibration and field routes are **experimental**.
 **Drive team:** use the [drive-team guides](drive-team/README.md); this manual is the full reference.
 Since `pollen-odo-v5`, B's default (and Triangle) is the full shoot-and-park route.
@@ -123,7 +123,9 @@ B's default (Triangle) is:
 
 This avoids the floor-level frame bar in the nominal CAD. It budgets about
 **22.0 s**: 3 s spin-up, 10 s feed, about 8.5 s of driving and the 0.5 s hold.
-Drive starts at about 13 s. Editing any leg changes the route (ROUTE shows EDITED LEGS);
+Drive starts at about 13 s at the latest; since `pollen-odo-v10` the feed, and
+everything after it, starts sooner when the launcher is up to speed before the
+3 s are over. Editing any leg changes the route (ROUTE shows EDITED LEGS);
 check the geometry again after such edits.
 
 ## Supporting field preset: C
@@ -194,11 +196,21 @@ back out. L1 wins over R1 and nothing feeds while it is held; the screen shows
 
 ## Shooting, memory and failure handling
 
-Shooting uses fixed times. After the start delay the launcher runs alone for
-the Spin-up row (default **3 s**, the team's measured spin-up), then launcher,
-main intake and agitator run together for the full feed duration. Measured
-speed never delays, pauses or skips the feed; an earlier version waited for
-96% of target speed and could stall the feeder when the encoder read low. No
+Since `pollen-odo-v10` autonomous uses the same feed rule as TeleOp and
+LauncherTest (`PollenFeedRule`). After the start delay the launcher runs alone.
+Feeding starts when the launcher reads 96% of its target speed, or when the
+Spin-up row (default **3 s**, the team's measured spin-up) is over, whichever
+comes first. Then launcher, main intake and agitator run together for the full
+feed duration. The speed reading can only make feeding start sooner: it never
+delays, pauses or skips the feed. With a low or missing reading the timer
+starts the feed, so the feeder cannot stall the way it did under the old
+speed-only check. The INIT screen's Shot timing line gives the latest feed
+start, and while running the Feed line says which half of the rule started it
+(`up to speed` or `spin-up timer`).
+
+The two Supporting Shooter modes are the exception. They always wait the whole
+spin-up time, so their feed starts at the time agreed with the partner (15 s)
+and never sooner. The time budget always plans for the whole spin-up time. No
 windmill feeder is used. Encoder target is ticks/s, not RPM; feed time is
 commanded motor time, not a ball count.
 
