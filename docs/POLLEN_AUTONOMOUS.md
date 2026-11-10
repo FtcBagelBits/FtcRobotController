@@ -1,6 +1,6 @@
 # Pollen autonomous operating manual
 
-All autonomous modes and PollenBot TeleOp show build **`pollen-odo-v8`**.
+All autonomous modes and PollenBot TeleOp show build **`pollen-odo-v9`**.
 Keep these instructions with the installed code. The new mat calibration and field routes are **experimental**.
 **Drive team:** use the [drive-team guides](drive-team/README.md); this manual is the full reference.
 Since `pollen-odo-v5`, B's default (and Triangle) is the full shoot-and-park route.
@@ -10,11 +10,17 @@ EDITED LEGS), and the shoot autos write each run to the robot log ([below](#robo
 
 ## Choose the routine
 
+**Use the Odo modes** ([odometry autos](POLLEN_ODOMETRY_AUTOS.md)): they are what the team runs in
+matches. The three timed modes in this table are for **emergencies only**, when the odometry
+sensor is not working. Since `pollen-odo-v9` their Driver Hub names start with **EMERGENCY Timed**
+(group *Pollen Emergency (timed)*) and their INIT screen has an `EMERGENCY ONLY` line. The letters
+A, B and C are the names this manual uses for the three jobs.
+
 | Driver Hub choice | Behavior | Starting pose |
 | --- | --- | --- |
-| **Pollen ROBOT Park** (A) | Selected delay, timed forward drive, hold | Manually aligned with the team's tested forward parking path |
-| **Pollen ROBOT Shoot + Park** (B) | Delay, stationary shot, up to three selected drive legs, hold | End wall, flush and square, centerline aimed into the initially upward-facing cell |
-| **Pollen Supporting Shooter Auto** (C) | Wait 12 s, spin up 3 s, stationary forward shot, forward flower clearance, mostly-right travel, hold | Opposite end wall, **flush and square, centered between flower and midline** (below); partner tips the cell before our shot |
+| **EMERGENCY Timed Park** (A) | Selected delay, timed forward drive, hold | Manually aligned with the team's tested forward parking path |
+| **EMERGENCY Timed Shoot + Park** (B) | Delay, stationary shot, up to three selected drive legs, hold | End wall, flush and square, centerline aimed into the initially upward-facing cell |
+| **EMERGENCY Timed Supporting Shooter** (C) | Wait 12 s, spin up 3 s, stationary forward shot, forward flower clearance, mostly-right travel, hold | Opposite end wall, **flush and square, centered between flower and midline** (below); partner tips the cell before our shot |
 
 All preselect **PollenBot** for TeleOp, without automatically starting it. There
 is no localization, heading correction, obstacle detection or hive-tip sensing.

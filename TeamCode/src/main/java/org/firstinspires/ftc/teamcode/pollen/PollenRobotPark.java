@@ -30,8 +30,10 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-/** Option A: select delay, power and time during INIT, then drive forward and stop. */
-@Autonomous(name = "Pollen ROBOT Park", group = "Pollen", preselectTeleOp = "PollenBot")
+/** EMERGENCY ONLY: the timed version of Odo ROBOT Park, for a match where the odometry sensor
+ * (Pinpoint) is not working. Select delay, power and time during INIT, then drive forward for
+ * that time and stop. */
+@Autonomous(name = "EMERGENCY Timed Park", group = "Pollen Emergency (timed)", preselectTeleOp = "PollenBot")
 public final class PollenRobotPark extends OpMode {
     private static PollenParkTuning.Snapshot remembered;
     private final DcMotor[] drive = new DcMotor[4];
@@ -88,7 +90,8 @@ public final class PollenRobotPark extends OpMode {
 
     private void showSettings() {
         telemetry.addData("Build", PollenConfig.BUILD);
-        telemetry.addData("Mode", "ROBOT Park - real motors on START");
+        telemetry.addData("EMERGENCY ONLY", "Timed driving, no odometry. Use Odo ROBOT Park unless odometry has failed.");
+        telemetry.addData("Mode", "TIMED Park - real motors on START");
         if (tuning == null) return;
         telemetry.addData("Park power / drive seconds", "%.2f / %.2f s", tuning.power(), tuning.seconds());
         telemetry.addData("Mat forward estimate", "%.1f cm; measured powers .25/.50, extrapolated below .25",

@@ -28,8 +28,8 @@ the *FIRST* Tech Challenge SDK (`FtcRobotController` **12.0**). The build produc
 | **Odo ROBOT Shoot + Park** | Shoots the preloads, drives to the inner parking slot using odometry | Drive team, primary auto |
 | **Odo Supporting Shooter Auto** | Waits 12 s for the partner, shoots, parks in the outer slot | Drive team, when the partner shoots first |
 | **PollenBot** (TeleOp) | Driving, intake, R1 shoots, L1 reverses the launcher | Drive team |
-| Pollen ROBOT Shoot + Park / Pollen Supporting Shooter Auto | Same as the Odo ones but timed | Fallback if the Pinpoint fails |
-| Odo ROBOT Park / Pollen ROBOT Park | Drive forward only (no shot) | Fallback, testing |
+| Odo ROBOT Park | Drive forward only (no shot), measured with odometry | Testing, or the launcher is broken |
+| EMERGENCY Timed Shoot + Park / EMERGENCY Timed Supporting Shooter / EMERGENCY Timed Park | The same three jobs with timed driving (no odometry) | **Emergency only:** a match where the Pinpoint is not working |
 | Odometry Check | Pinpoint wiring and settings test ([docs/ODOMETRY_BASELINE_TEST.md](docs/ODOMETRY_BASELINE_TEST.md)) | Programmers |
 | Pedro Test | Pedro pose on the Panels dashboard, plus a short test path (A also spins Lox's `flywheel` if the robot has one) | Programmers |
 | LauncherTest | PollenBot's launcher, intake and agitator on their own | Programmers |
@@ -39,7 +39,7 @@ robots' code (DECODE 2025-26). They share some hardware names but nothing else w
 them alone unless asked. `TeamCode/.../teamcode/readme.md` is the student-facing list of what's live.
 
 Every Pollen and Odo mode shows a build id on the INIT screen (`PollenConfig.BUILD`, e.g.
-`pollen-odo-v8`). **Bump it whenever behavior changes**, so the drive team can confirm which code is installed.
+`pollen-odo-v9`). **Bump it whenever behavior changes**, so the drive team can confirm which code is installed.
 
 ## Hardware configuration names (PollenBot)
 

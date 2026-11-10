@@ -14,7 +14,7 @@ checked in software only. Add every new physical result to this file.
 
 | Feature | Settings | Physical status | Evidence |
 | --- | --- | --- | --- |
-| A: Pollen ROBOT Park | 2.00 s forward at power 0.20, delay 0 | Run successfully | Team report; endpoint not recorded |
+| A: Pollen ROBOT Park (now EMERGENCY Timed Park) | 2.00 s forward at power 0.20, delay 0 | Run successfully | Team report; endpoint not recorded |
 | B: Shoot + Park, Triangle | 1250 ticks/s, feed 10 s, 60.96 cm at +25.87 deg, power 0.20, baseline model | Run successfully | Team report; endpoint and shots not recorded |
 | PollenBot TeleOp, untouched menu | launcher 1250, feed at 1200 ticks/s or 3 s after R1, drive 100% | Feed stopped working Oct 24 under the old speed-only gate; v8's speed-or-timer feed not yet run | See "Feeder stall, October 24" |
 | Launcher spin-up | 3 s before feeding | Team-measured | Basis for the fixed spin-up in auto and TeleOp |

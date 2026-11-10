@@ -9,7 +9,7 @@ All of team 31452's robot code lives in this folder. New here? Start with
 | Driver Hub name | File or folder | What it is |
 | --- | --- | --- |
 | **PollenBot** (TeleOp) | `BioBuzzStarterbotOpMode.java` | The match TeleOp |
-| Odo ROBOT Shoot + Park, Odo Supporting Shooter Auto, Odo ROBOT Park, and the timed Pollen autos | `pollen/` | All the autonomous code; see `pollen/README.md` |
+| Odo ROBOT Shoot + Park, Odo Supporting Shooter Auto, Odo ROBOT Park, and the EMERGENCY Timed autos | `pollen/` | All the autonomous code; see `pollen/README.md` |
 | LauncherTest (group Test) | `LauncherTestOpMode.java` | Runs PollenBot's launcher, intake and agitator on their own, for testing |
 | Odometry Check (group Pedro) | `OdometryCheck.java` | Checks the Pinpoint odometry pods; steps in `docs/ODOMETRY_BASELINE_TEST.md` |
 | Pedro Test (group Pedro) | `PedroLocalizationTest.java` | Shows Pedro Pathing's position on the Panels dashboard and follows a short test path |
