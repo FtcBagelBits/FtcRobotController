@@ -77,14 +77,14 @@ public final class PollenTeleOpTuning {
     /** "Up to speed" means 96% of the target: about 1133 ticks/s for the default 1180. */
     public double launcherReadyVelocity() { return launcher * PollenConfig.LAUNCHER_READY_FRACTION; }
 
-    /** Feeding rule 1: the launcher's encoder says it is up to speed. */
+    /** Feeding rule 1: the launcher's encoder says it is up to speed (PollenFeedRule). */
     public boolean launcherIsUpToSpeed(double measuredVelocity) {
-        return measuredVelocity >= launcherReadyVelocity();
+        return PollenFeedRule.upToSpeed(measuredVelocity, launcher);
     }
 
     /** Feeding rule 2 (the backup): R1 has been held for the whole spin-up time, so feed even
      * if the encoder reading is wrong. This is the rule that fixed the October 24 stall. */
-    public boolean spinUpTimeIsOver(double heldSeconds) { return heldSeconds >= spinup; }
+    public boolean spinUpTimeIsOver(double heldSeconds) { return PollenFeedRule.spinUpTimeIsOver(heldSeconds, spinup); }
     public boolean isDefault() {
         return launcher == defaultLauncher && spinup == defaultSpinup && agitator == defaultAgitator && drive == MAX_DRIVE;
     }

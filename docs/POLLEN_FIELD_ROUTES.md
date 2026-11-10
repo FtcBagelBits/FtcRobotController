@@ -114,6 +114,23 @@ about **8.52 inches (21.6 cm)** to the red side-wall flower, slightly more than
 the earlier two-leg version (8.18 inches) because leg 3 starts closer to the
 park slot. This does not account for loose game pieces or another robot's route.
 
+## Angled primary shot (experimental)
+
+`Angled Primary Shooter` starts where the primary shooter starts and parks in the same slot, but
+shoots from the team's **assumed** angled spot (strategy canvas, 2026-11-08): the robot's center
+5 in off the wall start and 30 in to its left, at (-42.74, 56.585). From there the estimated
+middle of the hive opening, at (-12.74, 15.7), is **50.7 in away, 36.27 degrees to the robot's
+right**. The route is: 5 in forward, 30 in left, turn in place by -36.27 degrees, shoot, turn back,
+then one leg of 212.5 cm at +9.12 degrees to the primary parking spot (-56, -26).
+
+`tools/check-pollen-field-routes.py` checks this route from the Java presets. Nominal results for
+an 18 x 18 in square robot: legs 1 and 2 stay 22.5 in from the hive; leg 3 passes **6.50 in
+(16.5 cm)** from the red side-wall flower (the primary route: 8.52 in); and at every degree of the
+turn the nearest corner is at least **1.40 in (3.6 cm)** from the end wall, with no obstacle
+within 24 in. The wall margin is small: a robot that stops 1 in short on leg 1, or has anything
+outside the 18 in square, uses most of it. None of this has been tried on a field, and the shot
+itself (speed, arc, whether the frame is in the way) is not modeled at all.
+
 ## Supporting shooter: flush, square, centered in the flower gap
 
 The initially downward-facing red cell is approached from the scoring end wall.
@@ -165,7 +182,9 @@ including the hold, below the existing 27-second cutoff and the editor's
 stricter <26-second planning limit.
 
 The launcher alone spins from t=12 to t=15. Feeding runs from t=15 to t=22.5 on
-fixed times; launcher speed is not checked. Drive starts at approximately
+fixed times: the Supporting Shooter never feeds before the agreed time, even if
+its launcher is up to speed sooner. (The primary shooter does feed sooner when
+its launcher is ready; see the operating manual.) Drive starts at approximately
 t=22.5, with all shooter outputs off. If the shooter fails at INIT, the robot
 holds still through the same slot before departing. It does **not** verify
 that the partner tipped the hive; the wait is an open-loop coordination plan.

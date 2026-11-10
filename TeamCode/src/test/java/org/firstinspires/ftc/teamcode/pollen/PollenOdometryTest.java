@@ -26,6 +26,7 @@ public final class PollenOdometryTest {
         double lagSeconds = 0.10;           // velocity follows command with this time constant
         double wallAlignRadPerSecPerPower = 1.0; // how fast pushing into the wall squares it
         boolean stuck;                      // nothing moves (e.g. blocked by another robot)
+        boolean cannotTurnInPlace;          // drives normally, but a turn in place does nothing (a corner against the wall)
         double leftLimit = Double.POSITIVE_INFINITY; // field y it cannot pass (an obstacle on its left)
         double x, y, h, vf, vl, w;
         double ox, oy, oh;                  // where odometry was last zeroed
@@ -37,6 +38,7 @@ public final class PollenOdometryTest {
             vl += a * (-out.strafe * speedInPerSec * strafeEfficiency - vl);
             w += a * (-out.turn * turnRadPerSec + yawPerStrafe * out.strafe - w);
             if (stuck) { vf = vl = w = 0; return; }
+            if (cannotTurnInPlace && out.turn != 0 && out.forward == 0 && out.strafe == 0) { vf = vl = w = 0; return; }
             double c = Math.cos(h), s = Math.sin(h);
             double nx = x + (c * vf - s * vl) * dt, ny = y + (s * vf + c * vl) * dt;
             if (nx < 0 && out.forward < 0) {
@@ -63,24 +65,41 @@ public final class PollenOdometryTest {
         String result = "";
         String warning = "";
         double finishedAt = Double.NaN, feedAt = Double.NaN;
+        /** Where the robot really was (wall frame: x, y, heading) on the first FEED loop. */
+        double[] feedPose;
         List<String> trackPhase = new ArrayList<>();
         List<double[]> track = new ArrayList<>();
         SimRobot robot;
     }
 
-    /** Ticks a sequence against the simulated robot every 20 ms until it finishes. */
+    /** Ticks a sequence against the simulated robot every 20 ms until it finishes. The launcher
+     * gives no speed reading, so shots feed when their spin-up time is over. */
     static Run simulate(PollenSequence seq, SimRobot robot) {
+        return simulate(seq, robot, Double.NaN);
+    }
+
+    /** Same, with a launcher that reads up to speed once it has been on for
+     * {@code launcherReadySeconds} (NaN = no speed reading at all). */
+    static Run simulate(PollenSequence seq, SimRobot robot, double launcherReadySeconds) {
         Run run = new Run();
         run.robot = robot;
         double dt = 0.02;
+        double launcherOnAt = Double.NaN, launcherTarget = 0;
         seq.start(0);
         for (double t = 0; t < 40; t += dt) {
             double[] p = robot.odometry();
-            PollenSequence.Output out = seq.tick(t, p[0], p[1], p[2]);
+            double launcherSpeed = Double.isNaN(launcherReadySeconds) ? Double.NaN
+                    : !Double.isNaN(launcherOnAt) && t - launcherOnAt >= launcherReadySeconds ? launcherTarget : 0;
+            PollenSequence.Output out = seq.tick(t, p[0], p[1], p[2], launcherSpeed);
+            if (out.launcherVelocity == 0) launcherOnAt = Double.NaN;
+            else if (Double.isNaN(launcherOnAt)) { launcherOnAt = t; launcherTarget = out.launcherVelocity; }
             if (run.steps.isEmpty() && !out.phase.equals("START DELAY"))
                 run.steps.add(out.phase.startsWith("SPINUP") ? "SHOOT" : out.phase); // first step
             if (out.phase.startsWith("NEXT: ")) run.steps.add(out.phase.substring(6));
-            if (out.phase.equals("FEED") && Double.isNaN(run.feedAt)) run.feedAt = t;
+            if (out.phase.equals("FEED") && Double.isNaN(run.feedAt)) {
+                run.feedAt = t;
+                run.feedPose = new double[] {robot.x, robot.y, robot.h};
+            }
             if (out.finished) { run.result = out.phase; run.finishedAt = t; break; }
             run.trackPhase.add(out.phase);
             run.track.add(new double[] {robot.x, robot.y});
@@ -127,6 +146,212 @@ public final class PollenOdometryTest {
         return new double[] {side, past};
     }
 
+    /** The feed rule in whole runs: the primary shooter feeds as soon as its launcher is up to
+     * speed; the Supporting Shooter still feeds at the time agreed with the partner. */
+    static void feedWhenUpToSpeed() {
+        PollenShootTuning b = new PollenShootTuning(null, false, true);
+        Run timer = simulate(b.sequence(), new SimRobot());
+        Run ready = simulate(b.sequence(), new SimRobot(), 1.2);
+        check(Math.abs(timer.feedAt - b.feedStartSeconds()) < 0.1, "B, no speed reading: feeds when the spin-up time is over, " + timer.feedAt);
+        check(Math.abs((timer.feedAt - ready.feedAt) - (b.value(SPINUP) - 1.2)) < 0.05,
+                "B, launcher ready after 1.2 s: feeds 1.8 s sooner, at " + ready.feedAt);
+        check(Math.abs((timer.finishedAt - ready.finishedAt) - 1.8) < 0.1 && ready.result.startsWith("DONE"),
+                "and the whole route finishes that much sooner: " + ready.finishedAt + " vs " + timer.finishedAt);
+        check(b.feedsWhenUpToSpeed() && b.worstCaseSeconds() > timer.finishedAt - 2,
+                "the time budget still plans for the whole spin-up time");
+        Run slow = simulate(b.sequence(), new SimRobot(), 99);
+        check(Math.abs(slow.feedAt - timer.feedAt) < 1e-9, "B, launcher never reads up to speed: the timer still feeds on time");
+
+        PollenShootTuning c = new PollenShootTuning(null, true, true);
+        Run agreed = simulate(c.sequence(), new SimRobot(), 0.5);
+        check(!c.feedsWhenUpToSpeed() && Math.abs(c.feedStartSeconds() - 15) < 1e-9, "C plans its feed for 15 s");
+        check(agreed.feedAt >= 15 - 1e-9 && agreed.feedAt < 15.1,
+                "C, launcher ready after 0.5 s: still feeds at 15 s, never sooner; fed at " + agreed.feedAt);
+        System.out.printf(java.util.Locale.US, "  Feed rule: B feeds at %.2f s with a launcher ready in 1.2 s (%.2f s on the timer); C at %.2f s%n",
+                ready.feedAt, timer.feedAt, agreed.feedAt);
+    }
+
+    /** Runs a route of turns only (after a zero) and returns the run. */
+    static Run simulateTurns(SimRobot robot, double... headingsDegrees) {
+        List<PollenSequence.Step> steps = new ArrayList<>();
+        steps.add(PollenSequence.Step.zeroOdometry(PollenOdometryDrive.ZERO_SETTLE_SECONDS));
+        double from = 0;
+        for (double h : headingsDegrees) {
+            double power = PollenOdometryDrive.DEFAULT_TURN_POWER;
+            steps.add(PollenSequence.Step.turnTo("TURN TO " + (int) h, h, power,
+                    PollenOdometryDrive.turnPlannedSeconds(h - from, power),
+                    PollenOdometryDrive.turnTimeoutSeconds(h - from, power)));
+            from = h;
+        }
+        return simulate(PollenSequence.park(steps.toArray(new PollenSequence.Step[0]), 27, 0), robot);
+    }
+
+    /** Turning in place (Kind.TURN). */
+    static void turns() {
+        double max = PollenOdometryDrive.DEFAULT_TURN_POWER, min = PollenOdometryDrive.MIN_TURN_POWER;
+        // The controller. Headings are counterclockwise-positive; turn power is clockwise-positive.
+        check(PollenOdometryDrive.turnPower(0, max, Math.toRadians(30), 0) == max,
+                "30 deg counterclockwise of the target: full power clockwise (+)");
+        check(PollenOdometryDrive.turnPower(Math.toRadians(-36), max, 0, 0) == max,
+                "target 36 deg to the right: turn clockwise (+)");
+        check(PollenOdometryDrive.turnPower(Math.toRadians(36), max, 0, 0) == -max,
+                "target 36 deg to the left: turn counterclockwise (-)");
+        check(PollenOdometryDrive.turnPower(0, max, Math.toRadians(1.5), 0) == 0, "inside the tolerance: no power");
+        check(PollenOdometryDrive.turnPower(0, max, Math.toRadians(2.1), 0) == min, "just outside the tolerance: the minimum power, not less");
+        check(Math.abs(PollenOdometryDrive.turnPower(0, max, Math.toRadians(9), 0) - 0.30) < 1e-9, "9 deg out: slowed to 0.30");
+        check(PollenOdometryDrive.turnPower(0, max, Math.toRadians(5), Math.toRadians(-60)) == 0,
+                "5 deg out and closing at 60 deg/s: it will coast there, so no power");
+        check(PollenOdometryDrive.turnPower(0, max, Math.toRadians(170), 0) == max
+                        && PollenOdometryDrive.turnPower(Math.toRadians(170), max, Math.toRadians(-170), 0) == max,
+                "takes the short way round through 180");
+        check(PollenOdometryDrive.rampedTurnPower(0, max) == min && PollenOdometryDrive.rampedTurnPower(5, max) == max,
+                "turn power ramps up from the minimum");
+
+        // On the simulated robot: to the default aim angle and back, with different robots.
+        double aim = PollenFieldGeometry.angledAimDegrees();
+        double[][] robots = {{3.0, 0.10}, {3.0, 0.20}, {1.8, 0.10}, {4.5, 0.10}, {4.5, 0.25}}; // turn rad/s per power, lag s
+        for (double[] kind : robots) {
+            SimRobot robot = new SimRobot();
+            robot.turnRadPerSec = kind[0];
+            robot.lagSeconds = kind[1];
+            Run run = simulateTurns(robot, aim, 0);
+            String label = String.format(java.util.Locale.US, "robot turning %.1f rad/s per power, lag %.2f s", kind[0], kind[1]);
+            check(run.result.startsWith("DONE") && run.warning.isEmpty(), label + ": both turns finish cleanly: " + run.result + " " + run.warning);
+            check(Math.abs(Math.toDegrees(robot.h)) <= PollenOdometryDrive.HEADING_TOLERANCE_DEG + 0.5,
+                    label + ": ends back at heading 0, off by " + Math.toDegrees(robot.h));
+            double planned = 2 * PollenOdometryDrive.turnPlannedSeconds(aim, max);
+            System.out.printf(java.util.Locale.US, "  Turn to %.1f deg and back, %s: %.2f s (planned %.2f), ends %.2f deg off%n",
+                    aim, label, run.finishedAt - PollenOdometryDrive.ZERO_SETTLE_SECONDS, planned, Math.toDegrees(robot.h));
+        }
+        SimRobot one = new SimRobot();
+        Run toAim = simulateTurns(one, aim);
+        check(Math.abs(Math.toDegrees(one.h) - aim) <= PollenOdometryDrive.HEADING_TOLERANCE_DEG + 0.5,
+                "one turn ends at the aim angle, off by " + (Math.toDegrees(one.h) - aim));
+        check(Math.hypot(one.x, one.y) < 0.5, "turning in place does not move the robot: " + Math.hypot(one.x, one.y));
+        check(toAim.finishedAt < PollenOdometryDrive.turnTimeoutSeconds(aim, max), "well inside its give-up time: " + toAim.finishedAt);
+
+        // Failures. A robot that cannot turn (a corner against the wall): stop, do not shoot.
+        SimRobot stuck = new SimRobot();
+        stuck.stuck = true;
+        Run run = simulateTurns(stuck, aim, 0);
+        check(run.result.equals("TURN TO -36 NOT TURNING - STOPPED"), "robot that cannot turn stops the route: " + run.result);
+        check(run.finishedAt < 1.2 && run.warning.contains("short"), "within about a second, and says how far short: " + run.finishedAt + " " + run.warning);
+
+        // Scripted headings, for the two ways a turn runs out of time.
+        PollenSequence.Step[] route = {PollenSequence.Step.turnTo("TURN", -36, max, 1, 2),
+                PollenSequence.Step.drive("AFTER", 1, 0, 0, 0)};
+        // Creeping, so not stuck, and still 10 deg short at the give-up time: STOP.
+        PollenSequence far = PollenSequence.park(route, 27, 0);
+        far.start(0);
+        PollenSequence.Output out = null;
+        for (double t = 0; t < 3 && (out == null || !out.finished); t += 0.02)
+            out = far.tick(t, 0, 0, Math.toRadians(-13 * t));
+        check(out.finished && out.phase.equals("TURN TIMED OUT - STOPPED") && far.warning().contains("ran out of time"),
+                "a turn far short at its give-up time stops the route: " + out.phase);
+        // 4 deg short and not moving: close enough, the next step runs, with a warning.
+        PollenSequence close = PollenSequence.park(route, 27, 0);
+        close.start(0);
+        String last = "";
+        for (double t = 0; t < 2.1; t += 0.02) last = close.tick(t, 0, 0, Math.toRadians(-32)).phase;
+        check((last.equals("AFTER") || last.equals("NEXT: AFTER")) && close.warning().contains("close enough"),
+                "a turn 4 deg short at its give-up time hands over with a warning: " + last + " / " + close.warning());
+        // No heading at all: stop.
+        PollenSequence blind = PollenSequence.park(route, 27, 0);
+        blind.start(0);
+        check(blind.tick(0, 0, 0, Double.NaN).phase.equals("NO ODOMETRY POSE - STOPPED"), "a turn with no heading stops everything");
+        try {
+            PollenSequence.Step.turnTo("BAD", Double.NaN, max, 1, 2);
+            check(false, "a turn to no heading must be rejected");
+        } catch (IllegalArgumentException expected) { checks++; }
+    }
+
+    /** The experimental Angled Primary Shooter. */
+    static void angledShot() {
+        PollenShootTuning angled = new PollenShootTuning(null, false, true, true);
+        PollenShootTuning b = new PollenShootTuning(null, false, true);
+        check(angled.angled() && angled.route() == PollenShootTuning.Route.ANGLED_PARK && angled.route().label.startsWith("ANGLED SHOT"),
+                "angled mode shows ANGLED SHOT on the route line");
+        check(angled.rows().length == b.rows().length + 1 && angled.rows()[angled.rows().length - 1] == AIM_ANGLE,
+                "the aim angle row exists only in angled mode");
+        for (PollenShootTuning.Field f : b.rows()) check(f != AIM_ANGLE, "no aim angle row in Odo Shoot + Park");
+        check(!b.settingsLine().contains("AIM_ANGLE") && angled.settingsLine().contains(" AIM_ANGLE=-36"),
+                "the log line has the aim angle only in angled mode: " + angled.settingsLine());
+
+        // The geometry. The shooting spot is 5 in off the wall and 30 in to the left; from there
+        // the hive opening (45.9 in straight ahead of the start) is about 36 deg to the right.
+        double[] spot = angled.legEndInches(2);
+        check(Math.abs(spot[0] - 5) < 0.01 && Math.abs(spot[1] - 30) < 0.01, "legs 1 and 2 end at the shooting spot: " + spot[0] + ", " + spot[1]);
+        double aim = Math.toRadians(angled.aimDegrees()), range = PollenFieldGeometry.angledShotDistanceInches();
+        check(Math.abs(angled.aimDegrees() + 36.26) < 0.1 && Math.abs(range - 50.7) < 0.1,
+                "aim about -36 deg, about 51 in from the opening: " + angled.aimDegrees() + ", " + range);
+        check(Math.abs(spot[0] + range * Math.cos(aim) - 45.9) < 0.05 && Math.abs(spot[1] + range * Math.sin(aim)) < 0.05,
+                "the aim line from the spot ends at the hive opening, 45.9 in straight ahead of the start");
+        double[] park = angled.legEndInches(3), parkB = b.legEndInches(3);
+        check(Math.abs(park[0] - parkB[0]) < 0.05 && Math.abs(park[1] - parkB[1]) < 0.05,
+                "leg 3 ends at the same parking spot as Odo Shoot + Park: " + park[0] + ", " + park[1]);
+        check(angled.budgetOk() && angled.worstCaseSeconds() < 26, "defaults fit the time budget: " + angled.worstCaseSeconds());
+        check(angled.roomToTurn() && angled.turnWallGapInches() > 1, "the corner clears the wall while turning: " + angled.turnWallGapInches());
+
+        // A whole run on the simulated robot, started 2 deg crooked.
+        Run run = simulate(angled.sequence(), startCrooked(2), 1.2);
+        check(run.steps.toString().equals("[SQUARE TO WALL, ZERO ODOMETRY, LEG 1 OFF WALL, LEG 2 TO SHOOTING SPOT, "
+                        + "TURN TO AIM, SHOOT, TURN BACK, LEG 3 TO PARK]"),
+                "angled order: square, zero, 2 legs, turn, shoot, turn back, park; got " + run.steps);
+        check(run.result.startsWith("DONE") && run.warning.isEmpty(), "angled run finishes cleanly: " + run.result + " " + run.warning);
+        double spotError = Math.hypot(run.feedPose[0] - spot[0], run.feedPose[1] - spot[1]);
+        double aimError = Math.toDegrees(run.feedPose[2]) - angled.aimDegrees();
+        check(spotError < 1.5, "it shoots from the shooting spot, off by " + spotError + " in");
+        check(Math.abs(aimError) <= PollenOdometryDrive.HEADING_TOLERANCE_DEG + 0.5, "aimed at the hive when feeding starts, off by " + aimError + " deg");
+        check(endError(run, park) < 1.5, "parks in the same slot, off by " + endError(run, park) + " in");
+        check(Math.abs(Math.toDegrees(run.robot.h)) < 3, "and square again, off by " + Math.toDegrees(run.robot.h) + " deg");
+        check(run.finishedAt < PollenShootTuning.DEADLINE - 1, "finishes before the 27 s stop: " + run.finishedAt);
+        Run timer = simulate(angled.sequence(), startCrooked(2));
+        check(timer.result.startsWith("DONE") && timer.finishedAt < angled.worstCaseSeconds() + 1.5,
+                "no speed reading: still finishes, about when the budget says: " + timer.finishedAt + " vs " + angled.worstCaseSeconds());
+        System.out.printf(java.util.Locale.US, "  Angled Primary Shooter: feeds at %.2f s from %.2f in off the spot, %.2f deg off aim; "
+                        + "finish %.2f s (planned worst case %.2f), park error %.2f in%n",
+                run.feedAt, spotError, aimError, run.finishedAt, angled.worstCaseSeconds(), endError(run, park));
+
+        // Without a shooter (or with the shot skipped) there is nothing to aim: no turns.
+        Run noShooter = simulate(angled.sequence(false), new SimRobot());
+        check(noShooter.steps.toString().equals("[SQUARE TO WALL, ZERO ODOMETRY, LEG 1 OFF WALL, LEG 2 TO SHOOTING SPOT, LEG 3 TO PARK]"),
+                "no shooter: the three legs, no turns: " + noShooter.steps);
+        check(endError(noShooter, park) < 1.5, "no shooter: still parks in the slot");
+        PollenShootTuning noShot = new PollenShootTuning(null, false, true, true);
+        setRow(noShot, FEED_SECONDS, 0);
+        check(noShot.aimTurnSeconds() == 0 && !simulate(noShot.sequence(), new SimRobot()).steps.contains("TURN TO AIM"),
+                "feed 0 s skips the shot and both turns");
+
+        // The menu. An edit that would swing a corner into the wall is refused.
+        PollenShootTuning tight = new PollenShootTuning(null, false, true, true);
+        while (tight.selected() != LEG1_CM) tap(tight, false, true, false, false);
+        for (int i = 0; i < 10; i++) tap(tight, false, false, true, false);
+        check(tight.roomToTurn() && tight.legCm(1) > 0 && tight.notice().contains("hit the wall"),
+                "Leg 1 cannot be shortened until the turn would hit the wall: " + tight.legCm(1) + " cm, " + tight.notice());
+        setRow(tight, AIM_ANGLE, -30);
+        check(tight.route() == PollenShootTuning.Route.EDITED, "changing the aim angle shows EDITED LEGS");
+        PollenShootTuning next = new PollenShootTuning(tight.snapshot(), false, true, true);
+        check(next.aimDegrees() == -30 && next.route() == PollenShootTuning.Route.EDITED, "the aim angle is remembered");
+        next.update(false, false, false, false, true);
+        check(next.route() == PollenShootTuning.Route.ANGLED_PARK && Math.abs(next.aimDegrees() + 36) < 0.5,
+                "Triangle restores the angled defaults: " + next.aimDegrees());
+        try {
+            new PollenShootTuning(null, true, true, true);
+            check(false, "angled + supporting must be rejected");
+        } catch (IllegalArgumentException expected) { checks++; }
+        try {
+            new PollenShootTuning(null, false, false, true);
+            check(false, "angled + timed must be rejected");
+        } catch (IllegalArgumentException expected) { checks++; }
+
+        // A robot that cannot turn at the spot never shoots sideways into the field.
+        SimRobot jammed = new SimRobot();
+        jammed.cannotTurnInPlace = true;
+        Run stopped = simulate(new PollenShootTuning(null, false, true, true).sequence(), jammed);
+        check(stopped.result.equals("TURN TO AIM NOT TURNING - STOPPED") && Double.isNaN(stopped.feedAt),
+                "cannot turn at the spot: stops, and does not shoot: " + stopped.result);
+    }
+
     static void speedRuns() {
         for (double power : new double[] {0.6, 0.8}) {
             for (double lag : new double[] {0.10, 0.20}) {
@@ -168,6 +393,9 @@ public final class PollenOdometryTest {
         fieldPresetRun();
         parkRun();
         failures();
+        feedWhenUpToSpeed();
+        turns();
+        angledShot();
         speedRuns();
         System.out.println("PollenOdometryTest: " + checks + " checks passed (simulated robot, not robot validation)");
     }

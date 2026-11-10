@@ -4,7 +4,7 @@ This is the one page to read first. It explains what the PollenBot code does,
 how it is built, and the order to read it in, with questions to answer as you
 go. Every other document and code file is linked from here.
 
-Build: `pollen-odo-v9`. The INIT screen of every Pollen OpMode shows it.
+Build: `pollen-odo-v10`. The INIT screen of every Pollen OpMode shows it.
 
 **New to the project?** First get Android Studio working and the code building:
 [set up, test, install, and share your changes](ROBOT_CONNECTION.md) (Windows and Mac).
@@ -17,6 +17,8 @@ Build: `pollen-odo-v9`. The INIT screen of every Pollen OpMode shows it.
 | **Odo ROBOT Shoot + Park** (our main auto) | [`pollen/PollenOdoRobotShoot.java`](../TeamCode/src/main/java/org/firstinspires/ftc/teamcode/pollen/PollenOdoRobotShoot.java) | Squares against the wall, shoots the 4 pre-loads, then drives each leg to a measured end point with the Pinpoint odometry |
 | **Odo Supporting Shooter Auto** | [`pollen/PollenOdoSupportingShooter.java`](../TeamCode/src/main/java/org/firstinspires/ftc/teamcode/pollen/PollenOdoSupportingShooter.java) | Waits for the partner to shoot first, shoots, then parks using odometry |
 | **Odo ROBOT Park** | [`pollen/PollenOdoPark.java`](../TeamCode/src/main/java/org/firstinspires/ftc/teamcode/pollen/PollenOdoPark.java) | Optional start delay, then drives a set distance with odometry |
+| Angled Primary Shooter (**experimental**) | [`pollen/PollenAngledPrimaryShooter.java`](../TeamCode/src/main/java/org/firstinspires/ftc/teamcode/pollen/PollenAngledPrimaryShooter.java) | Like Odo ROBOT Shoot + Park, but it first drives off the wall and to the side, turns to face the hive, shoots, and turns back. Not yet tried on a field |
+| LauncherTest | [`LauncherTestOpMode.java`](../TeamCode/src/main/java/org/firstinspires/ftc/teamcode/LauncherTestOpMode.java) | The launcher, intake and agitator on their own, with the same buttons and feed rule as the TeleOp |
 | EMERGENCY Timed Park / Shoot + Park / Supporting Shooter (A, B, C) | [`pollen/`](../TeamCode/src/main/java/org/firstinspires/ftc/teamcode/pollen/) | **Emergency only.** The same three jobs with timed driving, for a match where the odometry sensor isn't working |
 
 The drive team's one-page guides are in [drive-team/](drive-team/README.md). Everything else in
@@ -80,16 +82,23 @@ Code paths are under `TeamCode/src/main/java/org/firstinspires/ftc/teamcode/`.
 
 ### 3. The autonomous engine: [`pollen/PollenSequence.java`](../TeamCode/src/main/java/org/firstinspires/ftc/teamcode/pollen/PollenSequence.java) (15 min)
 
-- A route is a list of `Step`s. There are four kinds (`Kind`): `DRIVE` (fixed
+- A route is a list of `Step`s. There are five kinds (`Kind`): `DRIVE` (fixed
   powers for a set time; the emergency timed modes, and waits), `SHOOT`
-  (launcher alone for the spin-up time, then feed), `MOVE` (drive to an end
-  point, in inches from where the odometry was zeroed) and `ZERO_ODOMETRY`.
-- **`tick(now, x, y, heading)`** is called every loop with the clock and the
-  robot's position, and returns an `Output`: what every motor should do right now.
+  (launcher alone until it is ready, then feed), `MOVE` (drive to an end
+  point, in inches from where the odometry was zeroed), `TURN` (turn in place
+  to a heading; experimental) and `ZERO_ODOMETRY`.
+- **`tick(now, x, y, heading, launcherVelocity)`** is called every loop with
+  the clock and the sensor readings (the robot's position and the launcher's
+  speed), and returns an `Output`: what every motor should do right now.
 - **`compute()`** does the work. Read it top to bottom: first the checks that
   apply to every step (clock, loop gap, time limit, start delay), then one
   line per kind of step. Each kind has its own short method. Read them in this
-  order: `driveStep`, `zeroOdometryStep`, `shootStep`, then `moveStep`.
+  order: `driveStep`, `zeroOdometryStep`, `shootStep`, `moveStep`, then
+  `turnStep` (which is `moveStep` again, for a heading instead of a position).
+- **`shootStep()`** uses the feed rule in
+  [`pollen/PollenFeedRule.java`](../TeamCode/src/main/java/org/firstinspires/ftc/teamcode/pollen/PollenFeedRule.java)
+  (a short file; read it now). The TeleOp's `launch()` and LauncherTest use the same file.
+  *Question:* once feeding has started, why does `shootStep` stop looking at the launcher's speed?
 - **`moveStep()`** asks four questions in order: has the robot arrived, is the
   leg out of time, is the robot stuck, and otherwise what powers does the
   drive controller want?
@@ -97,8 +106,9 @@ Code paths are under `TeamCode/src/main/java/org/firstinspires/ftc/teamcode/`.
   (`beginStep`), not when the previous step ended. What goes wrong with the
   other choice if one loop is slow?
 - *Question:* find every `stop(` call. What are the ways a run ends early?
-- *Exercise:* on paper, add a fifth kind of step, "wait until the hive tips".
+- *Exercise:* on paper, add a sixth kind of step, "wait until the hive tips".
   What would its method return each loop, and what new input would `tick` need?
+  (`TURN` and the launcher speed were added this way in `pollen-odo-v10`.)
 - This file never touches hardware, which is why the computer tests can run it.
 
 ### 4. Driving to a point: [`pollen/PollenOdometryDrive.java`](../TeamCode/src/main/java/org/firstinspires/ftc/teamcode/pollen/PollenOdometryDrive.java) (10 min)
@@ -120,12 +130,15 @@ Code paths are under `TeamCode/src/main/java/org/firstinspires/ftc/teamcode/`.
   `sequence.tick(...)`, **act** by writing each motor once, and **report** to
   the Driver Hub screen and the robot log.
 - *Question:* why are the launcher, intake and agitator set before the wheels?
-- The Odo modes and the timed B and C are 10-line files that extend this class
-  and only say "supporting shooter or not" and "odometry or not".
+- The Odo modes, the emergency timed B and C and Angled Primary Shooter are
+  10-line files that extend this class and only say "supporting shooter or
+  not", "odometry or not" and "angled shot or not".
 
 ### 6. Where a route comes from: [`pollen/PollenShootTuning.java`](../TeamCode/src/main/java/org/firstinspires/ftc/teamcode/pollen/PollenShootTuning.java), `sequence()` (5 min)
 
 - It builds the step list: wall square (Odo modes), shoot, then the legs.
+  Angled Primary Shooter uses the same pieces in a different order: legs 1 and
+  2 first, a turn, the shot, a turn back, then leg 3.
 - *Exercise:* on paper, write the Supporting Shooter timeline: start delay,
   3 s spin-up, 7.5 s of feeding, then its legs. When does it start driving?
 

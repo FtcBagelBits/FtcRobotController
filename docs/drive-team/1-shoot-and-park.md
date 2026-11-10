@@ -18,9 +18,9 @@ It measures where it is as it drives (odometry), so it ends up in the same place
 | Time | What happens |
 | --- | --- |
 | 0 - 0.5 s | Backs gently into the wall behind it, to line itself up straight. This is normal. |
-| 0.5 - 3.5 s | Launcher spins up. |
-| 3.5 - 13.5 s | Shoots the pollen. |
-| about 13.5 - 19 s | Drives: (1) a little off the wall, (2) left past the hive, (3) to the **INNER** parking slot. Then it stops. |
+| from 0.5 s | Launcher spins up: 3 s at most. |
+| next 10 s | Shoots the pollen. |
+| by about 19 s | Drives: (1) a little off the wall, (2) left past the hive, (3) to the **INNER** parking slot. Then it stops. |
 
 Points if it works: **LEAVE 3 + PARK 5**. Our partner parks in the **OUTER** slot.
 
@@ -67,7 +67,7 @@ changes the coach asks for (usually none).
 | Line | Should say |
 | --- | --- |
 | **ROUTE** (the first line) | `FULL PARK: shoot, then 3 legs to the parking slot` |
-| Build | `pollen-odo-v9` |
+| Build | `pollen-odo-v10` |
 | Mode | `ODOMETRY Shoot + Park` |
 | Odometry x fwd / y left / heading | numbers near 0 (not `NOT VALID`) |
 | Status | `READY - no movement until START` |

@@ -76,16 +76,18 @@ public class BioBuzzStarterbotOpMode extends OpMode {
      * We pass the target velocity variable to our motor to set the goal. Feeding starts when the
      * launcher reads 96% of target or when the spin-up time runs out, whichever is first, so a
      * low encoder reading can delay feeding by at most the spin-up time but never block it.
+     * That feed rule is written once, in pollen/PollenFeedRule.java, and autonomous and
+     * LauncherTest use the same one. The default speed is shared too (pollen/PollenConfig.java).
      */
-    public final int LAUNCHER_TARGET_VELOCITY = 1180; //2529 RPM (was 1250)
+    public final int LAUNCHER_TARGET_VELOCITY = PollenConfig.LAUNCHER_TARGET_VELOCITY; //1180 = 2529 RPM (was 1250)
     public final double LAUNCHER_SPINUP_SECONDS = PollenConfig.LAUNCHER_SPINUP_SECONDS; // 3 s
     // Hold L1 to run the launcher BACKWARDS slowly and push a jammed ball back out.
     // 300 RPM = 300 x 28 / 60 = 140 ticks per second.
-    public final int LAUNCHER_REVERSE_VELOCITY = 140; //300 RPM
+    public final int LAUNCHER_REVERSE_VELOCITY = PollenConfig.LAUNCHER_REVERSE_VELOCITY; //140 = 300 RPM
     // While feeding the launcher, this much is added to the intake power from the triggers,
     // so the intake keeps pushing balls toward the launcher. (Autonomous has its own
     // "Intake power while feeding" row, which also defaults to 0.5.)
-    public final double INTAKE_FEED_BOOST = 0.5;
+    public final double INTAKE_FEED_BOOST = PollenConfig.INTAKE_FEED_BOOST; // 0.5
     // The launcher's MEASURED speed in ticks per second (the target is tuning.launcherVelocity()).
     // We read it ONCE in each loop, so the feed decision and the Driver Station screen always
     // use the same number.

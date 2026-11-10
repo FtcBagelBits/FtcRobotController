@@ -26,6 +26,11 @@ public final class PollenPresetExport {
         PollenShootTuning b = new PollenShootTuning(null);
         // B's default is the full 3-leg route (formerly the Square preset).
         PollenShootTuning c = new PollenShootTuning(null, true);
+        // The experimental Angled Primary Shooter: odometry only, same start and park as B.
+        PollenShootTuning angled = new PollenShootTuning(null, false, true, true);
+        String angledPlan = plan(new double[][] {{PollenFieldGeometry.ANGLED_OFF_WALL_INCHES * PollenFieldGeometry.INCH_TO_CM, 0},
+                {PollenFieldGeometry.ANGLED_SIDE_INCHES * PollenFieldGeometry.INCH_TO_CM, 90},
+                {PollenFieldGeometry.angledDistanceCm(), PollenFieldGeometry.angledAngleDegrees()}});
         double startZ = PollenFieldGeometry.END_WALL_INCHES - PollenFieldGeometry.ROBOT_HALF_INCHES;
         String bPlan = plan(new double[][] {{PollenFieldGeometry.PRIMARY_WALL_CLEARANCE_CM, 0},
                 {PollenFieldGeometry.PRIMARY_SIDE_CLEARANCE_INCHES * PollenFieldGeometry.INCH_TO_CM, 90},
@@ -35,12 +40,16 @@ public final class PollenPresetExport {
         System.out.println(String.format(java.util.Locale.US,
                 "{\"wall\": %.10f, \"half\": %.10f, \"red_hive_x\": %.10f, \"flower_inboard_x\": %.10f,%n"
                         + " \"b_square\": {\"start\": [%.10f, %.10f], \"facing\": \"-Z\", \"park\": [%.10f, %.10f], \"legs\": %s, \"plan_legs\": %s, \"field_tuned_legs\": [3]},%n"
-                        + " \"c\": {\"start\": [%.10f, %.10f], \"facing\": \"+Z\", \"park\": [%.10f, %.10f], \"legs\": %s, \"plan_legs\": %s, \"field_tuned_legs\": [3]}}",
+                        + " \"c\": {\"start\": [%.10f, %.10f], \"facing\": \"+Z\", \"park\": [%.10f, %.10f], \"legs\": %s, \"plan_legs\": %s, \"field_tuned_legs\": [3]},%n"
+                        + " \"angled\": {\"start\": [%.10f, %.10f], \"facing\": \"-Z\", \"park\": [%.10f, %.10f], \"legs\": %s, \"plan_legs\": %s, \"aim_degrees\": %.10f}}",
                 PollenFieldGeometry.END_WALL_INCHES, PollenFieldGeometry.ROBOT_HALF_INCHES,
                 PollenFieldGeometry.RED_HIVE_X_INCHES, PollenFieldGeometry.SCORING_FLOWER_INBOARD_X_INCHES,
                 PollenFieldGeometry.RED_HIVE_X_INCHES, startZ,
                 PollenFieldGeometry.PARK_X_INCHES, PollenFieldGeometry.PRIMARY_PARK_Z_INCHES, legs(b), bPlan,
                 PollenFieldGeometry.SUPPORT_START_X_INCHES, -startZ,
-                PollenFieldGeometry.PARK_X_INCHES, PollenFieldGeometry.SUPPORT_PARK_Z_INCHES, legs(c), cPlan));
+                PollenFieldGeometry.PARK_X_INCHES, PollenFieldGeometry.SUPPORT_PARK_Z_INCHES, legs(c), cPlan,
+                PollenFieldGeometry.RED_HIVE_X_INCHES, startZ,
+                PollenFieldGeometry.PARK_X_INCHES, PollenFieldGeometry.PRIMARY_PARK_Z_INCHES, legs(angled), angledPlan,
+                angled.aimDegrees()));
     }
 }

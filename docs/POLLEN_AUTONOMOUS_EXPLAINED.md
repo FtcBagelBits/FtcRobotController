@@ -79,16 +79,20 @@ time. The motors keep their last command while the program is paused, so a
 pause of more than 0.25 s while the wheels are moving stops everything:
 after that, the robot's position is not what the plan assumes.
 
-Shooting uses fixed times, not measured speed. The launcher runs alone for the
-spin-up time (3 s by default, an INIT row), then intake and agitator feed
-continuously for the selected duration with the launcher still on. An earlier
-version waited until the encoder read 96% of target speed; when the encoder
-read low, the feeder never started, so that check was removed. B spins up right
-after its start delay. C waits 12 s, spins up from 12 to 15 s, and feeds from
-15 to 22.5 s, the slot agreed with a partner who shoots first. In TeleOp the
-driver holds R1: feeding starts when the launcher reads 96% of its target or
-after the spin-up time, whichever comes first, and stays on until R1 is
-released. The speed check can only make feeding start sooner, never stop it.
+There is one feed rule, in `PollenFeedRule`, and autonomous, TeleOp and
+LauncherTest all use it: feeding starts when the launcher reads 96% of its
+target speed, or when the spin-up time (3 s by default, an INIT row) is over,
+whichever comes first. Once feeding has started it stays on: in autonomous for
+the selected feed time, in TeleOp until R1 is released. The speed check can
+only make feeding start sooner, never stop it. An earlier version waited for
+the speed alone; when the encoder read low, the feeder never started, which is
+why the timer is there. From then until `pollen-odo-v10`, autonomous used the
+timer alone.
+
+B spins up right after its start delay and feeds as soon as the launcher is
+ready. C is different on purpose: it waits 12 s, spins up from 12 to 15 s, and
+feeds from 15 to 22.5 s, the slot agreed with a partner who shoots first. C
+never feeds before 15 s, even if its launcher is up to speed sooner.
 
 A shooter INIT failure may permit the same mode's departure only if every mapped
 shooter accepts zero power. C preserves its feed slot in that fallback too.

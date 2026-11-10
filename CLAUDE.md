@@ -29,17 +29,18 @@ the *FIRST* Tech Challenge SDK (`FtcRobotController` **12.0**). The build produc
 | **Odo Supporting Shooter Auto** | Waits 12 s for the partner, shoots, parks in the outer slot | Drive team, when the partner shoots first |
 | **PollenBot** (TeleOp) | Driving, intake, R1 shoots, L1 reverses the launcher | Drive team |
 | Odo ROBOT Park | Drive forward only (no shot), measured with odometry | Testing, or the launcher is broken |
+| Angled Primary Shooter | **Experimental.** Odo ROBOT Shoot + Park with an angled shot: two legs to a spot off the wall and to the side, turn to face the hive, shoot, turn back, park | Programmers, until it has been tried on a field |
 | EMERGENCY Timed Shoot + Park / EMERGENCY Timed Supporting Shooter / EMERGENCY Timed Park | The same three jobs with timed driving (no odometry) | **Emergency only:** a match where the Pinpoint is not working |
 | Odometry Check | Pinpoint wiring and settings test ([docs/ODOMETRY_BASELINE_TEST.md](docs/ODOMETRY_BASELINE_TEST.md)) | Programmers |
 | Pedro Test | Pedro pose on the Panels dashboard, plus a short test path (A also spins Lox's `flywheel` if the robot has one) | Programmers |
-| LauncherTest | PollenBot's launcher, intake and agitator on their own | Programmers |
+| LauncherTest | PollenBot's launcher, intake and agitator on their own, with the TeleOp's buttons, INIT menu and feed rule | Programmers |
 
 `lox/` holds `MecanumOpMode`, `BioBuzzOpMode` ("Lox"), `BB2DecodeOpMode` and their helpers: older
 robots' code (DECODE 2025-26). They share some hardware names but nothing else with PollenBot. Leave
 them alone unless asked. `TeamCode/.../teamcode/readme.md` is the student-facing list of what's live.
 
 Every Pollen and Odo mode shows a build id on the INIT screen (`PollenConfig.BUILD`, e.g.
-`pollen-odo-v9`). **Bump it whenever behavior changes**, so the drive team can confirm which code is installed.
+`pollen-odo-v10`). **Bump it whenever behavior changes**, so the drive team can confirm which code is installed.
 
 ## Hardware configuration names (PollenBot)
 
@@ -176,8 +177,12 @@ ftcgradle :TeamCode:installDebug
 - **B's buttons:** the default and Triangle give the full shoot-and-park route. Circle and Square do
   nothing (Square loaded the full route before `pollen-odo-v5`; Circle's leave-the-wall move was removed in v6).
 - `PollenSequence` runs a list of steps without blocking, with a time budget checked at INIT and
-  a hard stop at 27 s. There are four kinds of step (`Kind`: DRIVE, SHOOT, MOVE, ZERO_ODOMETRY) and
-  one short method per kind; a new kind of step gets its own method the same way. An odometry
+  a hard stop at 27 s. There are five kinds of step (`Kind`: DRIVE, SHOOT, MOVE, TURN,
+  ZERO_ODOMETRY) and one short method per kind; a new kind of step gets its own method the same way.
+- One feed rule, in `PollenFeedRule`: feed when the launcher reads 96% of target or the spin-up time
+  is over, whichever is first. TeleOp, LauncherTest and every autonomous shot use it. The Supporting
+  Shooter modes use only the timer (`Step.shootAtSetTime`), so they never feed before the time
+  agreed with the partner. Keep `launch()` in the TeleOp and in LauncherTest the same. An odometry
   leg that runs out of time more than 2 in from its end, or stops making progress, stops the
   whole route: it never starts the next leg from an unplanned spot.
 - `PollenAutoLog` writes each shoot-auto run to RobotLog (see "After an event" above). It is pure

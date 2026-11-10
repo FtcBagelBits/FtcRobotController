@@ -37,6 +37,91 @@ public final class PollenSequenceTest {
         }
         return out;
     }
+    /** Like run(), but with a launcher speed reading that depends on the time. */
+    interface Speed { double at(double t); }
+    private static PollenSequence.Output runShot(PollenSequence s, double from, double to, Speed speed,
+                                                 java.util.List<String> phases) {
+        PollenSequence.Output out = null;
+        for (double t = from; t < to - 1e-9; t += 0.02) {
+            out = s.tick(t, Double.NaN, Double.NaN, Double.NaN, speed.at(t));
+            phases.add(out.phase);
+        }
+        return out;
+    }
+    private static int count(java.util.List<String> phases, String phase) {
+        int n = 0;
+        for (String p : phases) if (p.equals(phase)) n++;
+        return n;
+    }
+
+    /** The feed rule: up to speed, or the spin-up time is over, whichever comes first. */
+    private static void feedRule() {
+        // The rule itself. 96% of 1180 is 1132.8.
+        check(PollenFeedRule.upToSpeed(1133, 1180) && !PollenFeedRule.upToSpeed(1132, 1180), "up to speed means 96% of target");
+        check(!PollenFeedRule.upToSpeed(Double.NaN, 1180) && !PollenFeedRule.upToSpeed(0, 1180), "no reading or 0 is not up to speed");
+        check(PollenFeedRule.spinUpTimeIsOver(3, 3) && !PollenFeedRule.spinUpTimeIsOver(2.99, 3), "spin-up time is over at 3 s, not before");
+        check(PollenFeedRule.mayStartFeeding(1200, 1180, 0.5, 3) && PollenFeedRule.mayStartFeeding(0, 1180, 3, 3)
+                && !PollenFeedRule.mayStartFeeding(1000, 1180, 2, 3), "feed on either rule, not on neither");
+
+        // 1. Launcher up to speed 1.2 s in (target 1250, so 1200 counts): feeding starts then,
+        //    not at 3 s, and the whole shot ends that much sooner.
+        java.util.List<String> phases = new java.util.ArrayList<>();
+        PollenSequence early = shot();
+        early.start(0);
+        PollenSequence.Output out = runShot(early, 0, 1.2, t -> 1250 * t / 1.2 * 0.9, phases);
+        check(out.phase.equals("SPINUP - launcher only") && out.feederPower == 0 && out.launcherVelocity == 1250,
+                "below 96%: launcher only");
+        out = runShot(early, 1.2, 1.22, t -> 1210, phases);
+        check(out.phase.equals("FEED") && out.feederPower == 1 && out.feedStartedBy.equals("up to speed"),
+                "at 96%: feeding starts, and says why: " + out.phase + " / " + out.feedStartedBy);
+        // 2. Each ball slows the wheel: a dip below 96% (even to 0) must not stop the feed.
+        out = runShot(early, 1.22, 3.18, t -> t < 2 ? 900 : 0, phases);
+        check(out.phase.equals("FEED") && out.feederPower == 1 && out.launcherVelocity == 1250,
+                "a speed dip during the feed changes nothing: " + out.phase);
+        check(Math.abs(out.activeFeedSeconds - 1.96) < 0.021, "feed time counts from when feeding started: " + out.activeFeedSeconds);
+        out = runShot(early, 3.18, 3.26, t -> 1250, phases);
+        check(out.phase.equals("PARK") || out.phase.equals("NEXT: PARK"), "2 s of feed, then the next step, at 3.2 s not 5 s: " + out.phase);
+        check(Math.abs(count(phases, "FEED") * 0.02 - 2.0) < 0.05, "fed for the full 2 s: " + count(phases, "FEED") * 0.02);
+
+        // 3. Encoder unplugged (reads 0): the spin-up timer starts the feed at 3 s, as before.
+        phases.clear();
+        PollenSequence unplugged = shot();
+        unplugged.start(0);
+        out = runShot(unplugged, 0, 3.0, t -> 0, phases);
+        check(out.phase.equals("SPINUP - launcher only"), "reading 0: still spinning up just before 3 s");
+        out = runShot(unplugged, 3.0, 3.02, t -> 0, phases);
+        check(out.phase.equals("FEED") && out.feedStartedBy.equals("spin-up timer"), "reading 0: the timer starts the feed at 3 s");
+        out = runShot(unplugged, 3.02, 5.04, t -> 0, phases);
+        check(out.phase.equals("NEXT: PARK") || out.phase.equals("PARK"), "reading 0: shot over at 5 s: " + out.phase);
+
+        // 4. A shot at a set time (the Supporting Shooter): up to speed from the first loop, and
+        //    it still waits the whole spin-up time.
+        phases.clear();
+        PollenSequence agreed = sequence(new PollenSequence.Step[]{PollenSequence.Step.shootAtSetTime(2),
+                PollenSequence.Step.drive("PARK", 1, 0.2, 0, 0)});
+        agreed.start(0);
+        out = runShot(agreed, 0, 3.0, t -> 1250, phases);
+        check(count(phases, "FEED") == 0 && out.launcherVelocity == 1250, "set-time shot never feeds before the spin-up time is over");
+        out = runShot(agreed, 3.0, 3.02, t -> 1250, phases);
+        check(out.phase.equals("FEED") && out.feedStartedBy.equals("spin-up timer"), "set-time shot feeds at exactly 3 s");
+
+        // 5. A second shot starts its own spin-up: "feeding has started" does not carry over.
+        phases.clear();
+        PollenSequence twice = sequence(new PollenSequence.Step[]{PollenSequence.Step.continuousShoot(1),
+                PollenSequence.Step.continuousShoot(1)});
+        twice.start(0);
+        out = runShot(twice, 0, 0.98, t -> 1250, phases);
+        check(out.phase.equals("FEED"), "first shot is feeding");
+        // The first shot's balls slowed the wheel: the second shot must wait for it again.
+        out = runShot(twice, 0.98, 1.12, t -> 500, phases);
+        check(out.phase.equals("SPINUP - launcher only") && out.feederPower == 0 && out.launcherVelocity == 1250,
+                "second shot spins up again before feeding: " + out.phase);
+
+        // 6. The time budget still assumes the whole spin-up time (the worst case).
+        check(PollenSequence.worstCaseDuration(new PollenSequence.Step[]{PollenSequence.Step.continuousShoot(2)}, 3) == 5,
+                "budget counts spin-up + feed");
+    }
+
     private static void odometryFailures() {
         java.util.List<String> phases = new java.util.ArrayList<>();
         // 1. Frozen but finite pose (unplugged pods, frozen reading, or a blocked robot): stop
@@ -157,7 +242,9 @@ public final class PollenSequenceTest {
         zero(done);
         zero(park.tick(2));
 
-        // Fixed timing: launcher alone for 3 s, then feed 2 s. Measured speed never gates the feed.
+        // No speed reading (tick(now) passes none): the spin-up timer decides. Launcher alone
+        // for 3 s, then feed 2 s. A missing or zero reading can never stop the feed. feedRule()
+        // below checks the other half: feeding sooner when the launcher is up to speed.
         PollenSequence shot = shot(); shot.start(0);
         PollenSequence.Output spin = shot.tick(0);
         check(spin.launcherVelocity == 1250 && spin.feederPower == 0, "Launcher alone during spin-up");
@@ -275,6 +362,7 @@ public final class PollenSequenceTest {
             catch (IllegalArgumentException expected) { rejected = true; }
             check(rejected, "Reject invalid or over-budget delay");
         }
+        feedRule();
         odometryFailures();
         autoLog();
         System.out.println("PASS: " + checks + " checks (pure Java sequence; not Android/hardware validation)");

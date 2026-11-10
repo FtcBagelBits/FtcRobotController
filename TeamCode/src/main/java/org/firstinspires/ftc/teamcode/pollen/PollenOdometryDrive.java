@@ -10,8 +10,9 @@ package org.firstinspires.ftc.teamcode.pollen;
  *
  * The controller is deliberately simple: drive straight at the end point, fast when far away and
  * slowing down evenly as it gets close (power proportional to the square root of the distance
- * left, which is a steady braking rate), while holding the heading it was zeroed at (nothing
- * turns the chassis).
+ * left, which is a steady braking rate), while holding the heading it was zeroed at. A leg
+ * never turns the chassis on purpose; turning to a new heading is a separate step that turns in
+ * place (see the TURNING IN PLACE numbers and turnPower below).
  * Pedro Pathing's path follower can replace it once Pedro is tuned for this robot (AutoTune); the
  * pose already comes from Pedro's Pinpoint localizer.
  */
@@ -62,6 +63,29 @@ public final class PollenOdometryDrive {
      * NO_PROGRESS_SECONDS, something is wrong (blocked robot, unplugged pod, frozen reading):
      * stop everything. */
     public static final double NO_PROGRESS_SECONDS = 0.75, NO_PROGRESS_MIN_IN = 0.5;
+
+    // ---- TURNING IN PLACE (Kind.TURN). EXPERIMENTAL: none of these numbers has been tuned on
+    // the robot yet. They work on the simulated robots in PollenOdometryTest (quicker and slower
+    // than the usual one), which are not our robot. ----
+    /** A turn is done once the robot is within this many degrees of the target heading AND has
+     * nearly stopped turning (slower than SETTLED_DEG_PER_SECOND). */
+    public static final double HEADING_TOLERANCE_DEG = 2.0, SETTLED_DEG_PER_SECOND = 10.0;
+    /** Turn slow-down, the same idea as SLOWDOWN_POWER_PER_SQRT_INCH: power = 0.10 x
+     * sqrt(degrees still to go), so 0.40 until 16 degrees out, 0.30 at 9, 0.20 at 4. */
+    public static final double TURN_POWER_PER_SQRT_DEGREE = 0.10;
+    /** Most and least turn power for a turn in place. The least has to be enough to actually
+     * turn the robot from a standstill, or it stalls just short of the heading. */
+    public static final double DEFAULT_TURN_POWER = 0.40, MIN_TURN_POWER = 0.15;
+    /** For TIME ESTIMATES only (the budget and a turn's give-up time): a guess at how fast the
+     * robot spins per unit of turn power, plus time to settle. */
+    public static final double ESTIMATE_DEG_PER_SECOND_PER_POWER = 150, TURN_SETTLE_SECONDS = 0.3;
+    /** "Almost there" for a turn: one that runs out of time this close hands over to the next
+     * step; farther away the whole route STOPS. */
+    public static final double TURN_NEAR_ENOUGH_DEG = 5.0;
+    /** Stuck check for a turn: wheels driven, more than TURN_NEAR_ENOUGH_DEG to go, and the
+     * heading changed less than this in NO_PROGRESS_SECONDS (for example a corner against the
+     * wall): stop everything. */
+    public static final double NO_TURN_PROGRESS_MIN_DEG = 2.0;
 
     /** Wall squaring (B and C, before the first leg): back gently into the end wall so the
      * robot's back sits flat against it, then zero the odometry there. The wall stops the robot;
@@ -151,6 +175,44 @@ public final class PollenOdometryDrive {
     /** Leg power allowed {@code secondsIntoLeg} after the leg started: ramps up from MIN_POWER. */
     public static double rampedPower(double secondsIntoLeg, double maxPower) {
         return Math.min(maxPower, MIN_POWER + RAMP_POWER_PER_SECOND * Math.max(0, secondsIntoLeg));
+    }
+
+    /**
+     * Turn power for turning in place to targetHeading: + = CLOCKWISE, like every other turn
+     * power here. Headings are radians, counterclockwise-positive, from the last zero.
+     * turnRate is how fast the heading is changing right now (radians per second).
+     * Returns 0 inside the tolerance, or when coasting LOOKAHEAD_SECONDS would carry the robot to
+     * the target heading.
+     */
+    public static double turnPower(double targetHeading, double maxPower, double heading, double turnRate) {
+        double degreesOff = Math.toDegrees(wrap(heading - targetHeading)); // + = counterclockwise of the target
+        double degreesToGo = Math.abs(degreesOff);
+        if (degreesToGo <= HEADING_TOLERANCE_DEG) return 0;
+        // How fast it is closing on the target, and where it will be after coasting.
+        double closingDegPerSecond = -Math.signum(degreesOff) * Math.toDegrees(turnRate);
+        double brakingDegrees = degreesToGo - Math.max(0, closingDegPerSecond) * LOOKAHEAD_SECONDS;
+        if (brakingDegrees <= 0) return 0;
+        double power = Math.min(maxPower, Math.max(Math.min(MIN_TURN_POWER, maxPower),
+                TURN_POWER_PER_SQRT_DEGREE * Math.sqrt(brakingDegrees)));
+        // Counterclockwise of the target -> turn clockwise (+) to come back.
+        return Math.signum(degreesOff) * power;
+    }
+
+    /** Turn power allowed {@code secondsIntoTurn} after the turn started: ramps up from MIN_TURN_POWER. */
+    public static double rampedTurnPower(double secondsIntoTurn, double maxPower) {
+        return Math.min(maxPower, MIN_TURN_POWER + RAMP_POWER_PER_SECOND * Math.max(0, secondsIntoTurn));
+    }
+
+    /** Seconds a turn in place of this many degrees is expected to take: used for the time budget. */
+    public static double turnPlannedSeconds(double degrees, double maxPower) {
+        if (!Double.isFinite(degrees) || !Double.isFinite(maxPower) || maxPower <= 0 || maxPower > 1)
+            throw new IllegalArgumentException("Invalid turn");
+        return Math.abs(degrees) / (maxPower * ESTIMATE_DEG_PER_SECOND_PER_POWER) + TURN_SETTLE_SECONDS;
+    }
+
+    /** Seconds after which a turn gives up. */
+    public static double turnTimeoutSeconds(double degrees, double maxPower) {
+        return TIMEOUT_FACTOR * turnPlannedSeconds(degrees, maxPower) + TIMEOUT_EXTRA_SECONDS;
     }
 
     /** End point of a leg that starts at (fromForwardIn, fromLeftIn) and goes distanceCm at

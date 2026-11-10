@@ -89,8 +89,11 @@ public final class PollenAutoLog {
                                 t, out.phase, pose(x, y, heading), volts(battery)));
                     }
                 } else {
-                    emit(String.format(Locale.US, "t=%.2f PHASE %s | %s battery=%s",
-                            t, out.phase, pose(x, y, heading), volts(battery)));
+                    // A FEED line also says which half of the feed rule started it.
+                    String startedBy = out.feedStartedBy == null || out.feedStartedBy.isEmpty() ? ""
+                            : " (started by: " + out.feedStartedBy + ")";
+                    emit(String.format(Locale.US, "t=%.2f PHASE %s%s | %s battery=%s",
+                            t, out.phase, startedBy, pose(x, y, heading), volts(battery)));
                 }
             }
             boolean moving = out.launcherVelocity != 0 || out.feederPower != 0;
@@ -98,8 +101,10 @@ public final class PollenAutoLog {
             if (moving && !out.finished && t - lastSampleAt >= SAMPLE_SECONDS) {
                 lastSampleAt = t;
                 emit(String.format(Locale.US,
-                        "t=%.2f %s togo=%.1f wheels=%.2f,%.2f,%.2f,%.2f launcher=%.0f/%.0f feed=%.2f battery=%s",
-                        t, pose(x, y, heading), out.inchesToGo, wheels[0], wheels[1], wheels[2], wheels[3],
+                        "t=%.2f %s togo=%.1f%s wheels=%.2f,%.2f,%.2f,%.2f launcher=%.0f/%.0f feed=%.2f battery=%s",
+                        t, pose(x, y, heading), out.inchesToGo,
+                        Double.isNaN(out.degreesToGo) ? "" : String.format(Locale.US, " turn=%.1fdeg", out.degreesToGo),
+                        wheels[0], wheels[1], wheels[2], wheels[3],
                         out.launcherVelocity, launcherMeasured, out.feederPower, volts(battery)));
             }
         } catch (RuntimeException ignored) { }

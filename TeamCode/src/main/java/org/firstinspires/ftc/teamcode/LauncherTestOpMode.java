@@ -26,25 +26,28 @@ import static com.qualcomm.robotcore.hardware.DcMotor.ZeroPowerBehavior.BRAKE;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
+import com.qualcomm.robotcore.util.ElapsedTime;
+
+import org.firstinspires.ftc.teamcode.pollen.PollenConfig;
+import org.firstinspires.ftc.teamcode.pollen.PollenTeleOpTuning;
 
 /*
- * This file includes a teleop (driver-controlled) file for the goBILDA® StarterBot with Mecanum
- * Wheels for the 2026-2027 FIRST® Tech Challenge. On top of a mecanum wheel drivetrain, it uses
- * one motor driving an intake roller, two servos which pull elements out of corners, and a high-speed
- * launcher motor.
+ * LauncherTest runs PollenBot's launcher, intake and agitator on their own, with the wheels off,
+ * so the robot can sit on a table or a stand while you test a shot.
  *
- * Likely the most niche concept we'll use in this example is closed-loop motor velocity control.
- * This control method reads the current speed as reported by the motor's encoder and applies a varying
- * amount of power to reach, and then hold a target velocity. The FTC SDK calls this control method
- * "RUN_USING_ENCODER". This contrasts to the default "RUN_WITHOUT_ENCODER" where you control the power
- * applied to the motor directly.
- * Since the dynamics of a launcher wheel system varies greatly from those of most other FTC mechanisms,
- * we will also need to adjust the "PIDF" coefficients with some that are a better fit for our application.
+ * It launches EXACTLY like PollenBot TeleOp (BioBuzzStarterbotOpMode) and like the autonomous
+ * shot:
+ *   - the same launcher speed, spin-up time and agitator power, from pollen/PollenConfig.java,
+ *     with the same INIT menu as the TeleOp to change them;
+ *   - the same feed rule, from pollen/PollenFeedRule.java: start feeding when the launcher is up
+ *     to speed, or when the spin-up time is over, whichever happens first;
+ *   - the same buttons: hold R1 to launch, hold L1 to run the launcher backwards and clear a
+ *     jam, right trigger = intake in, left trigger = intake out.
+ *
+ * If you change launch() here or in the TeleOp, change the other one the same way.
  */
 
 @TeleOp(name = "LauncherTest", group="Test")
@@ -56,22 +59,32 @@ public class LauncherTestOpMode extends OpMode {
     private DcMotor intake = null;
     private DcMotor agitator = null;
 
-
     /*
-     * These two variables are used to control the velocity of the launcher motor.
-     * They are both in encoder ticks per second. The motors we use in the FIRST Tech Challenge
-     * have encoders with a resolution of 28 ticks per revolution. We can convert this to RPM
-     * by dividing the value by 28, to get to revolutions per second, before multiplying by 60
-     * to get revolutions per minute.
-     * We pass the target velocity variable to our motor to set the goal. We use the min velocity
-     * in the launch() function to only run the windmill servo when the motor is spinning fast
-     * enough to make a successful throw.
+     * The same numbers as PollenBot TeleOp, from the same place (pollen/PollenConfig.java).
+     * Speeds are in encoder ticks per second: 28 ticks per turn, so 1180 ticks/s is 2529 RPM.
      */
-    public final int LAUNCHER_TARGET_VELOCITY = 1250; //2678 RPM
-    public final int LAUNCHER_MIN_VELOCITY = 1200; //2571 RPM
+    public final int LAUNCHER_TARGET_VELOCITY = PollenConfig.LAUNCHER_TARGET_VELOCITY; // 1180
+    public final double LAUNCHER_SPINUP_SECONDS = PollenConfig.LAUNCHER_SPINUP_SECONDS; // 3 s
+    public final int LAUNCHER_REVERSE_VELOCITY = PollenConfig.LAUNCHER_REVERSE_VELOCITY; // 140 = 300 RPM
+    public final double INTAKE_FEED_BOOST = PollenConfig.INTAKE_FEED_BOOST; // 0.5
 
     // Create a variable to set to the intake.
     double intakePower;
+    // The launcher's MEASURED speed in ticks per second, read ONCE in each loop.
+    double launcherMeasuredVelocity;
+    private boolean reversing = false;
+    private final ElapsedTime launchTimer = new ElapsedTime();
+    private boolean launching = false;
+    private boolean feeding = false;   // latched on until R1 is released
+    private String feedStartedBy = "";
+    private double feedStartedAt = 0;
+
+    /*
+     * The same INIT menu as the TeleOp. LauncherTest keeps its own remembered settings, so a
+     * speed you try here does not change the TeleOp until you enter it there too.
+     */
+    private static PollenTeleOpTuning.Snapshot remembered;
+    private PollenTeleOpTuning tuning;
 
     /*
      * Code to run ONCE when the driver hits INIT
@@ -93,8 +106,7 @@ public class LauncherTestOpMode extends OpMode {
 
         /*
          * Setting zeroPowerBehavior to BRAKE enables a "brake mode". This causes the motor to
-         * slow down much faster when it is coasting. This creates a much more controllable
-         * drivetrain. As the robot stops much quicker.
+         * slow down much faster when it is coasting.
          */
         agitator.setZeroPowerBehavior(BRAKE);
         intake.setZeroPowerBehavior(BRAKE);
@@ -110,6 +122,9 @@ public class LauncherTestOpMode extends OpMode {
         launcher.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         launcher.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(40, 0, 0, 12.5));
 
+        tuning = new PollenTeleOpTuning(LAUNCHER_TARGET_VELOCITY, LAUNCHER_SPINUP_SECONDS,
+                PollenConfig.AGITATOR_FEED_POWER, remembered);
+
         /*
          * Tell the driver that initialization is complete.
          */
@@ -121,6 +136,24 @@ public class LauncherTestOpMode extends OpMode {
      */
     @Override
     public void init_loop() {
+        tuning.update(gamepad1.dpad_up, gamepad1.dpad_down, gamepad1.dpad_left, gamepad1.dpad_right,
+                gamepad1.triangle);
+        remembered = tuning.snapshot();
+        telemetry.addData("Build", PollenConfig.BUILD);
+        telemetry.addData("Mode", "LauncherTest: launcher, intake and agitator only. The wheels stay off.");
+        telemetry.addData(marker(PollenTeleOpTuning.Row.LAUNCHER) + "Launcher ticks/s", "%.0f (default %d)",
+                tuning.launcherVelocity(), LAUNCHER_TARGET_VELOCITY);
+        telemetry.addData(marker(PollenTeleOpTuning.Row.SPINUP) + "Spin-up before feed", "%.1f s (default %.1f s)",
+                tuning.spinupSeconds(), LAUNCHER_SPINUP_SECONDS);
+        telemetry.addData(marker(PollenTeleOpTuning.Row.AGITATOR) + "Agitator power while feeding", "%.2f (default %.2f)",
+                tuning.agitatorPower(), PollenConfig.AGITATOR_FEED_POWER);
+        // The menu is the TeleOp's, so it has a drive power row too. Nothing here uses it.
+        telemetry.addData(marker(PollenTeleOpTuning.Row.DRIVE) + "Drive power", "not used in LauncherTest");
+        telemetry.addData("Controls", "D-pad UP/DOWN selects; LEFT/RIGHT edits; Triangle = defaults");
+    }
+
+    private String marker(PollenTeleOpTuning.Row row) {
+        return tuning.selected() == row ? "> " : "  ";
     }
 
     /*
@@ -128,6 +161,7 @@ public class LauncherTestOpMode extends OpMode {
      */
     @Override
     public void start() {
+        tuning.lock();
     }
 
     /*
@@ -135,26 +169,12 @@ public class LauncherTestOpMode extends OpMode {
      */
     @Override
     public void loop() {
-        /*
-         * Here we call a function called mecanumDrive. The mecanumDrive function takes the input from
-         * the joysticks, and applies power to the drive motors to move the robot as requested
-         * by the driver. Moving the left joystick forwards/back moves all motors forwards/back,
-         * moving the right joystick left/right rotates the robot clockwise or counterclockwise,
-         * and moving the left joystick left moves the motors in the right way to create a sideways
-         * "strafe" movement. Combinations of these inputs can be used to create more complex maneuvers.
-         * Note, moving the joystick forward on most gamepads results in a negative signal, so
-         * we invert it before passing it to the function.
-         */
-//        mecanumDrive(-gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
+        // Read the launcher's speed sensor (its encoder) once for this loop.
+        launcherMeasuredVelocity = launcher.getVelocity();
 
         /*
          * Set the intake power variable to equal the right trigger, minus the left trigger.
          * Each trigger outputs a signal from 0-1, with 0 as fully released, and 1 fully depressed.
-         * This gives us proportional control of the intake speed. The speed increases as we pull
-         * the right trigger further. It's occasionally helpful to be able to reverse the intake,
-         * so we also factor in the left trigger. If the left trigger is fully depressed,
-         * the intakePower variable will be -1. If the right trigger is fully depressed, the variable
-         * will be 1. If the driver pulls both triggers, the intake will remain off.
          * We use this technique (creating a variable, and setting it to our control inputs) to
          * allow us to avoid setting the same motors/servos power more than once per loop. That can
          * create erratic behavior.
@@ -163,21 +183,31 @@ public class LauncherTestOpMode extends OpMode {
 
         launch();
 
-        /*
-         * Here we set our intake motor and servos to their intake power. The order of operations
-         * here is important though. The gamepad triggers define the starting point for the intake
-         * power variable in each loop of our code, but inside our launch function we also sometimes
-         * change the intake power. So we need to give our launch function a chance to modify the
-         * variable before we write it to our motor and servos.
-         */
+        // While L1 reverses the launcher, nothing may feed forward: a ball pushed into a wheel
+        // spinning backwards jams again. The left trigger can still run the intake backwards.
+        if (reversing) intakePower = Math.min(intakePower, 0);
 
+        // R1 plus a full trigger would ask for 1.5; keep commands in the motors' -1..1 range.
+        intakePower = Math.max(-1, Math.min(1, intakePower));
+        // While feeding the launcher, the agitator runs at its own (full by default) power;
+        // otherwise it follows the triggers.
+        agitator.setPower(feeding ? tuning.agitatorPower() : intakePower);
         intake.setPower(intakePower);
-        agitator.setPower(intakePower);
 
         /*
-         * Show motor powers on the Driver Station via telemetry.
+         * Show what is happening on the Driver Station via telemetry.
          */
-        telemetry.addData("Triggers", "left (%.2f, right (%.2f)",gamepad1.left_trigger, gamepad1.right_trigger);
+        telemetry.addData("Triggers", "left (%.2f), right (%.2f)", gamepad1.left_trigger, gamepad1.right_trigger);
+        telemetry.addData("Launcher target / measured", "%.0f / %.0f ticks/s%s",
+                tuning.launcherVelocity(), launcherMeasuredVelocity,
+                launching && launcherMeasuredVelocity < 50 ? "  (measured ~0: check launcher encoder cable)" : "");
+        telemetry.addData("Up to speed at", "%.0f ticks/s", tuning.launcherReadyVelocity());
+        telemetry.addData("Feed", reversing ? "REVERSING launcher (L1) - no feed"
+                : !launching ? "off (hold R1; L1 = reverse to clear a jam)"
+                : feeding ? String.format("FEEDING (started at %.1f s: %s)", feedStartedAt, feedStartedBy)
+                : "spinning up");
+        telemetry.addData("Intake / agitator command", "%.2f / %.2f",
+                intakePower, feeding ? tuning.agitatorPower() : intakePower);
     }
 
     /*
@@ -187,31 +217,46 @@ public class LauncherTestOpMode extends OpMode {
     public void stop() {
     }
 
+    /*
+     * The same as launch() in the TeleOp (BioBuzzStarterbotOpMode). Keep the two the same.
+     */
     void launch() {
         /*
-         * Calling gamepad1.right_bumper returns a boolean which will be true if the bumper is
-         * held down, and false if it is not. Notably, this will continue to be true for every
-         * cycle of our code that the driver holds down that bumper.
-         * The first step of our launch() function is checking to see if the user is currently
-         * holding down the right gamepad. If they are, then we want to start spinning up the launcher.
-         * Otherwise, we start spinning the launcher down.
+         * L1 clears a jam: the launcher runs backwards at 300 RPM while L1 is held. L1 wins over
+         * R1, and nothing feeds while reversing. Let go of L1 and R1 works as normal (with a
+         * fresh spin-up).
          */
-        if (gamepad1.right_bumper) {
-            launcher.setVelocity(LAUNCHER_TARGET_VELOCITY);
+        reversing = gamepad1.left_bumper;
+        if (reversing) {
+            launching = false;
+            launcher.setVelocity(-LAUNCHER_REVERSE_VELOCITY);
+        } else if (gamepad1.right_bumper) {
+            if (!launching) launchTimer.reset(); // R1 just pressed: start the spin-up clock
+            launching = true;
+            launcher.setVelocity(tuning.launcherVelocity());
         } else {
+            launching = false;
             launcher.setVelocity(0);
         }
 
         /*
-         * Here we ask if the driver is currently pressing the right bumper, AND the launcher is
-         * spinning fast enough to make a successful shot. If it is, then we will turn on the
-         * windmill servo to start feeding the elements into the launcher motor. We also
-         * add some power to the intake power. This can sometimes help dislodge stuck elements from
-         * inside the hopper.
+         * When do we start feeding balls into the launcher? Whichever happens FIRST:
+         *   1. the encoder says the launcher is up to speed (96% of the target), or
+         *   2. R1 has been held for the spin-up time (3 s), in case the encoder reading is wrong.
+         * Once feeding starts, keep feeding until R1 is released. Each ball slows the wheel a
+         * little, and we don't want that dip to switch the agitator off in the middle of a volley.
          */
-        if (gamepad1.right_bumper && launcher.getVelocity() > LAUNCHER_MIN_VELOCITY) {
-            intakePower += 0.5;
-        } else {
+        boolean upToSpeed = tuning.launcherIsUpToSpeed(launcherMeasuredVelocity);
+        boolean spinUpTimeIsOver = tuning.spinUpTimeIsOver(launchTimer.seconds());
+        if (!launching) {
+            feeding = false;
+        } else if (!feeding && (upToSpeed || spinUpTimeIsOver)) {
+            feeding = true;
+            feedStartedAt = launchTimer.seconds();
+            feedStartedBy = upToSpeed ? "up to speed" : "spin-up timer";
+        }
+        if (feeding) {
+            intakePower += INTAKE_FEED_BOOST;
         }
     }
 }
