@@ -31,8 +31,9 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 /** EMERGENCY ONLY: the timed version of Odo ROBOT Park, for a match where the odometry sensor
- * (Pinpoint) is not working. Select delay, power and time during INIT, then drive forward for
- * that time and stop. */
+ * (Pinpoint) is not working. Select delay, power and time during INIT, then drive straight for
+ * that time and stop: BACKWARD, launcher end first, when the robot starts with its back to the
+ * hive (PollenFacing). */
 @Autonomous(name = "EMERGENCY Timed Park", group = "Pollen Emergency (timed)", preselectTeleOp = "PollenBot")
 public final class PollenRobotPark extends OpMode {
     private static PollenParkTuning.Snapshot remembered;
@@ -92,9 +93,10 @@ public final class PollenRobotPark extends OpMode {
         telemetry.addData("Build", PollenConfig.BUILD);
         telemetry.addData("EMERGENCY ONLY", "Timed driving, no odometry. Use Odo ROBOT Park unless odometry has failed.");
         telemetry.addData("Mode", "TIMED Park - real motors on START");
+        telemetry.addData("Facing", PollenFacing.placement() + "; drives " + PollenFacing.routeForward());
         if (tuning == null) return;
         telemetry.addData("Park power / drive seconds", "%.2f / %.2f s", tuning.power(), tuning.seconds());
-        telemetry.addData("Mat forward estimate", "%.1f cm; measured powers .25/.50, extrapolated below .25",
+        telemetry.addData("Mat distance estimate", "%.1f cm; measured forward at powers .25/.50 (backward assumed the same), extrapolated below .25",
                 PollenDriveCalibration.forwardDistanceCm(tuning.seconds(), tuning.power()));
         telemetry.addData("Start delay / maximum", "%.1f / %.1f seconds",
                 tuning.delaySeconds(), tuning.maximumDelaySeconds());
@@ -118,7 +120,7 @@ public final class PollenRobotPark extends OpMode {
         try {
             double now = clock.seconds();
             PollenSequence.Output out = sequence.tick(now);
-            double[] powers = PollenSequence.wheelPowers(out);
+            double[] powers = PollenFacing.wheelPowers(out);
             for (int i = 0; i < drive.length; i++) drive[i].setPower(powers[i]);
             showSettings();
             telemetry.addData("Phase", out.phase);

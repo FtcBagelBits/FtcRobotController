@@ -24,8 +24,8 @@ has **EMERGENCY** in its name and an `EMERGENCY ONLY` line on its INIT screen.
 
 - **The robot drives by time, not by measuring.** It doesn't know where it is. A low battery,
   slippery tiles, or a robot that isn't perfectly straight at the start all change where it ends up.
-  Place it as carefully as you can, flat against the wall.
-- It does **not** back into the wall first.
+  Place it as carefully as you can, front flat against the wall, back (launcher) to the hive.
+- It does **not** drive into the wall first to line itself up.
 - It drives slower (power 0.25 for Shoot + Park, 0.45 for Supporting Shooter), so the legs take longer.
 - The screen has no Odometry line. Mode says `TIMED Shoot + Park` or `TIMED Supporting Shooter`.
 
@@ -33,7 +33,7 @@ has **EMERGENCY** in its name and an `EMERGENCY ONLY` line on its INIT screen.
 
 | Line | Should say |
 | --- | --- |
-| Build | `pollen-odo-v10` |
+| Build | `pollen-odo-v11` |
 | EMERGENCY ONLY | `Timed driving, no odometry. Use the Odo mode unless odometry has failed.` |
 | Mode | `TIMED Shoot + Park - real motors on START` (or `TIMED Supporting Shooter ...`) |
 | Status | `READY - no movement until START` |

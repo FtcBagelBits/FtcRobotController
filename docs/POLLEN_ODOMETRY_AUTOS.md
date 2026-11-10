@@ -46,12 +46,33 @@ with **EMERGENCY Timed**. Run [the odometry baseline test](ODOMETRY_BASELINE_TES
   and brakes on approach. It does cost stopping distance, which is what the controller below handles.
 - **No end hold for B and C.** A leg only ends when the robot has stopped within 0.5 in of its end point.
 
+## Which way the robot faces (since `pollen-odo-v11`)
+
+The topspin launcher shoots out of the robot's **back**. So every autonomous mode starts with the
+robot's **front flat against the end wall and its back (launcher) to the hive**, in the same spot
+as before. The routes did not change: the robot drives the same legs to the same parking spots,
+**backward** (launcher end first).
+
+In the code every route is still written as if the robot faced the hive ("route directions"):
+forward = toward the hive, +angle = left as seen from the start looking at the hive. The INIT
+menus, leg end points (`ends ... in fwd, ... in left`), the time budget, the field-route checker
+and the robot log's `x=`/`y=` all use route directions. `PollenFacing` turns them around in
+exactly two places in each OpMode: the Pinpoint pose (x and y change sign, heading does not) and
+the drive powers (forward and strafe change sign, turn does not). Turning the robot around does
+not change which way it spins, so turns and the angled mode's aim angle are unchanged. The log's
+START line says `facing=back-to-hive`. `PollenFacing.START_BACK_TO_HIVE = false` puts it back.
+
+What changes on the robot: the wall square pushes with the **front**, and the first leg pulls the
+robot away from the wall backward. If the launcher is not centered left/right on the robot, the
+shot lands on the other side of the cell center than it used to (the robot is turned around); the
+C placement (6.9 cm toward the midline) assumed a centered launcher.
+
 ## Wall squaring (B and C)
 
-The robot starts with its back against the end wall. At the very start it backs into that wall at
-0.30 power for 0.35 s. The wall stops it, and if one back corner was touching first, the push
-turns the robot until its back is flat against the wall. Then the odometry is zeroed there, so
-"straight ahead" means square to the wall. Every leg is measured from that point.
+The robot starts with its front against the end wall. At the very start it drives forward into that
+wall at 0.30 power for 0.35 s. The wall stops it, and if one front corner was touching first, the push
+turns the robot until its front is flat against the wall. Then the odometry is zeroed there, so
+"straight away from the wall" means square to it. Every leg is measured from that point.
 
 Why at the start and not just before the first leg: it squares the shot as well as the route. For C it
 happens inside the 12 s start delay, so it costs no time. For B (no delay) it moves the shot
@@ -63,8 +84,8 @@ A 3 deg crooked start puts B's field-preset park spot about 5 in off (98 in of t
 the simulation in `PollenOdometryTest` (TeamCode/src/test) shows the squared run within 0.5 in. It does not fix
 left/right placement. That is still set by hand at the start line.
 
-It only works if the robot's back is flat and square to the drivetrain, and nothing on the back
-reaches the wall first. Check this before relying on it. To compare, set the row to 0.
+It only works if the robot's front is flat and square to the drivetrain, and nothing on the front
+reaches the wall first (it used to be the back: check the front again on the rebuilt robot). Check this before relying on it. To compare, set the row to 0.
 
 ## The drive controller
 
@@ -122,7 +143,7 @@ only a little. If C hits the hard stop on the field, take 0.5 s off its feed tim
 
 `Angled Primary Shooter` (group **Pollen Experimental**, `PollenAngledPrimaryShooter`) is Odo ROBOT
 Shoot + Park with the shot taken from an angle. **It has not been run on the robot.** Same start
-(back flat on the end wall, lined up with the hive cell that starts up) and same parking slot.
+(front flat on the end wall, back to the hive, lined up with the hive cell that starts up) and same parking slot.
 
 | Step | What it does |
 |---|---|

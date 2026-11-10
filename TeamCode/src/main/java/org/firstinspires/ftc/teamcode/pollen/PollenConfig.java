@@ -6,7 +6,7 @@ public final class PollenConfig {
 
     /** Shown in INIT by every Pollen and Odo autonomous mode and by PollenBot TeleOp, and written to
      * the robot log at START. Change it whenever the Pollen code changes. */
-    public static final String BUILD = "pollen-odo-v10";
+    public static final String BUILD = "pollen-odo-v11";
 
     /** Launcher speed in encoder ticks per second: the default in TeleOp, autonomous and
      * LauncherTest (the INIT menus can change it). The encoder counts 28 ticks per turn, so
@@ -47,7 +47,9 @@ public final class PollenConfig {
     public static final double PARK_FORWARD_SECONDS = 2;
     public static final double PARK_FORWARD_POWER = 0.20;
 
-    // Positive drive axes = forward/right/clockwise. Start pose is set by humans.
+    // Positive drive axes = forward/right/clockwise, in route directions (as if facing the hive:
+    // PollenFacing turns them around for a robot that starts with its back to the hive).
+    // Start pose is set by humans.
     public static PollenSequence.Step[] parkRoute() {
         return parkRoute(PARK_FORWARD_SECONDS, PARK_FORWARD_POWER);
     }
@@ -57,7 +59,7 @@ public final class PollenConfig {
     /** Snapshot of the settings selected before START. */
     public static PollenSequence.Step[] parkRoute(double seconds, double power) {
         return new PollenSequence.Step[] {
-                PollenSequence.Step.drive("FORWARD TO PARK", seconds, power, 0, 0),
+                PollenSequence.Step.drive("DRIVE TO PARK", seconds, power, 0, 0),
                 PollenSequence.Step.drive("PARK / HOLD", PARK_HOLD_SECONDS, 0, 0, 0)
         };
     }

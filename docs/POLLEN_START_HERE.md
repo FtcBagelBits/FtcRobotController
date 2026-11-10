@@ -4,7 +4,7 @@ This is the one page to read first. It explains what the PollenBot code does,
 how it is built, and the order to read it in, with questions to answer as you
 go. Every other document and code file is linked from here.
 
-Build: `pollen-odo-v10`. The INIT screen of every Pollen OpMode shows it.
+Build: `pollen-odo-v11`. The INIT screen of every Pollen OpMode shows it.
 
 **New to the project?** First get Android Studio working and the code building:
 [set up, test, install, and share your changes](ROBOT_CONNECTION.md) (Windows and Mac).
@@ -130,6 +130,15 @@ Code paths are under `TeamCode/src/main/java/org/firstinspires/ftc/teamcode/`.
   `sequence.tick(...)`, **act** by writing each motor once, and **report** to
   the Driver Hub screen and the robot log.
 - *Question:* why are the launcher, intake and agitator set before the wheels?
+- **Which way the robot faces.** The launcher shoots out of the robot's back, so
+  every auto starts with the robot's front against the wall and its back to the
+  hive. The routes are still written as if it faced the hive. Two lines in
+  `loop()` turn things around: the pose goes through `PollenFacing.routePose`,
+  and the drive powers through `PollenFacing.wheelPowers`.
+  [`pollen/PollenFacing.java`](../TeamCode/src/main/java/org/firstinspires/ftc/teamcode/pollen/PollenFacing.java)
+  explains it in one comment.
+- *Question:* the robot is turned around, so why is the heading (and every
+  turn) left alone, while x and y change sign?
 - The Odo modes, the emergency timed B and C and Angled Primary Shooter are
   10-line files that extend this class and only say "supporting shooter or
   not", "odometry or not" and "angled shot or not".

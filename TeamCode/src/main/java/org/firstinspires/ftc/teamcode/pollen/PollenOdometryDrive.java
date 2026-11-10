@@ -87,8 +87,10 @@ public final class PollenOdometryDrive {
      * wall): stop everything. */
     public static final double NO_TURN_PROGRESS_MIN_DEG = 2.0;
 
-    /** Wall squaring (B and C, before the first leg): back gently into the end wall so the
-     * robot's back sits flat against it, then zero the odometry there. The wall stops the robot;
+    /** Wall squaring (B and C, before the first leg): push gently into the end wall so the
+     * robot sits flat against it, then zero the odometry there. In route directions this is
+     * backward (away from the hive); a robot that starts with its back to the hive drives
+     * FORWARD to do it, so its front sits flat against the wall (PollenFacing). The wall stops the robot;
      * this is a short push by time, not a distance, because a distance the wall prevents
      * would never be reached. */
     public static final double SQUARE_POWER = 0.30, SQUARE_SECONDS = 0.35;

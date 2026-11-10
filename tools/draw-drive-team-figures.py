@@ -18,7 +18,7 @@ from pollen_field_drawing import *  # noqa: F401,F403  R, W, hx, P, S, FLOWERS, 
 
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'docs', 'drive-team', 'img')
 LEG_NAMES = {'P': ['1  off the wall', '2  left past the hive', '3  to the slot'],
-             'S': ['1  forward', '2  right to the slot']}
+             'S': ['1  off the wall', '2  right to the slot']}
 
 
 def save(fig, name):
@@ -92,7 +92,7 @@ def placement_picture(tag, name, title):
     ax.plot([0, 0], [zlo, zhi], color='#555', lw=1.6, ls='--', zorder=2)
     ax.text(.8, wall + away * 36, 'center seam\n(alliance midline)', fontsize=13.6, color='#333', va='center')
     ax.plot([xmin, xmax], [wall, wall], color='#222', lw=6, zorder=8)
-    ax.text(xmin + 1, wall - away * 2.6, 'FIELD WALL (behind the robot)', fontsize=14.4, weight='bold', va='center')
+    ax.text(xmin + 1, wall - away * 2.6, 'FIELD WALL (the robot faces it)', fontsize=14.4, weight='bold', va='center')
     for f in FLOWERS:
         if f[1] < xmin or f[0] > xmax or max(f[2], f[3]) < zlo or min(f[2], f[3]) > zhi:
             continue
@@ -103,11 +103,11 @@ def placement_picture(tag, name, title):
             bbox=dict(fc='white', ec='none', pad=1))
     col = P_COL if tag == 'P' else S_COL
     ax.add_patch(Rectangle((x - R, z - R), 2 * R, 2 * R, fc=col, ec='#111', lw=1.5, alpha=.9, zorder=6))
-    ax.text(x, z, 'ROBOT\nback flat on\nthe wall', ha='center', va='center', fontsize=14.4, weight='bold', color='white', zorder=7)
-    front = z + away * R
-    ax.annotate('', xy=(x, front + away * 9), xytext=(x, front + away * .5),
+    ax.text(x, z, 'ROBOT\nFRONT flat\non the wall', ha='center', va='center', fontsize=14.4, weight='bold', color='white', zorder=7)
+    back = z + away * R  # the robot's back (launcher) is the side toward the hive
+    ax.annotate('', xy=(x, back + away * 9), xytext=(x, back + away * .5),
                 arrowprops=dict(arrowstyle='-|>', lw=2.5, color='#111', mutation_scale=18), zorder=7)
-    ax.text(x + 1.2, front + away * 5, 'faces\nthe hive', ha='left', va='center', fontsize=14.4, weight='bold')
+    ax.text(x + 1.2, back + away * 5, 'BACK\n(launcher)\nto the hive', ha='left', va='center', fontsize=14.4, weight='bold')
     if tag == 'P':
         gap(ax, x + R, 0, z, '3.7 in\n(9.5 cm)', (2.0, wall + away * 20), 'left')
         ax.text(xmin + 1, wall + away * 30, 'Center the robot on the hive.', fontsize=15.2, weight='bold')

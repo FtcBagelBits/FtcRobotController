@@ -1,6 +1,6 @@
 # Pollen autonomous code
 
-Build identifier: **pollen-odo-v10** (`PollenConfig.BUILD`). The match autos are the odometry
+Build identifier: **pollen-odo-v11** (`PollenConfig.BUILD`). The match autos are the odometry
 ones (below). Three timed OpModes are kept for **emergencies only** (a match where the Pinpoint
 is not working), in the group *Pollen Emergency (timed)*: `EMERGENCY Timed Park`,
 `EMERGENCY Timed Shoot + Park`, and `EMERGENCY Timed Supporting Shooter` (before `pollen-odo-v9`
@@ -54,6 +54,7 @@ The experimental profiles/routes are not validated robot settings.
 | PollenFieldGeometry | Nominal CAD-derived start/parking coordinates and preset displacements; the assumed angled shooting spot and its aim angle |
 | PollenFeedRule | The one feed rule (up to speed, or the spin-up time is over), used by TeleOp, LauncherTest and every autonomous shot |
 | PollenAngledPrimaryShooter | EXPERIMENTAL registered wrapper: B with odometry and `angledShot()` on |
+| PollenFacing | Which way the robot starts: `START_BACK_TO_HIVE` (true since `pollen-odo-v11`: front on the end wall, back/launcher to the hive). Routes are written as if facing the hive; `routePose()` turns the odometry pose around and `wheelPowers()` turns the drive powers around. Used by every autonomous OpMode, nothing else |
 | PollenSequence | Hardware-free step runner. Five kinds of step (`Kind`: DRIVE, SHOOT, MOVE, TURN, ZERO_ODOMETRY), one short method each (`driveStep`, `shootStep`, `moveStep`, `turnStep`, `zeroOdometryStep`); stall/STOP/deadline checks; mixer |
 | PollenOdometryDrive | Odometry legs: drive-to-point controller (`command()` returns a `Command`: forward, strafe, turn, inchesToGo), time estimates, wall-square and zero constants; turning in place (`turnPower()` and the TURNING IN PLACE constants, untuned) |
 | PollenOdometryHardware | Opens the Pinpoint through Pedro's localizer (pedroPathing/Constants); pose telemetry |
@@ -208,6 +209,6 @@ is unavailable.
 
 Deploy a freshly built APK through the team's working Wi-Fi/ADB connection or
 Android Studio TeamCode run configuration to the Control Hub. USB-C has not
-worked. Verify `pollen-odo-v10` in INIT. Check the actual installed commit and all
+worked. Verify `pollen-odo-v11` in INIT. Check the actual installed commit and all
 settings before physical tests. Java changes require rebuild/reinstall; INIT
 settings and documentation edits do not.

@@ -8,9 +8,10 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-/** Option A with odometry: after the start delay, zero the odometry, drive straight forward the
- * selected distance (measured, not timed), then stop. Same INIT buttons as EMERGENCY Timed Park,
- * except LEFT/RIGHT changes centimetres instead of seconds. */
+/** Option A with odometry: after the start delay, zero the odometry, drive straight the selected
+ * distance (measured, not timed), then stop. Like every autonomous, it drives as if the robot faced
+ * the hive (PollenFacing): with the robot's back to the hive it drives BACKWARD, launcher end first.
+ * Same INIT buttons as EMERGENCY Timed Park, except LEFT/RIGHT changes centimetres instead of seconds. */
 @Autonomous(name = "Odo ROBOT Park", group = "Pollen Odometry", preselectTeleOp = "PollenBot")
 public final class PollenOdoPark extends OpMode {
     private static PollenOdoParkTuning.Snapshot remembered;
@@ -67,8 +68,9 @@ public final class PollenOdoPark extends OpMode {
         telemetry.addData("Mode", "ODOMETRY ROBOT Park - real motors on START");
         if (odometry != null) PollenOdometryHardware.showPose(telemetry, odometry.pose());
         if (tuning == null) return;
-        telemetry.addData("Distance / max power", "%.0f cm (%.1f in) straight ahead / %.2f",
-                tuning.cm(), tuning.cm() / PollenOdometryDrive.CM_PER_INCH, tuning.power());
+        telemetry.addData("Distance / max power", "%.0f cm (%.1f in) straight %s / %.2f",
+                tuning.cm(), tuning.cm() / PollenOdometryDrive.CM_PER_INCH, PollenFacing.routeForward(), tuning.power());
+        telemetry.addData("Facing", PollenFacing.placement());
         telemetry.addData("Start delay / maximum", "%.1f / %.1f seconds",
                 tuning.delaySeconds(), tuning.maximumDelaySeconds());
         telemetry.addData("Planned", "%.1f s (hard stop at %.0f s)", tuning.plannedSeconds(), PollenConfig.TOTAL_TIME_LIMIT);
@@ -91,9 +93,10 @@ public final class PollenOdoPark extends OpMode {
             double now = clock.seconds();
             odometry.update();
             Pose pose = odometry.pose();
-            PollenSequence.Output out = sequence.tick(now, pose.x(), pose.y(), pose.heading());
+            double[] route = PollenFacing.routePose(pose.x(), pose.y(), pose.heading());
+            PollenSequence.Output out = sequence.tick(now, route[0], route[1], route[2]);
             if (out.zeroOdometry) odometry.setPose(Pose.zero());
-            double[] powers = PollenSequence.wheelPowers(out);
+            double[] powers = PollenFacing.wheelPowers(out);
             for (int i = 0; i < drive.length; i++) drive[i].setPower(powers[i]);
             showSettings();
             telemetry.addData("Phase", out.phase);

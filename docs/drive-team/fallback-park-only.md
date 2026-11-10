@@ -1,15 +1,15 @@
 # Park only (no shooting)
 
-**Odo ROBOT Park** doesn't shoot. It waits for the start delay, then drives straight forward and
-stops. We use it for testing, or if the launcher is broken and we only want the LEAVE points.
+**Odo ROBOT Park** doesn't shoot. It waits for the start delay, then drives straight **backward**
+(launcher end first, like every auto) and stops. We use it for testing, or if the launcher is broken and we only want the LEAVE points.
 
 **EMERGENCY Timed Park** does the same job by time. It is for **emergencies only**: use it when
 the odometry sensor isn't working.
 
 | Mode | How it drives | Default |
 | --- | --- | --- |
-| **Odo ROBOT Park** (group *Pollen Odometry*) | Measures the distance with odometry | 55 cm (about 22 in) forward, power 0.60 |
-| **EMERGENCY Timed Park** (group *Pollen Emergency (timed)*) | Drives for a set time | 2.0 s forward at power 0.20 (about 55 cm) |
+| **Odo ROBOT Park** (group *Pollen Odometry*) | Measures the distance with odometry | 55 cm (about 22 in) backward, power 0.60 |
+| **EMERGENCY Timed Park** (group *Pollen Emergency (timed)*) | Drives for a set time | 2.0 s backward at power 0.20 (about 55 cm) |
 
 ## Buttons during INIT
 
@@ -22,9 +22,9 @@ the odometry sensor isn't working.
 
 ## Placement
 
-These drive **straight ahead** from wherever the robot is. Point the robot so that straight ahead
-is clear and ends partly in the loading zone if you want PARK points too. Ask a programmer
+These drive **straight backward** from wherever the robot is: the launcher end goes first. Point
+the robot's back where you want it to go, so that straight behind it is clear and ends partly in the loading zone if you want PARK points too. Ask a programmer
 how far to set the distance for that start. Don't drive the straight diagonal from the middle of
 the audience wall: it hits the hive frame.
 
-Check for **Build `pollen-odo-v10`** and `READY - waiting for START` before START.
+Check for **Build `pollen-odo-v11`** and `READY - waiting for START` before START.
