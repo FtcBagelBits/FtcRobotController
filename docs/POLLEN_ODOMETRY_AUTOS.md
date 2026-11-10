@@ -1,17 +1,19 @@
 # Pollen autos with odometry
 
-Three new autonomous OpModes, in the group **Pollen Odometry**, do the same jobs as the timed
+Three autonomous OpModes, in the group **Pollen Odometry**, do the same jobs as the timed
 ones, but drive each leg to a **measured** end point with the Pinpoint instead of driving
 for a guessed time:
 
 | Odometry OpMode | Same job as | Code |
 |---|---|---|
-| Odo ROBOT Park | Pollen ROBOT Park (A) | `PollenOdoPark`, `PollenOdoParkTuning` |
-| Odo ROBOT Shoot + Park | Pollen ROBOT Shoot + Park (B) | `PollenOdoRobotShoot` |
-| Odo Supporting Shooter Auto | Pollen Supporting Shooter Auto (C) | `PollenOdoSupportingShooter` |
+| Odo ROBOT Park | EMERGENCY Timed Park (A) | `PollenOdoPark`, `PollenOdoParkTuning` |
+| Odo ROBOT Shoot + Park | EMERGENCY Timed Shoot + Park (B) | `PollenOdoRobotShoot` |
+| Odo Supporting Shooter Auto | EMERGENCY Timed Supporting Shooter (C) | `PollenOdoSupportingShooter` |
 
-The timed OpModes are unchanged and stay as the fallback until the odometry ones have beaten
-them on the field. Run [the odometry baseline test](ODOMETRY_BASELINE_TEST.md) first.
+The odometry modes are the ones the team runs in matches: at the 2026-11-07 meet they were used
+for every match and did much better than timed driving had. The timed OpModes are kept for
+**emergencies only** (the odometry sensor is not working); since `pollen-odo-v9` their names start
+with **EMERGENCY Timed**. Run [the odometry baseline test](ODOMETRY_BASELINE_TEST.md) first.
 
 ## What is the same
 

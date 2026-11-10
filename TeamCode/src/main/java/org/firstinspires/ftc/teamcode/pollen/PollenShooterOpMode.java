@@ -43,7 +43,8 @@ public abstract class PollenShooterOpMode extends OpMode {
     private static PollenShootTuning.Snapshot shootRemembered, supportRemembered,
             odoShootRemembered, odoSupportRemembered;
     protected abstract boolean supportingShooter();
-    /** Odometry OpModes drive each leg to a measured end point instead of by time. */
+    /** Odometry OpModes drive each leg to a measured end point instead of by time. The timed
+     * ones (false) are for emergencies only: a match where the odometry sensor is not working. */
     protected boolean odometry() { return false; }
     private PinpointLocalizer localizer;
     private GoBildaPinpointDriver pinpoint;
@@ -138,7 +139,7 @@ public abstract class PollenShooterOpMode extends OpMode {
         telemetry.addData("Status", blocked != null ? "BLOCKED: " + blocked
                 : !tuning.budgetOk() ? "NOT READY - over time budget; START will not move the robot"
                 : PollenOdometryDrive.pinpointFault(pinpointStatus)
-                ? "PINPOINT FAULT - odometry will not work: use the timed Pollen mode"
+                ? "PINPOINT FAULT - odometry will not work: use the EMERGENCY Timed mode"
                 : fallback != null ? "READY FOR DEPARTURE ONLY - SHOOTER FAILED" : "READY - no movement until START");
         telemetry.addData("Memory", "Settings kept until app restart; start delay resets every INIT");
         telemetry.update();
@@ -159,7 +160,8 @@ public abstract class PollenShooterOpMode extends OpMode {
         // First line on purpose: which route will run is the thing to check before every match.
         telemetry.addData("ROUTE", tuning.route().label);
         telemetry.addData("Build", PollenConfig.BUILD);
-        telemetry.addData("Mode", (odometry() ? "ODOMETRY " : "")
+        if (!odometry()) telemetry.addData("EMERGENCY ONLY", "Timed driving, no odometry. Use the Odo mode unless odometry has failed.");
+        telemetry.addData("Mode", (odometry() ? "ODOMETRY " : "TIMED ")
                 + (supportingShooter() ? "Supporting Shooter - real motors on START" : "Shoot + Park - real motors on START"));
         if (localizer != null) {
             PollenOdometryHardware.showPose(telemetry, localizer.pose());
@@ -313,7 +315,8 @@ public abstract class PollenShooterOpMode extends OpMode {
 
     /** Name as shown on the Driver Hub, for the log. */
     private String modeName() {
-        return (odometry() ? "Odo " : "Pollen ") + (supportingShooter() ? "Supporting Shooter" : "ROBOT Shoot + Park");
+        if (!odometry()) return supportingShooter() ? "EMERGENCY Timed Supporting Shooter" : "EMERGENCY Timed Shoot + Park";
+        return supportingShooter() ? "Odo Supporting Shooter" : "Odo ROBOT Shoot + Park";
     }
 
     /** Pinpoint status for the screen and the log (refreshed by localizer.update()). */

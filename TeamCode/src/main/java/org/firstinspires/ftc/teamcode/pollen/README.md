@@ -1,8 +1,11 @@
 # Pollen autonomous code
 
-Build identifier: **pollen-odo-v8** (`PollenConfig.BUILD`). Three autonomous OpModes preselect PollenBot:
-`Pollen ROBOT Park`, `Pollen ROBOT Shoot + Park`, and
-`Pollen Supporting Shooter Auto`. The PollenBot TeleOp itself
+Build identifier: **pollen-odo-v9** (`PollenConfig.BUILD`). The match autos are the odometry
+ones (below). Three timed OpModes are kept for **emergencies only** (a match where the Pinpoint
+is not working), in the group *Pollen Emergency (timed)*: `EMERGENCY Timed Park`,
+`EMERGENCY Timed Shoot + Park`, and `EMERGENCY Timed Supporting Shooter` (before `pollen-odo-v9`
+they were named `Pollen ROBOT Park`, `Pollen ROBOT Shoot + Park` and
+`Pollen Supporting Shooter Auto`). The PollenBot TeleOp itself
 (`../BioBuzzStarterbotOpMode.java`, outside this package) uses `PollenTeleOpTuning`
 for its INIT launcher-speed and drive-power menu and shows the same build id.
 
@@ -191,6 +194,6 @@ is unavailable.
 
 Deploy a freshly built APK through the team's working Wi-Fi/ADB connection or
 Android Studio TeamCode run configuration to the Control Hub. USB-C has not
-worked. Verify `pollen-odo-v8` in INIT. Check the actual installed commit and all
+worked. Verify `pollen-odo-v9` in INIT. Check the actual installed commit and all
 settings before physical tests. Java changes require rebuild/reinstall; INIT
 settings and documentation edits do not.

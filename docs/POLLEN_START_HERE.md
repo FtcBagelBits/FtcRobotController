@@ -4,7 +4,7 @@ This is the one page to read first. It explains what the PollenBot code does,
 how it is built, and the order to read it in, with questions to answer as you
 go. Every other document and code file is linked from here.
 
-Build: `pollen-odo-v8`. The INIT screen of every Pollen OpMode shows it.
+Build: `pollen-odo-v9`. The INIT screen of every Pollen OpMode shows it.
 
 **New to the project?** First get Android Studio working and the code building:
 [set up, test, install, and share your changes](ROBOT_CONNECTION.md) (Windows and Mac).
@@ -17,7 +17,7 @@ Build: `pollen-odo-v8`. The INIT screen of every Pollen OpMode shows it.
 | **Odo ROBOT Shoot + Park** (our main auto) | [`pollen/PollenOdoRobotShoot.java`](../TeamCode/src/main/java/org/firstinspires/ftc/teamcode/pollen/PollenOdoRobotShoot.java) | Squares against the wall, shoots the 4 pre-loads, then drives each leg to a measured end point with the Pinpoint odometry |
 | **Odo Supporting Shooter Auto** | [`pollen/PollenOdoSupportingShooter.java`](../TeamCode/src/main/java/org/firstinspires/ftc/teamcode/pollen/PollenOdoSupportingShooter.java) | Waits for the partner to shoot first, shoots, then parks using odometry |
 | **Odo ROBOT Park** | [`pollen/PollenOdoPark.java`](../TeamCode/src/main/java/org/firstinspires/ftc/teamcode/pollen/PollenOdoPark.java) | Optional start delay, then drives a set distance with odometry |
-| Pollen ROBOT Park / Shoot + Park / Supporting Shooter (A, B, C) | [`pollen/`](../TeamCode/src/main/java/org/firstinspires/ftc/teamcode/pollen/) | The same three jobs with timed driving: the fallback if the odometry sensor isn't working |
+| EMERGENCY Timed Park / Shoot + Park / Supporting Shooter (A, B, C) | [`pollen/`](../TeamCode/src/main/java/org/firstinspires/ftc/teamcode/pollen/) | **Emergency only.** The same three jobs with timed driving, for a match where the odometry sensor isn't working |
 
 The drive team's one-page guides are in [drive-team/](drive-team/README.md). Everything else in
 TeamCode, including the old Lox robot's code in `lox/`, is listed in the
@@ -81,7 +81,7 @@ Code paths are under `TeamCode/src/main/java/org/firstinspires/ftc/teamcode/`.
 ### 3. The autonomous engine: [`pollen/PollenSequence.java`](../TeamCode/src/main/java/org/firstinspires/ftc/teamcode/pollen/PollenSequence.java) (15 min)
 
 - A route is a list of `Step`s. There are four kinds (`Kind`): `DRIVE` (fixed
-  powers for a set time; the timed fallback modes, and waits), `SHOOT`
+  powers for a set time; the emergency timed modes, and waits), `SHOOT`
   (launcher alone for the spin-up time, then feed), `MOVE` (drive to an end
   point, in inches from where the odometry was zeroed) and `ZERO_ODOMETRY`.
 - **`tick(now, x, y, heading)`** is called every loop with the clock and the
@@ -137,8 +137,8 @@ Positions from the official field CAD, in inches from the field center. The
 ### Skip for now
 
 - [`pollen/PollenDriveCalibration.java`](../TeamCode/src/main/java/org/firstinspires/ftc/teamcode/pollen/PollenDriveCalibration.java):
-  turns a distance and angle into seconds and wheel powers for the timed
-  fallback modes. It is frozen.
+  turns a distance and angle into seconds and wheel powers for the emergency
+  timed modes. It is frozen.
 - [`pollen/PollenParkTuning.java`](../TeamCode/src/main/java/org/firstinspires/ftc/teamcode/pollen/PollenParkTuning.java),
   [`pollen/PollenOdoParkTuning.java`](../TeamCode/src/main/java/org/firstinspires/ftc/teamcode/pollen/PollenOdoParkTuning.java):
   the Park menus. Same ideas as the shoot menus, with fewer rows.
@@ -171,7 +171,7 @@ request; that page explains how.
 
 ## What comes next
 
-The odometry autos replaced timed driving; the timed ones stay as the fallback. Next is getting
+The odometry autos replaced timed driving; the timed ones are kept for emergencies only. Next is getting
 Odo Shoot + Park to park reliably in matches, then using Pedro Pathing and a Limelight so
 autonomous can cycle: shoot, collect more pollen from a known spot, shoot again, and park before
 time runs out. The feed rule, the "what now?" loop, the INIT menus and the field coordinates carry

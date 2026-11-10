@@ -14,7 +14,7 @@ Read [Start here](POLLEN_START_HERE.md) first.
 | [Robot tested behavior](POLLEN_ROBOT_BEHAVIOR.md) | Programmers: what the PollenBot has actually done on competition tiles, measured drive and shooter data, what is untested, next measurements. |
 | [Field routes](POLLEN_FIELD_ROUTES.md) and [diagram](POLLEN_FIELD_ROUTES.svg) | Programmers and drive team: our start poses, route presets, clearances, parking margins. |
 | [Pit sheet](POLLEN_PIT_SHEET.svg) | Alliance partners: lanes, parking slots, timing and setup rules on one printable page. |
-| [Drive-team guides](drive-team/README.md) and [print PDFs](drive-team/print/) | Students at matches: Odo Shoot + Park, Odo Supporting Shooter, TeleOp; fallback pages. |
+| [Drive-team guides](drive-team/README.md) and [print PDFs](drive-team/print/) | Students at matches: Odo Shoot + Park, Odo Supporting Shooter, TeleOp; emergency and park-only pages. |
 | [Odometry autos](POLLEN_ODOMETRY_AUTOS.md) and [baseline test](ODOMETRY_BASELINE_TEST.md) | Programmers: how the Odo modes drive, tuning knobs, Pinpoint checks. |
 
 Menu controls belong in the operating manual; the drive-team guides are its short, student version,

@@ -1,14 +1,17 @@
-# Fallback: the timed autos (no odometry)
+# EMERGENCY ONLY: the timed autos (no odometry)
 
-**Use these only if the odometry sensor isn't working.** You'll know because the Odo mode says
-`BLOCKED: ... No goBILDA Pinpoint named "odometry"`, or its Odometry line says `NOT VALID`.
+**Do not pick these for a normal match.** The Odo modes park much more accurately. Use a timed
+mode only if the odometry sensor isn't working. You'll know because the Odo mode says
+`BLOCKED: ... No goBILDA Pinpoint named "odometry"`, its Status says `PINPOINT FAULT`, or its
+Odometry line says `NOT VALID`.
 
 | Instead of | Pick |
 | --- | --- |
-| Odo ROBOT Shoot + Park | **Pollen ROBOT Shoot + Park** |
-| Odo Supporting Shooter Auto | **Pollen Supporting Shooter Auto** |
+| Odo ROBOT Shoot + Park | **EMERGENCY Timed Shoot + Park** |
+| Odo Supporting Shooter Auto | **EMERGENCY Timed Supporting Shooter** |
 
-Both are in the autonomous list, group *Pollen* (no "Odo").
+Both are in the autonomous list, in the group *Pollen Emergency (timed)*. Every one of these modes
+has **EMERGENCY** in its name and an `EMERGENCY ONLY` line on its INIT screen.
 
 ## What's the same
 
@@ -24,14 +27,15 @@ Both are in the autonomous list, group *Pollen* (no "Odo").
   Place it as carefully as you can, flat against the wall.
 - It does **not** back into the wall first.
 - It drives slower (power 0.25 for Shoot + Park, 0.45 for Supporting Shooter), so the legs take longer.
-- The screen has no Odometry line. Mode says `Shoot + Park` or `Supporting Shooter` without `ODOMETRY`.
+- The screen has no Odometry line. Mode says `TIMED Shoot + Park` or `TIMED Supporting Shooter`.
 
 ## Check the screen
 
 | Line | Should say |
 | --- | --- |
-| Build | `pollen-odo-v8` |
-| Mode | `Shoot + Park - real motors on START` (or `Supporting Shooter ...`) |
+| Build | `pollen-odo-v9` |
+| EMERGENCY ONLY | `Timed driving, no odometry. Use the Odo mode unless odometry has failed.` |
+| Mode | `TIMED Shoot + Park - real motors on START` (or `TIMED Supporting Shooter ...`) |
 | Status | `READY - no movement until START` |
 
 After the match, tell a programmer the odometry wasn't working, and where the robot parked.

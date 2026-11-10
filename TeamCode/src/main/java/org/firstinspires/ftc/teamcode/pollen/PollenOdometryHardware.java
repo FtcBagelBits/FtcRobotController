@@ -18,7 +18,7 @@ public final class PollenOdometryHardware {
         String name = Constants.localizerConfig.name.get();
         if (hardwareMap.tryGet(GoBildaPinpointDriver.class, name) == null) {
             throw new IllegalStateException("No goBILDA Pinpoint named \"" + name
-                    + "\" in the active configuration; odometry autos cannot run (use the timed Pollen autos)");
+                    + "\" in the active configuration; odometry autos cannot run (use the EMERGENCY Timed autos)");
         }
         return new PinpointLocalizer(hardwareMap, Constants.localizerConfig);
     }

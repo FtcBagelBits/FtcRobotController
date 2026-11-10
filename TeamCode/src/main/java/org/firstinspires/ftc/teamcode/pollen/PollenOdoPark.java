@@ -9,7 +9,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 /** Option A with odometry: after the start delay, zero the odometry, drive straight forward the
- * selected distance (measured, not timed), then stop. Same INIT buttons as Pollen ROBOT Park,
+ * selected distance (measured, not timed), then stop. Same INIT buttons as EMERGENCY Timed Park,
  * except LEFT/RIGHT changes centimetres instead of seconds. */
 @Autonomous(name = "Odo ROBOT Park", group = "Pollen Odometry", preselectTeleOp = "PollenBot")
 public final class PollenOdoPark extends OpMode {

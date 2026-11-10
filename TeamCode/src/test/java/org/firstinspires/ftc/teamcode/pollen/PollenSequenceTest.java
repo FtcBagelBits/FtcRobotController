@@ -138,7 +138,7 @@ public final class PollenSequenceTest {
         broken.loop(0, out, "", Double.NaN, Double.NaN, Double.NaN, PollenSequence.wheelPowers(out), 0, () -> 1 / 0);
         broken.start("x", "y", null); broken.stop(1); broken.initRoute("R"); broken.status("S");
         lines.clear();
-        PollenAutoLog timed = new PollenAutoLog("Pollen ROBOT Shoot + Park", lines::add);
+        PollenAutoLog timed = new PollenAutoLog("EMERGENCY Timed Shoot + Park", lines::add);
         timed.loop(0, out, "", Double.NaN, Double.NaN, Double.NaN, PollenSequence.wheelPowers(out), 0,
                 () -> { throw new IllegalStateException("no hub"); });
         check(lines.get(0).contains("x=NaN") && lines.get(0).contains("battery=?"), "NaN pose and failed battery read still log: " + lines);

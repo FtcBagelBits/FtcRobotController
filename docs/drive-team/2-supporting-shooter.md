@@ -68,7 +68,7 @@ Then make only the changes the coach asks for. A different wait is a *Start dela
 | Line | Should say |
 | --- | --- |
 | **ROUTE** (the first line) | `SUPPORT PARK: wait, shoot, then park in the outer slot` |
-| Build | `pollen-odo-v8` |
+| Build | `pollen-odo-v9` |
 | Mode | `ODOMETRY Supporting Shooter` |
 | Odometry x fwd / y left / heading | numbers near 0 (not `NOT VALID`) |
 | Start delay seconds | `12.00` |
@@ -95,11 +95,11 @@ Then make only the changes the coach asks for. A different wait is a *Start dela
 
 | You see | What it means | Do this |
 | --- | --- | --- |
-| `BLOCKED: ... No goBILDA Pinpoint named "odometry"` | The odometry sensor isn't found | Use **Pollen Supporting Shooter Auto** instead ([timed fallback](fallback-timed-autos.md)). Tell a programmer. |
-| `Odometry ...: NOT VALID` | The odometry sensor isn't reading | Press STOP, then INIT again with the robot still. Still bad: use the timed fallback. |
+| `BLOCKED: ... No goBILDA Pinpoint named "odometry"` | The odometry sensor isn't found | Use **EMERGENCY Timed Supporting Shooter** instead ([emergency timed page](fallback-timed-autos.md)). Tell a programmer. |
+| `Odometry ...: NOT VALID` | The odometry sensor isn't reading | Press STOP, then INIT again with the robot still. Still bad: use the emergency timed mode. |
 | `READY FOR DEPARTURE ONLY - SHOOTER FAILED` | The launcher didn't start up | The robot still waits out the shooting time, then parks. Tell a programmer. |
 | `NOT READY - over time budget` | Someone's settings take too long | Press Triangle. |
-| `PINPOINT FAULT` | A pod cable is loose | Check both pod cables. Still there: [timed fallback](fallback-timed-autos.md). |
+| `PINPOINT FAULT` | A pod cable is loose | Check both pod cables. Still there: [emergency timed mode](fallback-timed-autos.md). |
 | Any other `BLOCKED` | Something isn't plugged in, or the wrong robot configuration is active | Tell a programmer. |
 
 ## After the match, tell the programmers

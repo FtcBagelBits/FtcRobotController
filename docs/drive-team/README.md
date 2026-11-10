@@ -1,7 +1,7 @@
 # Drive team guides
 
 For the students who run the robot at matches. Each guide prints on one sheet (the two autos and
-TeleOp front and back); the PDFs are in [print/](print/). Build `pollen-odo-v8`.
+TeleOp front and back); the PDFs are in [print/](print/). Build `pollen-odo-v9`.
 
 ## Print these for the pit (one copy each, plus one for the drive coach)
 
@@ -16,14 +16,14 @@ TeleOp front and back); the PDFs are in [print/](print/). Build `pollen-odo-v8`.
 
 | Page | When |
 | --- | --- |
-| [Timed autos](fallback-timed-autos.md) ([PDF](print/fallback-timed-autos.pdf)) | The odometry sensor isn't working. |
+| [EMERGENCY Timed autos](fallback-timed-autos.md) ([PDF](print/fallback-timed-autos.pdf)) | **Emergency only:** the odometry sensor isn't working. |
 | [Park only](fallback-park-only.md) ([PDF](print/fallback-park-only.pdf)) | Testing, or the launcher is broken. |
 
 ## Rules for every match
 
 1. **Agree with the partner first:** who shoots first, who parks in which slot.
 2. **Place the robot, then INIT, then press Triangle once.** Make only the changes the coach asks for.
-3. **Check the first line, ROUTE, is the route you want**, the Build line says `pollen-odo-v8`, and Status says `READY`.
+3. **Check the first line, ROUTE, is the route you want**, the Build line says `pollen-odo-v9`, and Status says `READY`.
 4. After the match, photograph the Driver Hub screen **before** INIT on TeleOp, and tell a programmer the
    match number and what happened, especially any **Warning** on the screen.
 
