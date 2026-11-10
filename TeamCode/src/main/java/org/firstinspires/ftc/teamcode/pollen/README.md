@@ -1,6 +1,6 @@
 # Pollen autonomous code
 
-Build identifier: **pollen-odo-v7** (`PollenConfig.BUILD`). Three autonomous OpModes preselect PollenBot:
+Build identifier: **pollen-odo-v8** (`PollenConfig.BUILD`). Three autonomous OpModes preselect PollenBot:
 `Pollen ROBOT Park`, `Pollen ROBOT Shoot + Park`, and
 `Pollen Supporting Shooter Auto`. The PollenBot TeleOp itself
 (`../BioBuzzStarterbotOpMode.java`, outside this package) uses `PollenTeleOpTuning`
@@ -21,8 +21,8 @@ that carry over first; skim or skip the bridge code.
 | Read | File | What it shows | Future |
 | --- | --- | --- | --- |
 | 1 | `../BioBuzzStarterbotOpMode.java`, `launch()` | When to feed the launcher: up to speed or after the backup timer | Carries over |
-| 2 | `PollenSequence.java`, `tick()` | Each loop: look at the clock, return what every motor does now | Carries over |
-| 3 | `PollenShooterOpMode.java` | The OpMode lifecycle: init, init_loop, start, loop, stop | Carries over |
+| 2 | `PollenSequence.java`, `tick()` and `compute()` | Each loop: look at the clock, return what every motor does now; one short method per kind of step | Carries over |
+| 3 | `PollenShooterOpMode.java` | The OpMode lifecycle: init, init_loop, start, loop, stop; `loop()` is read, decide, act, report | Carries over |
 | 4 | `PollenTeleOpTuning.java` | An INIT menu: select a row, edit it, Triangle resets, START locks | Carries over |
 | 5 | `PollenFieldGeometry.java` | Field positions from the official CAD, in inches from the center | Becomes path targets |
 | skim | `PollenShootTuning.java`, `PollenParkTuning.java`, `PollenRobotPark.java` | B/C and A menus, presets and time budgets | Mostly replaced |
@@ -49,8 +49,8 @@ The experimental profiles/routes are not validated robot settings.
 | PollenShootTuning | B/C menus (launcher, feed, power, three legs' cm/angle), defaults, field presets, budget and route construction |
 | PollenDriveCalibration | Unchanged baseline; opt-in B / default C mat trial; A forward estimate |
 | PollenFieldGeometry | Nominal CAD-derived start/parking coordinates and preset displacements |
-| PollenSequence | Hardware-free timing: fixed spin-up then feed, drive legs, stall/STOP/deadline, mixer |
-| PollenOdometryDrive | Odometry legs: drive-to-point controller, time estimates, wall-square and zero constants |
+| PollenSequence | Hardware-free step runner. Four kinds of step (`Kind`: DRIVE, SHOOT, MOVE, ZERO_ODOMETRY), one short method each (`driveStep`, `shootStep`, `moveStep`, `zeroOdometryStep`); stall/STOP/deadline checks; mixer |
+| PollenOdometryDrive | Odometry legs: drive-to-point controller (`command()` returns a `Command`: forward, strafe, turn, inchesToGo), time estimates, wall-square and zero constants |
 | PollenOdometryHardware | Opens the Pinpoint through Pedro's localizer (pedroPathing/Constants); pose telemetry |
 | PollenOdoPark, PollenOdoParkTuning | Option A with odometry: zero, drive a measured distance, stop; distance menu |
 | PollenOdoRobotShoot, PollenOdoSupportingShooter | B and C with odometry: same shared OpMode with odometry() on |
@@ -67,7 +67,8 @@ Each snapshot also stores the `Route` (FULL_PARK, SUPPORT_PARK, EDITED), shown a
 line. `PollenAutoLog` writes INIT route changes, START settings, phases, warnings, the result and
 0.25 s samples to RobotLog (tag `PollenAuto`); it is pure Java and never throws.
 PollenBot TeleOp keeps its own static snapshot the same way; its defaults are the
-OpMode's `LAUNCHER_TARGET_VELOCITY` / `LAUNCHER_MIN_VELOCITY` and 100% drive power.
+OpMode's `LAUNCHER_TARGET_VELOCITY`, `PollenConfig.LAUNCHER_SPINUP_SECONDS`,
+`PollenConfig.AGITATOR_FEED_POWER` and 100% drive power.
 
 ## Hardware contract
 
@@ -109,8 +110,10 @@ pause, skip or stop feeding in auto; `PollenSequence.tick(now)` takes only the c
 PollenBot TeleOp feeds on R1 when the launcher reads `LAUNCHER_READY_FRACTION`
 (0.96) of target or its spin-up row elapses, whichever is first
 (`launcherIsUpToSpeed` or `spinUpTimeIsOver` in `PollenTeleOpTuning`), and latches feeding until R1
-is released: the intake gets +0.5 (clipped to 1) and the agitator its own feed
-power. Auto keeps fixed times so C never feeds before its 15 s slot.
+is released: the intake gets +0.5 (`INTAKE_FEED_BOOST`, clipped to 1) and the
+agitator its own feed power. The TeleOp reads the launcher's speed once per loop
+(`launcherMeasuredVelocity`). Auto keeps fixed times so C never feeds before its
+15 s slot.
 
 Leg 3 defaults (`B_FIELD_LEG3_CM/DEGREES`, `C_LEG3_CM` in `PollenShootTuning`) are
 field-tuned and no longer equal the CAD plan in `PollenFieldGeometry`; the route
@@ -180,15 +183,14 @@ actual physical clearance.
 `tools/draw-pollen-field-layout.py` (matplotlib) redraw the route diagram, the
 alliance pit sheet and the field layout; they draw, not check.
 
-`BioBuzzStarterbotOpMode.java` is the one team file stored with CRLF line endings.
-Keep them when editing, and check whitespace with
-`git -c core.whitespace=cr-at-eol diff --check`; plain `--check` flags every CR.
+Every text file uses LF line endings (`.gitattributes`), including
+`BioBuzzStarterbotOpMode.java`, which was CRLF before `pollen-odo-v7`.
 
 `ftcgradle` is the team's existing shell helper; inspect `type ftcgradle` if it
 is unavailable.
 
 Deploy a freshly built APK through the team's working Wi-Fi/ADB connection or
 Android Studio TeamCode run configuration to the Control Hub. USB-C has not
-worked. Verify `pollen-odo-v7` in INIT. Check the actual installed commit and all
+worked. Verify `pollen-odo-v8` in INIT. Check the actual installed commit and all
 settings before physical tests. Java changes require rebuild/reinstall; INIT
 settings and documentation edits do not.

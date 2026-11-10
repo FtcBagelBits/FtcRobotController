@@ -173,23 +173,28 @@ public final class PollenOdometryTest {
     }
 
     static void controller() {
-        double[] far = PollenOdometryDrive.command(48, 0, 0.4, 0, 0, 0);
-        check(Math.abs(far[0] - 0.4) < 1e-9 && far[1] == 0 && far[2] == 0, "far ahead: full forward power");
-        double[] left = PollenOdometryDrive.command(0, 48, 0.4, 0, 0, 0);
-        check(Math.abs(left[1] + 0.4) < 1e-9, "target to the left: strafe is negative (strafe + is right)");
+        PollenOdometryDrive.Command far = PollenOdometryDrive.command(48, 0, 0.4, 0, 0, 0);
+        check(Math.abs(far.forward - 0.4) < 1e-9 && far.strafe == 0 && far.turn == 0, "far ahead: full forward power");
+        check(far.inchesToGo == 48 && far.driving(), "far ahead: 48 in to go, and driving");
+        PollenOdometryDrive.Command left = PollenOdometryDrive.command(0, 48, 0.4, 0, 0, 0);
+        check(Math.abs(left.strafe + 0.4) < 1e-9, "target to the left: strafe is negative (strafe + is right)");
         // Robot turned 90 deg counterclockwise: a field-forward target is to its RIGHT.
-        double[] turned = PollenOdometryDrive.command(48, 0, 0.4, 0, 0, Math.PI / 2);
-        check(Math.abs(turned[0]) < 1e-9 && turned[1] > 0.39, "rotated robot strafes right toward field-forward target");
-        check(turned[2] == PollenOdometryDrive.MAX_TURN, "rotated CCW: turns clockwise (capped)");
-        double[] ccw = PollenOdometryDrive.command(48, 0, 0.4, 0, 0, Math.toRadians(5));
-        check(ccw[2] > 0 && ccw[2] < 0.1, "5 deg CCW: small clockwise correction");
-        double[] near = PollenOdometryDrive.command(1, 0, 0.4, 0, 0, 0);
-        check(Math.abs(near[0] - 0.2) < 1e-9, "1 in out: slowed to 0.2");
-        double[] nearer = PollenOdometryDrive.command(0.6, 0, 0.4, 0, 0, 0);
-        check(Math.abs(nearer[0] - Math.max(PollenOdometryDrive.MIN_POWER, 0.2 * Math.sqrt(0.6))) < 1e-9,
+        PollenOdometryDrive.Command turned = PollenOdometryDrive.command(48, 0, 0.4, 0, 0, Math.PI / 2);
+        check(Math.abs(turned.forward) < 1e-9 && turned.strafe > 0.39, "rotated robot strafes right toward field-forward target");
+        check(turned.turn == PollenOdometryDrive.MAX_TURN, "rotated CCW: turns clockwise (capped)");
+        PollenOdometryDrive.Command ccw = PollenOdometryDrive.command(48, 0, 0.4, 0, 0, Math.toRadians(5));
+        check(ccw.turn > 0 && ccw.turn < 0.1, "5 deg CCW: small clockwise correction");
+        PollenOdometryDrive.Command near = PollenOdometryDrive.command(1, 0, 0.4, 0, 0, 0);
+        check(Math.abs(near.forward - 0.2) < 1e-9, "1 in out: slowed to 0.2");
+        PollenOdometryDrive.Command nearer = PollenOdometryDrive.command(0.6, 0, 0.4, 0, 0, 0);
+        check(Math.abs(nearer.forward - Math.max(PollenOdometryDrive.MIN_POWER, 0.2 * Math.sqrt(0.6))) < 1e-9,
                 "just outside tolerance: never below the minimum power");
-        double[] done = PollenOdometryDrive.command(0.3, 0.2, 0.4, 0, 0, 0.1);
-        check(done[0] == 0 && done[1] == 0 && done[2] == 0, "inside tolerance: all zero");
+        PollenOdometryDrive.Command done = PollenOdometryDrive.command(0.3, 0.2, 0.4, 0, 0, 0.1);
+        check(done.forward == 0 && done.strafe == 0 && done.turn == 0 && !done.driving(), "inside tolerance: all zero");
+        check(Math.abs(done.inchesToGo - Math.hypot(0.3, 0.2)) < 1e-9, "inside tolerance: still reports the distance left");
+        // Moving at 40 in/s, 3 in out: it will coast there within the look-ahead, so power is cut.
+        PollenOdometryDrive.Command coasting = PollenOdometryDrive.command(3, 0, 0.4, 0, 0, 0, 40, 0);
+        check(!coasting.driving() && coasting.inchesToGo == 3, "coasting up to the end point: no power, 3 in to go");
         double[] end = PollenOdometryDrive.legEnd(0, 0, 2.54 * 10, 90);
         check(Math.abs(end[0]) < 1e-9 && Math.abs(end[1] - 10) < 1e-9, "leg at +90 deg ends to the left");
         check(PollenOdometryDrive.timeoutSeconds(100, .25) > PollenOdometryDrive.plannedSeconds(100, .25),

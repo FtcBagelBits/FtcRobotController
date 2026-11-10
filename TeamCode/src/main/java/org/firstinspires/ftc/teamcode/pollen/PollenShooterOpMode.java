@@ -243,11 +243,13 @@ public abstract class PollenShooterOpMode extends OpMode {
         }
     }
 
+    /** Every loop does the same four things in the same order: read, decide, act, report.
+     * Nothing in here waits: it returns, and the SDK calls it again a moment later. */
     @Override public final void loop() {
         if (blocked != null || sequence == null) return;
         try {
+            // 1. READ the clock and each sensor once.
             double now = clock.seconds();
-            PollenSequence.Output out;
             double x = Double.NaN, y = Double.NaN, heading = Double.NaN; // stay NaN in timed modes
             if (localizer != null) {
                 localizer.update();
@@ -256,32 +258,37 @@ public abstract class PollenShooterOpMode extends OpMode {
                 x = pose.x();
                 y = pose.y();
                 heading = pose.heading();
-                out = sequence.tick(now, x, y, heading);
-                if (out.zeroOdometry) localizer.setPose(Pose.zero());
-            } else {
-                out = sequence.tick(now);
             }
-            double velocity = shooterAvailable ? launcher.getVelocity() : 0; // screen and log only; never used for timing
-            double[] powers = PollenSequence.wheelPowers(out);
-            // Stop the shooting mechanisms BEFORE the first parking drive command.
+            double launcherMeasured = shooterAvailable ? launcher.getVelocity() : 0; // screen and log only; never used for timing
+
+            // 2. DECIDE: the sequence says what every motor should do right now.
+            PollenSequence.Output out = sequence.tick(now, x, y, heading);
+            double[] wheels = PollenSequence.wheelPowers(out); // frontLeft, frontRight, backLeft, backRight
+            double intakePower = out.feederPower * tuning.value(FEED_POWER);
+            double agitatorPower = out.feederPower * tuning.value(AGITATOR_POWER);
+
+            // 3. ACT: write each output once. The shooter comes before the wheels, so the
+            // shooting mechanisms stop BEFORE the first parking drive command.
+            if (out.zeroOdometry && localizer != null) localizer.setPose(Pose.zero());
             if (shooterAvailable) {
                 launcher.setVelocity(out.launcherVelocity);
-                intake.setPower(out.feederPower * tuning.value(FEED_POWER));
-                agitator.setPower(out.feederPower * tuning.value(AGITATOR_POWER));
+                intake.setPower(intakePower);
+                agitator.setPower(agitatorPower);
             }
-            for (int i = 0; i < drive.length; i++) drive[i].setPower(powers[i]);
+            for (int i = 0; i < drive.length; i++) drive[i].setPower(wheels[i]);
+
+            // 4. REPORT to the Driver Hub screen and the robot log.
             showSettings();
             telemetry.addData("Phase", out.phase);
             telemetry.addData("Elapsed", "%.2f s", now);
-            telemetry.addData("Launcher target / measured", "%.0f / %.0f ticks/s", out.launcherVelocity, velocity);
-            telemetry.addData("Intake / agitator command", "%.2f / %.2f",
-                    out.feederPower * tuning.value(FEED_POWER), out.feederPower * tuning.value(AGITATOR_POWER));
+            telemetry.addData("Launcher target / measured", "%.0f / %.0f ticks/s", out.launcherVelocity, launcherMeasured);
+            telemetry.addData("Intake / agitator command", "%.2f / %.2f", intakePower, agitatorPower);
             telemetry.addData("Commanded feed time", "%.2f s", out.activeFeedSeconds);
-            telemetry.addData("FL FR BL BR", "%.3f %.3f %.3f %.3f", powers[0], powers[1], powers[2], powers[3]);
+            telemetry.addData("FL FR BL BR", "%.3f %.3f %.3f %.3f", wheels[0], wheels[1], wheels[2], wheels[3]);
             if (!Double.isNaN(out.inchesToGo)) telemetry.addData("Inches to go", "%.1f", out.inchesToGo);
             if (!sequence.warning().isEmpty()) telemetry.addData("Warning", sequence.warning());
             telemetry.update();
-            log.loop(now, out, sequence.warning(), x, y, heading, powers, velocity, this::batteryVolts);
+            log.loop(now, out, sequence.warning(), x, y, heading, wheels, launcherMeasured, this::batteryVolts);
         } catch (RuntimeException ex) {
             fail(ex);
         }
