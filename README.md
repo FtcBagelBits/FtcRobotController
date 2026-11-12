@@ -10,6 +10,8 @@
 
 Use the documentation from the branch/commit installed on the robot.
 
+Experimental hive-gated autonomous and front-intake garden route: [setup and testing](docs/POLLEN_HIVE_TESTING.md).
+
 ---
 
 ## NOTICE

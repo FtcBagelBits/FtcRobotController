@@ -13,6 +13,10 @@ import org.junit.Test;
  * Python field-route checker, for mentors).
  */
 public class PollenTests {
+    @Test public void hiveCameraJson() throws Exception { PollenHiveCameraTest.main(NO_ARGS); }
+
+    @Test public void hive() { PollenHiveTest.main(NO_ARGS); }
+
     private static final String[] NO_ARGS = {};
 
     /** Autonomous step runner: timing, time budget, stops, odometry moves, the robot log. */

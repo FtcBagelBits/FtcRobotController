@@ -6,7 +6,7 @@ public final class PollenConfig {
 
     /** Shown in INIT by every Pollen and Odo autonomous mode and by PollenBot TeleOp, and written to
      * the robot log at START. Change it whenever the Pollen code changes. */
-    public static final String BUILD = "pollen-odo-v11";
+    public static final String BUILD = "pollen-hive-v1";
 
     /** Launcher speed in encoder ticks per second: the default in TeleOp, autonomous and
      * LauncherTest (the INIT menus can change it). The encoder counts 28 ticks per turn, so

@@ -1,6 +1,8 @@
 # Pollen autonomous code
 
-Build identifier: **pollen-odo-v11** (`PollenConfig.BUILD`). The match autos are the odometry
+Experimental hive-gated modes and garden collection: [testing guide](../../../../../../../../../docs/POLLEN_HIVE_TESTING.md). Existing match modes retain their behavior.
+
+Build identifier: **pollen-hive-v1** (`PollenConfig.BUILD`). The match autos are the odometry
 ones (below). Three timed OpModes are kept for **emergencies only** (a match where the Pinpoint
 is not working), in the group *Pollen Emergency (timed)*: `EMERGENCY Timed Park`,
 `EMERGENCY Timed Shoot + Park`, and `EMERGENCY Timed Supporting Shooter` (before `pollen-odo-v9`

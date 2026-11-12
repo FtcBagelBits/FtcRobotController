@@ -43,6 +43,12 @@ public final class PollenFacing {
         return wheelPowers(out, START_BACK_TO_HIVE);
     }
 
+    /** Same conversion for the experimental hive controller's robot-relative commands. */
+    public static double[] wheelPowers(double forward, double strafe, double turn) {
+        return PollenSequence.wheelPowers(START_BACK_TO_HIVE ? flip(forward) : forward,
+                START_BACK_TO_HIVE ? flip(strafe) : strafe, turn);
+    }
+
     public static double[] wheelPowers(PollenSequence.Output out, boolean backToHive) {
         if (!backToHive) return PollenSequence.wheelPowers(out);
         return PollenSequence.wheelPowers(flip(out.forward), flip(out.strafe), out.turn);
