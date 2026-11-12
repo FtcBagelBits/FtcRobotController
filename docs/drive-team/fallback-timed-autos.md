@@ -33,7 +33,7 @@ has **EMERGENCY** in its name and an `EMERGENCY ONLY` line on its INIT screen.
 
 | Line | Should say |
 | --- | --- |
-| Build | `pollen-hive-v1` |
+| Build | `pollen-hive-v2` |
 | EMERGENCY ONLY | `Timed driving, no odometry. Use the Odo mode unless odometry has failed.` |
 | Mode | `TIMED Shoot + Park - real motors on START` (or `TIMED Supporting Shooter ...`) |
 | Status | `READY - no movement until START` |

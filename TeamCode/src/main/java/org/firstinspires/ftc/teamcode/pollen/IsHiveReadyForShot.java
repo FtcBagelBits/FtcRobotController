@@ -1,107 +1,219 @@
 package org.firstinspires.ftc.teamcode.pollen;
 
-/** Empirical classifier for ONE tag on the near moving cell, at ONE shooting position.
- * Camera-space metres: x right, y down, z forward. No field pose or assumed hinge geometry.
- * Call update every loop. Call isHiveReadyForShot with the current monotonic time, never cache it.
- * The 14-inch lens height is reproduced during calibration, not subtracted from these coordinates.
+import java.util.Locale;
+
+/** Is OUR hive cell (the one straight behind the robot) UP, so a shot can score?
+ *
+ * How it works, in three steps:
+ * 1. WHICH CELL. Every hive cell carries four AprilTags with its own IDs (game manual 9.6):
+ *    30-33 red scoring-side, 34-37 red audience-side, 38-41 blue audience-side, 42-45 blue
+ *    scoring-side. From the PRIMARY start our cell is 34 (red) or 42 (blue); from the SECONDARY
+ *    start 30 (red) or 38 (blue). Side AUTO: our cell is whichever of the two is nearest straight
+ *    behind the robot, locked the first time it is seen steadily after START. Side RED or BLUE:
+ *    the cell is fixed from the start.
+ * 2. HOW HIGH. The Limelight reports each tag's position from the lens in metres: x right, y down,
+ *    z out of the lens. With the lens height and the camera's upward tilt (both in PollenConfig,
+ *    measured with TEST Hive camera) that gives the tag's height above the tiles:
+ *        height = lensHeight + z*sin(tilt) - y*cos(tilt)
+ *    It does not depend on where the robot is or which way it points.
+ * 3. UP OR DOWN. An UP cell's tags are about 49.7 in above the tiles and a DOWN cell's about
+ *    35.6 in (field CAD). Inside the UP band = UP, inside the DOWN band = DOWN, anything else
+ *    (tipping, wrong tag, not calibrated, no tags) = UNKNOWN. Only a steady, fresh UP allows a shot.
+ *
+ * Call update every loop and ask isHiveReadyForShot with the current time; never cache the answer.
  */
 public final class IsHiveReadyForShot {
     public enum State { UP, DOWN, UNKNOWN }
-    public static final double MAX_AGE = 0.20, CONFIRM_SECONDS = 0.15;
+    /** UP/DOWN expires this long after the last new camera frame (seconds). */
+    public static final double MAX_AGE = 0.20;
+    /** A state counts only after this many new frames in a row agree, over at least this long. */
     public static final int CONFIRM_FRAMES = 4;
+    public static final double CONFIRM_SECONDS = 0.15;
+    public static final double METRES_TO_INCHES = 1 / 0.0254;
+
+    /** One AprilTag as the camera saw it: ID and position from the lens in metres. */
+    public static final class Tag {
+        public final int id;
+        public final double x, y, z;
+        public Tag(int id, double x, double y, double z) { this.id = id; this.x = x; this.y = y; this.z = z; }
+        boolean usable() {
+            return Double.isFinite(x) && Double.isFinite(y) && Double.isFinite(z) && z > 0.05 && z < 15;
+        }
+    }
+
+    /** One camera frame: its timestamp and every hive tag it saw (may be none). */
     public static final class Frame {
-        public final double stamp, x, y, z;
-        public final boolean valid;
-        public Frame(double stamp, double x, double y, double z, boolean valid) {
-            this.stamp=stamp; this.x=x; this.y=y; this.z=z; this.valid=valid;
-        }
-        public boolean usable() {
-            return valid && Double.isFinite(stamp) && stamp>0 && Double.isFinite(x)
-                    && Double.isFinite(y) && Double.isFinite(z) && z>0.05 && z<15;
-        }
-    }
-    /** Closed 3-D envelope. Keeping range and horizontal position rejects many wrong viewpoints. */
-    public static final class Box {
-        public final double[] lo, hi;
-        public Box(double[] lo, double[] hi) {
-            if (lo.length!=3 || hi.length!=3) throw new IllegalArgumentException("Three coordinates required");
-            this.lo=lo.clone(); this.hi=hi.clone();
-            for(int i=0;i<3;i++) if(!Double.isFinite(lo[i]) || !Double.isFinite(hi[i]) || lo[i]>hi[i])
-                throw new IllegalArgumentException("Invalid calibration bounds");
-        }
-        public boolean contains(Frame f) {
-            double[] v={f.x,f.y,f.z};
-            for(int i=0;i<3;i++) if(v[i]<lo[i] || v[i]>hi[i]) return false;
-            return true;
-        }
-        public boolean overlaps(Box b) {
-            for(int i=0;i<3;i++) if(hi[i]<b.lo[i] || b.hi[i]<lo[i]) return false;
+        public final double stamp;
+        public final Tag[] tags;
+        public Frame(double stamp, Tag... tags) { this.stamp = stamp; this.tags = tags == null ? new Tag[0] : tags.clone(); }
+        boolean usable() {
+            if (!Double.isFinite(stamp) || stamp <= 0) return false;
+            for (Tag t : tags) if (t == null || !t.usable()) return false;
             return true;
         }
     }
-    public static final class Profile {
-        public final int pipeline, tag;
-        public final Box up, down; // down=null means absence/unrecognized DOWN remains UNKNOWN.
-        public Profile(int pipeline, int tag, Box up, Box down) {
-            if(pipeline<0 || pipeline>9 || tag<0 || tag>586 || up==null
-                    || (down!=null && up.overlaps(down)))
-                throw new IllegalArgumentException("Invalid/overlapping UP and DOWN calibration");
-            this.pipeline=pipeline; this.tag=tag; this.up=up; this.down=down;
+
+    /** Camera mount and hive heights. fromConfig() reads the calibrated numbers in PollenConfig. */
+    public static final class Mount {
+        public final double lensHeightIn, tiltUpDeg, sidewaysCorrectionIn, upIn, downIn, bandIn, oursMaxSidewaysIn;
+        public Mount(double lensHeightIn, double tiltUpDeg, double sidewaysCorrectionIn, double upIn,
+                     double downIn, double bandIn, double oursMaxSidewaysIn) {
+            this.lensHeightIn = lensHeightIn; this.tiltUpDeg = tiltUpDeg;
+            this.sidewaysCorrectionIn = sidewaysCorrectionIn; this.upIn = upIn; this.downIn = downIn;
+            this.bandIn = bandIn; this.oursMaxSidewaysIn = oursMaxSidewaysIn;
+        }
+        /** From the camera rows of PollenHiveSettings (defaults plus any saved changes). */
+        public static Mount from(PollenHiveSettings.Values camera) {
+            return new Mount(camera.get("lensHeight"), camera.get("tilt"), camera.get("sideways"),
+                    camera.get("upHeight"), camera.get("downHeight"), camera.get("band"), camera.get("oursMaxSideways"));
+        }
+        /** Same mount with a different tilt (TEST Hive camera shows a candidate before it is committed). */
+        public Mount withTilt(double tilt) {
+            return new Mount(lensHeightIn, tilt, sidewaysCorrectionIn, upIn, downIn, bandIn, oursMaxSidewaysIn);
+        }
+        /** Empty when the numbers can classify; otherwise why not. NaN tilt = never calibrated. */
+        public String problem() {
+            if (!Double.isFinite(tiltUpDeg)) return "Camera tilt not calibrated (TEST Hive camera, Square)";
+            if (tiltUpDeg < -10 || tiltUpDeg > 80) return "Camera tilt outside -10..80 deg";
+            if (!(lensHeightIn > 2 && lensHeightIn < 30)) return "Lens height outside 2..30 in";
+            if (!(bandIn > 0.5) || !Double.isFinite(upIn) || !Double.isFinite(downIn)
+                    || upIn - downIn < 2 * bandIn + 2) return "UP/DOWN bands too close or invalid";
+            if (!Double.isFinite(sidewaysCorrectionIn) || !(oursMaxSidewaysIn > 0)) return "Invalid sideways settings";
+            return "";
+        }
+        /** Height of a tag above the tiles, inches. Needs a calibrated tilt. */
+        public double heightIn(Tag t) {
+            double a = Math.toRadians(tiltUpDeg);
+            return lensHeightIn + (t.z * Math.sin(a) - t.y * Math.cos(a)) * METRES_TO_INCHES;
+        }
+        /** Sideways offset of a tag from straight behind the robot, inches (after the mount correction). */
+        public double sidewaysIn(Tag t) { return t.x * METRES_TO_INCHES + sidewaysCorrectionIn; }
+        public State classify(double heightIn) {
+            if (Math.abs(heightIn - upIn) <= bandIn) return State.UP;
+            if (Math.abs(heightIn - downIn) <= bandIn) return State.DOWN;
+            return State.UNKNOWN;
         }
     }
-    /** Gather only distinct, usable frames while the real hive is stationary in a labeled state. */
-    public static final class Capture {
-        private final double[] lo={Double.POSITIVE_INFINITY,Double.POSITIVE_INFINITY,Double.POSITIVE_INFINITY};
-        private final double[] hi={Double.NEGATIVE_INFINITY,Double.NEGATIVE_INFINITY,Double.NEGATIVE_INFINITY};
-        private double stamp=Double.NaN;
-        public int count;
-        public final StringBuilder samples=new StringBuilder("timestamp,x_m,y_m,z_m\n");
-        public void add(Frame f) {
-            if(f==null || !f.usable() || f.stamp==stamp) return;
-            stamp=f.stamp;
-            double[] v={f.x,f.y,f.z};
-            for(int i=0;i<3;i++) { lo[i]=Math.min(lo[i],v[i]); hi[i]=Math.max(hi[i],v[i]); }
-            count++;
-            samples.append(f.stamp).append(",").append(f.x).append(",").append(f.y).append(",").append(f.z).append("\n");
-        }
-        public Box finish() {
-            if(count<40) throw new IllegalArgumentException("Need 40 distinct valid frames; got "+count);
-            double[] a=lo.clone(), b=hi.clone();
-            // Intentionally narrow initial margins; do not widen to hide poor observations.
-            double[] margin={0.025,0.025,0.04};
-            for(int i=0;i<3;i++) {
-                if(hi[i]-lo[i]>(i==2?0.20:0.12))
-                    throw new IllegalArgumentException("Pose too noisy/moving: repeat stationary capture");
-                a[i]-=margin[i]; b[i]+=margin[i];
-            }
-            return new Box(a,b);
+
+    /** Camera tilt (deg) that puts this tag at knownHeightIn: solves
+     * knownHeight - lens = z*sin(a) - y*cos(a) for a. NaN if impossible. */
+    public static double solveTiltDeg(Tag t, double knownHeightIn, double lensHeightIn) {
+        double r = Math.hypot(t.y, t.z), rise = (knownHeightIn - lensHeightIn) / METRES_TO_INCHES;
+        if (!(r > 0) || Math.abs(rise) > r) return Double.NaN;
+        // z*sin(a) - y*cos(a) = r*sin(a - b) with b = atan2(y, z).
+        return Math.toDegrees(Math.atan2(t.y, t.z) + Math.asin(rise / r));
+    }
+
+    /** First ID of a hive cell's cluster (30, 34, 38 or 42), or -1 for a tag that isn't a hive tag. */
+    public static int clusterOf(int id) { return id >= 30 && id <= 45 ? 30 + (id - 30) / 4 * 4 : -1; }
+    public static String clusterName(int cluster) {
+        switch (cluster) {
+            case 30: return "RED scoring-side cell (tags 30-33)";
+            case 34: return "RED audience-side cell (tags 34-37)";
+            case 38: return "BLUE audience-side cell (tags 38-41)";
+            case 42: return "BLUE scoring-side cell (tags 42-45)";
+            default: return "none";
         }
     }
-    private final Profile profile;
-    private double lastStamp=Double.NaN, lastFresh=Double.NEGATIVE_INFINITY, since;
-    private State state=State.UNKNOWN, candidate=State.UNKNOWN;
+    public static final int[] ALL_CELLS = {30, 34, 38, 42};
+    /** Which cells can be ours. side: 0 AUTO, 1 RED, 2 BLUE (PollenHiveSettings "side" row). */
+    public static int[] allowedCells(boolean secondary, int side) {
+        int red = secondary ? 30 : 34, blue = secondary ? 38 : 42;
+        return side == 1 ? new int[]{red} : side == 2 ? new int[]{blue} : new int[]{red, blue};
+    }
+    private static boolean contains(int[] cells, int c) { for (int x : cells) if (x == c) return true; return false; }
+    /** The allowed hive cell nearest straight behind the robot in this frame, or -1 if none is close
+     * enough. A cell counts by its most central visible tag; the other hive's tags are about 16 in or
+     * more to the side from our start spots, ours at most about 10 in. */
+    public static int nearestCluster(Frame f, Mount m, int... allowed) {
+        if (f == null || !f.usable()) return -1;
+        if (allowed.length == 0) allowed = ALL_CELLS;
+        int best = -1;
+        double bestSide = Double.POSITIVE_INFINITY;
+        for (Tag t : f.tags) {
+            int c = clusterOf(t.id);
+            double side = Math.abs(m.sidewaysIn(t));
+            if (c >= 0 && contains(allowed, c) && side < bestSide) { bestSide = side; best = c; }
+        }
+        return bestSide <= m.oursMaxSidewaysIn ? best : -1;
+    }
+
+    private final Mount mount;
+    private final int[] allowed;
+    private int cluster = -1, candidateCluster = -1, clusterCount;
+    private double lastStamp = Double.NaN, lastFresh = Double.NEGATIVE_INFINITY, since;
+    private State state = State.UNKNOWN, candidate = State.UNKNOWN;
     private int count;
-    public String reason="No observation";
-    public IsHiveReadyForShot(Profile profile) { this.profile=profile; }
-    public void reset() { state=candidate=State.UNKNOWN; count=0; lastFresh=Double.NEGATIVE_INFINITY; }
+    /** Why the state is what it is, for telemetry and the robot log. */
+    public String reason = "No observation";
+    /** Last frame's numbers for our cell, for telemetry and the robot log (NaN/0 when not seen). */
+    public double lastHeightIn = Double.NaN, lastSidewaysIn = Double.NaN;
+    public int lastTagCount;
+
+    /** allowed: the cells that can be ours (allowedCells). Exactly one = fixed from the start. */
+    public IsHiveReadyForShot(Mount mount, int... allowed) {
+        this.mount = mount; this.allowed = allowed.length == 0 ? ALL_CELLS : allowed.clone();
+        if (this.allowed.length == 1) cluster = this.allowed[0];
+    }
+    /** Our cell's first tag ID once locked (30/34/38/42), else -1. The lock lasts for this object. */
+    public int cluster() { return cluster; }
+    /** Forgets UP/DOWN (e.g. while driving), keeps which cell is ours. */
+    public void reset() { state = candidate = State.UNKNOWN; count = 0; lastFresh = Double.NEGATIVE_INFINITY; }
+
     public void update(Frame f, double now) {
-        if(!Double.isFinite(now)) { reset(); reason="Invalid clock"; return; }
-        if(now-lastFresh>MAX_AGE || now<lastFresh) reset();
-        if(f==null || !f.usable() || profile==null) { reset(); reason="No usable selected-tag pose/profile"; return; }
-        if(f.stamp==lastStamp) { reason="Waiting for new camera frame"; return; }
-        if(Double.isFinite(lastStamp) && f.stamp<lastStamp) { reset(); }
-        lastStamp=f.stamp; lastFresh=now;
-        State observed=profile.up.contains(f)?State.UP:
-                profile.down!=null && profile.down.contains(f)?State.DOWN:State.UNKNOWN;
-        // An out-of-envelope or opposite frame revokes permission immediately.
-        if(observed!=state) state=State.UNKNOWN;
-        if(observed==State.UNKNOWN) { candidate=State.UNKNOWN; count=0; reason="Outside calibrated envelopes"; return; }
-        if(observed!=candidate) { candidate=observed; count=1; since=now; } else count++;
-        if(count>=CONFIRM_FRAMES && now-since>=CONFIRM_SECONDS) state=observed;
-        reason=state==State.UNKNOWN?"Confirming "+observed:"Stable "+state;
+        if (!Double.isFinite(now)) { reset(); reason = "Invalid clock"; return; }
+        if (now - lastFresh > MAX_AGE || now < lastFresh) reset();
+        if (f == null || !f.usable()) { reset(); clearLast(); reason = "No usable camera frame"; return; }
+        if (f.stamp == lastStamp) { reason = "Waiting for new camera frame"; return; }
+        if (Double.isFinite(lastStamp) && f.stamp < lastStamp) reset(); // camera restarted
+        lastStamp = f.stamp; lastFresh = now;
+        if (cluster < 0 && !identify(f)) return;
+        clearLast();
+        State observed = null;
+        double sum = 0;
+        String problem = mount.problem();
+        for (Tag t : f.tags) {
+            // Our cell's tags are straight behind; one far to the side means we're not where we think.
+            if (clusterOf(t.id) != cluster || Math.abs(mount.sidewaysIn(t)) > mount.oursMaxSidewaysIn) continue;
+            lastTagCount++;
+            double side = mount.sidewaysIn(t);
+            if (!(Math.abs(side) >= Math.abs(lastSidewaysIn))) lastSidewaysIn = side; // most central tag
+            if (!problem.isEmpty()) continue;
+            double h = mount.heightIn(t);
+            sum += h;
+            State s = mount.classify(h);
+            observed = observed == null || observed == s ? s : State.UNKNOWN; // tags must agree
+        }
+        if (lastTagCount > 0 && problem.isEmpty()) lastHeightIn = sum / lastTagCount;
+        if (!problem.isEmpty()) { state = State.UNKNOWN; candidate = State.UNKNOWN; count = 0; reason = problem; return; }
+        if (observed == null) observed = State.UNKNOWN;
+        // A frame that is not the current state takes permission away at once.
+        if (observed != state) state = State.UNKNOWN;
+        if (observed == State.UNKNOWN) {
+            candidate = State.UNKNOWN; count = 0;
+            reason = lastTagCount == 0 ? "Our cell's tags not in view"
+                    : String.format(Locale.US, "Between bands: %.1f in", lastHeightIn);
+            return;
+        }
+        if (observed != candidate) { candidate = observed; count = 1; since = now; } else count++;
+        if (count >= CONFIRM_FRAMES && now - since >= CONFIRM_SECONDS) state = observed;
+        reason = String.format(Locale.US, "%s %s, %.1f in", state == State.UNKNOWN ? "Confirming" : "Stable",
+                observed, lastHeightIn);
     }
+
+    /** Lock our cell after it is the nearest cell in CONFIRM_FRAMES new frames in a row. */
+    private boolean identify(Frame f) {
+        int c = nearestCluster(f, mount, allowed);
+        if (c < 0) { clusterCount = 0; candidateCluster = -1; clearLast(); reason = "Looking for our hive cell"; return false; }
+        if (c != candidateCluster) { candidateCluster = c; clusterCount = 1; } else clusterCount++;
+        if (clusterCount < CONFIRM_FRAMES) { clearLast(); reason = "Identifying " + clusterName(c); return false; }
+        cluster = c;
+        return true;
+    }
+    private void clearLast() { lastHeightIn = Double.NaN; lastSidewaysIn = Double.NaN; lastTagCount = 0; }
+
     public State state(double now) {
-        return Double.isFinite(now) && now>=lastFresh && now-lastFresh<=MAX_AGE?state:State.UNKNOWN;
+        return Double.isFinite(now) && now >= lastFresh && now - lastFresh <= MAX_AGE ? state : State.UNKNOWN;
     }
-    public boolean isHiveReadyForShot(double now) { return state(now)==State.UP; }
+    public boolean isHiveReadyForShot(double now) { return state(now) == State.UP; }
 }

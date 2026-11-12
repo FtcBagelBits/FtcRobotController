@@ -1,95 +1,239 @@
 # Limelight hive readiness and garden autonomous
 
-Build **pollen-hive-v1**. Experimental patch based on main **b5f578ce2c7574de0aa15e7d9c9a56e8649565b3**.
-The existing match autos keep their behavior. Select the new entries in **Pollen Hive** explicitly.
+Build **pollen-hive-v2**. Experimental. The existing match autos keep their behavior. The new
+entries are in the **Pollen Hive** group. Printable sheet:
+[drive-team/4-hive-practice.md](drive-team/4-hive-practice.md) ([PDF](drive-team/print/4-hive-practice.pdf)).
 
 ## What is implemented
 
 | Driver Hub entry | Purpose |
 | --- | --- |
-| TEST Hive camera (NO MOTORS) | Camera connection, capture/calibration, saved profiles, one-second readiness telemetry. Never maps a motor. |
-| EXPERIMENTAL Hive Secondary | Wait for the near cell to be UP, feed only while it stays ready, then depart. No fixed 12-second assumption. |
-| EXPERIMENTAL Hive Primary + Garden | First gated volley, stop flywheel, collect with front intake, return to the starting shooting pose, wait/shoot again, depart. |
+| TEST Hive camera (NO MOTORS) | Camera calibration and checks. Never maps a motor. Square measures, Cross saves. |
+| EXPERIMENTAL Hive Primary + Garden | Shoot when our cell is UP, stop flywheel, collect with the front intake, return, wait/shoot again, park. |
+| EXPERIMENTAL Hive Secondary | Wait for our cell to be UP, feed only while it stays UP, park. |
 
-Both experimental autos default to **DRY** on every INIT, including after saved settings load. Their execution row has three values:
+**Normal use: place the robot, pick the auto, INIT, START.** The defaults are meant to be right:
+Execution LIVE, Side AUTO (the robot finds its own cell, so its alliance, from the tags behind it),
+and the route and camera numbers in `PollenHiveSettings`.
 
-- **0 DRY:** motors stay zero; the controller uses a virtual flywheel speed to demonstrate feed requests. Real camera observations and real odometry still apply. This is a stationary first-shot check, not a whole-route simulation: once it requests driving, an unmoved robot will hit the no-progress stop.
-- **1 DRIVE:** real measured driving and turns; launcher, intake and agitator remain off. Shots are skipped; primary exercises garden/return/park. Camera/profile not required. This is the first on-field route test.
-- **2 LIVE:** real drive and mechanisms, with calibrated hive gating and measured launcher speed. Select deliberately after the first two tests.
+**Every number can be changed in INIT,** and anything that differs from its default is flagged.
 
-`IsHiveReadyForShot` classifies UP, DOWN or UNKNOWN from a selected near-cell tag. Its boolean returns true only for confirmed UP. Invalid data, missing selected tag, stale/frozen frames, outside-band observations and no profile all return false. Production also requires the robot at the shooting pose, settled, and launcher at measured speed. The new modes do **not** use the old launcher timer override. Mount height is approximately **14 inches to the lens center**; calibrate with the actual fixed height, pitch and orientation.
+## The INIT menu: try it, keep it, make it the default
 
-## Apply and build on Lev's Mac
+| Button (during INIT) | Does |
+| --- | --- |
+| D-pad up / down | Row (36 rows: 28 for the auto, 8 for the camera) |
+| LB / RB | Jump 5 rows |
+| D-pad left / right | Change the value |
+| Triangle | This row back to its default |
+| Circle | Every row back to its default |
+| Square | Save the changes on the Control Hub |
 
-Use the kit's `apply-on-new-branch.sh` from inside the existing repository. It requires a clean checkout, fetches origin/main, checks the exact base SHA, creates a new branch, then applies the supplied mail patch with `git am`. It never pushes, resets, changes main, or edits authentication settings. If main has advanced, stop and rebase/regenerate the patch against that new main rather than forcing it.
+How changes show:
+- **Top of the screen:** `SETTINGS: all defaults`, or `*** 2 CHANGED FROM DEFAULT: Side=RED, Launcher ticks/s=1200 ***`.
+- **Unsaved edits:** an `UNSAVED` line appears.
+- **On the changed row itself:** `Launcher ticks/s: 1200   ** CHANGED (default 1180) **`, plus `NOT SAVED` until Square.
+- **In the robot log:** every START line lists the changed rows.
+
+The Hub keeps **only the changes**, in `FIRST/pollen-hive` (normally `/sdcard/FIRST/pollen-hive`):
+- `primary.properties` and `secondary.properties`: one for each auto.
+- `camera.properties`: shared by both autos and TEST Hive camera.
+
+An empty file means all defaults. Changes stay until you reset the row (Triangle, then Square).
+
+**Execution is never saved.** Every INIT starts at LIVE, so a DRY test from yesterday can't make a
+match auto sit still. Setting DRY or DRIVE shows `CHANGED ... this run only`.
+
+**Side**:
+- `AUTO (detect)` (default): from the primary start our cell is red 34-37 or blue 42-45, from the
+  secondary start red 30-33 or blue 38-41, whichever is straight behind the robot.
+- `RED` / `BLUE`: forces that alliance's cell from the start. Tags of that cell more than 12.5 in to
+  the side are ignored even then, so a forced side on the wrong start never shoots.
+
+**Make proven changes the new defaults** (this is how field results get back into the code):
 
 ```bash
-# Inside the existing FtcRobotController checkout:
-bash "$HOME/Downloads/Pollen_Hive_Kit/apply-on-new-branch.sh"
-git status --short --branch
-
-# Pure Java simulator and existing field-route checks:
+adb connect 192.168.43.1:5555
+adb pull /sdcard/FIRST/pollen-hive ~/Desktop/pollen-hive
+python3 tools/hive-promote-defaults.py ~/Desktop/pollen-hive          # shows what would change
+python3 tools/hive-promote-defaults.py ~/Desktop/pollen-hive --write  # rewrites PollenHiveSettings.java
 bash tools/test-pollen-sequence.sh
+git commit -am "Hive defaults from practice <date>"
+ftcgradle :TeamCode:installDebug
+```
 
-# Actual Android SDK build and all JUnit tests, including JSON contract tests:
+After the install, those rows match the defaults and stop showing CHANGED. The saved file only
+matters again if someone changes a row. The tool:
+- warns before promoting a forced RED/BLUE side, which would force that side in every match;
+- never promotes Execution;
+- skips names the code doesn't have.
+
+## How the robot decides "our cell is UP"
+
+`IsHiveReadyForShot` does three things every loop.
+
+1. **Which cell is ours.** Each hive cell has four AprilTags with its own IDs (game manual 9.6):
+   **30-33** red scoring side, **34-37** red audience side, **38-41** blue audience side,
+   **42-45** blue scoring side. From the primary start our cell is 34 (red) or 42 (blue); from the
+   secondary start 30 (red) or 38 (blue). With Side AUTO, our cell is whichever of the two is
+   nearest straight behind the robot. From our start spots our own tags are at most about 10 in to
+   the side and the other hive's at least about 16 in, and anything more than 12.5 in to the side is
+   ignored. The first time one cell is nearest in 4 new frames in a row after START (with the robot
+   settled at the shooting spot), it is locked for the rest of the run. During INIT the autos show
+   what they see, so the drive team can check it says the right alliance. Secondary normally sees
+   nothing in INIT, because its cell starts DOWN; it locks when the cell comes up. Side RED or
+   BLUE fixes the cell from the start.
+2. **How high the tags are.** The Limelight gives each tag's position from the lens in metres: x
+   right, y down, z out of the lens ([Limelight camera space](https://docs.limelightvision.io/docs/docs-limelight/pipeline-apriltag/apriltag-coordinate-systems)).
+   With the lens height and the camera's upward tilt:
+
+       height above tiles = lensHeight + z*sin(tilt) - y*cos(tilt)
+
+   The height doesn't depend on where the robot is or which way it points. That's why one
+   calibration works at every start spot, on both alliances, and after the garden trip, even if the
+   robot comes back an inch or two degrees off.
+3. **UP or DOWN.** An UP cell's tags are 49.7 in above the tiles and a DOWN cell's 35.6 in (field
+   CAD). Within **3 in** of 49.7 = UP, within 3 in of 35.6 = DOWN. Anything else = UNKNOWN: tipping,
+   not calibrated, our tags not in view, or our tags disagreeing. A state counts after 4 new frames
+   in a row agree over at least 0.15 s. It expires 0.20 s after the last new frame. One frame that
+   disagrees takes permission away at once. **Only a steady, fresh UP allows a shot.** The camera
+   reader also rejects results older than 150 ms on the Hub, or over 200 ms counting image latency.
+
+How accurate it needs to be: from the primary start the tags are about 53 in from the lens. A 1°
+error in the tilt moves the computed height about 0.9 in, and a lens-height error moves it 1:1. The
+bands leave about 3 in on each side.
+
+Other teams do the same: Aragon Robotics (Limelight, height above the tiles, 42 in threshold) and
+Mona Shores (measured UP/DOWN row heights committed as code defaults). FIRST's AprilTag-cluster
+tech tip uses whether a cluster looks upside down. That is an option to add later, from the
+rotation the Limelight already reports.
+
+## Apply and build (Mac)
+
+```bash
+cd ~/ftc/FtcRobotController
+git fetch origin
+git switch -c hive-height-v2 origin/pollen-hive-ready
+git am ~/Downloads/hive-height-v2-<timestamp>.patch   # the newest one
+bash tools/test-pollen-sequence.sh
 ftcgradle :TeamCode:testDebugUnitTest :TeamCode:assembleDebug
 ```
 
-The team's `ftcgradle` wrapper supplies Android Studio's JBR. If it isn't defined on Lev's Mac, use Android Studio's **Gradle JDK = Embedded JDK/JBR**, or run Gradle with that JDK as JAVA_HOME. Do not change the work git identity to apply this patch. See [ROBOT_CONNECTION.md](ROBOT_CONNECTION.md) for existing install/Wi-Fi steps. There is no ready-to-install APK in this kit.
+Then install the normal way (Wi-Fi: `adb connect 192.168.43.1:5555`,
+`ftcgradle :TeamCode:installDebug`). INIT shows build `pollen-hive-v2`.
 
-## Before practice: camera and Mac only
+## Camera setup (once)
 
-1. Run the computer tests above. Open `PollenHiveTest.java` and `PollenHiveCameraTest.java` in Android Studio to see the failure cases and simulated sequences. They need no connected robot.
-2. On the camera, retain/export the working AprilTag pipeline. Use **36h11**, actual black-square tag size **82.55 mm / 3.25 in**, 3-D pose output, and a live camera image source. Record pipeline, exposure, resolution, firmware and downscale; keep them fixed through calibration.
-3. Put the lens center 14 inches above the floor and use the existing printed official tags. Check visibility above the camera at realistic viewing angles. Paper results are transport/visibility tests, not real-hive calibration.
-4. The new read-only recorder works with standard Python 3. It does not install anything on the camera or alter its pipeline. Set the pipeline in the camera UI first. Substitute the camera hostname/IP and selected printed tag:
+1. Mount the Limelight 3A on the **back** of the robot, pointing at the hive, tilted up so the UP
+   cell's tags are in view from the start spot (they're about 42° above level from there). Mount
+   it rigidly: a bumped camera needs calibrating again.
+2. USB-C to the Control Hub's **blue USB-A 3.0** port. In the robot configuration, name it
+   **`limelight`**. Keep all motor and `odometry` names.
+3. In the Limelight web page, pipeline **0** (or change the *Limelight pipeline* camera row):
+   AprilTag, family **36h11**, tag size **82.55 mm** (3.25 in), full 3-D results on. Write down
+   resolution, exposure and downscale. Changing them later means calibrating again.
 
-```bash
-python3 tools/hive-camera-record.py --host limelight.local --pipeline 0 --tag 34 \
-  --label paper-up --seconds 10 --out "$HOME/Desktop/hive-paper-up.csv"
-```
+## Calibration
 
-It writes CSV and raw `.ndjson`. Repeat with a different filename for covered tag, wrong sheet, out of view and tipped paper. If `.local` doesn't resolve, use the IP shown by the existing camera setup. `/results` uses port 5807. A connection failure, missing pose or frozen camera frame is reported. The recorder never declares the hive ready; the Java classifier is exercised by the computer tests and robot diagnostic.
+The camera numbers are **camera rows** of `PollenHiveSettings`. Measure them with TEST Hive camera,
+**save them on the Hub with Cross**, and every hive mode uses them from its next INIT. No code edit
+and no reinstall. When they hold up, promote them to code defaults (above). Until a tilt is
+saved, the autos show `NOT CALIBRATED` and drive and park without shooting.
 
-## Connect to the robot
+| Camera row | Default | How it's set |
+| --- | --- | --- |
+| Lens height in | 14.0 | Tape: tiles to the center of the lens. Change it in either auto's INIT menu, Square. |
+| UP tag height in | 49.7 | Tape on the real hive: tiles to the middle of the tag row under the UP cell. Same way. |
+| Camera tilt up deg | NOT SET | TEST Hive camera: **Square** measures, **Cross** saves |
+| Camera sideways correction in | 0.0 | Same Square (needs all 4 tags in view), Cross saves |
+| DOWN tag height in | 35.6 | A **Circle** check with our cell DOWN suggests a new value if it's more than 1 in off; Cross saves |
+| Limelight pipeline, band, our-cell max sideways | 0, 3.0, 12.5 | Leave alone |
 
-1. Power off, secure the rear camera and strain-relieve a USB data cable. Lens center approximately 14 inches above tiles. The robot's **front intake faces the end wall**, its **back launcher/camera faces the hive** at the shooting position.
-2. Camera USB-C to Control Hub's **blue USB-A 3.0** port; USB supplies power. This is the Control Hub, not Driver Hub.
-3. Power on, scan/edit the existing robot configuration, name the Limelight Ethernet device **`limelight`**, save and activate. Preserve all motor and Pinpoint names.
-4. Build/install using the normal team workflow. Confirm build `pollen-hive-v1`. The autos retain names `frontLeft`, `frontRight`, `backLeft`, `backRight`, `pollenLauncher`, `intake`, `agitator`, `odometry`.
-5. Select **TEST Hive camera (NO MOTORS)**. Prove a printed selected tag is received before debugging the real hive view.
+**Step 1: measure (tape).** Lens height, and the UP cell's tag-row height on the hive you practice
+with. If either differs from the default by more than 1/4 in, open either hive auto, go to that
+camera row, set it, and press Square. Do this first: the tilt in Step 2 is computed from these two.
 
-## Real-hive calibration and independent validation
+**Step 2: tilt (Square).** Put the robot at the **red primary start**: front flat on the end
+wall, square, centered behind the hive (the Odo Shoot + Park spot). Make our cell (red audience
+side, tags 34-37) UP. Run **TEST Hive camera (NO MOTORS)**. Its INIT screen lists the camera rows
+and marks any CHANGED. Press START. The *Tags* line should list 34, 35, 36, 37. Nothing moves and
+nobody touches the robot or hive: press **Square**. Three seconds later it shows, for example:
 
-Use one profile slot per alliance/start spot/camera setup. Suggested slot labels: 1 red primary, 2 red secondary, 3 blue primary, 4 blue secondary. These are human labels, not an automatic alliance detector. A saved profile contains its pipeline, selected tag and camera-space envelopes. Changing a mount, tag, tag size, camera pipeline settings or shooting position requires calibration again.
+    Camera tilt up deg = 41.8
+    Camera sideways correction in = -0.60
+    Cross saves these on the Hub (all hive modes use them at once).
 
-1. Position the robot precisely at its actual shooting pose and leave it still. Confirm the selected ID is on the **near moving cell**, not the far cell or another hive. The diagnostic defaults to tag 34 as a candidate for red primary; verify the actual visible ID. Secondary/blue IDs must be selected from the real cell, not guessed.
-2. During INIT: D-pad up/down selects **slot / pipeline / tag**; left/right changes it. START opens the camera. It still commands no motors.
-3. **Triangle clears the candidate** in memory (does not erase disk). This also removes a previously loaded DOWN box if you are changing to UP-only calibration.
-4. Hold the near cell physically UP and press **Square** once. Keep it stationary for five seconds. Capture needs at least 40 distinct valid frames and rejects noisy/moving samples. It saves raw capture samples on the Hub even when the fit is rejected.
-5. If the selected tag is visible DOWN, tip it, settle it, then press **Circle** for a five-second DOWN capture. If DOWN is hidden, keep an **UP-only** profile; DOWN/transition/no tag will report UNKNOWN, never UP. Do not label disappearance as proof of UP.
-6. Press **Cross** to save the candidate. It refuses overlapping UP/DOWN boxes or a missing UP box. Every axis is bounded; margins initially add 25 mm for x/y and 40 mm for depth around the sample extrema. These are experimental margins, not established field accuracy.
-7. Now validate without pressing capture buttons: alternate the physical hive 20 times, cover the tag, show only a different tag, unplug/reconnect camera, rock the hive through intermediate angles, and slightly vary robot placement within the expected return error. Require **zero false UP** in the tested non-shootable conditions and reliable UP at the settled shooting pose. Confirm both immediate loss of permission on a contradicting frame and reconfirmation after recovery.
-8. STOP, INIT again with the same slot/pipeline/tag, START: confirm the saved profile reloads and gives the same answers. Repeat for the secondary shooting pose.
+The screen now says `Using: CANDIDATE`: the numbers are live on screen but not saved yet.
+`REJECTED ... too noisy` means something moved: press Square again.
 
-The helper runs every loop; telemetry refreshes once per second. It needs at least four distinct agreeing frames spanning 0.15 s to grant UP/DOWN. Its permission expires 0.20 s after the last distinct accepted observation. The reader separately rejects results older than 150 ms on the Hub or over 200 ms including reported image latency. These are bounds on software observations, not a guarantee that the basket stays shootable until a launched ball arrives.
+**Step 3: check (Circle), same run.**
+- Same spot, our cell UP: **Circle**. Expect `UP, 49.x in ... PASS`.
+- Tip the hive so our cell is DOWN: **Circle**. Expect `DOWN, 35.x in ... PASS`.
+  - `OFF BY` more than 1 in, the same way twice: Cross will also save the suggested DOWN height.
+  - `Only 0 frames` means our tags can't be seen when DOWN. That's fine: DOWN reads UNKNOWN, which
+    also never shoots.
+- Red **secondary** start (scoring-side end wall, the Odo Supporting Shooter spot): **Triangle**
+  (forget our cell), make that cell (30-33) UP, **Circle**: PASS and `Our cell: RED scoring-side cell`.
+- If you can, one blue start: Triangle, our blue cell UP, Circle, PASS, `BLUE`.
 
-Files live in the Hub's FIRST/pollen-hive directory (normally `/sdcard/FIRST/pollen-hive`). Profiles/settings are `.properties`; captures include a `samplesCsv` field. Back them up after practice:
+**Step 4: save.** Press **Cross**: `SAVED on the Hub: Camera tilt up deg=41.8, ...`. The robot
+log gets a `CALIBRATION SAVED` line. Both autos show these rows as CHANGED until they're promoted
+to code defaults.
 
-```bash
-adb pull /sdcard/FIRST/pollen-hive "$HOME/Desktop/pollen-hive-backup"
-adb pull /sdcard/robotControllerLog.txt "$HOME/Desktop/RobotControllerLog-hive.txt"
-```
+**Step 5: validate with the saved numbers (STOP, INIT, START TEST Hive camera again; no Square or
+Circle).** At each start spot:
+- Tip the hive back and forth 20 times. *State* may say UP only when our cell is really up. Count
+  any false UP: it must be **zero**.
+- Cover the tags with a hand, show only the other hive's tags, unplug and replug the camera: UP
+  must drop out at once and come back by itself.
+- Shift the robot an inch and turn it a few degrees: an UP cell must still read UP.
+- Rock the hive slowly through the middle: it must read UNKNOWN in between.
 
-Log filename/capitalization can vary; use the team's documented [robot log retrieval](POLLEN_AUTONOMOUS.md#robot-log) if that path is absent. Search log lines for `PollenHive`. State changes, feed requests, autonomous phases and errors are logged. Capture files also record tag/pipeline and camera-space metres. Photograph the camera settings/mount; a pipeline number alone cannot detect later edits to that pipeline.
+**Step 6: promote** when it has held up through practice:
+`python3 tools/hive-promote-defaults.py ~/Desktop/pollen-hive --write` (see the INIT menu section),
+then test, commit, install.
+
+**When to calibrate again:** the camera or its mount moved, the lens height changed, or the
+pipeline's resolution or downscale changed. **At an event:** TEST Hive camera, START, Circle at our
+start with our cell UP: PASS. If not, Steps 2-5 (a few minutes, no install).
+
+## Testing the autos
+
+Set the **Execution** row (row 1) in the auto's INIT menu; it resets to LIVE every INIT.
+
+1. **DRY** (Execution DRY): robot at the start, no balls. Watch *Feed requested*:
+   true only while our cell is UP (the virtual launcher speed is labeled). Tip the hive: it stops at
+   once. This checks the shot gate without moving. Once it wants to drive, an unmoved robot hits the
+   no-progress stop. That is expected.
+2. **DRIVE** (Execution DRIVE): clear lane, no balls, shooter and intake off.
+   Primary: front-first to C, front-to-wall pickup D→E, back out, rear to the hive at S, then park.
+   Secondary: departure. Check both alliances' placement. The 14-in camera mount must stay clear.
+3. **LIVE** (the default): in INIT, check *Hive cell behind robot* names our alliance (primary),
+   *Camera calibration* shows the tilt, and *SETTINGS* lists only the changes you mean. Small batches, someone on STOP. Check the
+   launcher speed sign, real pickup width and reach, whether a stopped-flywheel intake keeps the
+   balls, and the return shot.
+4. Repeat with the hive tipped on return, tags covered, and the camera unplugged. The detector must
+   stay fail-closed. Never replace UNKNOWN with timer-based shooting.
+
+**Record** for each session: installed commit, tilt/lens numbers, which start spots, cycle time,
+pickup count, false-UP count, return pose error. **Pull the robot log** (see
+[POLLEN_AUTONOMOUS.md](POLLEN_AUTONOMOUS.md#robot-log)) and search for `PollenHive`. While the
+autos shoot or wait to shoot, they log five times a second:
+
+    t=12.400 HIVE cell=34 tags=4 height=49.6in sideways=0.3in state=UP reason=Stable UP, 49.6 in pose=0.10,-0.05,0.4deg
+
+So a shot that did or didn't happen can be explained afterward: which cell, how many tags, the
+measured height, the robot pose. The START line records the build, the changed rows and every
+route number. To try a change between runs, edit the row in INIT; when it's better, Square; when
+it's proven, promote it.
 
 ## Default garden route, derived from the saved repo layout
 
-The source of field measurements is [POLLEN_FIELD_LAYOUT.md](POLLEN_FIELD_LAYOUT.md), especially Zones and Game pieces. No field measurements were re-derived for this patch. Nominal red primary start is `(X,Z)=(-12.74164098,61.585)` inches. Garden ball centers are approximately `(-69.31,69.3), (-66.42,69.3), (-63.53,69.3), (-60.64,69.3)`. Blue uses the 180-degree rotated setup, with identical relative route settings.
+The source of field measurements is [POLLEN_FIELD_LAYOUT.md](POLLEN_FIELD_LAYOUT.md), especially Zones and Game pieces. Nominal red primary start is `(X,Z)=(-12.74164098,61.585)` inches. Garden ball centers are approximately `(-69.31,69.3), (-66.42,69.3), (-63.53,69.3), (-60.64,69.3)`. Blue uses the 180-degree rotated setup, with identical relative route settings.
 
 ![Default garden approach and return](POLLEN_HIVE_GARDEN.svg)
 
-Route forward = toward hive from START; route left = left while looking at hive. **All menu distances are centimeters, absolute robot-center coordinates from START.** Heading 0 is the starting chassis orientation (front toward wall, rear toward hive). Heading -90 degrees turns the front toward the garden on the left. This distinction matters: translation angle and chassis heading are separate.
+Route forward = toward hive from START; route left = left while looking at hive. **All distances are centimeters, absolute robot-center coordinates from START.** Heading 0 is the starting chassis orientation (front toward wall, rear toward hive). Heading -90 degrees turns the front toward the garden on the left. Translation angle and chassis heading are separate.
 
 | Point/action | Field X,Z (in, red) | Route forward,left (cm) | Heading |
 | --- | --- | --- | --- |
@@ -103,64 +247,56 @@ Route forward = toward hive from START; route left = left while looking at hive.
 
 B is shifted away from the alliance midline before the first turn. C leaves 15 inches to both walls, more than the 12.73-inch circumradius of an 18-inch square. No turn happens at E. D/E leave the body's left edge 1 inch from the side wall; E leaves its front edge 1 inch from the end wall. The intake runs only for D→E and the collection hold, after flywheel speed has fallen to at most 100 ticks/s; agitator stays off. The robot backs out before crossing back to the shooting position. It does not reset odometry during the cycle.
 
-**Intake reach is the remaining mechanical assumption.** At E, the leftmost ball center is 8.725 inches left of the robot centerline. A centered mouth would need about **17.45 inches of usable width** to cover all four centers at once, plus appropriate reach into the ball row. A narrower intake can collect fewer balls on this route; the outside balls may need another approach or funnel. The code cannot confirm ball count. Measure the actual intake envelope/reach and test with balls before claiming a four-ball pickup. The footprint checker assumes the entire robot, including intake, fits within 18×18 inches.
+**Intake reach is the remaining mechanical assumption.** At E, the leftmost ball center is 8.725 inches left of the robot centerline. A centered mouth would need about **17.45 inches of usable width** to cover all four centers at once, plus appropriate reach into the ball row. A narrower intake can collect fewer balls on this route. The code cannot confirm ball count. Measure the actual intake envelope/reach and test with balls before claiming a four-ball pickup. The footprint checker assumes the entire robot, including intake, fits within 18×18 inches.
 
-The INIT geometry checks sample translations at at most 0.1-inch intervals and turns at one-degree intervals against the repo's fixed obstacle envelopes, walls and alliance midline. They are nominal checks, not avoidance of partners, scattered pieces, build tolerances or odometry errors. The real collection clearances are tight. Start with DRIVE and stop if the path differs from the drawing.
+The geometry check (run by the computer tests and at INIT) samples translations at most 0.1 in apart and turns at one-degree steps against the repo's fixed obstacle envelopes, walls and alliance midline. It doesn't account for partners, scattered pieces, build tolerances or odometry error. Start with DRIVE and stop if the path differs from the drawing.
 
-## INIT controls and what to tune
+## Route and timing defaults (`PollenHiveSettings.ROUTE`)
 
-D-pad up/down selects a row; left/right edits; tap/release each change. **Square saves** settings independently for primary and secondary; **Triangle restores CAD defaults**. START freezes settings. Execution mode always resets to DRY on the next INIT. The profile line shows the saved tag/pipeline before START; DRY/LIVE START refuses a missing/invalid profile. DRIVE doesn't require one.
+Change any of them in INIT (the geometry check blocks START and Square if a change would hit a wall
+or the midline), or promote saved changes into the code. The robot log's START line lists every value.
 
-| Rows | Defaults / purpose |
+| Setting | Default |
 | --- | --- |
-| Profile slot | Primary 1, secondary 2; choose the validated alliance/position slot |
-| Execution | 0 DRY, 1 DRIVE, 2 LIVE |
-| Start delay | 0 seconds; supporting mode waits for actual UP, not a guessed partner delay |
-| First / second feed | 1.5 / 1.5 seconds of actual commanded feed; pauses don't spend feed duration |
-| First-shot window | Primary waits at most 5 seconds in FIRST; if it has fed, proceeds to collection; otherwise departs |
+| Start delay | 0 s; secondary waits for an actual UP, not a guessed partner delay |
+| First / second feed | 1.5 / 1.5 s of actual commanded feed; pauses don't count |
+| First-shot window | Primary waits at most 5 s in FIRST; if it has fed, goes to collect; otherwise departs |
 | Launcher | 1180 ticks/s; PIDF unchanged |
 | Travel / turn / pickup drive power | 0.60 / 0.40 / 0.20 |
-| Collection intake / hold | 0.50 power / 0.50 s; hold set to zero leaves one control-tick transition |
+| Collection intake / hold | 0.50 power / 0.50 s |
 | Shooting intake / agitator | 0.50 / 1.00 |
 | Clearance forward / first turn left / garden turn left | 15.24 / 43.836 / 108.822 cm |
 | Pickup left / forward | 121.522 / 2.54 cm |
 | Transit / pickup heading | -90 / 0 degrees; final shooting heading always returns to zero |
-| Park | 1 enabled; 0 stops after the shooting sequence, useful for isolated tests |
-| Park1/2/3 forward and left | Editable absolute waypoints; CAD-derived existing departure corridor and parking spot, not the timed routine's shortened field calibration |
+| Execution / Side | LIVE (not saved) / AUTO |
+| Park | on; three CAD-derived waypoints (existing departure corridor and parking spot) |
 
-Distance increments are 1 cm, heading 5 degrees, powers 0.05, launcher 20 ticks/s, times 0.5 seconds. Invalid geometry blocks START/save; reduce errors rather than bypassing the checker. Primary garden is about **11.22 s** and primary park **4.76 s** by the existing drive/turn estimates, including transition allowance. These are planning estimates only. No default is presented as physically tuned.
+Primary garden is about **11.22 s** and primary park **4.76 s** by the existing drive/turn estimates. These are planning estimates. No default is physically tuned.
 
 ## Timing and autonomous behavior
 
-- Primary first volley ends when actual feed duration is used, confirmed DOWN follows some feeding, or its first-shot window ends. A missing/ambiguous observation immediately stops feeding but does not invent a tip.
-- Before garden collection, launcher is commanded off. If it doesn't slow below 100 ticks/s within two seconds, collection is skipped and the robot departs. This avoids running the shared intake toward a spinning launcher during pickup.
-- Garden admission reserves its estimated duration, three seconds for second spin-up, selected second feed duration, estimated parking duration and margins. If time is insufficient, it skips collection and parks. Slow launcher spin-up or a delayed first shot can trigger this; telemetry states why. Raising drive power is not a substitute for measuring the cycle.
-- After return, position must be within 0.5 inch of START, heading within 2 degrees, and speed/turn rate settled for 0.3 seconds. Old readiness is discarded while traveling; fresh observations reconfirm UP.
-- If the near cell is DOWN or UNKNOWN after return, primary waits. If it becomes UP in time, it shoots. Secondary behaves similarly for its first volley. Both reserve departure time and stop all commands at **27 seconds**.
-- A 0.25-second control-loop gap, invalid odometry, lost Pinpoint READY status, stuck drive/turn or route failure latches a stop. A motion fault does not shortcut across the field to park. There is no guarantee of finishing parking if the robot runs slower than the estimates; the hard deadline still wins.
-- Permission is checked every loop during feeding. Already released balls continue flying after feeding stops. Detection is not predictive hive-motion control.
+- Primary first volley ends when the feed time is used, a confirmed DOWN follows some feeding, or its first-shot window ends. A missing/ambiguous observation immediately stops feeding but does not invent a tip.
+- Before garden collection, the launcher is commanded off. If it doesn't slow below 100 ticks/s within two seconds, collection is skipped and the robot departs, so the shared intake never runs toward a spinning launcher during pickup.
+- Garden admission reserves its estimated duration, three seconds for second spin-up, the second feed duration, estimated parking duration and margins. If time is short, it skips collection and parks; telemetry says why.
+- After return, position must be within 0.5 inch of START, heading within 2 degrees, and speed/turn rate settled for 0.3 seconds. Old readiness is discarded while traveling; fresh observations reconfirm UP. Our cell stays locked.
+- If our cell is DOWN or UNKNOWN after return, primary waits. If it becomes UP in time, it shoots. Secondary behaves the same for its volley. Both reserve departure time and stop all commands at **27 seconds**.
+- No camera, or no calibration: the auto still drives and parks; it never shoots.
+- A 0.25-second control-loop gap, invalid odometry, lost Pinpoint READY status, stuck drive/turn or route failure latches a stop. There is no guarantee of finishing parking if the robot runs slower than the estimates; the deadline still wins.
+- Permission is checked every loop during feeding. Already released balls keep flying.
 
-## Practice sequence and acceptance record
+## Code map and what was verified
 
-1. **No motors:** printed tag connection, then real UP/DOWN calibration and repeated validation for both shooting positions.
-2. **DRY:** choose each experimental auto, correct profile, park disabled if isolating the shot; tip/cover the hive and watch `Feed requested`. Virtual speed is clearly labeled. The real launcher never runs.
-3. **DRIVE:** no balls loaded, clear lane, test primary garden turns/return/park with shooter and intake off. Verify front-first travel to C, front-to-wall pickup D→E, rear-to-hive at S. Confirm the 14-inch mount stays clear. Then test secondary departure. Check both alliances' placement separately.
-4. **LIVE pickup/shooting:** use small batches and a teammate on STOP. Confirm speed sign is positive at the desired launcher direction. Observe actual pickup width/reach and whether stopped-flywheel intake collection retains balls. Verify the complete return shot and camera reliability after movement/vibration.
-5. Repeat with a tipped return, covered tag, wrong tag, and camera disconnect. Keep the detector fail-closed; do not replace false/UNKNOWN with timer-based shooting.
-6. Record installed commit, profile slot/tag, mount dimensions, pipeline settings, INIT settings, cycle time, pickup count, false-ready count and return pose error. Save settings, photos, capture files and robot log. Keep legacy autos available if any acceptance item fails.
-
-## Code map and validation performed for this patch
-
-- `IsHiveReadyForShot`: pure Java profile, capture, classification and freshness.
-- `PollenHiveCamera`: strict SDK JSON adapter; rejects missing/default-zero poses, wrong pipeline/tag, duplicate IDs and excessive age/latency.
-- `PollenHiveFiles`, `PollenHiveCheck`: persisted calibration/settings and no-motors diagnostic.
-- `PollenHiveRoute`, `PollenHiveMotion`: CAD defaults, INIT settings, footprint checks and measured moves/turns.
+- `IsHiveReadyForShot`: pure Java: which cell is ours, tag height, UP/DOWN/UNKNOWN, freshness.
+- `PollenHiveSettings`: every row, its default, step and range; changed/unsaved tracking; the saved-changes format.
+- `PollenHiveStore`: saves and loads the changes on the Hub.
+- `PollenHiveCalibration`: pure Java math behind Square (tilt, sideways) and Circle (height check).
+- `PollenHiveCamera`: strict SDK JSON adapter; all hive tags (30-45) per frame; rejects missing/zero poses, wrong pipeline, duplicate IDs, stale results.
+- `PollenHiveCheck`: TEST Hive camera (NO MOTORS).
+- `PollenHiveRoute`, `PollenHiveMotion`: route nodes, footprint checks, measured moves/turns.
 - `PollenHiveAuto`: pure state machine and feed gates.
-- `PollenHiveOpMode` plus two tiny subclasses: hardware mapping and mode selection.
-- `PollenHiveTest`: classifier, geometry, motion faults, timing, primary/secondary behavior; uses the existing simple drivetrain simulator.
-- `PollenHiveCameraTest`: real JSON parser contract; runs with Gradle/JUnit and was also run directly against FTC 12 jars.
-- `tools/hive-camera-record.py`: Mac read-only camera recorder.
+- `PollenHiveOpMode` + `PollenHivePrimaryAuto`, `PollenHiveSecondaryAuto`: hardware and the INIT menu.
+- `tools/hive-promote-defaults.py`: saved Hub changes → new defaults in `PollenHiveSettings.java` (checked by `tools/test-hive-promote.py`).
+- Tests: `PollenHiveTest` (cell identification, forced sides, heights, bands, freshness, calibration math, settings save/load/reset, routes, primary/secondary simulations), `PollenHiveCameraTest` (real JSON parser).
+- `tools/hive-camera-record.py`: optional read-only Mac recorder for one tag's raw camera numbers.
 
-Computer tests and direct compilation against FTC 12.0.0/Pedro 3.0.2 libraries passed during preparation. The simple simulation completed default primary UP and tipped-return cases; it assumes idealized launcher response and is not a timing guarantee. A full `:TeamCode:assembleDebug` attempt could not download the Gradle distribution in the preparation environment. **Run the Gradle unit tests and Android build on the Mac before installation. No robot, camera or real-hive validation has been performed with this patch.**
-
-Primary technical references: repo field layout/source links above; FTC SDK 12.0.0 source and dependency declarations; [Limelight AprilTag tracking](https://docs.limelightvision.io/docs/docs-limelight/pipeline-apriltag/apriltags), [coordinate systems](https://docs.limelightvision.io/docs/docs-limelight/pipeline-apriltag/apriltag-coordinate-systems), and [FTC Limelight programming](https://docs.limelightvision.io/docs/docs-limelight/apis/ftc-programming).
+Verified on a computer only: `tools/test-pollen-sequence.sh` passes; `PollenHiveCameraTest` passes with the real org.json parser; all hive OpModes compile against SDK stand-ins; the INIT menu was run against a stand-in Driver Hub (edit, save, reload). **Not verified:** the Gradle build (run it on the Mac), anything on the robot, the camera or a real hive. The simulator uses a simplified drivetrain and an idealized launcher.

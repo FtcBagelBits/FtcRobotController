@@ -47,7 +47,7 @@ public final class PollenHiveAuto {
                 break;
             case FIRST: case SECOND:
                 if(remaining<=parkReserve) { park(now,"Time reserved for departure"); break; }
-                if(config.v[1]==1) { // Route-only bypasses shots, never vision-gates movement.
+                if(config.v[0]==1) { // Route-only bypasses shots, never vision-gates movement.
                     if(phase==Phase.FIRST&&!config.secondary) enter(Phase.COAST,now); else park(now,"Drive-only departure");
                     break;
                 }
@@ -82,7 +82,7 @@ public final class PollenHiveAuto {
                     else return stop("Finished departure");
                 } else {
                     o.forward=m.forward; o.strafe=m.strafe; o.turn=m.turn;
-                    if(m.collect&&config.v[1]!=1) o.intake=config.v[9];
+                    if(m.collect&&config.v[0]!=1) o.intake=config.v[9];
                 }
                 break;
             case SETTLE:
