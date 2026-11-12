@@ -75,33 +75,66 @@ public final class PollenHiveTest {
         IsHiveReadyForShot.Mount off=new IsHiveReadyForShot.Mount(14,35,-4,49.7,35.6,3,12.5);
         check(IsHiveReadyForShot.nearestCluster(frame(1,49.7,off),off)==34,"Sideways correction keeps our cell");
     }
+    private static PollenHiveCalibration capture(boolean tilt, IsHiveReadyForShot.Mount mount,
+            IsHiveReadyForShot.State expected, double actualHeight) {
+        PollenHiveCalibration c=new PollenHiveCalibration(tilt,mount,expected,34);
+        for(int i=1;i<=60;i++) c.add(frame(i,actualHeight,M),i*.05);
+        return c;
+    }
     private static void calibration() {
-        // Truth: tilt 33.3 deg, camera 1.5 in off center. Code: tilt not set, sideways 0.
-        IsHiveReadyForShot.Mount truth=new IsHiveReadyForShot.Mount(14,33.3,1.5,49.7,35.6,3,12.5);
-        IsHiveReadyForShot.Mount code=new IsHiveReadyForShot.Mount(14,Double.NaN,0,49.7,35.6,3,12.5);
-        PollenHiveCalibration c=new PollenHiveCalibration(true,code);
-        for(int i=1;i<=10;i++) c.add(frame(i,49.7,truth));
-        check(!c.problem().isEmpty(),"Too few frames rejected");
-        for(int i=11;i<=60;i++) { c.add(frame(i,49.7+.2*Math.sin(i),truth)); c.add(frame(i,49.7,truth)); }
-        check(c.frames==60,"Duplicate frames ignored");
-        check(c.problem().isEmpty(),"Good tilt capture accepted: "+c.problem());
-        check(Math.abs(c.tiltDeg()-33.3)<.05,"Tilt recovered: "+c.tiltDeg());
-        check(Math.abs(c.sidewaysCorrectionIn()-1.5)<1e-6,"Sideways correction recovered: "+c.sidewaysCorrectionIn());
-        check(c.report()[1].equals("Camera tilt up deg = 33.3")&&c.report()[2].equals("Camera sideways correction in = 1.50"),"Result lines: "+String.join(" | ",c.report()));
-        c=new PollenHiveCalibration(true,code);
-        for(int i=1;i<=60;i++) c.add(frame(i,49.7+(i%2==0?4:-4),truth));
+        IsHiveReadyForShot.Mount unset=M.withTilt(Double.NaN);
+        PollenHiveCalibration c=capture(true,unset,IsHiveReadyForShot.State.UP,49.7);
+        check(c.problem().isEmpty()&&Math.abs(c.tiltDeg()-35)<1e-8,"Known tilt recovered: "+c.problem());
+        check(c.frames==60&&c.candidateMount().tiltUpDeg==35,"Accepted independent frames and rounded preview");
+        c.add(frame(60,true),3.1); check(c.frames==60,"Repeated result not counted");
+        c=new PollenHiveCalibration(true,unset,IsHiveReadyForShot.State.UP,34);
+        for(int i=1;i<60;i++) c.add(new IsHiveReadyForShot.Frame(i,new IsHiveReadyForShot.Tag(34,0,0,.1)),i*.05);
+        c.add(frame(60,true),3);
+        check(c.frames==1&&c.rejected==59&&!c.problem().isEmpty(),"59 impossible solves + one good frame rejected");
+        c=new PollenHiveCalibration(true,unset,IsHiveReadyForShot.State.UP,34);
+        for(int i=1;i<=60;i++) c.add(frame(i,true),i*.001);
+        check(!c.problem().isEmpty(),"Burst under minimum observation span rejected");
+        c=new PollenHiveCalibration(true,unset,IsHiveReadyForShot.State.UP,34);
+        for(int i=1;i<=60;i++) c.add(frame(i,49.7+(i%2==0?4:-4),M),i*.05);
         check(c.problem().contains("noisy"),"Moving hive rejected");
-        // Height checks with the found calibration.
-        IsHiveReadyForShot.Mount found=truth;
-        c=new PollenHiveCalibration(false,found);
-        for(int i=1;i<=40;i++) c.add(frame(i,49.9,truth));
-        check(c.report()[1].startsWith("PASS")&&Double.isNaN(c.suggestedDownIn()),"UP height check passes, nothing to save");
-        c=new PollenHiveCalibration(false,found);
-        for(int i=1;i<=40;i++) c.add(frame(i,37.2,truth));
-        check(c.report()[1].contains("DOWN tag height in = 37.2")&&c.suggestedDownIn()==37.2,"DOWN off by 1.6 in suggests the update: "+c.report()[1]);
-        c=new PollenHiveCalibration(false,found);
-        for(int i=1;i<=40;i++) c.add(frame(i,42.6,truth));
-        check(c.report()[1].startsWith("BETWEEN"),"Between bands reported");
+        check(capture(false,M,IsHiveReadyForShot.State.UP,49.7).problem().isEmpty(),"Physical UP verified with production detector");
+        check(capture(false,M,IsHiveReadyForShot.State.DOWN,35.6).problem().isEmpty(),"Physical DOWN verified with production detector");
+        check(!capture(false,M,IsHiveReadyForShot.State.DOWN,49.7).problem().isEmpty(),"Incorrect physical label cannot pass");
+        c=new PollenHiveCalibration(false,M,IsHiveReadyForShot.State.DOWN,34);
+        for(int i=1;i<=60;i++) c.add(new IsHiveReadyForShot.Frame(i,tag(34,30,-2,40,M),tag(35,41.2,2,40,M)),i*.05);
+        check(!c.problem().isEmpty(),"Disagreeing tags cannot cancel into a passing mean");
+        PollenHiveCalibration wrongTilt=capture(true,unset,IsHiveReadyForShot.State.UP,35.6);
+        check(wrongTilt.problem().isEmpty(),"Wrong physical input can produce mathematically valid tilt");
+        c=capture(false,wrongTilt.candidateMount(),IsHiveReadyForShot.State.DOWN,35.6);
+        check(c.falseUp>0&&!c.problem().isEmpty(),"Independent DOWN check exposes mistaken DOWN-as-UP tilt capture");
+        c=new PollenHiveCalibration(false,M,IsHiveReadyForShot.State.DOWN,34);
+        for(int i=1;i<=60;i++) c.add(new IsHiveReadyForShot.Frame(i),i*.05);
+        check(c.blockedOnly()&&c.problem().isEmpty()&&c.report()[1].startsWith("BLOCKED ONLY"),"Fresh hidden DOWN is blocking evidence, not detected DOWN");
+        for(int i=61;i<=80;i++) c.add(new IsHiveReadyForShot.Frame(60),i*.05);
+        check(!c.problem().isEmpty(),"Frozen stream after enough empty DOWN frames cannot pass");
+        PollenHiveCalibration missing=new PollenHiveCalibration(false,M,IsHiveReadyForShot.State.DOWN,34);
+        for(int i=1;i<=60;i++) missing.add(null,i*.05);
+        check(!missing.problem().isEmpty(),"Disconnected camera cannot pass hidden-DOWN check");
+        PollenHiveCalibrationSession session=new PollenHiveCalibrationSession(unset);
+        session.beginTilt(); session.accept(capture(true,unset,IsHiveReadyForShot.State.UP,49.7));
+        check(session.candidate&&!session.canSave(),"Tilt alone not validated");
+        session.accept(capture(false,session.live,IsHiveReadyForShot.State.UP,49.7));
+        check(!session.canSave(),"UP alone not validated");
+        session.accept(capture(false,session.live,IsHiveReadyForShot.State.DOWN,35.6));
+        check(session.canSave(),"Both physical labels enable saving");
+        session.accept(capture(false,session.live,IsHiveReadyForShot.State.DOWN,49.7));
+        check(!session.canSave(),"Failed repeat revokes previous pass");
+        session.beginTilt();
+        check(!session.candidate&&!session.canSave()&&Double.isNaN(session.live.tiltUpDeg),"New capture discards old candidate and validations");
+        session.accept(missing);
+        check(!session.canSave(),"Rejected capture cannot revive candidate");
+        IsHiveReadyForShot h=hive();
+        for(int i=1;i<=3;i++) h.update(frame(i,true),i*.02);
+        h.update(null,.08); h.update(frame(4,true),.1);
+        check(h.cluster()<0,"Identification must restart after missing frame");
+        for(int i=5;i<=7;i++) h.update(frame(i,true),.1+(i-4)*.02);
+        check(h.cluster()==34,"Four new consecutive frames lock cell");
+        h.reset(); check(h.cluster()==34,"Established cell lock survives reset");
     }
     private static void sides() {
         check(Arrays.equals(IsHiveReadyForShot.allowedCells(false,0),new int[]{34,42})&&Arrays.equals(IsHiveReadyForShot.allowedCells(true,0),new int[]{30,38})
@@ -141,7 +174,10 @@ public final class PollenHiveTest {
         check(o.size()==1&&o.getProperty("launcher").equals("1200.0"),"Execution is never saved");
         check(r.values.line(0).contains("this run only")&&r.values.changedSummary().equals("Execution=DRY (no motors), Launcher ticks/s=1200"),"Summary: "+r.values.changedSummary());
         r.values.reset(6); check(!r.values.changed(6),"Row reset");
-        r.values.resetAll(); check(r.values.changedCount()==0&&r.v[0]==2,"All reset; execution back to LIVE");
+        r.values.resetExceptExecution(); check(r.v[0]==0,"Route reset preserves DRY motor policy");
+        Properties nan=new Properties(); nan.setProperty("lensHeight","NaN");
+        check(cam.load(nan).contains("lensHeight")&&Double.isFinite(cam.get("lensHeight")),"Only tilt may load NaN");
+        r.values.resetAll(); check(r.values.changedCount()==0&&r.v[0]==2,"Code defaults remain LIVE for match modes");
         for(PollenHiveSettings.Row[] rows:new PollenHiveSettings.Row[][]{PollenHiveSettings.ROUTE,PollenHiveSettings.CAMERA})
             for(PollenHiveSettings.Row row:rows) for(double d:new double[]{row.primary,row.secondary})
                 check(Double.isNaN(d)||(d>=row.min&&d<=row.max),"Default inside its range: "+row.key);
@@ -230,9 +266,42 @@ public final class PollenHiveTest {
         for(int i=1;i<=1351;i++) oDummy=a.tick(i*.02,null,0,0,0,0,true);
         check(oDummy.finished,"Deadline stops even with no observation");
     }
+    private static void practice() {
+        for(boolean secondary:new boolean[]{false,true}) {
+            PollenHiveRoute c=new PollenHiveRoute(secondary); c.v[0]=2;
+            PollenHiveAuto a=new PollenHiveAuto(c,hive(),PollenHiveAuto.Run.SHOT_ONLY); a.start(0);
+            PollenHiveAuto.Output o=null; boolean fed=false;
+            for(int i=1;i<=1351;i++) {
+                double t=i*.02;
+                o=a.tick(t,frame(i,t>1),0,0,0,1180,true);
+                check(o.forward==0&&o.strafe==0&&o.turn==0,"Shot-only never drives");
+                check(!o.phase.startsWith("PARK")&&!o.phase.startsWith("GARDEN"),"Shot-only never enters route");
+                if(t<=1) check(!o.feed,"Shot-only waits for physical UP");
+                fed|=o.feed; if(o.finished) break;
+            }
+            check(fed&&o.finished&&o.reason.equals("Stationary shot complete"),"Stationary volley completes without departure");
+        }
+        for(int execution:new int[]{1,2}) {
+            PollenHiveRoute c=new PollenHiveRoute(false); c.v[0]=execution;
+            PollenHiveAuto a=new PollenHiveAuto(c,hive(),PollenHiveAuto.Run.GARDEN_RETURN); a.start(0);
+            PollenOdometryTest.SimRobot robot=new PollenOdometryTest.SimRobot();
+            PollenHiveAuto.Output o=null; boolean collected=false;
+            for(int i=1;i<=1351;i++) {
+                o=a.tick(i*.02,null,robot.x,robot.y,robot.h,0,true);
+                check(o.launcher==0&&o.agitator==0&&!o.feed,"Garden practice never fires");
+                check(!o.phase.startsWith("FIRST")&&!o.phase.startsWith("SECOND")&&!o.phase.startsWith("PARK"),"Garden practice skips shots and departure");
+                collected|=o.intake>0;
+                robot.step(o.forward,o.strafe,o.turn,false,.02);
+                if(o.finished) break;
+            }
+            check(o.finished&&o.reason.equals("Garden returned and settled at S"),"Garden-only returns: "+o.reason);
+            check(Math.hypot(robot.x,robot.y)<=.5&&Math.abs(robot.h)<=Math.toRadians(2),"Garden ends settled at original S");
+            check(collected==(execution==2),"Only LIVE garden test runs collection intake");
+        }
+    }
     private static PollenHiveAuto.Output oDummy;
     public static void main(String[] args) {
-        classifier(); calibration(); sides(); settings(); routes(); secondaryGates(); primaryCycle(false,false); primaryCycle(false,true); primaryCycle(true,false); slowLauncherBudget(); motionFaults();
+        classifier(); calibration(); sides(); settings(); routes(); secondaryGates(); primaryCycle(false,false); primaryCycle(false,true); primaryCycle(true,false); slowLauncherBudget(); motionFaults(); practice();
         System.out.println("PASS PollenHiveTest: "+checks+" checks");
     }
 }

@@ -6,7 +6,7 @@ public final class PollenConfig {
 
     /** Shown in INIT by every Pollen and Odo autonomous mode and by PollenBot TeleOp, and written to
      * the robot log at START. Change it whenever the Pollen code changes. */
-    public static final String BUILD = "pollen-hive-v2";
+    public static final String BUILD = "pollen-hive-v3";
 
     // Hive camera and hive-auto numbers (with their defaults): PollenHiveSettings.
 

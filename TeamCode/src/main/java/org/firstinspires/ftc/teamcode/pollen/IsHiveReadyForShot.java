@@ -15,7 +15,8 @@ import java.util.Locale;
  *    z out of the lens. With the lens height and the camera's upward tilt (both in PollenConfig,
  *    measured with TEST Hive camera) that gives the tag's height above the tiles:
  *        height = lensHeight + z*sin(tilt) - y*cos(tilt)
- *    It does not depend on where the robot is or which way it points.
+ *    Yaw/position do not change this height. It assumes a level chassis, a rigid mount,
+ *    negligible camera roll and correctly scaled AprilTag poses.
  * 3. UP OR DOWN. An UP cell's tags are about 49.7 in above the tiles and a DOWN cell's about
  *    35.6 in (field CAD). Inside the UP band = UP, inside the DOWN band = DOWN, anything else
  *    (tipping, wrong tag, not calibrated, no tags) = UNKNOWN. Only a steady, fresh UP allows a shot.
@@ -78,7 +79,8 @@ public final class IsHiveReadyForShot {
             if (!(lensHeightIn > 2 && lensHeightIn < 30)) return "Lens height outside 2..30 in";
             if (!(bandIn > 0.5) || !Double.isFinite(upIn) || !Double.isFinite(downIn)
                     || upIn - downIn < 2 * bandIn + 2) return "UP/DOWN bands too close or invalid";
-            if (!Double.isFinite(sidewaysCorrectionIn) || !(oursMaxSidewaysIn > 0)) return "Invalid sideways settings";
+            if (!Double.isFinite(sidewaysCorrectionIn) || Math.abs(sidewaysCorrectionIn) > 12
+                    || !Double.isFinite(oursMaxSidewaysIn) || !(oursMaxSidewaysIn > 0)) return "Invalid sideways settings";
             return "";
         }
         /** Height of a tag above the tiles, inches. Needs a calibrated tilt. */
@@ -158,7 +160,10 @@ public final class IsHiveReadyForShot {
     /** Our cell's first tag ID once locked (30/34/38/42), else -1. The lock lasts for this object. */
     public int cluster() { return cluster; }
     /** Forgets UP/DOWN (e.g. while driving), keeps which cell is ours. */
-    public void reset() { state = candidate = State.UNKNOWN; count = 0; lastFresh = Double.NEGATIVE_INFINITY; }
+    public void reset() {
+        state = candidate = State.UNKNOWN; count = 0; lastFresh = Double.NEGATIVE_INFINITY;
+        if (cluster < 0) { candidateCluster = -1; clusterCount = 0; }
+    }
 
     public void update(Frame f, double now) {
         if (!Double.isFinite(now)) { reset(); reason = "Invalid clock"; return; }

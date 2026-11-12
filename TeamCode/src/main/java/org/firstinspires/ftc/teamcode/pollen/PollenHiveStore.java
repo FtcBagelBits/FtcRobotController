@@ -15,6 +15,20 @@ public final class PollenHiveStore {
     public static File folder() { return new File(AppUtil.FIRST_FOLDER, "pollen-hive"); }
     private static File file(String name) { return new File(folder(), name + ".properties"); }
 
+    /** One compact text report per run, alongside the saved settings. */
+    public static File newReport(String kind) throws IOException {
+        File dir = new File(folder(), "reports");
+        if (!dir.isDirectory() && !dir.mkdirs()) throw new IOException("Cannot create " + dir);
+        File report = File.createTempFile(kind + "-" + System.currentTimeMillis() + "-", ".txt", dir);
+        appendReport(report, 0, "build=" + PollenConfig.BUILD + " run=" + kind);
+        return report;
+    }
+    public static void appendReport(File report, double seconds, String text) throws IOException {
+        try (Writer out = new OutputStreamWriter(new FileOutputStream(report, true), "UTF-8")) {
+            out.write(String.format(java.util.Locale.US, "%.3fs %s%n", seconds, text));
+        }
+    }
+
     /** Defaults plus saved changes. Returns a message for telemetry. */
     public static String load(String name, PollenHiveSettings.Values values) {
         File f = file(name);

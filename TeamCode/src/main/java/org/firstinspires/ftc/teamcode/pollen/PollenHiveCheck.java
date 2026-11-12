@@ -4,147 +4,151 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.RobotLog;
+import java.io.File;
 import java.util.Locale;
 
-/** Camera calibration and checks. Never maps or commands a motor. Nothing to choose in INIT.
- * After START:
- *   Square   = 3 s TILT capture (robot at the PRIMARY start, our cell UP, nothing moving).
- *              The result is a CANDIDATE, used on screen but not saved.
- *   Circle   = 3 s HEIGHT check of the cell behind the robot (UP or DOWN), with the candidate if any.
- *   Cross    = SAVE the candidate (tilt, sideways, and a DOWN height a Circle check suggested) on the
- *              Hub as camera changes. Every hive mode uses them from its next INIT.
- *   Triangle = forget which cell is ours (press after moving the robot to another start spot).
- * Results also go to the robot log (search PollenHive). Edit any camera row in either hive auto's
- * INIT menu; promote proven changes to code defaults with tools/hive-promote-defaults.py. */
+/** Camera setup, labeled checks and continuous readiness display. Never maps a motor or odometry. */
 @Autonomous(name = "TEST Hive camera (NO MOTORS)", group = "Pollen Hive")
 public final class PollenHiveCheck extends OpMode {
     private final ElapsedTime clock = new ElapsedTime();
-    private final PollenHiveSettings.Values cameraSettings = new PollenHiveSettings.Values(PollenHiveSettings.CAMERA, false);
-    private IsHiveReadyForShot.Mount code, live; // code = saved settings (defaults + Hub changes)
-    private String loadMessage;
-    private double suggestedDown = Double.NaN;
-    private boolean prevCross;
+    private final PollenHiveSettings.Values settings = new PollenHiveSettings.Values(PollenHiveSettings.CAMERA, false);
+    private PollenHiveCalibrationSession session;
     private PollenHiveCamera camera;
     private IsHiveReadyForShot detector;
     private PollenHiveCalibration capture;
-    private double captureAt, lastDisplay = -10;
-    private boolean candidate, prevSquare, prevCircle, prevTriangle;
-    private String error, message = "Square = tilt capture, Circle = height check, Triangle = forget cell";
+    private IsHiveReadyForShot.State expected = IsHiveReadyForShot.State.UP;
+    private double captureAt, displayAt = -1;
+    private int row;
+    private boolean square, circle, triangle, cross, up, down, left, right;
+    private String message = "", error = "";
     private String[] report = new String[0];
+    private File reportFile;
 
-    @Override public void init() {
-        loadMessage = PollenHiveStore.load(PollenHiveStore.CAMERA, cameraSettings);
-        code = live = IsHiveReadyForShot.Mount.from(cameraSettings);
-        detector = new IsHiveReadyForShot(code, IsHiveReadyForShot.ALL_CELLS);
-    }
-
+    @Override public void init() { message = PollenHiveStore.load(PollenHiveStore.CAMERA, settings); }
     @Override public void init_loop() {
+        if (gamepad1.dpad_up && !up) row = (row + settings.v.length - 1) % settings.v.length;
+        if (gamepad1.dpad_down && !down) row = (row + 1) % settings.v.length;
+        int delta = (gamepad1.dpad_right && !right ? 1 : 0) - (gamepad1.dpad_left && !left ? 1 : 0);
+        if (delta != 0) settings.edit(row, delta);
+        if (gamepad1.triangle && !triangle) settings.reset(row);
+        if (gamepad1.square && !square) {
+            try { PollenHiveStore.save(PollenHiveStore.CAMERA, settings); message = "Saved camera rows; validate after START"; }
+            catch (Exception ex) { message = "NOT SAVED: " + ex.getMessage(); }
+        }
+        buttons();
         telemetry.addData("BUILD", PollenConfig.BUILD);
-        telemetry.addLine("NO MOTORS. Nothing to choose. Press START, then follow the hive calibration sheet.");
-        telemetry.addData("Camera settings", loadMessage);
-        for (int i = 0; i < cameraSettings.v.length; i++) telemetry.addLine("  " + cameraSettings.line(i));
+        telemetry.addLine("NO MOTORS. D-pad selects/edits camera rows. Triangle resets ONE row. Square saves.");
+        for (int i = 0; i < settings.v.length; i++) telemetry.addLine((row == i ? "> " : "  ") + settings.line(i));
+        telemetry.addData("Status", message);
+        telemetry.addLine("Measure floor to lens center and UP tag-row center. START for calibration/checks.");
         telemetry.update();
     }
-
     @Override public void start() {
         clock.reset();
-        try { camera = new PollenHiveCamera(hardwareMap, (int) cameraSettings.get("pipeline")); }
+        session = new PollenHiveCalibrationSession(IsHiveReadyForShot.Mount.from(settings));
+        forgetDetector();
+        try { camera = new PollenHiveCamera(hardwareMap, (int) settings.get("pipeline")); }
         catch (Exception ex) { error = ex.toString(); }
+        try { reportFile = PollenHiveStore.newReport("camera"); }
+        catch (Exception ex) { error += " Report unavailable: " + ex.getMessage(); }
+        record("START camera=" + settings.overrides());
+        message = "Physical cell UP: Square fits tilt. Already calibrated? Circle checks UP.";
     }
-
     @Override public void loop() {
         double now = clock.seconds();
         IsHiveReadyForShot.Frame f = camera == null ? null : camera.read();
-        if (gamepad1.triangle && !prevTriangle) { detector = new IsHiveReadyForShot(live, IsHiveReadyForShot.ALL_CELLS); message = "Forgot our cell; looking again"; }
-        if (gamepad1.cross && !prevCross && capture == null) save();
-        prevCross = gamepad1.cross;
-        if (gamepad1.square && !prevSquare && capture == null) begin(true, now);
-        if (gamepad1.circle && !prevCircle && capture == null) {
-            if (!live.problem().isEmpty()) message = "Height check needs a tilt: press Square first. " + live.problem();
-            else begin(false, now);
+        if (capture == null) {
+            if (gamepad1.dpad_left && !left) expected = IsHiveReadyForShot.State.UP;
+            if (gamepad1.dpad_right && !right) expected = IsHiveReadyForShot.State.DOWN;
+            if (gamepad1.triangle && !triangle) {
+                session.resetChecks(); session.cluster = -1; forgetDetector();
+                message = "Cell forgotten; confirm the new cell name before Circle";
+            } else if (gamepad1.square && !square) {
+                session.beginTilt(); expected = IsHiveReadyForShot.State.UP; forgetDetector();
+                capture = new PollenHiveCalibration(true, session.live, expected, -1);
+                captureAt = now; report = new String[0]; message = "Fitting tilt: PRIMARY start, cell physically UP, hold still";
+            } else if (gamepad1.circle && !circle) {
+                if (!session.live.problem().isEmpty()) message = session.live.problem();
+                else if (detector.cluster() < 0) message = "First identify our cell while UP. Then check both states without moving.";
+                else {
+                    // A new check revokes the old result before collecting any evidence.
+                    if (expected == IsHiveReadyForShot.State.UP) session.upChecked = false; else session.downChecked = false;
+                    capture = new PollenHiveCalibration(false, session.live, expected, detector.cluster());
+                    captureAt = now; report = new String[0]; message = "Checking PHYSICAL " + expected + ": hold still";
+                }
+            } else if (gamepad1.cross && !cross) save();
         }
-        prevSquare = gamepad1.square; prevCircle = gamepad1.circle; prevTriangle = gamepad1.triangle;
+        buttons();
+        detector.update(f, now);
         if (capture != null) {
-            capture.add(f);
+            capture.add(f, now);
             if (now - captureAt >= PollenHiveCalibration.SECONDS) finish();
         }
-        detector.update(f, now);
-        if (now - lastDisplay >= .5) {
-            lastDisplay = now;
-            telemetry.addData("Using", (candidate ? "CANDIDATE (Cross saves): " : "SAVED/DEFAULT: ") + describe(live));
+        if (now - displayAt >= .25) {
+            displayAt = now;
+            telemetry.addData("BUILD", PollenConfig.BUILD);
+            telemetry.addData("Profile", (session.candidate ? "CANDIDATE " : "CURRENT ") + session.version + ": " + describe(session.live));
             telemetry.addData("Our cell", IsHiveReadyForShot.clusterName(detector.cluster()));
-            telemetry.addData("State / ready", detector.state(now) + " / " + detector.isHiveReadyForShot(now));
+            telemetry.addData("State / IsHiveReadyForShot", detector.state(now) + " / " + detector.isHiveReadyForShot(now));
             telemetry.addData("Detector", detector.reason);
+            telemetry.addData("PHYSICAL check label", expected + " (left=UP, right=DOWN)");
+            telemetry.addData("Validated", "UP=" + session.upChecked + " DOWN/blocked=" + session.downChecked);
+            telemetry.addData("Capture", capture == null ? "idle" : capture.frames + " accepted / " + capture.rejected + " rejected");
             telemetry.addData("Tags", tags(f));
-            telemetry.addData("Camera", error != null ? error : camera == null ? "Not open" : camera.status);
-            telemetry.addData("Capture", capture == null ? "idle" : (capture.tilt ? "TILT " : "HEIGHT ") + capture.frames + " frames");
+            telemetry.addData("Camera", error.isEmpty() ? camera == null ? "Not open" : camera.status : error);
             telemetry.addData("Status", message);
             for (String line : report) telemetry.addLine(line);
-            telemetry.addLine("Square=TILT  Circle=HEIGHT check  Cross=SAVE candidate  Triangle=forget cell. No motors.");
+            telemetry.addLine("Square=fit UP tilt; Circle=check label; Cross=save validated; Triangle=forget cell.");
+            telemetry.addLine("Continuous CAMERA gate only: no launcher-speed or robot-position test. Runs until STOP.");
             telemetry.update();
-            RobotLog.ii("PollenHive", "CHECK cell=%d state=%s height=%.1fin sideways=%.1fin reason=%s tags=%s",
-                    detector.cluster(), detector.state(now), detector.lastHeightIn, detector.lastSidewaysIn, detector.reason, tags(f));
+            RobotLog.ii("PollenHive", "CHECK state=%s ready=%s cell=%d height=%.2f expected=%s reason=%s",
+                    detector.state(now), detector.isHiveReadyForShot(now), detector.cluster(), detector.lastHeightIn, expected, detector.reason);
         }
     }
-
-    private void begin(boolean tilt, double now) {
-        // A tilt capture starts from the saved numbers (lens height, UP height, sideways) and finds the tilt.
-        capture = new PollenHiveCalibration(tilt, tilt ? code : live);
-        captureAt = now; report = new String[0];
-        message = tilt ? "TILT: robot at PRIMARY start, our cell UP, hold still 3 s" : "HEIGHT: hold still 3 s";
-    }
-
     private void finish() {
         report = capture.report();
-        boolean ok = capture.problem().isEmpty();
+        boolean ok = session.accept(capture);
+        for (String line : report) record("version=" + session.version + " " + line);
         if (capture.tilt && ok) {
-            double s = capture.sidewaysCorrectionIn();
-            live = new IsHiveReadyForShot.Mount(code.lensHeightIn, capture.tiltDeg(),
-                    Double.isNaN(s) ? code.sidewaysCorrectionIn : s, code.upIn, code.downIn, code.bandIn, code.oursMaxSidewaysIn);
-            candidate = true;
-            detector = new IsHiveReadyForShot(live, IsHiveReadyForShot.ALL_CELLS);
-            message = "Candidate in use. Check with Circle (UP here, then DOWN), then Cross to save.";
-        } else if (!capture.tilt && ok) {
-            double d = capture.suggestedDownIn();
-            if (!Double.isNaN(d)) { suggestedDown = d; candidate = true; message = "Height check done; Cross saves the new DOWN height"; }
-            else message = "Height check done";
-        } else message = "Capture rejected";
-        for (String line : report) RobotLog.ii("PollenHive", "CALIBRATION %s %s", capture.tilt ? "TILT" : "HEIGHT", line);
+            detector = new IsHiveReadyForShot(session.live, session.cluster);
+            message = "Candidate in use. Circle checks physical UP; tip DOWN, right, Circle; Cross saves.";
+        } else if (ok) message = capture.blockedOnly() ? "DOWN hidden: blocking verified, height NOT verified" : "Check passed";
+        else message = "Capture rejected; fix the cause and repeat";
         capture = null;
     }
-
-    /** Cross: write the candidate numbers into the camera settings and save them on the Hub. */
     private void save() {
-        if (!candidate) { message = "Nothing to save: press Square (and Circle) first"; return; }
-        cameraSettings.v[cameraSettings.index("tilt")] = Math.round(live.tiltUpDeg * 10) / 10.0;
-        cameraSettings.v[cameraSettings.index("sideways")] = Math.round(live.sidewaysCorrectionIn * 100) / 100.0;
-        if (!Double.isNaN(suggestedDown)) cameraSettings.v[cameraSettings.index("downHeight")] = suggestedDown;
+        if (!session.canSave()) { message = "Need successful physical UP and DOWN/blocked checks of this profile and cell"; return; }
+        settings.v[settings.index("tilt")] = session.live.tiltUpDeg;
+        settings.v[settings.index("sideways")] = session.live.sidewaysCorrectionIn;
         try {
-            PollenHiveStore.save(PollenHiveStore.CAMERA, cameraSettings);
-            code = live = IsHiveReadyForShot.Mount.from(cameraSettings);
-            candidate = false; suggestedDown = Double.NaN;
-            detector = new IsHiveReadyForShot(live, IsHiveReadyForShot.ALL_CELLS);
-            message = "SAVED on the Hub: " + cameraSettings.changedSummary() + ". Hive autos use it from their next INIT.";
-            RobotLog.ii("PollenHive", "CALIBRATION SAVED camera: %s", cameraSettings.overrides());
+            PollenHiveStore.save(PollenHiveStore.CAMERA, settings); session.saved();
+            message = "SAVED. STOP / INIT reloads for a persistence check. All hive modes use this profile.";
+            record("SAVED version=" + session.version + " camera=" + settings.overrides());
         } catch (Exception ex) { message = "NOT SAVED: " + ex.getMessage(); }
     }
-
+    private void forgetDetector() { detector = new IsHiveReadyForShot(session.live, IsHiveReadyForShot.ALL_CELLS); }
+    private void buttons() {
+        square = gamepad1.square; circle = gamepad1.circle; triangle = gamepad1.triangle; cross = gamepad1.cross;
+        up = gamepad1.dpad_up; down = gamepad1.dpad_down; left = gamepad1.dpad_left; right = gamepad1.dpad_right;
+    }
+    private void record(String text) {
+        RobotLog.ii("PollenHive", "%s", text);
+        try { if (reportFile != null) PollenHiveStore.appendReport(reportFile, clock.seconds(), text); }
+        catch (Exception ex) { error = "Report write failed: " + ex.getMessage(); }
+    }
     private String tags(IsHiveReadyForShot.Frame f) {
-        if (f == null) return "none";
+        if (f == null) return "none (camera missing/invalid)";
         StringBuilder b = new StringBuilder();
-        for (IsHiveReadyForShot.Tag t : f.tags) {
-            b.append(b.length() == 0 ? "" : " | ").append(t.id).append(": ");
-            if (live.problem().isEmpty()) b.append(String.format(Locale.US, "%.1f in high, ", live.heightIn(t)));
-            b.append(String.format(Locale.US, "%.1f in side", live.sidewaysIn(t)));
-        }
-        return b.length() == 0 ? "none in view" : b.toString();
+        for (IsHiveReadyForShot.Tag t : f.tags) b.append(String.format(Locale.US, "%d: %.1fin high, %.1fin side; ",
+                t.id, session.live.heightIn(t), session.live.sidewaysIn(t)));
+        return b.length() == 0 ? "no hive tags" : b.toString();
     }
-
     private static String describe(IsHiveReadyForShot.Mount m) {
-        return String.format(Locale.US, "lens %.1f in, tilt %s, sideways %.1f in, UP %.1f, DOWN %.1f",
-                m.lensHeightIn, Double.isNaN(m.tiltUpDeg) ? "NOT SET" : String.format(Locale.US, "%.1f deg", m.tiltUpDeg),
-                m.sidewaysCorrectionIn, m.upIn, m.downIn);
+        return String.format(Locale.US, "lens %.2fin tilt %.1fdeg side %.2fin UP %.1f DOWN %.1f", m.lensHeightIn,
+                m.tiltUpDeg, m.sidewaysCorrectionIn, m.upIn, m.downIn);
     }
-
-    @Override public void stop() { if (camera != null) camera.stop(); }
+    @Override public void stop() {
+        record("STOP " + (session == null ? "before START" : "version=" + session.version + " UP=" + session.upChecked + " DOWN/blocked=" + session.downChecked));
+        if (camera != null) camera.stop();
+    }
 }

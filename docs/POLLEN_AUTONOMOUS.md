@@ -1,8 +1,8 @@
 # Pollen autonomous operating manual
 
-Experimental hive-gated modes and garden collection: [testing guide](POLLEN_HIVE_TESTING.md). Existing match modes retain their behavior.
+Experimental hive-gated modes and garden collection: [testing guide](POLLEN_HIVE_TESTING.md). Existing match modes retain their behavior. The hive group also has a persistent NO MOTORS camera check, primary/secondary stationary-shot tests and garden-return practice. Use their dedicated guide: their controls and Execution defaults differ from the legacy modes below.
 
-All autonomous modes and PollenBot TeleOp show build **`pollen-hive-v2`**.
+All autonomous modes and PollenBot TeleOp show build **`pollen-hive-v3`**.
 Keep these instructions with the installed code. The new mat calibration and field routes are **experimental**.
 **Drive team:** use the [drive-team guides](drive-team/README.md); this manual is the full reference.
 Since `pollen-odo-v5`, B's default (and Triangle) is the full shoot-and-park route.

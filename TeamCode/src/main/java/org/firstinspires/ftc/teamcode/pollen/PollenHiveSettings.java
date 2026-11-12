@@ -100,6 +100,10 @@ public final class PollenHiveSettings {
         public int unsavedCount() { int n = 0; for (int i = 0; i < v.length; i++) if (unsaved(i)) n++; return n; }
         public void reset(int i) { v[i] = def(i); }
         public void resetAll() { for (int i = 0; i < v.length; i++) reset(i); }
+        /** Route reset must not change this run's motor policy. */
+        public void resetExceptExecution() {
+            for (int i = 0; i < v.length; i++) if (!NOT_SAVED.equals(rows[i].key)) reset(i);
+        }
         public void edit(int i, int delta) {
             Row r = rows[i];
             double x = Double.isNaN(v[i]) ? (r.key.equals("tilt") ? 40 : r.min) : v[i] + delta * r.step;
@@ -126,7 +130,7 @@ public final class PollenHiveSettings {
                 try {
                     int i = index(key);
                     double x = Double.parseDouble(p.getProperty(key).trim());
-                    if (!Double.isNaN(x) && (x < rows[i].min || x > rows[i].max)) throw new IllegalArgumentException("out of range");
+                    if ((Double.isNaN(x) && !key.equals("tilt")) || (!Double.isNaN(x) && (x < rows[i].min || x > rows[i].max))) throw new IllegalArgumentException("out of range");
                     v[i] = x;
                 } catch (RuntimeException ex) { skipped.append(skipped.length() == 0 ? "" : ", ").append(key); }
             }

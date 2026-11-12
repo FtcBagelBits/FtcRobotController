@@ -8,14 +8,21 @@ import com.qualcomm.robotcore.hardware.*;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.RobotLog;
 import java.util.Locale;
+import java.io.File;
 
 /** Hardware adapter for the experimental hive autos. Legacy match autos are unchanged.
  * Normal use: place the robot, pick the auto, INIT, START. Every number is in the INIT menu with
  * its default (PollenHiveSettings); anything that differs from the default is marked CHANGED.
  * D-pad up/down = row, LB/RB = jump 5 rows, left/right = change, Triangle = this row to default,
- * Circle = every row to default, Square = save the changes on the Hub. */
+ * Circle = route rows to default, preserving execution and camera, Square = save the changes on the Hub. */
 public abstract class PollenHiveOpMode extends OpMode {
     protected abstract boolean secondary();
+    protected PollenHiveAuto.Run run() { return PollenHiveAuto.Run.MATCH; }
+    private int defaultExecution() { return run()==PollenHiveAuto.Run.MATCH?2:run()==PollenHiveAuto.Run.GARDEN_RETURN?1:0; }
+    private File reportFile;
+    private String reportError = "";
+    private IsHiveReadyForShot initHive;
+    private String initProfile = "";
     private final ElapsedTime clock = new ElapsedTime();
     private final DcMotor[] drive = new DcMotor[4];
     private DcMotorEx launcher;
@@ -44,6 +51,7 @@ public abstract class PollenHiveOpMode extends OpMode {
         cameraSettings = new PollenHiveSettings.Values(PollenHiveSettings.CAMERA, false);
         loadMessage = "Auto: " + PollenHiveStore.load(fileName(), settings.values)
                 + ". Camera: " + PollenHiveStore.load(PollenHiveStore.CAMERA, cameraSettings) + ".";
+        settings.v[0] = defaultExecution();
         try {
             for (int i = 0; i < 4; i++) {
                 drive[i] = hardwareMap.get(DcMotor.class, PollenConfig.DRIVE_NAMES[i]); drive[i].setPower(0);
@@ -82,11 +90,15 @@ public abstract class PollenHiveOpMode extends OpMode {
         int changed = settings.values.changedCount() + cameraSettings.changedCount();
         int unsaved = settings.values.unsavedCount() + cameraSettings.unsavedCount();
         telemetry.addData("BUILD", PollenConfig.BUILD);
-        telemetry.addData("EXPERIMENTAL", secondary() ? "SECONDARY: wait for our cell UP, shoot, park"
+        telemetry.addData("RUN", run() + " / " + PollenHiveSettings.format("execution", settings.v[0]));
+        telemetry.addData("Motor limits", run()==PollenHiveAuto.Run.SHOT_ONLY?"NO DRIVE; LIVE enables launcher/feed":run()==PollenHiveAuto.Run.GARDEN_RETURN?"NO LAUNCHER/AGITATOR; LIVE adds collection intake":"Match auto: selected execution");
+        telemetry.addData("Plan", run()==PollenHiveAuto.Run.SHOT_ONLY ? "Stationary volley, then DONE; no departure"
+                : run()==PollenHiveAuto.Run.GARDEN_RETURN ? "Garden, return to S, settle, DONE; no shots or park"
+                : secondary() ? "SECONDARY: wait for our cell UP, shoot, park"
                 : "PRIMARY: shoot, garden (front intake), return, wait/shoot, park");
         telemetry.addData("SETTINGS", changed == 0 ? "all defaults" : "*** " + changed + " CHANGED FROM DEFAULT: "
                 + join(settings.values.changedSummary(), cameraSettings.changedSummary()) + " ***");
-        if (unsaved > 0) telemetry.addData("UNSAVED", unsaved + " edit(s): Square saves, Circle = all defaults");
+        if (unsaved > 0) telemetry.addData("UNSAVED", unsaved + " edit(s): Square saves, Circle = route defaults");
         telemetry.addData("Hive cell behind robot", hiveView(mount));
         telemetry.addData("Camera calibration", mount.problem().isEmpty() ? String.format(Locale.US,
                 "tilt %.1f deg, lens %.2f in", mount.tiltUpDeg, mount.lensHeightIn) : "NOT CALIBRATED - will not shoot");
@@ -97,7 +109,7 @@ public abstract class PollenHiveOpMode extends OpMode {
         for (int r = Math.max(0, Math.min(row - 3, rows() - 7)); r <= Math.min(rows() - 1, Math.max(row + 3, 6)); r++)
             telemetry.addLine((r == row ? "> " : "   ") + (r + 1) + "/" + rows() + "  "
                     + (r == settings.v.length ? "[camera] " : "") + table(r).line(index(r)));
-        telemetry.addLine("D-pad row/value, LB/RB jump 5. Triangle: row to default. Circle: ALL to default. Square: save.");
+        telemetry.addLine("D-pad row/value, LB/RB jump 5. Triangle: row to default. Circle: ROUTE defaults (keeps execution/camera). Square: save.");
         telemetry.addLine(message.isEmpty() ? loadMessage : message);
         telemetry.update();
     }
@@ -110,8 +122,8 @@ public abstract class PollenHiveOpMode extends OpMode {
         if (gamepad1.right_bumper && !rb) row = Math.min(n - 1, row + 5);
         int delta = (gamepad1.dpad_right && !right ? 1 : 0) - (gamepad1.dpad_left && !left ? 1 : 0);
         if (delta != 0) table(row).edit(index(row), delta);
-        if (gamepad1.triangle && !triangle) { table(row).reset(index(row)); message = "Row back to default (Square saves)"; }
-        if (gamepad1.circle && !circle) { settings.values.resetAll(); cameraSettings.resetAll(); message = "ALL rows back to defaults (Square saves)"; }
+        if (gamepad1.triangle && !triangle) { table(row).reset(index(row)); if(row==0) settings.v[0]=defaultExecution(); message = "Row back to default (Square saves)"; }
+        if (gamepad1.circle && !circle) { settings.values.resetExceptExecution(); message = "Route defaults restored; execution and camera kept (Square saves)"; }
         if (gamepad1.square && !square) {
             try {
                 settings.validate();
@@ -132,18 +144,14 @@ public abstract class PollenHiveOpMode extends OpMode {
         int[] allowed = IsHiveReadyForShot.allowedCells(secondary(), side);
         String prefix = side == 0 ? "" : "Side forced " + (side == 1 ? "RED" : "BLUE") + ": ";
         if (camera == null) return prefix + "NO CAMERA (" + cameraProblem + ") - will not shoot";
-        IsHiveReadyForShot.Frame f = camera.read();
-        if (f == null) return prefix + camera.status;
-        int c = IsHiveReadyForShot.nearestCluster(f, mount, allowed);
-        if (c < 0) {
-            if (allowed.length == 1) c = allowed[0];
-            else return secondary() ? "none yet (normal for SECONDARY: our cell starts DOWN)" : "NONE - check placement/camera";
+        String profile = cameraSettings.overrides().toString() + "/" + side;
+        if (initHive == null || !profile.equals(initProfile)) {
+            initProfile = profile; initHive = new IsHiveReadyForShot(mount, allowed);
         }
-        double sum = 0; int n = 0;
-        for (IsHiveReadyForShot.Tag t : f.tags) if (IsHiveReadyForShot.clusterOf(t.id) == c && mount.problem().isEmpty()) { sum += mount.heightIn(t); n++; }
-        String text = prefix + IsHiveReadyForShot.clusterName(c);
-        if (n == 0) return text + (mount.problem().isEmpty() ? ": not in view" : "");
-        return String.format(Locale.US, "%s: %s, %.1f in", text, mount.classify(sum / n), sum / n);
+        double now = clock.seconds();
+        initHive.update(camera.read(), now);
+        return prefix + IsHiveReadyForShot.clusterName(initHive.cluster()) + ": " + initHive.state(now)
+                + " / " + initHive.reason;
     }
 
     @Override public final void start() {
@@ -156,11 +164,15 @@ public abstract class PollenHiveOpMode extends OpMode {
             localizer.setPose(Pose.zero());
             IsHiveReadyForShot.Mount mount = IsHiveReadyForShot.Mount.from(cameraSettings);
             hive = new IsHiveReadyForShot(mount, IsHiveReadyForShot.allowedCells(secondary(), settings.side()));
-            auto = new PollenHiveAuto(settings, hive); auto.start(clock.seconds());
+            auto = new PollenHiveAuto(settings, hive, run());
+            try { reportFile = PollenHiveStore.newReport(run().toString().toLowerCase(Locale.US)); }
+            catch (Exception ex) { reportError = ex.toString(); }
+            record("START run=" + run() + " secondary=" + secondary() + " settings=" + settings + " camera=" + cameraSettings.overrides());
             RobotLog.ii("PollenHive", "START build=%s secondary=%s camera=%s changed=[%s] settings=%s | camera %s",
                     PollenConfig.BUILD, secondary(), camera == null ? cameraProblem : "open",
                     join(settings.values.changedSummary(), cameraSettings.changedSummary()), settings,
                     cameraSettings.overrides());
+            auto.start(clock.seconds());
         } catch (Exception ex) { fault = ex.toString(); zero(); }
     }
 
@@ -177,14 +189,15 @@ public abstract class PollenHiveOpMode extends OpMode {
             last = auto.tick(now, frame, pose[0], pose[1], pose[2], velocity, ready);
             if (settings.v[0] == 0) zero(); else {
                 double[] wheels = PollenFacing.wheelPowers(last.forward, last.strafe, last.turn);
-                for (int i = 0; i < 4; i++) drive[i].setPower(wheels[i]);
-                launcher.setVelocity(settings.v[0] == 2 ? last.launcher : 0);
+                for (int i = 0; i < 4; i++) drive[i].setPower(run()==PollenHiveAuto.Run.SHOT_ONLY?0:wheels[i]);
+                launcher.setVelocity(settings.v[0] == 2 && run()!=PollenHiveAuto.Run.GARDEN_RETURN ? last.launcher : 0);
                 intake.setPower(settings.v[0] == 2 ? last.intake : 0);
-                agitator.setPower(settings.v[0] == 2 ? last.agitator : 0);
+                agitator.setPower(settings.v[0] == 2 && run()!=PollenHiveAuto.Run.GARDEN_RETURN ? last.agitator : 0);
             }
             String event = last.phase + " / " + hive.state(now) + " / feed=" + last.feed;
             if (!event.equals(logged)) {
                 RobotLog.ii("PollenHive", "t=%.3f %s reason=%s pose=%.2f,%.2f,%.2f", now, event, last.reason, pose[0], pose[1], pose[2]);
+                record(String.format(Locale.US, "%s reason=%s poseIn=%.2f,%.2f headingDeg=%.2f", event,last.reason,pose[0],pose[1],Math.toDegrees(pose[2])));
                 logged = event;
             }
             // While shooting or waiting to shoot, log what the camera saw 5 times a second.
@@ -197,6 +210,8 @@ public abstract class PollenHiveOpMode extends OpMode {
             }
             if (now - displayAt >= .25) {
                 displayAt = now;
+                telemetry.addData("Run", run());
+                if(!reportError.isEmpty()) telemetry.addData("Report", reportError);
                 telemetry.addData("Phase", last.phase);
                 telemetry.addData("Our cell", IsHiveReadyForShot.clusterName(hive.cluster()));
                 telemetry.addData("Hive / ready", hive.state(now) + " / " + hive.isHiveReadyForShot(now));
@@ -209,6 +224,10 @@ public abstract class PollenHiveOpMode extends OpMode {
             }
         } catch (Exception ex) { fault = ex.toString(); if (auto != null) auto.stop(fault); zero(); }
     }
+    private void record(String text) {
+        try { if(reportFile!=null) PollenHiveStore.appendReport(reportFile,clock.seconds(),text); }
+        catch(Exception ex) { reportError=ex.toString(); }
+    }
     private static String join(String a, String b) { return a.isEmpty() ? b : b.isEmpty() ? a : a + ", " + b; }
     private static String nonEmpty(String s, String otherwise) { return s.isEmpty() ? otherwise : s; }
     /** Best effort stops every mapped device even if one disconnected device throws. */
@@ -216,5 +235,5 @@ public abstract class PollenHiveOpMode extends OpMode {
         for (DcMotor m : drive) if (m != null) try { m.setPower(0); } catch (RuntimeException ignored) { }
         for (DcMotor m : new DcMotor[]{launcher, intake, agitator}) if (m != null) try { m.setPower(0); } catch (RuntimeException ignored) { }
     }
-    @Override public final void stop() { if (auto != null) auto.stop("Driver STOP"); zero(); if (camera != null) camera.stop(); }
+    @Override public final void stop() { if (auto != null) auto.stop("Driver STOP"); zero(); record("STOP " + (last==null?"before run":last.phase+" "+last.reason)); if (camera != null) camera.stop(); }
 }

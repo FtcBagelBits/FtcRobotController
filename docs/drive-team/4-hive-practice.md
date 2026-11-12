@@ -1,45 +1,71 @@
-# Hive camera: calibrate, then practice
+# Hive calibration and practice
 
-**Build pollen-hive-v2, experimental.** Full guide: [POLLEN_HIVE_TESTING.md](../POLLEN_HIVE_TESTING.md). Keep the existing match autos available.
+**Build pollen-hive-v3 - experimental.** Print front/back. Full steps: `docs/POLLEN_HIVE_TESTING.md`.
+Keep existing match autos available. Rear camera/launcher face hive; **front intake faces end wall**.
 
-**Normal use: place the robot, pick the auto, INIT, START.** The robot finds **its own hive cell** from the tags straight behind it (Side AUTO), works out how **high** they are (UP cell about 49.7 in, DOWN about 35.6 in), and shoots only on a steady UP.
+<img src="img/hive-height.svg" style="width:4.3in">
 
-<img src="img/hive-height.svg" style="width:4.9in">
+## Camera setup and calibration (NO MOTORS)
 
-## Calibrate (TEST Hive camera, NO MOTORS)
+Limelight named **limelight**; USB to Hub blue port. Pipeline 0: 36h11, **82.55 mm**, full 3-D.
+Use **TEST Hive camera (NO MOTORS)**. It maps no motors or odometry and runs until STOP.
 
-| Step | Do this | Write down |
-| --- | --- | --- |
-| 1. Measure | Tape: tiles to **lens center**, and tiles to the middle of the **tag row under the UP cell**. Over 1/4 in from 14.0 / 49.7? Set that camera row in an auto's INIT menu, Square. | lens \_\_\_\_\_ in, tags \_\_\_\_\_ in |
-| 2. Tilt | Robot at **red primary start** (front on the wall, centered behind the hive). Our cell (34-37) **UP**. START. *Tags* lists 34 35 36 37. Hands off. **Square**. Wait 3 s. | tilt \_\_\_\_\_ deg, sideways \_\_\_\_\_ in |
-| 3. Check | Same spot, UP: **Circle** → PASS. Our cell **DOWN**: **Circle** → PASS (`Only 0 frames` = tags hidden, OK). Red **secondary start**: **Triangle**, cell 30-33 UP, **Circle** → PASS. | UP \_\_\_\_\_ in, DOWN \_\_\_\_\_ in, secondary \_\_\_\_\_ in |
-| 4. Save | **Cross**: saved on the Hub; both autos use it from their next INIT (shown as CHANGED). | |
-| 5. Validate | STOP, INIT, START again. No buttons: tip 20 times (**zero false UP**); cover tags; show only the other hive; unplug/replug camera; shift robot 1 in and a few degrees (still UP); rock hive slowly (UNKNOWN in between). Each start spot. | false UP: \_\_\_\_\_ |
-| Again | Camera or mount moved, or pipeline changed: Steps 2-5. **At events:** Circle at our start, our cell UP → PASS. `REJECTED ... noisy` = something moved: repeat. | |
+| Step | Do this |
+| --- | --- |
+| 1. Measure in INIT | Floor to lens center (default **14 in**); floor to UP/DOWN tag-row centers (**49.7 / 35.6 in** nominal). D-pad selects/edits camera rows. Triangle resets one row; Square saves. |
+| 2. Fit tilt | PRIMARY start, square to wall, centered. Near cell **physically UP**. START. Check correct IDs; see all four for sideways fit. Square, hands off for **3 s**. Display uses CANDIDATE. |
+| 3. Check UP | Still UP: D-pad **left**, then Circle. Hold still 3 s. Expect **PASS**. |
+| 4. Check DOWN | Tip same cell DOWN, let it settle. D-pad **right**, Circle. Expect PASS, or **BLOCKED ONLY** if tags hidden. Hidden is not a DOWN height measurement. |
+| 5. Save/reload | Cross saves after both checks. STOP / INIT / START verifies reload. Save before moving. Triangle forgets the cell/checks after changing starts. |
+
+**Cell IDs:** primary red 34-37, blue 42-45; secondary red 30-33, blue 38-41. Confirm on the real hive.
+Square starts a fresh candidate and clears checks. A rejected fit cannot save an old candidate.
+Wrong label / noisy readings / inconsistent tags = reject. Correct measurements in INIT and repeat;
+**no automatic DOWN-height adjustment**. Cross saves exactly the previewed numbers.
+
+## Validate at each shooting start
+
+- With the near cell UP, identify it, then check UP and DOWN. At secondary starts, validate the
+  same mount; do not refit sideways from the offset position.
+- Leave the display running: tip **20 times**, cover our tags while the other hive is visible,
+  unplug/replug, rock through the middle. **Zero false UPs**. UNKNOWN means no shot permission.
+- Test small placement errors, then restore S. A rigid mount, level chassis and negligible camera
+  roll are assumed. Recalibrate if mount/height/pipeline geometry changes.
+
+**Record:** lens _____ in; UP / DOWN tags _____ / _____ in; tilt _____ deg; cell IDs _____;
+false UP _____ / 20. Capture reports save automatically. The screen tests the **camera gate only**.
 
 <div class="page-break"></div>
 
-## The autos' INIT menu
+## Practice one behavior at a time
 
-| Button in INIT | Does |
+| Driver Hub mode | Default / what happens |
 | --- | --- |
-| D-pad up/down, LB/RB | Row, or jump 5 rows |
-| D-pad left/right | Change the value |
-| Triangle / Circle | This row / every row back to default |
-| Square | Save changes on the Hub (kept until reset) |
+| TEST Hive primary shot ONLY | **DRY**. No drive in any setting. LIVE fires one volley or stops at first-shot window. |
+| TEST Hive secondary shot ONLY | **DRY**. No drive. LIVE waits for UP, fires, stops. |
+| TEST Hive garden + return | **DRIVE**. No launcher/agitator. LIVE adds collection intake. Returns to S and stops, no park. |
+| EXPERIMENTAL Hive Primary + Garden | **LIVE**. Shoot, coast, collect, return, wait/shoot if UP, park. |
+| EXPERIMENTAL Hive Secondary | **LIVE**. Wait for UP, shoot, park. |
 
-Top of the screen: `SETTINGS: all defaults`, or `*** 2 CHANGED FROM DEFAULT: Side=RED, Launcher ticks/s=1200 ***`. A changed row says `** CHANGED (default 1180) **`, plus `NOT SAVED` until Square. **Before START:** *SETTINGS* lists only changes you mean; *Hive cell behind robot* names **our alliance** (secondary: "none yet" is normal); *Camera calibration* shows a tilt; *Odometry* READY.
+**Order:** camera validation; shot ONLY DRY then LIVE with a small batch; garden DRIVE without
+balls then LIVE pickup; full autos last. Someone stays on STOP. Every motor run requires Pinpoint
+READY and ends by **27 s**. DRY uses virtual launcher speed; actual LIVE shots require measured speed,
+fresh steady UP and a settled pose. Camera-only mode is the indefinite test, not DRY full auto.
 
-| Row | Default | Other values |
-| --- | --- | --- |
-| Execution | LIVE | DRY (no motors; *Feed requested* shows the shot gate), DRIVE (drivetrain only). **Never saved: every INIT is LIVE.** |
-| Side | AUTO (detect) | RED or BLUE forces that alliance's cell |
+## Motor-mode INIT menu
 
-**Practice order:** DRY, then DRIVE (no balls), then LIVE. Primary: shoot, stop flywheel, collect, return, wait/shoot, park. Secondary: wait for our cell UP, shoot, park.
+D-pad row/value; LB/RB jump five. **Triangle** resets one row. **Circle** resets route values only,
+keeping camera and Execution. **Square** saves. Execution is never saved and resets each INIT to
+the mode's default above. Saved practice settings are shared with the corresponding full auto.
+Check BUILD, run type, Execution, CHANGED values, camera profile, cell/alliance and Pinpoint READY.
 
-<img src="../POLLEN_HIVE_GARDEN.svg" style="width:5.2in;max-height:2.9in">
+<img src="../POLLEN_HIVE_GARDEN.svg" style="width:4.9in;max-height:2.7in">
 
-- **Front intake on the end wall, back (launcher, camera) to the hive.** Red shown; blue is the same setup turned 180°. No turn at E: only **1 in** to the two walls. All four balls need about **17.45 in** of centered intake width.
-- Feeding needs a fresh, steady UP, the robot settled at S, and measured launcher speed. Everything stops at **27 s**.
+Start every garden test at **S**. Heading changes aim the **front intake** toward the garden;
+return restores rear-to-hive shooting. No midrun odometry reset. No turn at E: body clearance is
+only **1 in**. Four ball centers need about **17.45 in** of centered intake width; measure actual reach.
 
-**After practice:** `adb pull /sdcard/FIRST/pollen-hive ~/Desktop/pollen-hive`, then `python3 tools/hive-promote-defaults.py ~/Desktop/pollen-hive` shows the saved changes; `--write` makes them the new defaults (test, commit, install). Pull the robot log too: `HIVE` lines show our cell, tag count, height and pose 5 times a second. **Record:** start spot, pickup count, return error, cycle time, any false UP.
+**After practice:** pull `/sdcard/FIRST/pollen-hive` with adb (settings + reports), and the Robot
+Controller log. Reports record checks, settings, phases, elapsed time and pose. Write down pickup
+count, return error, cycle time and false-UP count. Use `tools/hive-promote-defaults.py` to preview
+proven changes; `--write` promotes them. Test/build/install once after tuning, not after every run.
