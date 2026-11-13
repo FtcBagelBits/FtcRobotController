@@ -2,7 +2,7 @@
 
 Experimental hive-gated modes and garden collection: [testing guide](../../../../../../../../../docs/POLLEN_HIVE_TESTING.md). Existing match modes retain their behavior. Camera INIT edits, labeled UP/DOWN checks, candidate validation and automatic session reports support faster practice. Isolated primary/secondary shot tests never drive; garden-return never runs launcher/agitator. The hive modes find our cell from the AprilTag IDs behind the robot (Side AUTO, or forced RED/BLUE) and read UP/DOWN from the tags' height. Every hive number and its default is in `PollenHiveSettings`; INIT changes are flagged CHANGED, saved on the Hub with Square, and promoted to defaults with `tools/hive-promote-defaults.py`.
 
-Build identifier: **pollen-hive-v3** (`PollenConfig.BUILD`). The match autos are the odometry
+Build identifier: **pollen-hive-v4** (`PollenConfig.BUILD`). The match autos are the odometry
 ones (below). Three timed OpModes are kept for **emergencies only** (a match where the Pinpoint
 is not working), in the group *Pollen Emergency (timed)*: `EMERGENCY Timed Park`,
 `EMERGENCY Timed Shoot + Park`, and `EMERGENCY Timed Supporting Shooter` (before `pollen-odo-v9`
@@ -214,3 +214,5 @@ Android Studio TeamCode run configuration to the Control Hub. USB-C has not
 worked. Verify `pollen-odo-v11` in INIT. Check the actual installed commit and all
 settings before physical tests. Java changes require rebuild/reinstall; INIT
 settings and documentation edits do not.
+
+`TEST Hive pipeline benchmark` / `PollenHiveBenchmark`: no motors; automatically compare saved camera pipelines and log raw results. See `docs/POLLEN_HIVE_BENCHMARK.md`.

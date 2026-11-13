@@ -1,6 +1,9 @@
 # Hive calibration and practice
 
-Build **pollen-hive-v3**. Experimental, for field testing. Keep the existing match autos available.
+Intermittent tags? Start with the [automatic pipeline benchmark](POLLEN_HIVE_BENCHMARK.md).
+It records raw detections before calibration passes; the current confirmation rule is unchanged.
+
+Build **pollen-hive-v4**. Experimental, for field testing. Keep the existing match autos available.
 Print [the two-page practice sheet](drive-team/print/4-hive-practice.pdf). This guide explains the
 controls and checks in full; the patch kit README covers applying, building, installing and pushing.
 
@@ -23,7 +26,7 @@ Camera-only testing needs just the configured Limelight and the Hub; it does not
 
 ## Before the hive is available
 
-1. Apply/build/install the patch. Verify `BUILD pollen-hive-v3` on the Driver Hub.
+1. Apply/build/install the patch. Verify `BUILD pollen-hive-v4` on the Driver Hub.
 2. Mount the Limelight 3A rigidly on the back, looking toward the hive, with negligible camera
    roll. Measure tiles to **lens center**; 14 inches is a default, not a substitute for measuring.
 3. Connect USB-C on the Limelight to the Hub's blue USB-A 3.0 port. Configure it as `limelight`.

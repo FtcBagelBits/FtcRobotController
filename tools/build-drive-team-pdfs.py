@@ -16,7 +16,7 @@ BUILD = re.search(r'BUILD = "([^"]+)"', (ROOT / 'TeamCode/src/main/java/org/firs
 PAGES = ROOT / 'docs' / 'drive-team'
 OUT = PAGES / 'print'
 SHEETS = ['1-shoot-and-park', '2-supporting-shooter', '3-teleop',
-          'fallback-timed-autos', 'fallback-park-only', '4-hive-practice']
+          'fallback-timed-autos', 'fallback-park-only', '4-hive-practice', '5-hive-benchmark']
 
 CSS = """
 @page { size: Letter; margin: 0.45in 0.55in; }
@@ -49,7 +49,8 @@ def html_for(name):
     text = (PAGES / f'{name}.md').read_text()
     body = markdown.markdown(text, extensions=['tables', 'md_in_html'])
     base = PAGES.as_uri() + '/'
-    return (f'<!DOCTYPE html><html><head><meta charset="utf-8"><base href="{base}"><style>{CSS}</style></head>'
+    css = CSS + ('body { font-size: 10pt; line-height: 1.2; }' if name == '5-hive-benchmark' else '')
+    return (f'<!DOCTYPE html><html><head><meta charset="utf-8"><base href="{base}"><style>{css}</style></head>'
             f'<body>{body}<div class="footer">Team 31452 drive team guide - build {BUILD} - '
             f'source: docs/drive-team/{name}.md</div></body></html>')
 

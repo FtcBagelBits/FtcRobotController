@@ -1,7 +1,7 @@
 # Drive team guides
 
 For the students who run the robot at matches. Each guide prints on one sheet (the two autos and
-TeleOp front and back); the PDFs are in [print/](print/). Build `pollen-hive-v3`.
+TeleOp front and back); the PDFs are in [print/](print/). Build `pollen-hive-v4`.
 
 ## Print these for the pit (one copy each, plus one for the drive coach)
 
@@ -31,10 +31,12 @@ The experimental Hive modes use the separate Hive practice sheet; do not apply t
 1. **Agree with the partner first:** who shoots first, who parks in which slot.
 2. **Place the robot, then INIT, then press Triangle once.** Make only the changes the coach asks for.
 3. **Front flat on the wall, back (launcher) to the hive** for every auto: the robot drives its routes backward.
-4. **Check the first line, ROUTE, is the route you want**, the Build line says `pollen-hive-v3`, and Status says `READY`.
+4. **Check the first line, ROUTE, is the route you want**, the Build line says `pollen-hive-v4`, and Status says `READY`.
 5. After the match, photograph the Driver Hub screen **before** INIT on TeleOp, and tell a programmer the
    match number and what happened, especially any **Warning** on the screen.
 
 For programmers: edit these Markdown pages, then rebuild the pictures and PDFs with
 `python3 tools/draw-drive-team-figures.py && python3 tools/build-drive-team-pdfs.py`.
 The full reference is the [operating manual](../POLLEN_AUTONOMOUS.md).
+
+[Hive pipeline benchmark card](print/5-hive-benchmark.pdf): timed camera comparison and log download.

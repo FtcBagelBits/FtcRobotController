@@ -33,3 +33,5 @@ The easiest way is to copy a sample and make it your own. The samples are in the
 FtcRobotController module (Project view → `FtcRobotController/java/org.firstinspires.ftc.robotcontroller/external/samples`).
 Copy one into this folder, change its `@TeleOp(name = ...)`, and remove its `@Disabled` line so
 it shows up on the Driver Hub. Then open a pull request (see ROBOT_CONNECTION.md).
+
+`TEST Hive pipeline benchmark` / `PollenHiveBenchmark`: no motors; automatically compare saved camera pipelines and log raw results. See `docs/POLLEN_HIVE_BENCHMARK.md`.
