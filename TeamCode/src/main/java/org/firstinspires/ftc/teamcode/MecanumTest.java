@@ -8,9 +8,9 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import org.firstinspires.ftc.teamcode.pollen.PollenConfig;
 
 /*
- * MecanumTest: drives the four mecanum wheels and nothing else.
+ * MecanumTest: drives the four mecanum wheels and the Nectar intake.
  *
- * It never asks for the launcher, intake, agitator, camera or odometry, so it still runs
+ * It never asks for the launcher, agitator, camera or odometry, so it still runs
  * when those devices (or the Expansion Hub they are plugged into) are missing. It uses the
  * same motor names and directions as PollenBot (PollenConfig), so if this drives correctly,
  * the PollenBot drivetrain mapping is correct too.
@@ -18,7 +18,9 @@ import org.firstinspires.ftc.teamcode.pollen.PollenConfig;
  * Driving (gamepad 1):
  *   Left stick  = forward/back and strafe
  *   Right stick = turn
- *   Hold left trigger = slow mode
+ *   Hold L1 = slow mode (moved off L2 so the intake can use both triggers)
+ *   R2 / L2 = proportional intake forward / reverse, like PollenBot
+ *   Intake power = R2 minus L2; release both to stop
  *
  * Wheel check (gamepad 1): hold one button to spin ONE wheel forward at low power.
  * Every wheel should push the robot FORWARD. If one spins backward, its direction in
@@ -40,9 +42,17 @@ public class MecanumTest extends OpMode {
     private static final int BACK_RIGHT = 3;
 
     private final DcMotor[] drive = new DcMotor[4];
+    private DcMotor intake;
 
     @Override
     public void init() {
+        intake = hardwareMap.tryGet(DcMotor.class, "intake");
+        if (intake != null) {
+            intake.setPower(0);
+            intake.setDirection(DcMotorSimple.Direction.FORWARD);
+            intake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        }
         for (int i = 0; i < drive.length; i++) {
             // tryGet returns null instead of crashing, so a missing motor is reported below.
             drive[i] = hardwareMap.tryGet(DcMotor.class, PollenConfig.DRIVE_NAMES[i]);
@@ -58,7 +68,7 @@ public class MecanumTest extends OpMode {
     @Override
     public void init_loop() {
         showMotors();
-        telemetry.addLine("Drivetrain only: launcher, intake and agitator are not used.");
+        telemetry.addLine("Drive + intake only. R2 = intake; L2 = reverse; L1 = slow drive.");
     }
 
     @Override
@@ -86,21 +96,36 @@ public class MecanumTest extends OpMode {
             // so the robot still moves in the direction the stick points.
             double max = 1.0;
             for (double p : power) max = Math.max(max, Math.abs(p));
-            double scale = (gamepad1.left_trigger > 0 ? SLOW_SPEED : 1.0) / max;
+            double scale = (gamepad1.left_bumper ? SLOW_SPEED : 1.0) / max;
             for (int i = 0; i < power.length; i++) power[i] *= scale;
 
-            telemetry.addData("Mode", gamepad1.left_trigger > 0 ? "SLOW" : "full speed");
+            telemetry.addData("Mode", gamepad1.left_bumper ? "SLOW" : "full speed");
         }
 
         for (int i = 0; i < drive.length; i++) {
             if (drive[i] != null) drive[i].setPower(power[i]);
             telemetry.addData(PollenConfig.DRIVE_NAMES[i] + " power", "%.2f", power[i]);
         }
+        // Same manual intake control as PollenBot; Nectar has no launcher feed boost.
+        double intakePower = gamepad1.right_trigger - gamepad1.left_trigger;
+        if (intake != null) intake.setPower(intakePower);
+        telemetry.addData("Intake command (R2 - L2)", "%.2f", intakePower);
         showMotors();
+    }
+
+    @Override
+    public void stop() {
+        if (intake != null) intake.setPower(0);
+        for (DcMotor motor : drive) {
+            if (motor != null) motor.setPower(0);
+        }
     }
 
     /** Shows each drive motor and where the SDK found it, or MISSING. */
     private void showMotors() {
+        telemetry.addData("intake", intake == null
+                ? "MISSING - not in the active configuration"
+                : intake.getConnectionInfo());
         for (int i = 0; i < drive.length; i++) {
             String name = PollenConfig.DRIVE_NAMES[i];
             if (drive[i] == null) {
