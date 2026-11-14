@@ -48,6 +48,32 @@ class BenchmarkTest(unittest.TestCase):
         self.assertEqual(r['false_up_polls'], 2)
         self.assertGreater(r['ready_time_pct_est'], 0)
 
+    def test_hold_time_needs_frames_closer_than_the_gate_hold(self):
+        # Usable frames at 0, 0.1 and 0.5 s of a 1 s trial; the gate holds 0.2 s after each one.
+        r = m.summarize(self.start(), 1, [self.sample(0), self.sample(.1), self.sample(.5)], {'miss_hold': .2}, 'test', True)
+        self.assertEqual(r['hold_time_pct'], 50)          # 0.1 + 0.2 + 0.2 s
+        self.assertEqual(self.summary([])['hold_time_pct'], 0)
+
+    def test_wrong_pipeline_polls_are_counted(self):
+        wrong = dict(self.sample(.1, False, False, False), decode_error='Wrong pipeline')
+        self.assertEqual(self.summary([self.sample(0), wrong])['wrong_pipeline_polls'], 1)
+
+    def test_pipelines_ranked_and_false_up_rejected(self):
+        def trial(pipeline, label, samples):
+            start = dict(self.start(label), pipeline=pipeline)
+            return m.summarize(start, 1, samples, {'miss_hold': .2}, 'run.jsonl', True)
+        steady = [self.sample(t / 10) for t in range(10)]
+        sparse = [self.sample(0), self.sample(.5)]
+        rows = [trial(0, 'UP', sparse), trial(0, 'DOWN', []),
+                trial(1, 'UP', steady), trial(1, 'DOWN', []),
+                trial(2, 'UP', steady), trial(2, 'DOWN', [self.sample(0, state='UP')])]
+        groups = m.by_pipeline(rows)
+        self.assertEqual([g['pipeline'] for g in groups], [1, 0, 2])
+        self.assertEqual(groups[0]['up_hold_pct'], 100)
+        self.assertEqual(groups[1]['up_hold_pct'], 40)
+        self.assertIn('REJECT', groups[2]['notes'])
+        self.assertIn('no camera frames', groups[1]['notes'])  # its DOWN trial had none
+
     def test_partial_file_preserves_data(self):
         with tempfile.TemporaryDirectory() as folder:
             p = Path(folder)/'hive-test.jsonl'

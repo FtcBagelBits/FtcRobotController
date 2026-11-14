@@ -1,14 +1,15 @@
 # Hive pipeline benchmark
 
-**Build pollen-hive-v5. Camera only: no motors or odometry.** Full instructions and export commands:
+**Build pollen-hive-v6. Camera only: no motors or odometry.** Full instructions and export commands:
 `docs/POLLEN_HIVE_BENCHMARK.md`. Print this sheet for practice.
 
 ## First prove logging works
 
-Select **TEST Hive pipeline benchmark**. INIT: saved pipeline only, **Passes 1 / Seconds 5**,
-correct cell ID. START waits. Settle our cell UP, tap **LEFT**; at WAIT settle it DOWN, tap **RIGHT**.
-At DONE, STOP and download. Confirm a raw JSONL file and summary exist before longer trials.
-Calibration need not have passed; verify the saved lens height is your measured height.
+Select **TEST Hive pipeline benchmark** in the **TeleOp list** (group *Pollen Hive*; no 30-second
+timer there). INIT: saved pipeline only, **Passes 1 / Seconds 5**, correct cell ID. START waits.
+Settle our cell UP, tap **LEFT**; at WAIT settle it DOWN, tap **RIGHT**. At DONE, STOP and download.
+Confirm results print and a raw JSONL file exists before longer trials. This needs no hive: do it
+before field time if you can. Calibration need not have passed; verify the saved lens height.
 
 ## Prepare profiles once on the Mac
 
@@ -27,10 +28,11 @@ switching. Save and export tested profiles, then reconnect camera to Hub. No edi
 Use supported values. Already at a limit? Omit that variant or document a gain change instead.
 Save the exports: pipeline numbers alone do not identify the settings.
 
-## Full run: four confirmations, about 7 minutes 20 seconds
+## Screening run: two confirmations, about 2 minutes
 
-INIT D-pad up/down selects, left/right edits. Set **First 0 / Last 4 / Passes 2 / Seconds 20**,
-correct near cell and scenario. Rear camera faces hive from the actual shooting position.
+INIT D-pad up/down selects, left/right edits. Set **First 0 / Last 4 / Passes 1 / Seconds 10**,
+correct near cell and scenario. INIT shows the trials and time. Rear camera faces hive from the
+actual shooting position. Then repeat the best one or two with **First = Last, Passes 2 / Seconds 20**.
 
 | Near cell | First ID |
 | --- | --- |
@@ -40,12 +42,11 @@ correct near cell and scenario. Rear camera faces hive from the actual shooting 
 START waits for you. **Only move the hive at WAIT.** Let it stop rocking before each press.
 
 1. Our near cell **UP**: **LEFT** once; hold still while all profiles run.
-2. WAIT: same cell **DOWN**: **RIGHT** once; hold still.
-3. WAIT: **UP / LEFT**; hold still. Second pass reverses profile order.
-4. WAIT: **DOWN / RIGHT**; hold still. At DONE press **STOP**.
+2. WAIT: same cell **DOWN**: **RIGHT** once; hold still. At DONE press **STOP**.
+3. With Passes 2: WAIT, **UP / LEFT**, then WAIT, **DOWN / RIGHT**. The second pass reverses the order.
 
-Each profile gets 2 seconds settle + 20 seconds capture. **Circle cancels a mislabeled run**;
-STOP/restart. ERROR: stop and fix it. No counting hits or copying telemetry.
+Each profile gets 2 seconds settle on its own pipeline + the capture time. **Circle cancels a
+mislabeled run**; STOP/restart. ERROR: stop and fix it. No counting hits or copying telemetry.
 
 ## Download and choose what to test next
 
@@ -53,8 +54,9 @@ Mac on Control Hub Wi-Fi, from repo root (new folder name each time):
 
 `bash tools/hive-benchmark-download.sh "$HOME/Desktop/hive-session-01"`
 
-Send the **ZIP plus tested pipeline exports**. Compare UP usable FPS, gaps and ready-time;
-any UP during settled DOWN needs investigation. Test winners at the secondary start and small
+The results print best pipeline first. Choose by **UP hold %**, then usable fps (ready % once
+calibrated); gaps under 0.20 s; **any UP during settled DOWN rejects a pipeline**. Put the **ZIP
+plus tested pipeline exports** in the team Drive folder (too big for Discord). Test winners at the secondary start and small
 placement offsets in separate fixed runs. Finish calibration and tipping checks before LIVE shots.
 
 **Limits:** raw logs work without valid tilt; readiness does not. Static trials do not certify

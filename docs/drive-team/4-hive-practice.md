@@ -1,6 +1,6 @@
 # Hive calibration and practice
 
-**Build pollen-hive-v5 - experimental.** Print front/back. Full steps: `docs/POLLEN_HIVE_TESTING.md`.
+**Build pollen-hive-v6 - experimental.** Print front/back. Full steps: `docs/POLLEN_HIVE_TESTING.md`.
 Keep existing match autos available. Rear camera/launcher face hive; **front intake faces end wall**.
 
 <img src="img/hive-height.svg" style="width:4.3in">
@@ -10,7 +10,7 @@ For intermittent tags, run **TEST Hive pipeline benchmark** first (separate benc
 ## Camera setup and calibration (NO MOTORS)
 
 Limelight named **limelight**; USB to Hub blue port. Pipeline 0: 36h11, **82.55 mm**, full 3-D.
-Use **TEST Hive camera (NO MOTORS)**. It maps no motors or odometry and runs until STOP.
+Use **TEST Hive camera (NO MOTORS)**, in the **TeleOp list**. It maps no motors or odometry and runs until STOP.
 
 | Step | Do this |
 | --- | --- |

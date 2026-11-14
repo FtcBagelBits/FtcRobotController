@@ -1,14 +1,16 @@
 package org.firstinspires.ftc.teamcode.pollen;
 
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.RobotLog;
 import java.io.File;
 import java.util.Locale;
 
-/** Camera setup, labeled checks and continuous readiness display. Never maps a motor or odometry. */
-@Autonomous(name = "TEST Hive camera (NO MOTORS)", group = "Pollen Hive")
+/** Camera setup, labeled checks and continuous readiness display. Never maps a motor or odometry.
+ * It is in the Driver Station's TeleOp list on purpose: the Driver Station stops an Autonomous
+ * OpMode after 30 seconds unless its timer is switched off, and these checks take longer. */
+@TeleOp(name = "TEST Hive camera (NO MOTORS)", group = "Pollen Hive")
 public final class PollenHiveCheck extends OpMode {
     private final ElapsedTime clock = new ElapsedTime();
     private final PollenHiveSettings.Values settings = new PollenHiveSettings.Values(PollenHiveSettings.CAMERA, false);

@@ -1,17 +1,20 @@
 # Hive pipeline benchmark: collect evidence with four button presses
 
-Build **pollen-hive-v5**. Start here when tag detection is intermittent. This adds a camera-only
+Build **pollen-hive-v6**. Start here when tag detection is intermittent. This adds a camera-only
 experiment; it does not change the autonomous routes, calibration thresholds, or shooting gate.
 The earlier calibration and practice instructions remain in [POLLEN_HIVE_TESTING.md](POLLEN_HIVE_TESTING.md).
 
 ## What to prepare tonight
 
 Run the computer tests and build the APK from the current branch. You do not need the camera for
-that. Install when the Control Hub is available. Check **pollen-hive-v5**.
+that. Install when the Control Hub is available. Check **pollen-hive-v6**.
 Print [the benchmark card](drive-team/print/5-hive-benchmark.pdf). Bring the Mac, normal Limelight
 data cable, and measured lens height. Have Python 3 and adb available before practice.
 
-The new Driver Hub mode is **TEST Hive pipeline benchmark**. It maps only `limelight`: no motors,
+The new Driver Hub mode is **TEST Hive pipeline benchmark**. **It is in the TeleOp list** (the
+right-hand menu, group *Pollen Hive*), and so is **TEST Hive camera (NO MOTORS)**: the Driver Hub
+stops an Autonomous OpMode after 30 seconds unless its timer is switched off, and these run for
+minutes. It maps only `limelight`: no motors,
 launcher or odometry. You can use it before calibration passes. An unset tilt produces UNKNOWN
 readiness, but raw detection and camera-space poses are still useful and are saved.
 
@@ -37,9 +40,11 @@ export fallback if an endpoint is unavailable on your installed version.
 
 1. Rear camera faces our near hive cell from the actual shooting position. Keep mounting height,
    aim, robot position and lighting fixed. Confirm the printed IDs of that cell once.
-2. Install v4. In TEST Hive camera INIT, verify/save your measured lens height (14 in is only the default).
-   Select **TEST Hive pipeline benchmark**. INIT defaults to the saved production
+2. Install v6. In TEST Hive camera INIT, verify/save your measured lens height (14 in is only the default).
+   Select **TEST Hive pipeline benchmark** (TeleOp list). INIT defaults to the saved production
    pipeline only. Set **Passes = 1**, **Seconds = 5**, and **Our cell first ID** correctly.
+   The smoke test does not need the hive: it proves logging and downloading with the camera
+   pointed anywhere, so do it before the field time starts if the robot is available.
 3. START. Put our cell physically UP, wait for it to stop rocking, tap **D-pad LEFT**. Do not move
    it until the screen says WAIT. Then put the same cell DOWN, let it settle, tap **RIGHT**.
 4. At DONE press STOP. Download using the command below. Verify a summary and raw `.jsonl` exist.
@@ -119,8 +124,12 @@ over the robot's calibration. START waits; it does not start a countdown you hav
 3. At the next WAIT repeat **UP / LEFT**, then **DOWN / RIGHT**.
 4. At DONE press STOP. The next pass reverses pipeline order to reduce simple order effects.
 
-Each trial excludes 2 seconds after switching, then records 20 seconds, starting with a fresh
-readiness detector. Opposite-direction buttons are ignored at WAIT; label presses during a trial
+Each trial waits until the camera is sending frames from the requested pipeline, excludes the
+next 2 seconds, then records 20 seconds, starting with a fresh readiness detector. (A pipeline
+that sends nothing for 10 seconds is recorded anyway and shows up as zero frames.) A pipeline
+switch that the camera does not accept is tried three times before the run stops with ERROR.
+INIT shows the number of trials and the recording time for the rows you picked; the screen
+counts trials during the run. First can never be after Last: the row you edit moves the other. Opposite-direction buttons are ignored at WAIT; label presses during a trial
 are ignored. **Circle cancels a run if you moved the hive early or gave the wrong label.** STOP and
 restart; the file is marked incomplete. Do not relabel a moving hive as already settled.
 
@@ -128,8 +137,10 @@ The mode returns the camera to the pipeline in the saved robot camera settings a
 reports a failed restore; if that happens select the saved pipeline manually before another mode.
 It never promotes the winning settings or changes shot permission automatically.
 
-For a faster screening run, use one pass and 10 seconds/profile (2 minutes for five). Then spend
-longer on the best two. Compare usable frames/second and readiness, not hit percentage alone: a
+**Start with a screening run: one pass and 10 seconds/profile (2 minutes for five).** Then spend
+longer on the best one or two (First = Last selects a single pipeline). The full two-pass,
+20-second run of five pipelines writes a log of very roughly 100-200 MB (an estimate from a
+simulated camera; it grows with the number of tags in view), which is slow to download. Compare usable frames/second and readiness, not hit percentage alone: a
 slow high-resolution pipeline may find more tags per frame but still provide fewer useful updates.
 
 ## Download one bundle and send it back
@@ -143,7 +154,9 @@ bash tools/hive-benchmark-download.sh "$HOME/Desktop/hive-session-01"
 
 Default adb device is `192.168.43.1:5555`. Supply a second argument for a different device. The
 script pulls `/sdcard/FIRST/pollen-hive`, saves available logcat and checkout identity, runs the
-analyzer, and creates **hive-session-01.zip**. Upload that ZIP **and the tested pipeline export
+analyzer, **prints the results** and creates **hive-session-01.zip**. Every download pulls every
+log still on the Hub, so the ZIP grows through the day; it is too big for Discord, so put it in
+the team Drive folder. Upload that ZIP **and the tested pipeline export
 folder/files**. No need to read or transcribe the telemetry. Pipeline exports need a separate
 camera connection only when preparing/changing profiles, not for every run.
 
@@ -165,7 +178,17 @@ by the robot, not every sensor frame the camera produced.** The report separates
 rate from useful frame rate and long dropouts. No video is captured; a single photo of the mount
 and view is useful if the numeric results remain puzzling.
 
-The CSV reports each trial separately: raw correct-cell hit %, usable %, fresh/usable FPS,
+The results start with one line per pipeline, best first (also saved as `pipelines.csv`):
+- **UP hold %**: how much of the UP time was within 0.20 s after a frame that showed our tags.
+  The gate keeps UP for that long after a sighting, so this is the most the robot could have
+  been allowed to shoot. It needs no calibration: use it to choose a pipeline first.
+- **UP ready %**: how much of the UP time the real gate said UP. It needs a calibrated tilt
+  (it is 0 until then) and is the number that matters once calibration is done.
+- **DOWN false UP**: must be 0. A pipeline that reported UP while the cell was DOWN is listed
+  last and marked REJECT.
+- Notes flag a trial with no camera frames, or with polls from another pipeline.
+
+`trials.csv` reports each trial separately: raw correct-cell hit %, usable %, fresh/usable FPS,
 longest no-usable-frame gap (including start/end), sampled ready-time %, first-ready delay, DOWN
 false-UP polls, height mean/SD, rejected polls and loop gaps. Ready-time is conservatively sampled:
 a sample covers at most 50 ms, so long code stalls do not look like continuous successful tracking.
@@ -174,8 +197,8 @@ tags agree on UP or that readiness was granted. An incomplete run is not validat
 
 ## Spend the remaining hive time on the best candidates
 
-- First choose candidates that improve **UP usable FPS and readiness availability**, with short
-  gaps. Any confirmed UP while the same cell is physically settled DOWN is a failure to investigate.
+- First choose candidates by **UP hold %, then UP usable FPS** (and ready %, once calibrated),
+  with gaps under 0.20 s. Any confirmed UP while the same cell is physically settled DOWN is a failure to investigate.
 - Re-run the winner at the secondary shooting start, selecting its correct cell and Scenario.
   Test modest left/right placement changes with the corresponding Scenario values. Keep each run
   fixed; do not move during a block. Use First = Last to select a single candidate.

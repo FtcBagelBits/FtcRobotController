@@ -18,11 +18,13 @@ def main():
         parser.error('Use a hostname or IPv4 address without scheme, port or path')
     args.out.mkdir(parents=True, exist_ok=False)
     errors = {}
+    # The camera is plugged straight into this Mac: never send these requests through a web proxy.
+    opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
     routes = {f'pipeline-{i}.json': f'/pipeline-atindex?index={i}' for i in range(10)}
     routes.update({'status.json': '/status', 'hwreport.json': '/hwreport', 'cal-file.json': '/cal-file', 'cal-eeprom.json': '/cal-eeprom'})
     for filename, route in routes.items():
         try:
-            with urllib.request.urlopen(f'http://{args.host}:5807{route}', timeout=3) as response:
+            with opener.open(f'http://{args.host}:5807{route}', timeout=3) as response:
                 data = json.load(response)
             (args.out/filename).write_text(json.dumps(data, indent=2)+'\n')
             print('Saved', filename)

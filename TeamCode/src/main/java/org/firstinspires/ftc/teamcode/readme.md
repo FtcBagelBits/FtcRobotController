@@ -34,4 +34,4 @@ FtcRobotController module (Project view → `FtcRobotController/java/org.firstin
 Copy one into this folder, change its `@TeleOp(name = ...)`, and remove its `@Disabled` line so
 it shows up on the Driver Hub. Then open a pull request (see ROBOT_CONNECTION.md).
 
-`TEST Hive pipeline benchmark` / `PollenHiveBenchmark`: no motors; automatically compare saved camera pipelines and log raw results. See `docs/POLLEN_HIVE_BENCHMARK.md`.
+`TEST Hive pipeline benchmark` / `PollenHiveBenchmark` (TeleOp list, like `TEST Hive camera`, so the 30-second autonomous timer cannot stop it): no motors; automatically compare saved camera pipelines and log raw results. See `docs/POLLEN_HIVE_BENCHMARK.md`.

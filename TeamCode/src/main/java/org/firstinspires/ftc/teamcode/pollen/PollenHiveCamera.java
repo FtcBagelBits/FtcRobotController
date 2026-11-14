@@ -25,8 +25,16 @@ public final class PollenHiveCamera {
     public int pipeline() { return pipeline; }
     public void setPipeline(int pipeline) {
         this.pipeline = pipeline;
-        if (!camera.pipelineSwitch(pipeline)) throw new IllegalStateException("Limelight rejected pipeline switch");
+        if (!switchPipeline(camera, pipeline)) throw new IllegalStateException("Limelight rejected pipeline switch");
     }
+    /** A pipeline switch is one web request to the camera, and it fails if the camera is busy for
+     * a moment. Ask up to three times: one lost request should not leave an auto without its
+     * camera, or end a benchmark run. */
+    static boolean switchPipeline(Limelight3A camera, int pipeline) {
+        for (int attempt = 1; attempt <= SWITCH_ATTEMPTS; attempt++) if (camera.pipelineSwitch(pipeline)) return true;
+        return false;
+    }
+    static final int SWITCH_ATTEMPTS = 3;
     /** Latest fresh frame (possibly with no tags), or null if the camera is stale/disconnected. */
     public IsHiveReadyForShot.Frame read() {
         try {

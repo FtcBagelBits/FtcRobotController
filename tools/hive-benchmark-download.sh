@@ -24,4 +24,6 @@ if ! python3 "$(dirname "$0")/hive-benchmark-analyze.py" "$out/pollen-hive" --ou
   echo "Analysis could not finish; raw logs are preserved. See analysis-output.txt." >&2
 fi
 (cd "$(dirname "$out")" && zip -qr "$(basename "$out").zip" "$(basename "$out")")
-printf 'Download complete: %s.zip\nAlso upload the pipeline export folder.\n' "$out"
+# Show the results now, so the next test can be chosen without opening any files.
+cat "$out/analysis/summary.md" 2>/dev/null || cat "$out/analysis-output.txt"
+printf '\nDownload complete: %s.zip (%s)\nAlso upload the pipeline export folder.\n' "$out" "$(du -h "$out.zip" | cut -f1)"

@@ -9,7 +9,12 @@ public final class PollenHiveBenchmarkPlan {
     public int block, slot;
     public double since;
     public String error = "";
+    /** Every trial waits this long on its own pipeline before recording starts. */
     public static final double SETTLE_SECONDS = 2;
+    /** Longest wait for the first frame from a newly selected pipeline. After that the trial is
+     * recorded anyway, and shows up in the results as zero frames. */
+    public static final double SWITCH_LIMIT_SECONDS = 10;
+    private double switchedAt;
     public PollenHiveBenchmarkPlan(int first, int last, int repeats, double seconds) {
         if (first < 0 || last > 9 || first > last || repeats < 1 || repeats > 5
                 || !Double.isFinite(seconds) || seconds < 5 || seconds > 60)
@@ -27,7 +32,18 @@ public final class PollenHiveBenchmarkPlan {
     public void switched(boolean ok, double now) {
         if (phase != Phase.SWITCH) return;
         if (!ok) { fail("Pipeline switch rejected"); return; }
-        phase = Phase.SETTLE; since = now;
+        phase = Phase.SETTLE; since = switchedAt = now;
+    }
+    /** Call every loop. Until the camera sends a frame from the requested pipeline, the settle
+     * time starts over, so a slow switch (for example a resolution change) cannot put the previous
+     * pipeline's frames, or a gap with no frames, into this trial's recording. */
+    public void settle(boolean cameraOnPipeline, double now) {
+        if (phase == Phase.SETTLE && !cameraOnPipeline && now - switchedAt < SWITCH_LIMIT_SECONDS) since = now;
+    }
+    public int trials() { return (last - first + 1) * repeats * 2; }
+    /** Recording plus settle time for the whole run, without the time spent tipping the hive. */
+    public static double plannedSeconds(int first, int last, int repeats, double seconds) {
+        return (last - first + 1) * repeats * 2 * (SETTLE_SECONDS + seconds);
     }
     public void tick(double now) {
         if (phase == Phase.SETTLE && now - since >= SETTLE_SECONDS) { phase = Phase.RECORD; since = now; }

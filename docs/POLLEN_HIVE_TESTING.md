@@ -3,7 +3,7 @@
 Intermittent tags? Start with the [automatic pipeline benchmark](POLLEN_HIVE_BENCHMARK.md).
 It records raw detections before calibration passes; the current confirmation rule is unchanged.
 
-Build **pollen-hive-v5**. Experimental, for field testing. Keep the existing match autos available.
+Build **pollen-hive-v6**. Experimental, for field testing. Keep the existing match autos available.
 Print [the two-page practice sheet](drive-team/print/4-hive-practice.pdf). This guide explains the
 controls and checks in full; the patch kit README covers applying, building, installing and pushing.
 
@@ -11,7 +11,7 @@ controls and checks in full; the patch kit README covers applying, building, ins
 
 | Driver Hub entry (Pollen Hive group) | INIT default | Motor permissions and end condition |
 | --- | --- | --- |
-| TEST Hive camera (NO MOTORS) | No execution row | Never maps motors or odometry. Continuous camera readiness until STOP. |
+| TEST Hive camera (NO MOTORS) | No execution row | In the **TeleOp list** (no 30-second timer). Never maps motors or odometry. Continuous camera readiness until STOP. |
 | TEST Hive primary shot ONLY | DRY | No drive in any execution setting. LIVE enables launcher and feed. One volley or primary window, then DONE. |
 | TEST Hive secondary shot ONLY | DRY | No drive. LIVE enables launcher and feed. Waits for UP, one volley, then DONE; 27 s limit. |
 | TEST Hive garden + return | DRIVE | No launcher or agitator in any setting. LIVE adds collection intake. Returns to original S and stops; no shot/park. |
@@ -26,7 +26,7 @@ Camera-only testing needs just the configured Limelight and the Hub; it does not
 
 ## Before the hive is available
 
-1. Apply/build/install the patch. Verify `BUILD pollen-hive-v5` on the Driver Hub.
+1. Apply/build/install the patch. Verify `BUILD pollen-hive-v6` on the Driver Hub.
 2. Mount the Limelight 3A rigidly on the back, looking toward the hive, with negligible camera
    roll. Measure tiles to **lens center**; 14 inches is a default, not a substitute for measuring.
 3. Connect USB-C on the Limelight to the Hub's blue USB-A 3.0 port. Configure it as `limelight`.

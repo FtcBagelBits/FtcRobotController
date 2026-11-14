@@ -2,17 +2,25 @@ package org.firstinspires.ftc.teamcode.pollen;
 
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import java.io.*;
+import java.util.Locale;
+import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 /** No motors, odometry, auto permission changes, or camera-setting writes. Only switches saved
- * pipelines. Buffered JSONL includes every sampled result, including stale/invalid/empty polls. */
-@Autonomous(name = "TEST Hive pipeline benchmark", group = "Pollen Hive")
+ * pipelines. Buffered JSONL includes every sampled result, including stale/invalid/empty polls.
+ * It is in the Driver Station's TeleOp list on purpose: the Driver Station stops an Autonomous
+ * OpMode after 30 seconds unless its timer is switched off, and a run takes minutes. */
+@TeleOp(name = "TEST Hive pipeline benchmark", group = "Pollen Hive")
 public final class PollenHiveBenchmark extends OpMode {
+    /** Stop recording before one run's log gets this big (about 1 byte per character). A full
+     * five-pipeline run is very roughly 100-200 MB (estimated with a simulated camera; it grows
+     * with the number of tags the camera sees). */
+    private static final long MAX_LOG_BYTES = 500L * 1024 * 1024;
     private final ElapsedTime clock = new ElapsedTime();
     private final PollenHiveSettings.Values settings = new PollenHiveSettings.Values(PollenHiveSettings.CAMERA, false);
     private final String[] names = {"First pipeline", "Last pipeline", "Passes (UP + DOWN)", "Seconds per pipeline", "Our cell first ID", "Scenario"};
@@ -41,12 +49,19 @@ public final class PollenHiveBenchmark extends OpMode {
         if (gamepad1.dpad_down && !down) row = (row + 1) % names.length;
         int delta = (gamepad1.dpad_right && !right ? 1 : 0) - (gamepad1.dpad_left && !left ? 1 : 0);
         values[row] = Math.max(min[row], Math.min(max[row], values[row] + delta * step[row]));
+        // First can never be after Last: the row being edited drags the other one along.
+        if (values[0] > values[1]) { if (row == 0) values[1] = values[0]; else values[0] = values[1]; }
         buttons();
         telemetry.addData("BUILD", PollenConfig.BUILD);
         telemetry.addLine("CAMERA ONLY. D-pad row/value. Configure saved pipeline slots first.");
         for (int i = 0; i < names.length; i++) telemetry.addData((i == row ? "> " : "") + names[i],
                 i == 5 ? SCENARIOS[values[i]] : Integer.toString(values[i]));
         telemetry.addData("Cell", IsHiveReadyForShot.clusterName(values[4]));
+        double planned = PollenHiveBenchmarkPlan.plannedSeconds(values[0], values[1], values[2], values[3]);
+        telemetry.addData("This run", "%d trials, %d min %02d s of recording plus the time to tip the hive",
+                (values[1] - values[0] + 1) * values[2] * 2, (int) planned / 60, (int) planned % 60);
+        telemetry.addData("Hub storage free", "%.1f GB (a full run is about 0.1-0.2 GB)",
+                AppUtil.FIRST_FOLDER.getUsableSpace() / 1e9);
         telemetry.addData("Camera settings", message);
         telemetry.addData("Readiness calibration", IsHiveReadyForShot.Mount.from(settings).problem());
         telemetry.addLine("Uncalibrated? Raw detection still records. Readiness will be UNKNOWN.");
@@ -70,7 +85,8 @@ public final class PollenHiveBenchmark extends OpMode {
                     .put("scenario", SCENARIOS[values[5]]).put("first", values[0]).put("last", values[1])
                     .put("passes", values[2]).put("seconds", values[3]).put("poll_hz", 50)
                     .put("confirm_frames", IsHiveReadyForShot.CONFIRM_FRAMES)
-                    .put("confirm_seconds", IsHiveReadyForShot.CONFIRM_SECONDS).put("max_age", IsHiveReadyForShot.MAX_AGE));
+                    .put("confirm_seconds", IsHiveReadyForShot.CONFIRM_SECONDS).put("max_age", IsHiveReadyForShot.MAX_AGE)
+                    .put("miss_hold", IsHiveReadyForShot.MISS_HOLD).put("settle_seconds", PollenHiveBenchmarkPlan.SETTLE_SECONDS));
             camera = hardwareMap.get(Limelight3A.class, "limelight");
             camera.setPollRateHz(50); camera.start();
             message = "Recording ready. Follow the physical-label prompt; hold still through each block.";
@@ -90,7 +106,7 @@ public final class PollenHiveBenchmark extends OpMode {
             buttons();
             if (plan.phase == PollenHiveBenchmarkPlan.Phase.SWITCH) {
                 switched = true;
-                boolean ok = camera.pipelineSwitch(plan.pipeline());
+                boolean ok = PollenHiveCamera.switchPipeline(camera, plan.pipeline());
                 plan.switched(ok, clock.seconds());
                 if (!ok) throw new IOException("Camera rejected pipeline " + plan.pipeline());
                 detector = new IsHiveReadyForShot(mount, values[4]);
@@ -98,6 +114,8 @@ public final class PollenHiveBenchmark extends OpMode {
                 event("trial", clock.seconds());
             }
             now = clock.seconds();
+            // lastStamp is set by the first new frame from the requested pipeline after a switch.
+            plan.settle(Double.isFinite(lastStamp), now);
             PollenHiveBenchmarkPlan.Phase before = plan.phase;
             if (before == PollenHiveBenchmarkPlan.Phase.RECORD && now - plan.since >= plan.seconds)
                 event("record_end", now);
@@ -118,7 +136,7 @@ public final class PollenHiveBenchmark extends OpMode {
                 sample(now);
             }
             if (now - flushAt >= 1 && writer != null) { writer.flush(); flushAt = now; }
-            if (bytes > 250L * 1024 * 1024) throw new IOException("250 MiB run limit reached; STOP and download");
+            if (bytes > MAX_LOG_BYTES) throw new IOException("Log size limit reached; STOP and download. Trials recorded so far are kept");
             if (plan.phase == PollenHiveBenchmarkPlan.Phase.DONE || plan.phase == PollenHiveBenchmarkPlan.Phase.ERROR) restore();
         } catch (Exception ex) { fail(ex); }
         if (now >= nextDisplay) { nextDisplay = now + .25; display(); }
@@ -173,13 +191,13 @@ public final class PollenHiveBenchmark extends OpMode {
     private static Object finite(double d) { return Double.isFinite(d) ? d : JSONObject.NULL; }
     private void write(JSONObject obj) throws IOException {
         if (writer == null) throw new IOException("Log is not open");
-        String s = obj.toString(); writer.write(s); writer.newLine(); bytes += s.length() * 2L;
+        String s = obj.toString(); writer.write(s); writer.newLine(); bytes += s.length() + 1;
     }
     private void buttons() { left = gamepad1.dpad_left; right = gamepad1.dpad_right; up = gamepad1.dpad_up; down = gamepad1.dpad_down; }
     private void restore() {
         if (!switched || camera == null) return;
         switched = false;
-        restore = camera.pipelineSwitch(originalPipeline) ? "restored saved pipeline " + originalPipeline : "FAILED: select saved pipeline manually";
+        restore = PollenHiveCamera.switchPipeline(camera, originalPipeline) ? "restored saved pipeline " + originalPipeline : "FAILED: select saved pipeline manually";
     }
     private void fail(Exception ex) {
         message = "STOP: " + ex.toString();
@@ -190,12 +208,18 @@ public final class PollenHiveBenchmark extends OpMode {
         telemetry.addData("BUILD", PollenConfig.BUILD);
         telemetry.addData("Phase", plan == null ? "ERROR" : plan.phase);
         if (plan != null) {
-            telemetry.addData("Physical label", plan.expected() + " / " + IsHiveReadyForShot.clusterName(values[4]));
+            if (plan.phase == PollenHiveBenchmarkPlan.Phase.DONE)
+                telemetry.addLine("ALL " + plan.trials() + " TRIALS RECORDED. Press STOP, then download.");
+            else telemetry.addData("Physical label", plan.expected() + " / " + IsHiveReadyForShot.clusterName(values[4]));
             if (plan.phase == PollenHiveBenchmarkPlan.Phase.WAIT)
                 telemetry.addLine("MOVE ONLY NOW; let hive settle. " + (plan.expected().equals("UP") ? "LEFT confirms UP" : "RIGHT confirms DOWN"));
             else if (plan.phase == PollenHiveBenchmarkPlan.Phase.RECORD || plan.phase == PollenHiveBenchmarkPlan.Phase.SETTLE) {
-                telemetry.addData("Hold still", "pipeline " + plan.pipeline() + "; pass " + plan.pass() + "/" + plan.repeats);
-                telemetry.addData("Seconds remaining", Math.max(0, (plan.phase == PollenHiveBenchmarkPlan.Phase.SETTLE ? 2 : plan.seconds) - (clock.seconds() - plan.since)));
+                boolean settling = plan.phase == PollenHiveBenchmarkPlan.Phase.SETTLE;
+                telemetry.addData("Hold still", "trial " + (plan.trial() + 1) + " of " + plan.trials()
+                        + ": pipeline " + plan.pipeline() + ", pass " + plan.pass() + "/" + plan.repeats);
+                telemetry.addData(settling ? "Settling, seconds left" : "Recording, seconds left", String.format(Locale.US, "%.0f",
+                        Math.max(0, (settling ? PollenHiveBenchmarkPlan.SETTLE_SECONDS : plan.seconds) - (clock.seconds() - plan.since))));
+                if (settling && !Double.isFinite(lastStamp)) telemetry.addLine("Waiting for the camera's first frame from pipeline " + plan.pipeline());
             }
             telemetry.addData("Fresh/raw cell/usable", fresh + " / " + rawHits + " / " + usable);
             telemetry.addData("Last rejection", decodeError);
@@ -209,6 +233,9 @@ public final class PollenHiveBenchmark extends OpMode {
         telemetry.update();
     }
     @Override public void stop() {
+        // Save what was recorded before talking to the camera again: a camera that does not
+        // answer must not cost us the log.
+        try { if (writer != null) writer.flush(); } catch (Exception ex) { message = "LOG FLUSH FAILED: " + ex; }
         try { restore(); } catch (Exception ex) { restore = ex.toString(); }
         if (camera != null) camera.stop();
         if (writer != null) {
