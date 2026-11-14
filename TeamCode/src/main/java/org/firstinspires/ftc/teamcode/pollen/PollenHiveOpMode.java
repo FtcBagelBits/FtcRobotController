@@ -39,7 +39,7 @@ public abstract class PollenHiveOpMode extends OpMode {
     private String fault, logged = "";
     private int row;
     private boolean up, down, left, right, lb, rb, square, triangle, circle;
-    private double displayAt = -1, hiveLogAt = -1;
+    private double displayAt = -1, hiveLogAt = -1, hiveLogStamp = Double.NaN;
 
     private String fileName() { return secondary() ? PollenHiveStore.SECONDARY : PollenHiveStore.PRIMARY; }
     private int rows() { return settings.v.length + cameraSettings.v.length; }
@@ -200,13 +200,15 @@ public abstract class PollenHiveOpMode extends OpMode {
                 record(String.format(Locale.US, "%s reason=%s poseIn=%.2f,%.2f headingDeg=%.2f", event,last.reason,pose[0],pose[1],Math.toDegrees(pose[2])));
                 logged = event;
             }
-            // While shooting or waiting to shoot, log what the camera saw 5 times a second.
+            // While shooting or waiting to shoot, log what the camera saw on every new camera frame, with
+            // feed and launcher speed, so misses caused by our own balls or vibration show up in the log.
             boolean shooting = last.phase.startsWith("FIRST") || last.phase.startsWith("SECOND") || last.phase.startsWith("SETTLE");
-            if (shooting && now - hiveLogAt >= .2) {
-                hiveLogAt = now;
-                RobotLog.ii("PollenHive", "t=%.3f HIVE cell=%d tags=%d height=%.1fin sideways=%.1fin state=%s reason=%s pose=%.2f,%.2f,%.1fdeg",
-                        now, hive.cluster(), hive.lastTagCount, hive.lastHeightIn, hive.lastSidewaysIn, hive.state(now),
-                        hive.reason, pose[0], pose[1], Math.toDegrees(pose[2]));
+            double stamp = frame == null ? Double.NaN : frame.stamp;
+            if (shooting && (frame == null ? now - hiveLogAt >= .2 : stamp != hiveLogStamp)) {
+                hiveLogAt = now; hiveLogStamp = stamp;
+                RobotLog.ii("PollenHive", "t=%.3f HIVE stamp=%.1f cell=%d tags=%d height=%.1fin sideways=%.1fin state=%s feed=%s launcher=%.0f reason=%s pose=%.2f,%.2f,%.1fdeg",
+                        now, stamp, hive.cluster(), hive.lastTagCount, hive.lastHeightIn, hive.lastSidewaysIn, hive.state(now),
+                        last.feed, velocity, hive.reason, pose[0], pose[1], Math.toDegrees(pose[2]));
             }
             if (now - displayAt >= .25) {
                 displayAt = now;

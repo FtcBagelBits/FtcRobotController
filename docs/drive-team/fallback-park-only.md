@@ -27,4 +27,4 @@ the robot's back where you want it to go, so that straight behind it is clear an
 how far to set the distance for that start. Don't drive the straight diagonal from the middle of
 the audience wall: it hits the hive frame.
 
-Check for **Build `pollen-hive-v4`** and `READY - waiting for START` before START.
+Check for **Build `pollen-hive-v5`** and `READY - waiting for START` before START.

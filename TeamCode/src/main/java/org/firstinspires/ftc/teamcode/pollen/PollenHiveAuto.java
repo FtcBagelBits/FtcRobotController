@@ -98,7 +98,8 @@ public final class PollenHiveAuto {
                     if(run==Run.GARDEN_RETURN) return stop("Garden returned and settled at S");
                     enter(Phase.SECOND,now);
                 }
-                else if(now-phaseAt>1.5) return stop("Return pose did not settle");
+                // Off the shot pose: skip the second shot but still park (park() stops in practice runs).
+                else if(now-phaseAt>1.5) park(now,"Return pose did not settle; second shot skipped");
                 break;
             default: break;
         }

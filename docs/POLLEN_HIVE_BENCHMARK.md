@@ -1,14 +1,13 @@
 # Hive pipeline benchmark: collect evidence with four button presses
 
-Build **pollen-hive-v4**. Start here when tag detection is intermittent. This adds a camera-only
+Build **pollen-hive-v5**. Start here when tag detection is intermittent. This adds a camera-only
 experiment; it does not change the autonomous routes, calibration thresholds, or shooting gate.
 The earlier calibration and practice instructions remain in [POLLEN_HIVE_TESTING.md](POLLEN_HIVE_TESTING.md).
 
 ## What to prepare tonight
 
-Apply the accompanying mail patch on a new branch from the pushed `pollen-hive-ready` commit
-`ab7d23b72feb98eedde68fe3a80276f1f0baf4db`. Run the computer tests and build the APK. You do not
-need the camera for that. Install when the Control Hub is available. Check **pollen-hive-v4**.
+Run the computer tests and build the APK from the current branch. You do not need the camera for
+that. Install when the Control Hub is available. Check **pollen-hive-v5**.
 Print [the benchmark card](drive-team/print/5-hive-benchmark.pdf). Bring the Mac, normal Limelight
 data cable, and measured lens height. Have Python 3 and adb available before practice.
 
@@ -187,8 +186,12 @@ tags agree on UP or that readiness was granted. An incomplete run is not validat
   becomes shootable. This benchmark does not certify transition behavior or feeder timing.
 - Once detection is reliable, the raw logs let us compare alternative confirmation rules offline.
   Do not lower the production gate just to make calibration pass. The present gate requires four
-  fresh agreeing frames **and** at least 0.15 seconds of agreement, with no intervening unknown;
-  high frame rates therefore need more than four successive hits. Calibration's hold-rate test
+  fresh frames showing our tags that agree **and** at least 0.15 seconds of agreement. A frame
+  without our tags neither counts nor resets (for up to 0.20 s after the last sighting); a
+  between-bands, disagreeing or opposite reading resets at once.
+  Ready-time from runs before **pollen-hive-v5** used the old rule (any missed frame reset);
+  the session line records the build, so compare ready-time only within one build. Hit rate,
+  usable FPS and gaps do not depend on the rule. Calibration's hold-rate test
   is a separate condition.
 
 No access to the hive again? Keep the raw logs, exports and measurements. They let us distinguish

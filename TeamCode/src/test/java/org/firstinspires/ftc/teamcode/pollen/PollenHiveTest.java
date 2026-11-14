@@ -75,6 +75,80 @@ public final class PollenHiveTest {
         IsHiveReadyForShot.Mount off=new IsHiveReadyForShot.Mount(14,35,-4,49.7,35.6,3,12.5);
         check(IsHiveReadyForShot.nearestCluster(frame(1,49.7,off),off)==34,"Sideways correction keeps our cell");
     }
+    /** A frame without our tags (ball in flight, blur) is not evidence; a contradicting frame is. */
+    private static void missesVsContradictions() {
+        IsHiveReadyForShot.Frame none;
+        IsHiveReadyForShot h=new IsHiveReadyForShot(M,34);
+        for(int i=1;i<=12;i++) h.update(frame(i,true),i*.02);
+        check(h.isHiveReadyForShot(.24),"Stable UP");
+        h.update(new IsHiveReadyForShot.Frame(13),.26); check(h.isHiveReadyForShot(.26)&&h.reason.startsWith("Holding UP"),"One missed frame keeps permission: "+h.reason);
+        h.update(new IsHiveReadyForShot.Frame(14,tag(42,49.7,25,40,M)),.28); check(h.isHiveReadyForShot(.28),"Only the other hive in view is a miss, not permission from it");
+        h.update(frame(15,true),.30); check(h.isHiveReadyForShot(.30),"Sighting after a miss continues");
+        for(int i=16;i<=40;i++) { h.update(new IsHiveReadyForShot.Frame(i),.30+(i-15)*.02); if(.30+(i-15)*.02>.50+1e-9) check(!h.isHiveReadyForShot(.30+(i-15)*.02),"Hidden cell loses permission after MISS_HOLD"); }
+        check(h.state(.80)==IsHiveReadyForShot.State.UNKNOWN&&h.reason.contains("not in view"),"Long miss is UNKNOWN: "+h.reason);
+        // Hold never outlives the last sighting, even if update stops being called.
+        h=new IsHiveReadyForShot(M,34);
+        for(int i=1;i<=12;i++) h.update(frame(i,true),i*.02);
+        h.update(new IsHiveReadyForShot.Frame(13),.40);
+        check(h.isHiveReadyForShot(.40)&&!h.isHiveReadyForShot(.4401),"Getter expires MISS_HOLD after the last sighting, not the last empty frame");
+        // A contradiction during a hold revokes at once.
+        h=new IsHiveReadyForShot(M,34);
+        for(int i=1;i<=12;i++) h.update(frame(i,true),i*.02);
+        h.update(new IsHiveReadyForShot.Frame(13),.26); h.update(frame(14,42.6,M),.28);
+        check(!h.isHiveReadyForShot(.28),"Between-bands frame after a miss revokes");
+        h.update(new IsHiveReadyForShot.Frame(15),.30); h.update(frame(16,true),.32);
+        check(!h.isHiveReadyForShot(.32),"Re-confirmation needed after a contradiction");
+        h=new IsHiveReadyForShot(M,34);
+        for(int i=1;i<=12;i++) h.update(frame(i,true),i*.02);
+        h.update(new IsHiveReadyForShot.Frame(13),.26); h.update(frame(14,false),.28);
+        check(!h.isHiveReadyForShot(.28),"DOWN frame after a miss revokes");
+        // Confirmation counts sightings through misses; it still needs CONFIRM_FRAMES and CONFIRM_SECONDS.
+        h=new IsHiveReadyForShot(M,34);
+        double first=Double.NaN;
+        for(int i=1;i<=40;i++) { double t=i*.02; h.update(i%2==0?frame(i,true):new IsHiveReadyForShot.Frame(i),t); if(h.isHiveReadyForShot(t)&&Double.isNaN(first)) first=t; }
+        check(Math.abs(first-.20)<1e-9,"Alternate hit/miss: sightings at .04-.16 s; 0.15 s of agreement first holds at .20: "+first);
+        h=new IsHiveReadyForShot(M,34);
+        for(int i=1;i<=3;i++) h.update(frame(i,true),i*.02);
+        for(int i=4;i<=20;i++) h.update(new IsHiveReadyForShot.Frame(i),i*.02);
+        h.update(frame(21,true),.42);
+        check(!h.isHiveReadyForShot(.42),"Gap longer than MISS_HOLD restarts confirmation");
+        // Camera faults still forget at once.
+        h=new IsHiveReadyForShot(M,34);
+        for(int i=1;i<=12;i++) h.update(frame(i,true),i*.02);
+        h.update(null,.26); check(!h.isHiveReadyForShot(.26),"Missing camera result is a fault, not a miss");
+        // Side AUTO identification also tolerates misses but not the other cell.
+        h=new IsHiveReadyForShot(M,IsHiveReadyForShot.allowedCells(false,0));
+        for(int i=1;i<=8;i++) h.update(i%2==0?frame(i,true):new IsHiveReadyForShot.Frame(i),i*.02);
+        check(h.cluster()==34,"Identification survives interleaved misses");
+        h=new IsHiveReadyForShot(M,IsHiveReadyForShot.allowedCells(false,0));
+        for(int i=1;i<=3;i++) h.update(frame(i,true),i*.02);
+        h.update(new IsHiveReadyForShot.Frame(4,tag(42,49.7,1,40,M)),.08);
+        h.update(frame(5,true),.10);
+        check(h.cluster()<0,"Another allowed cell in between restarts identification");
+        // Auto: one occluded frame during a volley does not stop the feed.
+        PollenHiveRoute c=new PollenHiveRoute(true); c.v[0]=2; c.v[21]=0;
+        PollenHiveAuto a=new PollenHiveAuto(c,hive()); a.start(0);
+        PollenHiveAuto.Output o=null;
+        for(int i=1;i<=40;i++) o=a.tick(i*.02,frame(i,true),0,0,0,1180,true);
+        check(o.feed,"Feeding");
+        o=a.tick(.82,new IsHiveReadyForShot.Frame(41),0,0,0,1180,true); check(o.feed,"Ball in front of the tags for one frame: still feeding");
+        o=a.tick(.84,frame(42,42.6,M),0,0,0,1180,true); check(!o.feed,"Tipping frame stops the feed");
+    }
+    private static void unsettledReturnParks() {
+        PollenHiveRoute c=new PollenHiveRoute(false); c.v[0]=2;
+        PollenHiveAuto a=new PollenHiveAuto(c,hive()); a.start(0);
+        PollenOdometryTest.SimRobot robot=new PollenOdometryTest.SimRobot();
+        PollenHiveAuto.Output o=null; double off=0; boolean secondFeed=false; Set<String> phases=new HashSet<>();
+        for(int i=1;i<=1400;i++) {
+            double t=i*.02;
+            o=a.tick(t,frame(i,true),robot.x+off,robot.y,robot.h,o==null?0:o.launcher,true);
+            if(o.phase.equals("SETTLE")) off=1; // odometry/robot ends 1 in off the shot pose
+            phases.add(o.phase.split(":")[0]); secondFeed|=o.phase.equals("SECOND")&&o.feed;
+            robot.step(o.forward,o.strafe,o.turn,false,.02);
+            if(o.finished) break;
+        }
+        check(phases.contains("SETTLE")&&!secondFeed&&o.finished&&o.reason.equals("Finished departure"),"Unsettled return skips the second shot and still parks: "+o.reason+" "+phases);
+    }
     private static PollenHiveCalibration capture(boolean tilt, IsHiveReadyForShot.Mount mount,
             IsHiveReadyForShot.State expected, double actualHeight) {
         PollenHiveCalibration c=new PollenHiveCalibration(tilt,mount,expected,34);
@@ -301,7 +375,7 @@ public final class PollenHiveTest {
     }
     private static PollenHiveAuto.Output oDummy;
     public static void main(String[] args) {
-        classifier(); calibration(); sides(); settings(); routes(); secondaryGates(); primaryCycle(false,false); primaryCycle(false,true); primaryCycle(true,false); slowLauncherBudget(); motionFaults(); practice();
+        classifier(); missesVsContradictions(); unsettledReturnParks(); calibration(); sides(); settings(); routes(); secondaryGates(); primaryCycle(false,false); primaryCycle(false,true); primaryCycle(true,false); slowLauncherBudget(); motionFaults(); practice();
         System.out.println("PASS PollenHiveTest: "+checks+" checks");
     }
 }

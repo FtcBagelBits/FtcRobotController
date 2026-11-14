@@ -68,7 +68,7 @@ Then make only the changes the coach asks for. A different wait is a *Start dela
 | Line | Should say |
 | --- | --- |
 | **ROUTE** (the first line) | `SUPPORT PARK: wait, shoot, then park in the outer slot` |
-| Build | `pollen-hive-v4` |
+| Build | `pollen-hive-v5` |
 | Mode | `ODOMETRY Supporting Shooter` |
 | Odometry x fwd / y left / heading | numbers near 0 (not `NOT VALID`) |
 | Start delay seconds | `12.00` |

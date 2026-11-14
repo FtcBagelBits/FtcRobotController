@@ -3,7 +3,7 @@
 Intermittent tags? Start with the [automatic pipeline benchmark](POLLEN_HIVE_BENCHMARK.md).
 It records raw detections before calibration passes; the current confirmation rule is unchanged.
 
-Build **pollen-hive-v4**. Experimental, for field testing. Keep the existing match autos available.
+Build **pollen-hive-v5**. Experimental, for field testing. Keep the existing match autos available.
 Print [the two-page practice sheet](drive-team/print/4-hive-practice.pdf). This guide explains the
 controls and checks in full; the patch kit README covers applying, building, installing and pushing.
 
@@ -26,7 +26,7 @@ Camera-only testing needs just the configured Limelight and the Hub; it does not
 
 ## Before the hive is available
 
-1. Apply/build/install the patch. Verify `BUILD pollen-hive-v4` on the Driver Hub.
+1. Apply/build/install the patch. Verify `BUILD pollen-hive-v5` on the Driver Hub.
 2. Mount the Limelight 3A rigidly on the back, looking toward the hive, with negligible camera
    roll. Measure tiles to **lens center**; 14 inches is a default, not a substitute for measuring.
 3. Connect USB-C on the Limelight to the Hub's blue USB-A 3.0 port. Configure it as `limelight`.
@@ -53,9 +53,13 @@ reset. START uses the displayed settings even if not yet saved.
 | Sideways correction | 0 in | Fitted with tilt if at least 10 accepted frames see all four tags. |
 | Pipeline / band / max sideways | 0 / +/-3 in / 12.5 in | Keep unless field evidence supports changing them. |
 
-Enter measurements rather than rounding them to the nominal field values. A one-inch lens-height
-error shifts every computed height by one inch. If a check reports a height mismatch, fix the
-physical measurements in this menu and repeat calibration. **There is no automatic DOWN-height
+Enter measurements rather than rounding them to the nominal field values. The tilt fit absorbs a
+lens-height error where it was fitted: with the lens entered 1 in wrong, heights read correctly at
+the fitting distance and about 0.5 in off at 1.5 times that distance (error = lens error x
+(1 - distance / fitting distance)). The DOWN check at the same spot cannot see a lens-height error;
+the check at the other start can. A DOWN height mismatch points at the UP/DOWN tag-height entries
+(a 1 in UP-entry error shows as 1 in on DOWN) or at the tag size setting (a 10% pose-scale error
+shows as about 1.4 in), not at the lens. Fix the measurements in this menu and repeat calibration. **There is no automatic DOWN-height
 rewrite**: changing it to fit a bad camera estimate can conceal a calibration problem.
 
 ## First calibration: one mode, three short captures
@@ -106,14 +110,18 @@ checks, then leave the mode running for the following tests. Secondary IDs: red 
 **38-41**. Use Triangle after changing starts; keep the robot square and correctly placed.
 
 - Tip the hive 20 times. **Zero false UPs** while physically DOWN or tipping. Allow the detector's
-  confirmation delay before expecting UP; losing freshness removes permission within its expiry
-  window, not necessarily on the very same video frame.
+  confirmation delay before expecting UP. A frame that shows our tags between the bands removes
+  permission on that frame; frames that show no tags at all keep it for up to 0.20 s after the
+  last sighting. Write down any tip where the tags vanished without a between-bands reading.
 - Cover our tags while the other hive stays visible. Read UNKNOWN / false, never permission from
   the other hive. Unplug/replug the camera and verify recovery needs fresh confirmations.
 - Move the robot roughly one inch and a few degrees around the shooting position. Verify UP still
   works. Restore the exact starting placement before motion tests.
 - Rock slowly through a tip. Verify UNKNOWN in the transition. Recheck with launcher vibration
   during the stationary shot test; static-camera success alone does not establish live reliability.
+  The shot modes log a `HIVE` line for every new camera frame while shooting (tags seen, height,
+  state, feed, launcher speed). Pull logcat after a LIVE shot test: a drop in `tags=` right after
+  `feed=true` means our own balls or vibration hide the tags.
 
 A height transform remains valid across position/yaw changes **only with a level chassis, rigid
 mount, negligible unmodeled roll, and correct tag pose scale**. Recalibrate after moving the mount,
@@ -177,8 +185,11 @@ vertical displacement to inches after rotating by measured camera pitch:
 
 The camera is mounted on the rear; that changes viewing direction, not this vertical transform.
 The state classifier requires the accepted visible tags of our locked cell to agree. A state
-needs at least four distinct frames over 0.15 s and expires 0.20 s after the last new frame.
-A contradicting observation revokes UP immediately. Uncalibrated, invalid, missing or inconsistent
+needs at least four distinct frames showing our tags over 0.15 s, and expires 0.20 s after the
+last new frame or the last frame that showed our tags. A contradicting observation (between bands,
+tags that disagree, the other state) revokes UP immediately and restarts confirmation. A new frame
+without our tags (ball in flight, blur, glare) is not a contradiction: it neither counts nor
+resets, until 0.20 s have passed since the last sighting. Uncalibrated, invalid, missing or inconsistent
 observations produce UNKNOWN. Only UP grants camera readiness. Camera input rejects wrong pipeline,
 invalid poses, duplicate IDs, stale SDK results and excessive total image latency.
 

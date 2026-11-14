@@ -12,14 +12,23 @@ import java.util.Locale;
  *    behind the robot, locked the first time it is seen steadily after START. Side RED or BLUE:
  *    the cell is fixed from the start.
  * 2. HOW HIGH. The Limelight reports each tag's position from the lens in metres: x right, y down,
- *    z out of the lens. With the lens height and the camera's upward tilt (both in PollenConfig,
- *    measured with TEST Hive camera) that gives the tag's height above the tiles:
+ *    z out of the lens. With the lens height and the camera's upward tilt (camera rows of
+ *    PollenHiveSettings; tilt fitted with TEST Hive camera) that gives the tag's height above the tiles:
  *        height = lensHeight + z*sin(tilt) - y*cos(tilt)
  *    Yaw/position do not change this height. It assumes a level chassis, a rigid mount,
  *    negligible camera roll and correctly scaled AprilTag poses.
  * 3. UP OR DOWN. An UP cell's tags are about 49.7 in above the tiles and a DOWN cell's about
  *    35.6 in (field CAD). Inside the UP band = UP, inside the DOWN band = DOWN, anything else
  *    (tipping, wrong tag, not calibrated, no tags) = UNKNOWN. Only a steady, fresh UP allows a shot.
+ * 4. MISSING IS NOT CONTRARY. Three kinds of frame are treated differently:
+ *    - CONTRADICTION (our tags seen between the bands, tags that disagree, the other state):
+ *      takes permission away on that frame and restarts confirmation.
+ *    - MISS (a new frame without our cell's tags: a ball in flight, blur, glare): no evidence
+ *      either way. Keeps the state and confirmation progress, but only until MISS_HOLD after the
+ *      last frame that did show our tags. That is the same 0.2 s a frozen camera already gets.
+ *    - CAMERA FAULT (no frame, invalid frame, clock or camera restart): forgets everything.
+ *    Without this, one missed frame cancelled permission and the next four frames had to
+ *    re-confirm, so 90% per-frame detection fed only about 40-60% of the time.
  *
  * Call update every loop and ask isHiveReadyForShot with the current time; never cache the answer.
  */
@@ -27,7 +36,11 @@ public final class IsHiveReadyForShot {
     public enum State { UP, DOWN, UNKNOWN }
     /** UP/DOWN expires this long after the last new camera frame (seconds). */
     public static final double MAX_AGE = 0.20;
-    /** A state counts only after this many new frames in a row agree, over at least this long. */
+    /** A frame without our tags keeps the state until this long after the last frame that showed
+     * them (seconds). A contradicting frame still revokes at once. */
+    public static final double MISS_HOLD = MAX_AGE;
+    /** A state counts only after this many frames showing our tags agree, with no contradiction
+     * in between and no gap longer than MISS_HOLD, over at least this long. */
     public static final int CONFIRM_FRAMES = 4;
     public static final double CONFIRM_SECONDS = 0.15;
     public static final double METRES_TO_INCHES = 1 / 0.0254;
@@ -143,7 +156,7 @@ public final class IsHiveReadyForShot {
     private final Mount mount;
     private final int[] allowed;
     private int cluster = -1, candidateCluster = -1, clusterCount;
-    private double lastStamp = Double.NaN, lastFresh = Double.NEGATIVE_INFINITY, since;
+    private double lastStamp = Double.NaN, lastFresh = Double.NEGATIVE_INFINITY, lastSeen = Double.NEGATIVE_INFINITY, since;
     private State state = State.UNKNOWN, candidate = State.UNKNOWN;
     private int count;
     /** Why the state is what it is, for telemetry and the robot log. */
@@ -161,7 +174,7 @@ public final class IsHiveReadyForShot {
     public int cluster() { return cluster; }
     /** Forgets UP/DOWN (e.g. while driving), keeps which cell is ours. */
     public void reset() {
-        state = candidate = State.UNKNOWN; count = 0; lastFresh = Double.NEGATIVE_INFINITY;
+        state = candidate = State.UNKNOWN; count = 0; lastFresh = lastSeen = Double.NEGATIVE_INFINITY;
         if (cluster < 0) { candidateCluster = -1; clusterCount = 0; }
     }
 
@@ -172,7 +185,7 @@ public final class IsHiveReadyForShot {
         if (f.stamp == lastStamp) { reason = "Waiting for new camera frame"; return; }
         if (Double.isFinite(lastStamp) && f.stamp < lastStamp) reset(); // camera restarted
         lastStamp = f.stamp; lastFresh = now;
-        if (cluster < 0 && !identify(f)) return;
+        if (cluster < 0 && !identify(f, now)) return;
         clearLast();
         State observed = null;
         double sum = 0;
@@ -191,13 +204,13 @@ public final class IsHiveReadyForShot {
         }
         if (lastTagCount > 0 && problem.isEmpty()) lastHeightIn = sum / lastTagCount;
         if (!problem.isEmpty()) { state = State.UNKNOWN; candidate = State.UNKNOWN; count = 0; reason = problem; return; }
-        if (observed == null) observed = State.UNKNOWN;
+        if (lastTagCount == 0) { miss(now); return; }
+        lastSeen = now;
         // A frame that is not the current state takes permission away at once.
         if (observed != state) state = State.UNKNOWN;
         if (observed == State.UNKNOWN) {
             candidate = State.UNKNOWN; count = 0;
-            reason = lastTagCount == 0 ? "Our cell's tags not in view"
-                    : String.format(Locale.US, "Between bands: %.1f in", lastHeightIn);
+            reason = String.format(Locale.US, "Between bands: %.1f in", lastHeightIn);
             return;
         }
         if (observed != candidate) { candidate = observed; count = 1; since = now; } else count++;
@@ -206,10 +219,25 @@ public final class IsHiveReadyForShot {
                 observed, lastHeightIn);
     }
 
-    /** Lock our cell after it is the nearest cell in CONFIRM_FRAMES new frames in a row. */
-    private boolean identify(Frame f) {
+    /** A new frame without our cell's tags: hold, unless the last sighting is too old. */
+    private void miss(double now) {
+        if (now - lastSeen > MISS_HOLD) {
+            state = candidate = State.UNKNOWN; count = 0;
+            reason = "Our cell's tags not in view";
+        } else reason = String.format(Locale.US, "Holding %s: our tags missed for %.2f s",
+                state != State.UNKNOWN ? state : candidate == State.UNKNOWN ? "UNKNOWN" : "confirming " + candidate,
+                now - lastSeen);
+    }
+
+    /** Lock our cell after it is the nearest cell in CONFIRM_FRAMES frames that show an allowed cell,
+     * with no other cell in between and no gap longer than MISS_HOLD. */
+    private boolean identify(Frame f, double now) {
         int c = nearestCluster(f, mount, allowed);
-        if (c < 0) { clusterCount = 0; candidateCluster = -1; clearLast(); reason = "Looking for our hive cell"; return false; }
+        if (c < 0) {
+            if (now - lastSeen > MISS_HOLD) { clusterCount = 0; candidateCluster = -1; }
+            clearLast(); reason = "Looking for our hive cell"; return false;
+        }
+        lastSeen = now;
         if (c != candidateCluster) { candidateCluster = c; clusterCount = 1; } else clusterCount++;
         if (clusterCount < CONFIRM_FRAMES) { clearLast(); reason = "Identifying " + clusterName(c); return false; }
         cluster = c;
@@ -218,7 +246,8 @@ public final class IsHiveReadyForShot {
     private void clearLast() { lastHeightIn = Double.NaN; lastSidewaysIn = Double.NaN; lastTagCount = 0; }
 
     public State state(double now) {
-        return Double.isFinite(now) && now >= lastFresh && now - lastFresh <= MAX_AGE ? state : State.UNKNOWN;
+        return Double.isFinite(now) && now >= lastFresh && now - lastFresh <= MAX_AGE
+                && now - lastSeen <= MISS_HOLD ? state : State.UNKNOWN;
     }
     public boolean isHiveReadyForShot(double now) { return state(now) == State.UP; }
 }
