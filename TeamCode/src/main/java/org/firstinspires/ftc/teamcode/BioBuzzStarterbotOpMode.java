@@ -31,6 +31,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.pollen.PollenConfig;
@@ -122,6 +123,22 @@ public class BioBuzzStarterbotOpMode extends OpMode {
     // Create a variable to set to the intake.
     double intakePower;
 
+    private static final String SERVO_NAME    = "pollenDrainer";
+    private static final double UP_POSITION   = 0.55;
+    private static final double DOWN_POSITION = 0.02;
+    private static final double STEP          = 0.01;
+
+    private Servo armServo;
+
+    // Tracks where we told the servo to go
+    private double armPosition = UP_POSITION;
+    private boolean isUp = false;
+
+    // Used so holding a button only acts once, not every loop
+    private boolean aWasPressed = false;
+    private boolean upWasPressed = false;
+    private boolean downWasPressed = false;
+
     /*
      * Code to run ONCE when the driver hits INIT
      */
@@ -140,6 +157,7 @@ public class BioBuzzStarterbotOpMode extends OpMode {
         agitator = hardwareMap.get(DcMotor.class, "agitator");
         intake = hardwareMap.get(DcMotor.class, "intake");
         launcher = hardwareMap.get(DcMotorEx.class, "pollenLauncher");
+        armServo = hardwareMap.get(Servo.class, SERVO_NAME);
 //        leftIntakeServo = hardwareMap.get(CRServo.class, "leftIntakeServo");
 //        rightIntakeServo = hardwareMap.get(CRServo.class, "rightIntakeServo");
 
@@ -233,6 +251,8 @@ public class BioBuzzStarterbotOpMode extends OpMode {
     @Override
     public void start() {
         tuning.lock();
+        //Start in the DOWN position
+        armServo.setPosition(armPosition);
     }
 
     /*
@@ -292,6 +312,33 @@ public class BioBuzzStarterbotOpMode extends OpMode {
         intake.setPower(intakePower);
 //        leftIntakeServo.setPower(intakePower);
 //        rightIntakeServo.setPower(intakePower);
+
+        // D-pad: nudge the position one STEP, only on the moment it is first pressed
+        boolean upIsPressed = gamepad1.dpad_up;
+        if (upIsPressed && !upWasPressed) {
+            armPosition += STEP;
+        }
+        upWasPressed = upIsPressed;
+
+        boolean downIsPressed = gamepad1.dpad_down;
+        if (downIsPressed && !downWasPressed) {
+            armPosition -= STEP;
+        }
+        downWasPressed = downIsPressed;
+
+        // A button: toggle, but only on the moment it is first pressed
+        boolean aIsPressed = gamepad1.a;
+        if (aIsPressed && !aWasPressed) {
+            isUp = !isUp;
+            armPosition = isUp ? UP_POSITION : DOWN_POSITION;
+        }
+        aWasPressed = aIsPressed;
+
+        // Keep the position inside the servo's 0.0 - 1.0 range
+        armPosition = Math.max(0.0, Math.min(1.0, armPosition));
+
+        // Send the servo to the chosen position
+        armServo.setPosition(armPosition);
 
         /*
          * Show motor powers on the Driver Station via telemetry.
