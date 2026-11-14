@@ -16,6 +16,9 @@ public class PollenTests {
     @Test public void hiveBenchmark() { PollenHiveBenchmarkTest.main(NO_ARGS); }
     @Test public void hiveCameraJson() throws Exception { PollenHiveCameraTest.main(NO_ARGS); }
 
+    @Test public void hiveDiagnostics() throws Exception { PollenHiveDiagnosticsTest.main(NO_ARGS); }
+    @Test public void hiveHardware() { PollenHiveHardwareTest.main(NO_ARGS); }
+
     @Test public void hive() { PollenHiveTest.main(NO_ARGS); }
 
     private static final String[] NO_ARGS = {};

@@ -188,7 +188,7 @@ public final class IsHiveReadyForShot {
         if (cluster < 0 && !identify(f, now)) return;
         clearLast();
         State observed = null;
-        double sum = 0;
+        double sum = 0, low = Double.POSITIVE_INFINITY, high = Double.NEGATIVE_INFINITY;
         String problem = mount.problem();
         for (Tag t : f.tags) {
             // Our cell's tags are straight behind; one far to the side means we're not where we think.
@@ -198,7 +198,7 @@ public final class IsHiveReadyForShot {
             if (!(Math.abs(side) >= Math.abs(lastSidewaysIn))) lastSidewaysIn = side; // most central tag
             if (!problem.isEmpty()) continue;
             double h = mount.heightIn(t);
-            sum += h;
+            sum += h; low=Math.min(low,h); high=Math.max(high,h);
             State s = mount.classify(h);
             observed = observed == null || observed == s ? s : State.UNKNOWN; // tags must agree
         }
@@ -210,7 +210,7 @@ public final class IsHiveReadyForShot {
         if (observed != state) state = State.UNKNOWN;
         if (observed == State.UNKNOWN) {
             candidate = State.UNKNOWN; count = 0;
-            reason = String.format(Locale.US, "Between bands: %.1f in", lastHeightIn);
+            reason = String.format(Locale.US, "Tags disagree/outside bands: %.1f-%.1f in (mean %.1f)", low, high, lastHeightIn);
             return;
         }
         if (observed != candidate) { candidate = observed; count = 1; since = now; } else count++;

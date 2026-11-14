@@ -1,5 +1,7 @@
 # Hive calibration and practice
 
+For the v7 motion investigation and exact retest order, see [Hive auto diagnostics](POLLEN_HIVE_DIAGNOSTICS.md).
+
 Intermittent tags? Start with the [automatic pipeline benchmark](POLLEN_HIVE_BENCHMARK.md).
 It records raw detections before calibration passes; the current confirmation rule is unchanged.
 

@@ -6,13 +6,13 @@ public final class PollenHiveMotion {
     public static final class Output {
         public double forward,strafe,turn;
         public boolean done,collect;
-        public String phase="",fault;
+        public String phase="",fault,detail="";
     }
     private final PollenHiveRoute.Node[] nodes;
     private int index;
     private double began,previous=Double.NaN,px,py,ph,progressAt,progressX,progressY,progressH;
     private boolean newNode=true;
-    private String fault;
+    private String fault,detail="";
     public PollenHiveMotion(PollenHiveRoute.Node[] nodes) { this.nodes=nodes; }
     public Output tick(double now,double x,double y,double h) {
         Output o=new Output();
@@ -28,6 +28,9 @@ public final class PollenHiveMotion {
         previous=now; px=x; py=y; ph=h;
         double distance=Math.hypot(n.x-x,n.y-y), error=PollenOdometryDrive.wrap(h-n.h);
         double elapsed=now-began;
+        detail=String.format(java.util.Locale.US,"node=%s target_in=%.2f/%.2f target_deg=%.2f distance_in=%.2f heading_error_deg=%.2f node_s=%.3f no_progress_s=%.3f",
+                n.name,n.x,n.y,Math.toDegrees(n.h),distance,Math.toDegrees(error),elapsed,now-progressAt);
+        o.detail=detail;
         if(n.seconds>0) {
             if(distance>.75||Math.abs(error)>Math.toRadians(3)) return fail("Collection hold pose drift");
             if(elapsed>=n.seconds) return advance(o);
@@ -60,5 +63,5 @@ public final class PollenHiveMotion {
         o.collect=n.collect; return o;
     }
     private Output advance(Output o) { index++; newNode=true; o.forward=o.strafe=o.turn=0; o.collect=false; return o; }
-    private Output fail(String message) { fault=message; Output o=new Output(); o.fault=message; return o; }
+    private Output fail(String message) { fault=message; Output o=new Output(); o.fault=message; o.detail=detail; return o; }
 }

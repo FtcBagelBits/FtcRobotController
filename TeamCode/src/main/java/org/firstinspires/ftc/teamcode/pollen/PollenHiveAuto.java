@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.pollen;
 
+import java.util.Locale;
+
 /** Pure autonomous controller shared by dry-run, drive-only and live robot execution. */
 public final class PollenHiveAuto {
     public enum Run { MATCH, SHOT_ONLY, GARDEN_RETURN }
@@ -7,7 +9,7 @@ public final class PollenHiveAuto {
     public static final class Output {
         public double forward,strafe,turn,launcher,intake,agitator;
         public boolean finished,feed;
-        public String phase,reason;
+        public String phase,reason,decision;
     }
     private final PollenHiveRoute config;
     private final Run run;
@@ -15,19 +17,20 @@ public final class PollenHiveAuto {
     private Phase phase=Phase.DELAY;
     private PollenHiveMotion motion;
     private double began,phaseAt,previous=Double.NaN,feedSeconds,settledAt=Double.NaN,px,py,ph;
-    private boolean started,wasFeeding;
-    private String reason="",motionPhase="";
+    private boolean started,wasFeeding,departed;
+    private String reason="",motionPhase="",decision="before first tick";
     public PollenHiveAuto(PollenHiveRoute config,IsHiveReadyForShot hive) { this(config,hive,Run.MATCH); }
     public PollenHiveAuto(PollenHiveRoute config,IsHiveReadyForShot hive,Run run) {
         config.validate(); this.config=config; this.hive=hive; this.run=run;
     }
     public void start(double now) { began=phaseAt=now; previous=now; started=true; hive.reset(); }
     public Output stop(String why) { phase=Phase.DONE; reason=why; wasFeeding=false; return zero(); }
-    private Output zero() { Output o=new Output(); o.phase=phase.toString(); o.reason=reason; o.finished=phase==Phase.DONE; return o; }
+    private Output zero() { Output o=new Output(); o.phase=phase.toString(); o.reason=reason; o.decision=decision; o.finished=phase==Phase.DONE; return o; }
     public Output tick(double now,IsHiveReadyForShot.Frame frame,double x,double y,double h,double velocity,boolean odometryReady) {
         if(!started) return stop("Not started");
         if(phase==Phase.DONE) return zero();
         double dt=now-previous; previous=now;
+        decision=String.format(Locale.US,"evaluated=%s dt=%.4f odometry_ready=%s launcher_tps=%.2f",phase,dt,odometryReady,velocity);
         if(!Double.isFinite(now)||dt<0||dt>.25) return stop("Control loop stalled/invalid clock");
         if(now-began>=27) return stop("27 second cutoff");
         if(!odometryReady||!Double.isFinite(x)||!Double.isFinite(y)||!Double.isFinite(h)||!Double.isFinite(velocity))
@@ -45,6 +48,17 @@ public final class PollenHiveAuto {
         if(shootingPhase&&settled) hive.update(frame,now); else hive.reset();
         double parkReserve=run==Run.MATCH?PollenHiveRoute.planned(config.park())+1:0;
         double remaining=27-(now-began);
+        double gardenNeed=PollenHiveRoute.planned(config.garden())+(run==Run.GARDEN_RETURN?2:3+config.v[4]+parkReserve+1);
+        // This describes the decision INPUTS, before any transition resets phase/feed timers.
+        decision=String.format(Locale.US,
+                "evaluated=%s dt=%.4f phase_s=%.3f remaining_s=%.3f feed_s=%.3f requested_s=%.3f park_reserve_s=%.3f garden_need_s=%.3f at_pose=%s settled=%s speed_in_s=%.2f omega_deg_s=%.2f speed_ready=%s hive_ready=%s coast_speed_ok=%s coast_min_elapsed=%s",
+                phase,dt,now-phaseAt,remaining,feedSeconds,phase==Phase.SECOND?config.v[4]:config.v[3],parkReserve,gardenNeed,
+                atPose,settled,speed,Math.toDegrees(omega),velocity>=config.v[6]*PollenConfig.LAUNCHER_READY_FRACTION,
+                hive.isHiveReadyForShot(now),Math.abs(velocity)<=100,now-phaseAt>=.5);
+        // A shot/delay/coast should never move the chassis. Stop, rather than starting a route
+        // from a suspect pose. This cannot distinguish physical movement from an odometry fault.
+        if(!departed && (Math.hypot(x,y)>2 || Math.abs(PollenOdometryDrive.wrap(h))>Math.toRadians(10)))
+            return stop("Unexpected motion before departure (>2 in or >10 deg); inspect drive/mapping/odometry");
         Output o=zero();
         switch(phase) {
             case DELAY:
@@ -62,7 +76,10 @@ public final class PollenHiveAuto {
                 boolean firstWindow=phase==Phase.FIRST&&!config.secondary&&now-phaseAt>=config.v[5];
                 if(feedSeconds>=requested||tipped||firstWindow) {
                     if(run==Run.SHOT_ONLY) return stop(firstWindow?"Shot window ended":"Stationary shot complete");
-                    if(phase==Phase.FIRST&&!config.secondary&&feedSeconds>0) enter(Phase.COAST,now);
+                    if(phase==Phase.FIRST&&!config.secondary&&feedSeconds>0) {
+                        reason=tipped?"First shot ended: hive DOWN":firstWindow?"First shot window ended after some feed":"First feed duration complete";
+                        enter(Phase.COAST,now);
+                    }
                     else park(now,firstWindow?"No first-shot feed before window ended":"Shot complete");
                     break;
                 }
@@ -76,13 +93,13 @@ public final class PollenHiveAuto {
             case COAST:
                 // Intake is also the feeder; do not collect while the flywheel is coasting fast.
                 if(Math.abs(velocity)<=100 && now-phaseAt>=.5) {
-                    double need=PollenHiveRoute.planned(config.garden())+(run==Run.GARDEN_RETURN?2:3+config.v[4]+parkReserve+1);
-                    if(remaining<need) park(now,"Garden skipped: not enough estimated cycle time");
-                    else { motion=new PollenHiveMotion(config.garden()); enter(Phase.GARDEN,now); }
+                    if(remaining<gardenNeed) park(now,"Garden skipped: not enough estimated cycle time");
+                    else { reason="Coast speed and cycle budget passed"; motion=new PollenHiveMotion(config.garden()); enter(Phase.GARDEN,now); }
                 } else if(now-phaseAt>2) park(now,"Garden skipped: flywheel did not stop");
+                else reason="Waiting for coast: <=100 ticks/s and >=0.5 s";
                 break;
             case GARDEN: case PARK:
-                PollenHiveMotion.Output m=motion.tick(now,x,y,h); motionPhase=m.phase;
+                PollenHiveMotion.Output m=motion.tick(now,x,y,h); motionPhase=m.phase; decision+=" "+m.detail;
                 if(m.fault!=null) return stop(m.fault);
                 if(m.done) {
                     if(phase==Phase.GARDEN) { enter(Phase.SETTLE,now); hive.reset(); settledAt=Double.NaN; }
@@ -104,10 +121,10 @@ public final class PollenHiveAuto {
             default: break;
         }
         o.finished=phase==Phase.DONE;
-        o.phase=phase+((phase==Phase.GARDEN||phase==Phase.PARK)?": "+motionPhase:""); o.reason=reason;
+        o.phase=phase+((phase==Phase.GARDEN||phase==Phase.PARK)?": "+motionPhase:""); o.reason=reason; o.decision=decision;
         return o;
     }
-    private void enter(Phase p,double now) { phase=p; phaseAt=now; feedSeconds=0; wasFeeding=false; }
+    private void enter(Phase p,double now) { phase=p; if(p==Phase.GARDEN||p==Phase.PARK) departed=true; phaseAt=now; feedSeconds=0; wasFeeding=false; }
     private void park(double now,String why) {
         if(run!=Run.MATCH) { stop(why); return; }
         reason=why; motion=new PollenHiveMotion(config.park()); enter(Phase.PARK,now); }
