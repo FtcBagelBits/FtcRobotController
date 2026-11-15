@@ -11,6 +11,7 @@ FAKE = '''#!/usr/bin/env python3
 import os, sys
 from pathlib import Path
 a=sys.argv[1:]
+if a[0] in ('devices', 'disconnect', 'kill-server', 'start-server'): sys.exit(0)
 if a[0]=='connect': print('connected'); sys.exit(0)
 if a[0]=='-s': a=a[2:]
 if a[0]=='get-state':
@@ -35,7 +36,8 @@ with tempfile.TemporaryDirectory() as tmp:
     adb = folder / 'adb'
     adb.write_text(FAKE)
     adb.chmod(0o755)
-    env = dict(os.environ, PATH=str(folder) + os.pathsep + os.environ['PATH'])
+    env = dict(os.environ, PATH=str(folder) + os.pathsep + os.environ['PATH'],
+               FTC_ADB=str(adb), FTC_ROBOT_SERIAL='192.168.43.1:5555', FTC_ADB_TIMEOUT='5')
     output = folder / 'session'
     cmd = ['bash', str(ROOT / 'tools/hive-benchmark-download.sh'), str(output)]
     result = subprocess.run(cmd, cwd=ROOT, env=env, capture_output=True, text=True)
@@ -52,4 +54,11 @@ with tempfile.TemporaryDirectory() as tmp:
                             env=dict(env, TEST_OFFLINE='1'), capture_output=True, text=True)
     assert result.returncode != 0 and 'not online' in result.stderr
     assert not offline.exists()
+    # Relative output paths must still refer to the caller's directory; collecting
+    # checkout metadata must not cd the rest of the download into the repository.
+    result = subprocess.run(cmd[:-1] + ['outside-session'], cwd=folder, env=env,
+                            capture_output=True, text=True)
+    assert result.returncode == 0, result.stderr + result.stdout
+    assert (folder / 'outside-session.zip').exists()
+    assert ('Checkout: ' + str(ROOT)) in (folder / 'outside-session/checkout.txt').read_text()
 print('PASS hive download: raw files, optional failures, summary, no-overwrite and offline handling')

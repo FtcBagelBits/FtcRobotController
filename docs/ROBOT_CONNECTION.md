@@ -2,8 +2,9 @@
 
 For anyone programming PollenBot, on Windows or Mac. Start with Coach Richard's setup email
 (install Android Studio, tick Android 16 / API 36, clone the repo). This page covers what comes
-after that, plus what trips people up. Mentors: the Mac Terminal version of everything here,
-including the full connection reset, is in [CLAUDE.md](../CLAUDE.md).
+after that, plus what trips people up. Mentors and desktop coding agents: use [Desktop tools](DESKTOP_TOOLS.md) for repeatable
+connection recovery, tests, builds, installs and downloads. Shared instructions are in
+[AGENTS.md](../AGENTS.md).
 
 ## 1. One-time setup: things to know
 
@@ -70,7 +71,7 @@ Stop at the first row that matches.
 | What you see | Do this |
 | --- | --- |
 | `adb connect` times out or "No route to host" | Check you're on the hub's Wi-Fi (laptops drift back to home Wi-Fi), the VPN is off, and the hub has finished booting. |
-| `adb devices` shows `offline` or `unauthorized` | Run `adb disconnect` (Windows: `& $adb disconnect`), power-cycle the hub, rejoin its Wi-Fi, connect again. |
+| `adb devices` shows `offline` or `unauthorized` | Run `adb disconnect 192.168.43.1:5555` (Windows: `& $adb disconnect 192.168.43.1:5555`), power-cycle the hub, rejoin its Wi-Fi, connect again. |
 | Still nothing | Quit Android Studio, then in a terminal run `adb kill-server` (Windows: `& $adb kill-server`), reopen Android Studio and connect again. An old adb left running is the most common cause. |
 | The device menu shows an emulator (`emulator-5554`) | Close the emulator (Device Manager → stop) so you don't install onto it by mistake. |
 | Gradle sync fails while on the hub's Wi-Fi | It wanted the internet. Rejoin normal Wi-Fi, build, then switch back and click Run. |
@@ -101,4 +102,4 @@ that a mentor reviews.
 The Pollen shoot autos write what they did to the robot's log (search it for `PollenAuto`).
 The log gets overwritten over time, so a mentor saves it after each event: on the robot's Wi-Fi,
 open `http://192.168.43.1:8080` in a browser → **Manage** → **Download Logs**. The adb way is in
-[CLAUDE.md](../CLAUDE.md).
+[Desktop tools](DESKTOP_TOOLS.md).

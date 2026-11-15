@@ -5,6 +5,8 @@ Read [Start here](POLLEN_START_HERE.md) first.
 
 | Document | Audience and purpose |
 | --- | --- |
+| [Desktop tools](DESKTOP_TOOLS.md) | Claude/Codex setup, ADB recovery, tests, build/install and diagnostics. |
+| [Pollen code reference](POLLEN_CODE_REFERENCE.md) | Hardware names, facing transforms and established robot architecture. |
 | [Automatic hive pipeline benchmark](POLLEN_HIVE_BENCHMARK.md) | Camera-only profile sweep, raw logs, four physical labels, download and analysis. |
 | [Hive auto diagnostics](POLLEN_HIVE_DIAGNOSTICS.md) | v8 direct garden departure, motor/decision traces, unexpected-motion guard and staged retests. |
 | [Hive camera + garden testing](POLLEN_HIVE_TESTING.md) | Experimental: how the robot finds its hive cell and reads UP/DOWN from tag height, labeled calibration, isolated shot/garden tests, session reports, match modes, CAD garden route, validation. |
