@@ -1,6 +1,6 @@
 # Hive calibration and practice
 
-For the v7 motion investigation and exact retest order, see [Hive auto diagnostics](POLLEN_HIVE_DIAGNOSTICS.md).
+For the v8 motion investigation and exact retest order, see [Hive auto diagnostics](POLLEN_HIVE_DIAGNOSTICS.md).
 
 Intermittent tags? Start with the [automatic pipeline benchmark](POLLEN_HIVE_BENCHMARK.md).
 It records raw detections before calibration passes; the current confirmation rule is unchanged.
@@ -17,7 +17,7 @@ controls and checks in full; the patch kit README covers applying, building, ins
 | TEST Hive primary shot ONLY | DRY | No drive in any execution setting. LIVE enables launcher and feed. One volley or primary window, then DONE. |
 | TEST Hive secondary shot ONLY | DRY | No drive. LIVE enables launcher and feed. Waits for UP, one volley, then DONE; 27 s limit. |
 | TEST Hive garden + return | DRIVE | No launcher or agitator in any setting. LIVE adds collection intake. Returns to original S and stops; no shot/park. |
-| EXPERIMENTAL Hive Primary + Garden | LIVE | Shoot, coast, collect, return, wait/shoot if UP, park. |
+| EXPERIMENTAL Hive Primary + Garden | LIVE | Shoot, collect, return, wait/shoot if UP, park. |
 | EXPERIMENTAL Hive Secondary | LIVE | Wait for UP, shoot, park. |
 
 The three isolated motor tests use the same controller/settings as the full autos. They still need

@@ -25,20 +25,14 @@ public final class PollenHiveDiagnosticsTest {
         PollenHiveRoute delayed=new PollenHiveRoute(false); delayed.v[2]=1;
         check(auto(delayed).tick(.02,null,3,0,0,0,true).finished,"Delay also requires stationary chassis");
     }
-    private static void coast() {
+    private static void gardenDecision() {
         PollenHiveRoute c=new PollenHiveRoute(false); c.v[0]=1;
-        PollenHiveAuto a=auto(c); PollenHiveAuto.Output o=null;
-        for(int i=1;i<=110;i++) {
-            o=a.tick(i*.02,null,0,0,0,101,true);
-            if(o.phase.startsWith("PARK")) break;
-        }
-        check(o.phase.startsWith("PARK")&&o.reason.contains("flywheel did not stop"),"Measured 101 fails coast timeout");
-        check(o.decision.contains("evaluated=COAST")&&o.decision.contains("coast_speed_ok=false"),"Timeout logs failing gate before transition");
-        check(o.decision.contains("garden_need_s=")&&o.decision.contains("remaining_s="),"Budget evidence recorded");
-        a=auto(c);
-        for(int i=1;i<=40;i++) { o=a.tick(i*.02,null,0,0,0,100,true); if(o.phase.startsWith("GARDEN")) break; }
-        check(o.phase.startsWith("GARDEN"),"100 ticks/s allowed after minimum coast time");
-        check(o.decision.contains("coast_min_elapsed=true")&&o.decision.contains("coast_speed_ok=true"),"Passing gates logged");
+        PollenHiveAuto a=auto(c);
+        a.tick(.02,null,0,0,0,1180,true);
+        PollenHiveAuto.Output o=a.tick(.04,null,0,0,0,1180,true);
+        check(o.phase.startsWith("GARDEN"),"Garden starts at high flywheel speed without a coast phase");
+        check(o.decision.contains("evaluated=FIRST")&&o.decision.contains("garden_need_s="),"Departure decision retains evaluated phase and budget");
+        check(!o.decision.contains("coast_"),"Removed coast gates no longer appear in decisions");
         o=a.stop("Driver STOP");
         check(o.finished&&o.reason.equals("Driver STOP"),"Intentional STOP distinct from fault");
     }
@@ -70,7 +64,7 @@ public final class PollenHiveDiagnosticsTest {
         } finally { Files.delete(dir); }
     }
     public static void main(String[] args) throws Exception {
-        unexpectedMotion(); coast(); trace();
+        unexpectedMotion(); gardenDecision(); trace();
         System.out.println("PASS PollenHiveDiagnosticsTest: "+checks+" checks");
     }
 }

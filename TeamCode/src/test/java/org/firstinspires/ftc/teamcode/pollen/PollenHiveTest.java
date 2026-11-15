@@ -373,9 +373,40 @@ public final class PollenHiveTest {
             check(collected==(execution==2),"Only LIVE garden test runs collection intake");
         }
     }
+    private static void noCoastGate() {
+        for(double velocity:new double[]{0,1180,-1180,2500}) {
+            for(PollenHiveAuto.Run run:new PollenHiveAuto.Run[]{PollenHiveAuto.Run.MATCH,PollenHiveAuto.Run.GARDEN_RETURN}) {
+                PollenHiveRoute c=new PollenHiveRoute(false); c.v[0]=1;
+                PollenHiveAuto a=new PollenHiveAuto(c,hive(),run); a.start(0);
+                PollenHiveAuto.Output o=a.tick(.02,null,0,0,0,velocity,true);
+                if(run==PollenHiveAuto.Run.MATCH) o=a.tick(.04,null,0,0,0,velocity,true);
+                check(o.phase.startsWith("GARDEN"),"No flywheel speed or minimum-time gate before garden");
+                check(o.launcher==0&&o.agitator==0&&o.intake==0,"Departure transition switches all mechanisms off");
+            }
+        }
+        PollenHiveRoute c=new PollenHiveRoute(false); c.v[0]=2;
+        PollenHiveAuto a=new PollenHiveAuto(c,hive()); a.start(0);
+        PollenOdometryTest.SimRobot robot=new PollenOdometryTest.SimRobot();
+        boolean fed=false,collected=false; String previous="";
+        for(int i=1;i<=1400;i++) {
+            // Hold measured flywheel speed high for the WHOLE run, even with its command off.
+            PollenHiveAuto.Output o=a.tick(i*.02,frame(i,true),robot.x,robot.y,robot.h,1180,true);
+            fed|=o.feed;
+            if(o.phase.startsWith("GARDEN")) {
+                check(o.launcher==0&&o.agitator==0&&!o.feed,"Garden never powers launcher or agitator, even while collecting");
+                collected|=o.intake>0;
+                if(previous.equals("FIRST")) check(o.forward==0&&o.strafe==0&&o.turn==0&&o.intake==0,
+                        "Shot exit has a zero-output tick before path motion");
+            }
+            previous=o.phase;
+            robot.step(o.forward,o.strafe,o.turn,false,.02);
+            if(o.finished) break;
+        }
+        check(fed&&collected,"A live first shot leads to collection despite persistent high measured flywheel speed");
+    }
     private static PollenHiveAuto.Output oDummy;
     public static void main(String[] args) {
-        classifier(); missesVsContradictions(); unsettledReturnParks(); calibration(); sides(); settings(); routes(); secondaryGates(); primaryCycle(false,false); primaryCycle(false,true); primaryCycle(true,false); slowLauncherBudget(); motionFaults(); practice();
+        classifier(); missesVsContradictions(); unsettledReturnParks(); calibration(); sides(); settings(); routes(); secondaryGates(); primaryCycle(false,false); primaryCycle(false,true); primaryCycle(true,false); slowLauncherBudget(); motionFaults(); practice(); noCoastGate();
         System.out.println("PASS PollenHiveTest: "+checks+" checks");
     }
 }

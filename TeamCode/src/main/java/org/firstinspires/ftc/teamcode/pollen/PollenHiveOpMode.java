@@ -251,7 +251,7 @@ public abstract class PollenHiveOpMode extends OpMode {
             }
         } catch (Exception ex) { fault = ex.toString(); if (auto != null) last=auto.stop(fault); zero(); record("FAULT "+fault); traceSample(now,"FAULT",true); }
     }
-    /** At most 10 Hz plus state/feed transitions, including COAST and DONE until driver STOP. */
+    /** At most 10 Hz plus state/feed transitions, including travel, collection and DONE until driver STOP. */
     private void traceSample(double now, String kind, boolean force) {
         if(trace==null || !trace.status.equals("open") || (!force && now-traceAt<.1)) return;
         traceAt=now;

@@ -1,6 +1,6 @@
 # Hive calibration and practice
 
-**Build pollen-hive-v7 - experimental.** Print front/back. Full steps: `docs/POLLEN_HIVE_TESTING.md`.
+**Build pollen-hive-v8 - experimental.** Print front/back. Full steps: `docs/POLLEN_HIVE_TESTING.md`.
 Keep existing match autos available. Rear camera/launcher face hive; **front intake faces end wall**.
 
 <img src="img/hive-height.svg" style="width:4.3in">
@@ -46,7 +46,7 @@ false UP _____ / 20. Capture reports save automatically. The screen tests the **
 | TEST Hive primary shot ONLY | **DRY**. No drive in any setting. LIVE fires one volley or stops at first-shot window. |
 | TEST Hive secondary shot ONLY | **DRY**. No drive. LIVE waits for UP, fires, stops. |
 | TEST Hive garden + return | **DRIVE**. No launcher/agitator. LIVE adds collection intake. Returns to S and stops, no park. |
-| EXPERIMENTAL Hive Primary + Garden | **LIVE**. Shoot, coast, collect, return, wait/shoot if UP, park. |
+| EXPERIMENTAL Hive Primary + Garden | **LIVE**. Shoot, collect, return, wait/shoot if UP, park. |
 | EXPERIMENTAL Hive Secondary | **LIVE**. Wait for UP, shoot, park. |
 
 **Order:** camera validation; shot ONLY DRY then LIVE with a small batch; garden DRIVE without
@@ -67,9 +67,9 @@ Start every garden test at **S**. Heading changes aim the **front intake** towar
 return restores rear-to-hive shooting. No midrun odometry reset. No turn at E: body clearance is
 only **1 in**. Four ball centers need about **17.45 in** of centered intake width; measure actual reach.
 
-**v7 diagnostics:** Before the first departure, motion over 2 in or 10 degrees stops the run.
-Confirm motor wiring; run DRY and empty shot-only tests before retrying the garden. Leave shot-only
-running five seconds after DONE to record spin-down. See `docs/POLLEN_HIVE_DIAGNOSTICS.md`.
+**v8 diagnostics:** Before the first departure, motion over 2 in or 10 degrees stops the run.
+Confirm motor wiring; run DRY and empty shot-only tests before retrying the garden. Collection no longer waits for flywheel
+spin-down; the agitator stays off throughout the garden. See `docs/POLLEN_HIVE_DIAGNOSTICS.md`.
 
 **After practice:** pull `/sdcard/FIRST/pollen-hive` with adb (settings + reports), and the Robot
 Controller log. Reports record checks, settings, phases, elapsed time and pose. Write down pickup

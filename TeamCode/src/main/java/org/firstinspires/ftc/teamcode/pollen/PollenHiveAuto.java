@@ -5,7 +5,7 @@ import java.util.Locale;
 /** Pure autonomous controller shared by dry-run, drive-only and live robot execution. */
 public final class PollenHiveAuto {
     public enum Run { MATCH, SHOT_ONLY, GARDEN_RETURN }
-    public enum Phase { DELAY, FIRST, COAST, GARDEN, SETTLE, SECOND, PARK, DONE }
+    public enum Phase { DELAY, FIRST, GARDEN, SETTLE, SECOND, PARK, DONE }
     public static final class Output {
         public double forward,strafe,turn,launcher,intake,agitator;
         public boolean finished,feed;
@@ -51,24 +51,26 @@ public final class PollenHiveAuto {
         double gardenNeed=PollenHiveRoute.planned(config.garden())+(run==Run.GARDEN_RETURN?2:3+config.v[4]+parkReserve+1);
         // This describes the decision INPUTS, before any transition resets phase/feed timers.
         decision=String.format(Locale.US,
-                "evaluated=%s dt=%.4f phase_s=%.3f remaining_s=%.3f feed_s=%.3f requested_s=%.3f park_reserve_s=%.3f garden_need_s=%.3f at_pose=%s settled=%s speed_in_s=%.2f omega_deg_s=%.2f speed_ready=%s hive_ready=%s coast_speed_ok=%s coast_min_elapsed=%s",
+                "evaluated=%s dt=%.4f phase_s=%.3f remaining_s=%.3f feed_s=%.3f requested_s=%.3f park_reserve_s=%.3f garden_need_s=%.3f at_pose=%s settled=%s speed_in_s=%.2f omega_deg_s=%.2f speed_ready=%s hive_ready=%s",
                 phase,dt,now-phaseAt,remaining,feedSeconds,phase==Phase.SECOND?config.v[4]:config.v[3],parkReserve,gardenNeed,
                 atPose,settled,speed,Math.toDegrees(omega),velocity>=config.v[6]*PollenConfig.LAUNCHER_READY_FRACTION,
-                hive.isHiveReadyForShot(now),Math.abs(velocity)<=100,now-phaseAt>=.5);
-        // A shot/delay/coast should never move the chassis. Stop, rather than starting a route
+                hive.isHiveReadyForShot(now));
+        // A shot/delay should never move the chassis. Stop, rather than starting a route
         // from a suspect pose. This cannot distinguish physical movement from an odometry fault.
         if(!departed && (Math.hypot(x,y)>2 || Math.abs(PollenOdometryDrive.wrap(h))>Math.toRadians(10)))
             return stop("Unexpected motion before departure (>2 in or >10 deg); inspect drive/mapping/odometry");
         Output o=zero();
         switch(phase) {
             case DELAY:
-                if(now-phaseAt>=config.v[2]) enter(run==Run.GARDEN_RETURN?Phase.COAST:Phase.FIRST,now);
+                if(now-phaseAt>=config.v[2]) {
+                    if(run==Run.GARDEN_RETURN) garden(now,"Garden practice"); else enter(Phase.FIRST,now);
+                }
                 break;
             case FIRST: case SECOND:
                 if(remaining<=parkReserve) { park(now,"Time reserved for departure"); break; }
                 if(config.v[0]==1) { // Route-only bypasses shots, never vision-gates movement.
                     if(run==Run.SHOT_ONLY) return stop("Shot test needs DRY or LIVE execution");
-                    if(phase==Phase.FIRST&&!config.secondary) enter(Phase.COAST,now); else park(now,"Drive-only departure");
+                    if(phase==Phase.FIRST&&!config.secondary) garden(now,"Drive-only skips shot"); else park(now,"Drive-only departure");
                     break;
                 }
                 double requested=phase==Phase.FIRST?config.v[3]:config.v[4];
@@ -78,7 +80,7 @@ public final class PollenHiveAuto {
                     if(run==Run.SHOT_ONLY) return stop(firstWindow?"Shot window ended":"Stationary shot complete");
                     if(phase==Phase.FIRST&&!config.secondary&&feedSeconds>0) {
                         reason=tipped?"First shot ended: hive DOWN":firstWindow?"First shot window ended after some feed":"First feed duration complete";
-                        enter(Phase.COAST,now);
+                        garden(now,reason);
                     }
                     else park(now,firstWindow?"No first-shot feed before window ended":"Shot complete");
                     break;
@@ -89,14 +91,6 @@ public final class PollenHiveAuto {
                 o.feed=settled&&hive.isHiveReadyForShot(now)&&readySpeed;
                 if(o.feed) { o.intake=config.v[11]; o.agitator=config.v[12]; wasFeeding=true; }
                 reason=!settled?"Not settled at shooting pose":!readySpeed?"Waiting for measured launcher speed":hive.reason;
-                break;
-            case COAST:
-                // Intake is also the feeder; do not collect while the flywheel is coasting fast.
-                if(Math.abs(velocity)<=100 && now-phaseAt>=.5) {
-                    if(remaining<gardenNeed) park(now,"Garden skipped: not enough estimated cycle time");
-                    else { reason="Coast speed and cycle budget passed"; motion=new PollenHiveMotion(config.garden()); enter(Phase.GARDEN,now); }
-                } else if(now-phaseAt>2) park(now,"Garden skipped: flywheel did not stop");
-                else reason="Waiting for coast: <=100 ticks/s and >=0.5 s";
                 break;
             case GARDEN: case PARK:
                 PollenHiveMotion.Output m=motion.tick(now,x,y,h); motionPhase=m.phase; decision+=" "+m.detail;
@@ -123,6 +117,15 @@ public final class PollenHiveAuto {
         o.finished=phase==Phase.DONE;
         o.phase=phase+((phase==Phase.GARDEN||phase==Phase.PARK)?": "+motionPhase:""); o.reason=reason; o.decision=decision;
         return o;
+    }
+    /** The agitator meters balls into the flywheel. Stop both shooting outputs on the
+     * transition tick, then drive/collect without waiting for flywheel spin-down. */
+    private void garden(double now,String why) {
+        double parkReserve=run==Run.MATCH?PollenHiveRoute.planned(config.park())+1:0;
+        double need=PollenHiveRoute.planned(config.garden())+(run==Run.GARDEN_RETURN?2:3+config.v[4]+parkReserve+1);
+        if(27-(now-began)<need) { park(now,"Garden skipped: not enough estimated cycle time"); return; }
+        reason=why+"; garden cycle budget passed";
+        motion=new PollenHiveMotion(config.garden()); enter(Phase.GARDEN,now);
     }
     private void enter(Phase p,double now) { phase=p; if(p==Phase.GARDEN||p==Phase.PARK) departed=true; phaseAt=now; feedSeconds=0; wasFeeding=false; }
     private void park(double now,String why) {

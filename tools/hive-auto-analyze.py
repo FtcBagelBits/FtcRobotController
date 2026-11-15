@@ -28,8 +28,8 @@ def summarize(folder):
         coast = [r for r in rows if 'evaluated=COAST ' in (r.get('decision_inputs') or '')]
         if coast:
             speeds = [abs(float(r['decision_launcher_tps'])) for r in coast]
-            lines.extend(['', f'COAST sampled speed range: {min(speeds):.1f}–{max(speeds):.1f} ticks/s.',
-                          'Last COAST decision: `' + coast[-1]['decision_inputs'] + '`'])
+            lines.extend(['', f'Legacy COAST sampled speed range: {min(speeds):.1f}–{max(speeds):.1f} ticks/s.',
+                          'Legacy COAST decision: `' + coast[-1]['decision_inputs'] + '`'])
         lines.extend(['', f'{len(rows)} samples. Last record: {rows[-1].get("kind", "?")}.', ''])
     return '\n'.join(lines)
 
