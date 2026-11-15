@@ -87,6 +87,15 @@ never let an emulator or another robot become the implicit deployment target. Ex
   simulated route or shell test is not field validation.
 - Text files use LF per `.gitattributes` (Windows `.bat`/`.cmd` excepted).
 
+## Shared research notes
+
+- [docs/research/](docs/research/README.md) holds research, options and decisions that are
+  not yet rules or tested behavior, so sessions and agents can build on each other's work.
+  Read the relevant note before proposing tooling or workflow changes.
+- Add findings there with the evidence labels its README defines, say whether you ran in a
+  cloud or local session, and add to other contributors' entries rather than rewriting them.
+- A note is not permission. The rules in this file apply until a mentor changes this file.
+
 ## Git and handoffs
 
 - Never discard, silently stash, reset or clean the user's work. Inspect conflicts and
