@@ -161,6 +161,12 @@ class DesktopTools(unittest.TestCase):
         self.assertIn(':TeamCode:assembleDebug', args)
         self.assertEqual(self.calls(), [])
 
+    def test_java_tool_options_banner_does_not_break_jdk_check(self):
+        self.executable(self.jdk / 'bin/javac', '#!/usr/bin/env bash\n'
+                        'echo "Picked up JAVA_TOOL_OPTIONS: -Dx=1" >&2\necho "javac 17.0.9"\n')
+        self.run_tool('build')
+        self.assertTrue((self.folder / 'gradle.txt').exists())
+
     def test_invalid_jdk_stops_build(self):
         self.run_tool('build', ok=False, FTC_JAVA_HOME=str(self.folder / 'missing jdk'))
         self.assertFalse((self.folder / 'gradle.txt').exists())

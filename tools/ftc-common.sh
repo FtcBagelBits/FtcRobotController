@@ -85,7 +85,7 @@ ftc_connect() {
 }
 
 ftc_java() {
-  local candidate version major
+  local candidate version major output line
   if [ -n "${FTC_JAVA_HOME:-}" ]; then
     candidate=$FTC_JAVA_HOME
   elif [ -x '/Applications/Android Studio.app/Contents/jbr/Contents/Home/bin/javac' ]; then
@@ -103,7 +103,15 @@ ftc_java() {
   [ -x "$candidate/bin/java" ] && [ -x "$candidate/bin/javac" ] || {
     ftc_error "Not a full JDK: $candidate"; return 1;
   }
-  version=$("$candidate/bin/javac" -version 2>&1) || return 1
+  # JAVA_TOOL_OPTIONS makes the JDK print "Picked up ..." before the version; keep only the javac line.
+  output=$("$candidate/bin/javac" -version 2>&1) || return 1
+  version=
+  while IFS= read -r line; do
+    case "$line" in 'javac '*) version=$line; break ;; esac
+  done <<EOF
+$output
+EOF
+  [ -n "$version" ] || { ftc_error "Cannot read javac version: $output"; return 1; }
   major=${version#javac }; major=${major%%.*}; major=${major%%-*}
   case "$major" in ''|*[!0-9]*) ftc_error "Cannot parse javac version: $version"; return 1 ;; esac
   [ "$major" -ge 17 ] || { ftc_error "JDK 17+ required; found $version"; return 1; }
