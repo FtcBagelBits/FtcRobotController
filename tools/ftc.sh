@@ -96,8 +96,13 @@ case "$command_name" in
     [ ! -d "$(git rev-parse --git-path rebase-apply)" ] && [ ! -d "$(git rev-parse --git-path rebase-merge)" ] || {
       ftc_error 'Finish the existing git am/rebase operation first.'; exit 1;
     }
+    # A mail patch (git format-patch) has an Author header; a plain git diff does not.
+    case "$(git mailinfo /dev/null /dev/null < "$patch_file")" in
+      'Author: '?*) ;;
+      *) ftc_error 'Not a mail-format patch. Create it with git format-patch, not git diff.'; exit 1 ;;
+    esac
     git apply --check "$patch_file"
-    backup="backup/pollen-before-tools-$(date +%Y%m%d-%H%M%S)-$$"
+    backup="backup/pollen-before-patch-$(date +%Y%m%d-%H%M%S)-$$"
     git branch "$backup"
     printf 'Backup branch: %s\n' "$backup"
     git am "$patch_file"
