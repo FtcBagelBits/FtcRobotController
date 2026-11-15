@@ -16,10 +16,11 @@ need an `adb` alias or an `ftcgradle` shell function for the workflows below.
 3. Confirm the actual checkout with `git branch --show-current` and `git log -1 --oneline`.
    For this work use `pollen-hive-ready`. If the app made a separate worktree, verify its
    branch and edits before building; `local.properties` and built APKs may not be there.
-4. Start a new session after installing this patch. `AGENTS.md` contains the shared
-   instructions; `CLAUDE.md` imports it. Ask the agent to read them and run
-   `bash tools/ftc.sh doctor`. A useful first request is: “Check this checkout and setup;
-   run the computer tests and build. Don't install until I ask.”
+4. Start a new session after `AGENTS.md` changes. `AGENTS.md` contains the shared
+   instructions; `CLAUDE.md` imports it. A local session edits the checkout, runs the
+   tests/builds and uses these scripts itself; it does not need patch files. A useful
+   first request is: “Check this checkout and setup; run the computer tests and build.
+   Don't install until I ask.”
 5. Grant the application's normal requested project/command permissions. For robot work,
    the host process executing ADB also needs local-network access. If the Mac blocks
    access, inspect System Settings → Privacy & Security → Local Network for that app
@@ -177,8 +178,9 @@ Terminal aliases or `.zshrc`. Existing personal `ftcgradle` functions remain unt
 
 ## Patch and validation workflow
 
-Keep patches outside the checkout. The first patch that adds these scripts must use
-`git am` directly; only subsequent patches can use `ftc.sh patch`. That helper requires
+Local desktop sessions change files directly and do not need patches. `ftc.sh patch` is
+for applying a mail patch produced by a web/cloud session that could not reach this
+laptop. Keep patches outside the checkout. That helper requires
 `pollen-hive-ready`, a clean tree, no in-progress am/rebase, and a successful application
 precheck. It creates a backup branch, then commits the patch locally via `git am`.
 It never stashes, resets, pulls, pushes or deploys. Inspect failures before deciding on

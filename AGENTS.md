@@ -4,6 +4,12 @@ This file is authoritative for repository workflow. `CLAUDE.md` imports it for C
 Codex reads it directly. Use this exact uppercase filename, not `Agents.md`. Keep
 machine-specific credentials, SSH identities and personal workflows outside this repo.
 
+**Local desktop sessions are the normal way of working.** When the agent runs on the
+laptop's checkout (Claude Code desktop/CLI, Codex local), edit files on disk directly, run
+the tests and builds yourself, and use the `tools/ftc.sh` commands for robot work. Do not
+hand the human patch files or commands to run that you can run yourself. Mail patches are
+only for web/cloud sessions that cannot reach this laptop, or when the user asks for one.
+
 ## Start with the actual checkout
 
 - Inspect `pwd`, `git status --short`, `git branch --show-current`, and `git log -1 --oneline`.
@@ -85,13 +91,16 @@ never let an emulator or another robot become the implicit deployment target. Ex
 
 - Never discard, silently stash, reset or clean the user's work. Inspect conflicts and
   preserve local changes. Do not change global Git identity or the default CLI account.
-- GitHub connector access is read-only for this workflow. Provide patches and local
-  commands; do not use it for pushes, commits, branches, comments or PR mutations.
-- Use the existing configured `origin` for user-requested local pull/push work. Personal
+- Desktop sessions: leave verified edits in the working tree and report what changed.
+  Commit locally when the user asks, with a clear message on the current branch. Push,
+  pull or open PRs only on request, using the existing configured `origin`. Personal
   SSH/key/CLI-account instructions belong outside the team repo. Do not embed keys/tokens.
-- Share `git format-patch` mail patches named `description-YYYYMMDD-HHMM.patch`
-  (Pacific time), state the base SHA, and verify `git am` in a disposable checkout.
-  `tools/ftc.sh patch` creates a local backup branch and commits via `git am`; it does not
-  run tests, install or push. Do not add `Co-Authored-By` trailers.
+- Do not use a GitHub connector/API to push, commit, create branches, comment or change
+  PRs; do Git work in the local checkout. Do not add `Co-Authored-By` trailers.
+- Web/cloud sessions without laptop access (or when a patch is requested): share
+  `git format-patch` mail patches named `description-YYYYMMDD-HHMM.patch` (Pacific time),
+  state the base SHA, and verify `git am` in a disposable checkout. On the laptop,
+  `tools/ftc.sh patch` applies one with a backup branch via `git am`; it does not run
+  tests, install or push. Run the tests yourself after applying.
 - If two desktop agents are active, use separate worktrees for code edits, or one writer
   at a time in this checkout. Only one session should control deployment/robot testing.
