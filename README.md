@@ -6,9 +6,12 @@
   [operating manual](docs/POLLEN_AUTONOMOUS.md).
 - **Programmers:** [Pollen autonomous code README](TeamCode/src/main/java/org/firstinspires/ftc/teamcode/pollen/README.md),
   [what's in TeamCode](TeamCode/src/main/java/org/firstinspires/ftc/teamcode/readme.md).
+- **Claude / Codex desktop:** [shared instructions](AGENTS.md) and [repeatable tools](docs/DESKTOP_TOOLS.md).
 - **More context:** [Documentation index](docs/README.md).
 
 Use the documentation from the branch/commit installed on the robot.
+
+Experimental hive-gated autonomous and front-intake garden route: [setup and testing](docs/POLLEN_HIVE_TESTING.md).
 
 ---
 

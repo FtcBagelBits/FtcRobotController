@@ -11,6 +11,7 @@ All of team 31452's robot code lives in this folder. New here? Start with
 | **PollenBot** (TeleOp) | `BioBuzzStarterbotOpMode.java` | The match TeleOp |
 | Odo ROBOT Shoot + Park, Odo Supporting Shooter Auto, Odo ROBOT Park, and the EMERGENCY Timed autos | `pollen/` | All the autonomous code; see `pollen/README.md` |
 | Angled Primary Shooter (group Pollen Experimental) | `pollen/PollenAngledPrimaryShooter.java` | **Experimental:** the primary auto with an angled shot. Not yet tried on a field |
+| TEST Hive camera / primary shot ONLY / secondary shot ONLY / garden + return; EXPERIMENTAL Hive Primary + Garden / Secondary | `pollen/PollenHive*.java` | Experimental Limelight readiness and isolated practice; see `docs/POLLEN_HIVE_TESTING.md` |
 | LauncherTest (group Test) | `LauncherTestOpMode.java` | Runs PollenBot's launcher, intake and agitator on their own, for testing. Same buttons, INIT menu and feed rule as the TeleOp |
 | Odometry Check (group Pedro) | `OdometryCheck.java` | Checks the Pinpoint odometry pods; steps in `docs/ODOMETRY_BASELINE_TEST.md` |
 | Pedro Test (group Pedro) | `PedroLocalizationTest.java` | Shows Pedro Pathing's position on the Panels dashboard and follows a short test path |
@@ -32,3 +33,5 @@ The easiest way is to copy a sample and make it your own. The samples are in the
 FtcRobotController module (Project view → `FtcRobotController/java/org.firstinspires.ftc.robotcontroller/external/samples`).
 Copy one into this folder, change its `@TeleOp(name = ...)`, and remove its `@Disabled` line so
 it shows up on the Driver Hub. Then open a pull request (see ROBOT_CONNECTION.md).
+
+`TEST Hive pipeline benchmark` / `PollenHiveBenchmark` (TeleOp list, like `TEST Hive camera`, so the 30-second autonomous timer cannot stop it): no motors; automatically compare saved camera pipelines and log raw results. See `docs/POLLEN_HIVE_BENCHMARK.md`.

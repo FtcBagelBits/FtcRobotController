@@ -56,4 +56,6 @@ dependencies {
 
     // Computer tests (TeamCode/src/test): run PollenTests from Android Studio, no robot needed.
     testImplementation 'junit:junit:4.13.2'
+    // Exercise Limelight's JSON contract on the Mac; Android's unit-test stub throws otherwise.
+    testImplementation 'org.json:json:20240303'
 }
