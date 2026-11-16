@@ -2,7 +2,7 @@
 
 Experimental hive-gated modes and garden collection: [testing guide](../../../../../../../../../docs/POLLEN_HIVE_TESTING.md). Existing match modes retain their behavior. Camera INIT edits, labeled UP/DOWN checks, candidate validation and automatic session reports support faster practice. Isolated primary/secondary shot tests never drive; garden-return never runs launcher/agitator. The hive modes find our cell from the AprilTag IDs behind the robot (Side AUTO, or forced RED/BLUE) and read UP/DOWN from the tags' height. Every hive number and its default is in `PollenHiveSettings`; INIT changes are flagged CHANGED, saved on the Hub with Square, and promoted to defaults with `tools/hive-promote-defaults.py`.
 
-Build identifier: **pollen-hive-v9** (`PollenConfig.BUILD`). The match autos are the odometry
+Build identifier: **pollen-hive-v10** (`PollenConfig.BUILD`). The match autos are the odometry
 ones (below). Three timed OpModes are kept for **emergencies only** (a match where the Pinpoint
 is not working), in the group *Pollen Emergency (timed)*: `EMERGENCY Timed Park`,
 `EMERGENCY Timed Shoot + Park`, and `EMERGENCY Timed Supporting Shooter` (before `pollen-odo-v9`
@@ -63,6 +63,8 @@ The experimental profiles/routes are not validated robot settings.
 | PollenOdoPark, PollenOdoParkTuning | Option A with odometry: zero, drive a measured distance, stop; distance menu |
 | PollenOdoRobotShoot, PollenOdoSupportingShooter | B and C with odometry: same shared OpMode with odometry() on |
 | PollenTeleOpTuning | PollenBot TeleOp (`BioBuzzStarterbotOpMode`) INIT menu: launcher target and drive-power scale, defaults from that OpMode's constants |
+| PollenTeleOpRecorder | PollenBot TeleOp's recording: one CSV row 20 times a second (inputs, motor commands, launcher speed, position, battery) and the Circle/Square rehearsal marks. Pure Java |
+| PollenRunLog | Where each kind of recording lives on the Hub, its size limits, and the `Hub storage` line on the INIT screens. Never deletes. Pure Java. See `docs/POLLEN_LOGGING.md` |
 
 B and C use distinct static snapshots in the shared OpMode. Their INIT loads
 never share settings. Start delay resets to the mode default. A remembered

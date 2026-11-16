@@ -24,6 +24,9 @@ package org.firstinspires.ftc.teamcode;
 
 import static com.qualcomm.robotcore.hardware.DcMotor.ZeroPowerBehavior.BRAKE;
 
+import com.pedropathing.math.Pose;
+import com.pedropathing.revhub.localizers.PinpointLocalizer;
+import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
@@ -31,9 +34,17 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
+import com.qualcomm.robotcore.hardware.VoltageSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.teamcode.pollen.PollenConfig;
+import org.firstinspires.ftc.teamcode.pollen.PollenFacing;
+import org.firstinspires.ftc.teamcode.pollen.PollenHiveStore;
+import org.firstinspires.ftc.teamcode.pollen.PollenHiveTrace;
+import org.firstinspires.ftc.teamcode.pollen.PollenOdometryHardware;
+import org.firstinspires.ftc.teamcode.pollen.PollenRunLog;
+import org.firstinspires.ftc.teamcode.pollen.PollenTeleOpRecorder;
 import org.firstinspires.ftc.teamcode.pollen.PollenTeleOpTuning;
 
 /*
@@ -123,6 +134,26 @@ public class BioBuzzStarterbotOpMode extends OpMode {
     double intakePower;
 
     /*
+     * RECORDING. Every TeleOp run is written to a file on the Control Hub (see
+     * pollen/PollenTeleOpRecorder.java and docs/POLLEN_LOGGING.md): what the driver did, what
+     * every motor was told to do, the launcher speed, the battery and, if the robot has its
+     * Pinpoint odometry, where the robot was. Circle marks the start of a "rehearsal" (a move we
+     * may want to turn into autonomous) and Square marks its end.
+     *
+     * Recording never changes how the robot drives. If anything about it fails (no room on the
+     * Hub, no Pinpoint, a write error), TeleOp carries on and the screen says what is missing.
+     */
+    private PinpointLocalizer odometry;          // stays null if there is no Pinpoint
+    private GoBildaPinpointDriver pinpoint;
+    private String odometryProblem = "";
+    private PollenHiveTrace recordingFile;       // stays null if recording could not start
+    private PollenTeleOpRecorder recorder;
+    private final PollenTeleOpRecorder.Sample sample = new PollenTeleOpRecorder.Sample();
+    private final ElapsedTime runTimer = new ElapsedTime();
+    private String storageLine = "", storageWarning = "", recordingProblem = "";
+    private double batteryVolts = Double.NaN, batteryReadAt = Double.NEGATIVE_INFINITY;
+
+    /*
      * Code to run ONCE when the driver hits INIT
      */
     @Override
@@ -196,6 +227,29 @@ public class BioBuzzStarterbotOpMode extends OpMode {
                 PollenConfig.AGITATOR_FEED_POWER, remembered);
 
         /*
+         * Odometry is OPTIONAL here: TeleOp only writes the robot's position into the recording.
+         * Like the autonomous modes, the Pinpoint recalibrates now, so keep the robot still
+         * during INIT. With no Pinpoint (or a broken one) TeleOp works exactly as before.
+         */
+        try {
+            odometry = PollenOdometryHardware.open(hardwareMap);
+            pinpoint = PollenOdometryHardware.device(hardwareMap);
+        } catch (Exception ex) {
+            odometry = null;
+            pinpoint = null;
+            odometryProblem = "no working Pinpoint";
+            RobotLog.ii("PollenTeleOp", "No odometry in this run: %s", ex.toString());
+        }
+        // How much room the Control Hub has for recordings. Read once: it looks through folders.
+        try {
+            PollenRunLog.Storage storage = PollenHiveStore.storage();
+            storageLine = storage.line();
+            storageWarning = storage.warning();
+        } catch (Exception ex) {
+            storageLine = "unknown (" + ex + ")";
+        }
+
+        /*
          * Tell the driver that initialization is complete.
          */
         telemetry.addData("Status", "Initialized");
@@ -221,6 +275,11 @@ public class BioBuzzStarterbotOpMode extends OpMode {
                 tuning.driveScale() * 100);
         telemetry.addData("Controls", "D-pad UP/DOWN selects; LEFT/RIGHT edits; Triangle = defaults");
         telemetry.addData("Settings", tuning.isDefault() ? "DEFAULTS" : "CHANGED - check before START");
+        telemetry.addData("Recording", "this run is saved on the Hub. Circle = start a rehearsal, Square = end it");
+        telemetry.addData("Recorded position", odometry == null ? "none (" + odometryProblem + "); the run is still recorded"
+                : "Pinpoint " + PollenOdometryHardware.status(pinpoint) + " - keep the robot still during INIT");
+        telemetry.addData("Hub storage", storageLine);
+        if (!storageWarning.isEmpty()) telemetry.addData("STORAGE WARNING", storageWarning);
     }
 
     private String marker(PollenTeleOpTuning.Row row) {
@@ -233,6 +292,8 @@ public class BioBuzzStarterbotOpMode extends OpMode {
     @Override
     public void start() {
         tuning.lock();
+        runTimer.reset();
+        startRecording();
     }
 
     /*
@@ -308,6 +369,9 @@ public class BioBuzzStarterbotOpMode extends OpMode {
         telemetry.addData("Intake / agitator command", "%.2f / %.2f",
                 intakePower, feeding ? tuning.agitatorPower() : intakePower);
         telemetry.addData("Drive power", "%.0f%%", tuning.driveScale() * 100);
+
+        // Last, after every motor has its command: write this loop to the recording.
+        record();
     }
 
     /*
@@ -315,6 +379,126 @@ public class BioBuzzStarterbotOpMode extends OpMode {
      */
     @Override
     public void stop() {
+        // Finish the recording so the file is complete when it is downloaded.
+        try {
+            if (recorder != null) recorder.stop(runTimer.seconds(), System.currentTimeMillis(), sample);
+            if (recordingFile != null) recordingFile.close();
+            if (recorder != null) RobotLog.ii("PollenTeleOp", "STOP t=%.1f rehearsals=%d", runTimer.seconds(), recorder.rehearsals());
+        } catch (RuntimeException ignored) {
+            // A recording problem must never get in the way of stopping.
+        }
+    }
+
+    /*
+     * START: open this run's file and write every setting into it, so the run can be understood
+     * later without guessing what the INIT menu said.
+     */
+    private void startRecording() {
+        try {
+            recordingFile = PollenRunLog.open(PollenHiveStore.folder(), PollenRunLog.Kind.TELEOP, System.currentTimeMillis());
+        } catch (Exception ex) {
+            recordingFile = null;
+            recordingProblem = String.valueOf(ex.getMessage());
+        }
+        recorder = new PollenTeleOpRecorder(recordingFile);
+        try {
+            fillSample();
+            String settings = "build=" + PollenConfig.BUILD + " installed=" + PollenHiveStore.installed()
+                    + " opmode=PollenBot launcher=" + tuning.launcherVelocity()
+                    + " spinup=" + tuning.spinupSeconds() + " agitator=" + tuning.agitatorPower()
+                    + " drive=" + tuning.driveScale() + " settings=" + (tuning.isDefault() ? "DEFAULTS" : "CHANGED")
+                    + " reverse=" + LAUNCHER_REVERSE_VELOCITY + " feedBoost=" + INTAKE_FEED_BOOST
+                    + " facing=" + PollenFacing.logName() + " pinpoint=" + (odometry == null ? "none" : sample.odometry.replace(' ', '_'))
+                    + " battery=" + batteryVolts + " storage=[" + storageLine + "]";
+            recorder.start(System.currentTimeMillis(), settings, sample);
+            // The robot log gets the same line, so robotControllerLog.txt also shows the settings.
+            RobotLog.ii("PollenTeleOp", "START %s recording=%s", settings,
+                    recordingFile == null ? "OFF: " + recordingProblem : recordingFile.fileName);
+        } catch (RuntimeException ex) {
+            recordingProblem = ex.toString();
+        }
+    }
+
+    /* Copy this loop's inputs, motor commands and sensor readings into the sample. */
+    private void fillSample() {
+        sample.stickForward = -gamepad1.left_stick_y;
+        sample.stickStrafe = gamepad1.left_stick_x;
+        sample.stickTurn = gamepad1.right_stick_x;
+        sample.triggerIn = gamepad1.right_trigger;
+        sample.triggerOut = gamepad1.left_trigger;
+        sample.r1 = gamepad1.right_bumper;
+        sample.l1 = gamepad1.left_bumper;
+        sample.wheels[0] = leftFrontPower;
+        sample.wheels[1] = rightFrontPower;
+        sample.wheels[2] = leftBackPower;
+        sample.wheels[3] = rightBackPower;
+        sample.intake = intakePower;
+        sample.agitator = feeding ? tuning.agitatorPower() : intakePower;
+        sample.launcherTarget = reversing ? -LAUNCHER_REVERSE_VELOCITY : launching ? tuning.launcherVelocity() : 0;
+        sample.launcherMeasured = launcherMeasuredVelocity;
+        sample.launching = launching;
+        sample.feeding = feeding;
+        sample.reversing = reversing;
+
+        // Battery: each reading is a message to the hub, so once a second is plenty.
+        if (runTimer.seconds() - batteryReadAt >= 1) {
+            batteryReadAt = runTimer.seconds();
+            double volts = Double.NaN;
+            try {
+                for (VoltageSensor sensor : hardwareMap.voltageSensor) {
+                    double v = sensor.getVoltage();
+                    if (v > 0 && (Double.isNaN(volts) || v < volts)) volts = v;
+                }
+            } catch (RuntimeException ex) {
+                volts = Double.NaN; // no reading this second
+            }
+            batteryVolts = volts;
+        }
+        sample.batteryVolts = batteryVolts;
+
+        // Position, if there is a Pinpoint. If reading it ever fails, stop asking: TeleOp goes on.
+        if (odometry == null) {
+            sample.odometry = odometryProblem.isEmpty() ? "NO PINPOINT" : "NO PINPOINT: " + odometryProblem;
+            sample.x = sample.y = sample.headingDegrees = Double.NaN;
+            sample.rawX = sample.rawY = sample.rawHeading = Double.NaN;
+            return;
+        }
+        try {
+            odometry.update();
+            Pose pose = odometry.pose();
+            // Route directions, the same ones every autonomous uses (see pollen/PollenFacing.java).
+            double[] route = PollenFacing.routePose(pose.x(), pose.y(), pose.heading());
+            sample.odometry = PollenOdometryHardware.status(pinpoint);
+            sample.x = route[0];
+            sample.y = route[1];
+            sample.headingDegrees = Math.toDegrees(route[2]);
+            sample.rawX = pose.x();
+            sample.rawY = pose.y();
+            sample.rawHeading = pose.heading();
+        } catch (RuntimeException ex) {
+            odometry = null;
+            odometryProblem = "read failed: " + ex;
+        }
+    }
+
+    /* Every loop: write a row if it is time, and handle the rehearsal buttons. */
+    private void record() {
+        if (recorder == null) return;
+        try {
+            fillSample();
+            PollenTeleOpRecorder.Mark mark = recorder.loop(runTimer.seconds(), System.currentTimeMillis(),
+                    gamepad1.circle, gamepad1.square, sample);
+            // The gamepad buzzes so the driver knows the button counted: once = started, twice = ended.
+            if (mark == PollenTeleOpRecorder.Mark.STARTED) gamepad1.rumble(200);
+            if (mark == PollenTeleOpRecorder.Mark.ENDED) gamepad1.rumbleBlips(2);
+            telemetry.addData("Recording", recorder.screen(runTimer.seconds())
+                    + (recordingProblem.isEmpty() ? "" : " (" + recordingProblem + ")"));
+        } catch (RuntimeException ex) {
+            // Never let recording stop the robot. Show the problem and stop recording.
+            recordingProblem = ex.toString();
+            recorder = null;
+            telemetry.addData("Recording", "OFF: " + recordingProblem);
+        }
     }
 
     void mecanumDrive(double forward, double strafe, double rotate) {

@@ -2,7 +2,7 @@
 
 Experimental hive-gated modes and garden collection: [testing guide](POLLEN_HIVE_TESTING.md). Existing match modes retain their behavior. The hive group also has a persistent NO MOTORS camera check, primary/secondary stationary-shot tests and garden-return practice. Use their dedicated guide: their controls and Execution defaults differ from the legacy modes below.
 
-All autonomous modes and PollenBot TeleOp show build **`pollen-hive-v6`**.
+All autonomous modes and PollenBot TeleOp show build **`pollen-hive-v10`**.
 Keep these instructions with the installed code. The new mat calibration and field routes are **experimental**.
 **Drive team:** use the [drive-team guides](drive-team/README.md); this manual is the full reference.
 Since `pollen-odo-v5`, B's default (and Triangle) is the full shoot-and-park route.
@@ -187,6 +187,15 @@ autonomous menus. Driving controls are unchanged.
   speed. They are kept for the next INIT until the Robot Controller app restarts,
   so check the INIT screen before every match.
 
+Since `pollen-hive-v10` every TeleOp run is recorded on the Hub (sticks, every motor
+command, launcher speed, battery and the Pinpoint position), with every INIT setting
+on its first row. During the match **Circle** marks the start of a rehearsal and
+**Square** its end (the gamepad buzzes once, then twice); the marks change nothing
+about driving. Keep the robot still during INIT: TeleOp now opens the Pinpoint, which
+calibrates then. With no Pinpoint, or no room left on the Hub, TeleOp runs as before
+and the screen says what is missing. Details and the rehearsal-to-autonomous steps:
+[recordings and storage](POLLEN_LOGGING.md).
+
 The match screen shows `Feed: spinning up` or `FEEDING (started at 1.2 s: up to
 speed)` / `(3.0 s: spin-up timer)`, plus "Launcher target / measured". Once
 feeding starts it stays on until R1 is released, even when the wheel slows as
@@ -255,8 +264,10 @@ with position and battery, warnings, the final RESULT, Pinpoint status changes,
 and a position/wheel/launcher sample every 0.25 s while anything moves. Errors
 are logged with their stack trace. The lines go to `robotControllerLog.txt` on
 the Control Hub and into the per-run match logs (`FIRST/matchlogs`). The log
-rotates, so pull it after every event: see CLAUDE.md, "After an event: pull the
-robot logs".
+rotates at about 20 MB and only 9 match logs are kept, so since `pollen-hive-v10`
+each run also writes the same lines to its own file in `FIRST/pollen-hive/auto`.
+INIT shows a `Hub storage` line, and a `STORAGE WARNING` when it is time to
+download and prune: see [recordings and storage](POLLEN_LOGGING.md).
 
 ## Verification and settings record
 
