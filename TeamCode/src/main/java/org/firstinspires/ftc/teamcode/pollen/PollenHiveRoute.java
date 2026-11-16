@@ -26,23 +26,16 @@ public final class PollenHiveRoute {
     private Node move(String name,double xCm,double yCm,double h,boolean collect) {
         return new Node(name,xCm/2.54,yCm/2.54,h,collect?v[20]:v[7],false,collect,0);
     }
-    private Node turn(String name,double xCm,double yCm,double h) {
-        return new Node(name,xCm/2.54,yCm/2.54,h,v[8],true,false,0);
-    }
     public Node[] garden() {
-        double f=v[13], a=v[14], b=v[15], c=v[16], near=v[17], transit=v[18], pickup=v[19];
+        double f=v[13], side=v[16], near=v[17];
+        // Keep the starting heading: back clear, strafe to the row, drive front-first
+        // into collection, then back out and retrace the corridor to the shooting pose.
         return new Node[]{
             move("CLEAR END WALL",f,0,0,false),
-            move("REACH FIRST TURN",f,a,0,false),
-            turn("FRONT TOWARD GARDEN",f,a,transit),
-            move("TRAVEL FRONT FIRST",f,b,transit,false),
-            turn("FRONT TOWARD BALL ROW",f,b,pickup),
-            move("ALIGN INTAKE",f,c,pickup,false),
-            move("COLLECT TOWARD WALL",near,c,pickup,true),
-            new Node("COLLECT HOLD",near/2.54,c/2.54,pickup,0,false,true,Math.max(.02,v[10])),
-            move("BACK AWAY FROM WALL",f,c,pickup,false),
-            move("CLEAR SIDE WALL",f,b,pickup,false),
-            turn("RESTORE SHOOT HEADING",f,b,0),
+            move("STRAFE TO GARDEN",f,side,0,false),
+            move("COLLECT TOWARD WALL",near,side,0,true),
+            new Node("COLLECT HOLD",near/2.54,side/2.54,0,0,false,true,Math.max(.02,v[10])),
+            move("BACK AWAY FROM WALL",f,side,0,false),
             move("RETURN ACROSS",f,0,0,false),
             move("RETURN SHOOT POSITION",0,0,0,false)};
     }

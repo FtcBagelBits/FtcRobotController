@@ -122,7 +122,7 @@ FTC_OFFLINE=1 bash tools/ftc.sh deploy
 Offline mode works only after the Gradle distribution and dependencies have been cached.
 Installation restarts the RC app. The tools do not check whether an OpMode is stopped and
 do not press INIT/START. After installing, the operator checks the Build line on the
-Driver Hub against the expected build (`pollen-hive-v8` at this patch's base). Source Git
+Driver Hub against the expected build (`pollen-hive-v9` for this route update). Source Git
 HEAD is not proof of what is installed. Signing errors are reported; nothing is uninstalled.
 
 ### Save and analyze data

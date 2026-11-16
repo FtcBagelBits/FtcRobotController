@@ -1,3 +1,16 @@
+# v9 garden route: keep the starting heading
+
+Build **pollen-hive-v9** replaces the garden turns with a direct sideways approach.
+From S: back clear of the end wall, strafe to intake alignment, drive front-first to collect,
+back out, strafe back, and return to S. Launcher and agitator remain off during the garden.
+Old saved nonzero transit/pickup headings are rejected; camera calibration is preserved.
+The old turn-waypoint settings are retained for saved-file compatibility but no longer affect the path.
+The CAD footprint checks cover the new straight corridor. First retest with an empty robot in
+**EXPERIMENTAL Hive Primary + Garden / DRIVE**: garden, return, park. Then STOP and download.
+Computer/geometry checks and Android tests/build passed on the local Mac. On 2026-11-15,
+the operator reported that the empty v9 combined DRIVE trial on vinyl ran successfully.
+Loaded pickup and hive-gated shooting with this route remain unverified.
+
 # Hive auto diagnostics and next tests - v8
 
 Base: `pollen-hive-ready`, commit `fbf82081b621bf6f0ff61041abec42d4dcdbef97` (v7 diagnostics).

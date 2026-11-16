@@ -54,12 +54,14 @@ public final class PollenHiveSettings {
         row("feedIntake", "Feed intake power", 0.5, 0.5, 0.05, 0, 1),
         row("feedAgitator", "Feed agitator power", 1, 1, 0.05, 0, 1),
         row("clearForward", "Clearance forward cm", 15.24, 15.24, 1, -350, 350),
+        // Retain legacy row indices/keys for saved settings; the straight strafe bypasses these waypoints.
         row("firstTurnLeft", "First turn left cm", 43.8362319108, 43.8362319108, 1, -350, 350),
         row("gardenTurnLeft", "Garden turn left cm", 108.8221319108, 108.8221319108, 1, -350, 350),
         row("pickupLeft", "Pickup left cm", 121.5221319108, 121.5221319108, 1, -350, 350),
         row("pickupForward", "Pickup forward cm", 2.54, 2.54, 1, -350, 350),
-        row("transitHeading", "Transit heading deg", -90, -90, 5, -180, 180),
-        row("pickupHeading", "Pickup heading deg", 0, 0, 5, -180, 180),
+        // Fixed heading: reject old saved turn overrides rather than restoring the turning route.
+        row("transitHeading", "Transit heading deg", 0, 0, 5, 0, 0),
+        row("pickupHeading", "Pickup heading deg", 0, 0, 5, 0, 0),
         row("pickupPower", "Pickup drive power", 0.2, 0.2, 0.05, 0.1, 0.8),
         row("park", "Park", 1, 1, 1, 0, 1),
         row("park1Forward", "Park1 forward cm", 10, 20.32, 1, -350, 350),

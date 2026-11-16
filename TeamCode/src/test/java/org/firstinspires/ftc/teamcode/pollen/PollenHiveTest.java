@@ -260,12 +260,17 @@ public final class PollenHiveTest {
         PollenHiveRoute c=new PollenHiveRoute(false); c.validate();
         System.out.printf(Locale.US,"Hive CAD defaults: garden %.2f s, park %.2f s (estimates only)%n",PollenHiveRoute.planned(c.garden()),PollenHiveRoute.planned(c.park()));
         PollenHiveRoute.Node[] nodes=c.garden();
-        check(Math.abs(nodes[3].h+Math.PI/2)<1e-9,"Transit turns front toward garden");
-        check(nodes[6].collect&&nodes[6].h==0,"Pickup faces front toward garden wall");
+        for(PollenHiveRoute.Node node:nodes)
+            check(!node.turn&&node.h==0,"Garden keeps starting heading throughout");
+        check(nodes[2].collect&&nodes[2].h==0,"Pickup faces front toward garden wall");
         check(nodes[nodes.length-1].x==0&&nodes[nodes.length-1].y==0&&nodes[nodes.length-1].h==0,"Return restores shoot pose");
-        check(Math.abs(PollenFieldGeometry.RED_HIVE_X_INCHES-nodes[6].y+60.585)<1e-6,"Pickup center derived from side-wall clearance");
-        c.v[13]=0; boolean rejected=false; try { c.validate(); } catch(IllegalArgumentException ex) { rejected=true; }
-        check(rejected,"Turn with no end-wall clearance rejected");
+        check(Math.abs(PollenFieldGeometry.RED_HIVE_X_INCHES-nodes[2].y+60.585)<1e-6,"Pickup center derived from side-wall clearance");
+        Properties oldHeading=new Properties(); oldHeading.setProperty("transitHeading","-90");
+        check(c.values.load(oldHeading).contains("transitHeading")&&c.values.get("transitHeading")==0,
+                "Old saved transit heading cannot restore turns");
+        c.validate();
+        c.v[13]=-30; boolean rejected=false; try { c.validate(); } catch(IllegalArgumentException ex) { rejected=true; }
+        check(rejected,"Route crossing end wall rejected");
         new PollenHiveRoute(true).validate();
     }
     private static void secondaryGates() {
@@ -311,13 +316,13 @@ public final class PollenHiveTest {
         else { check(firstFeed&&collect,"Primary fires and collects"); check(secondFeed!=tipped,"Second shot respects current hive state"); }
     }
     private static void slowLauncherBudget() {
-        PollenHiveRoute c=new PollenHiveRoute(false); c.v[0]=2;
+        PollenHiveRoute c=new PollenHiveRoute(false); c.v[0]=2; c.v[5]=10;
         PollenHiveAuto a=new PollenHiveAuto(c,hive()); a.start(0);
         PollenHiveAuto.Output o=null;
         boolean fed=false,skipped=false;
-        for(int i=1;i<=400;i++) {
+        for(int i=1;i<=700;i++) {
             double t=i*.02;
-            double velocity=t<3.1?0:(o!=null&&o.launcher>0?1180:0);
+            double velocity=t<8.0?0:(o!=null&&o.launcher>0?1180:0);
             o=a.tick(t,frame(i,true),0,0,0,velocity,true);
             fed|=o.feed;
             if(o.phase.startsWith("PARK")) { skipped=o.reason.contains("not enough estimated cycle time"); break; }

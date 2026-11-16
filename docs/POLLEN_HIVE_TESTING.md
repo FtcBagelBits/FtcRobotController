@@ -5,7 +5,7 @@ For the v8 motion investigation and exact retest order, see [Hive auto diagnosti
 Intermittent tags? Start with the [automatic pipeline benchmark](POLLEN_HIVE_BENCHMARK.md).
 It records raw detections before calibration passes; the current confirmation rule is unchanged.
 
-Build **pollen-hive-v6**. Experimental, for field testing. Keep the existing match autos available.
+Build **pollen-hive-v9**. Experimental, for field testing. Keep the existing match autos available.
 Print [the two-page practice sheet](drive-team/print/4-hive-practice.pdf). This guide explains the
 controls and checks in full; the patch kit README covers applying, building, installing and pushing.
 
@@ -28,7 +28,7 @@ Camera-only testing needs just the configured Limelight and the Hub; it does not
 
 ## Before the hive is available
 
-1. Apply/build/install the patch. Verify `BUILD pollen-hive-v6` on the Driver Hub.
+1. Apply/build/install the patch. Verify `BUILD pollen-hive-v9` on the Driver Hub.
 2. Mount the Limelight 3A rigidly on the back, looking toward the hive, with negligible camera
    roll. Measure tiles to **lens center**; 14 inches is a default, not a substitute for measuring.
 3. Connect USB-C on the Limelight to the Hub's blue USB-A 3.0 port. Configure it as `limelight`.
@@ -206,19 +206,17 @@ The source of field measurements is [POLLEN_FIELD_LAYOUT.md](POLLEN_FIELD_LAYOUT
 
 ![Default garden approach and return](POLLEN_HIVE_GARDEN.svg)
 
-Route forward = toward hive from START; route left = left while looking at hive. **All distances are centimeters, absolute robot-center coordinates from START.** Heading 0 is the starting chassis orientation (front toward wall, rear toward hive). Heading -90 degrees turns the front toward the garden on the left. Translation angle and chassis heading are separate.
+Route forward = toward hive from START; route left = left while looking at hive. **All distances are centimeters, absolute robot-center coordinates from START.** Heading 0 is the starting chassis orientation (front toward wall, rear toward hive). The v9 garden route keeps heading 0 throughout: back clear, strafe sideways, drive forward to collect, then retrace the corridor.
 
 | Point/action | Field X,Z (in, red) | Route forward,left (cm) | Heading |
 | --- | --- | --- | --- |
 | S: shooting start | -12.742, 61.585 | 0, 0 | 0 |
 | A: clear end wall | -12.742, 55.585 | 15.24, 0 | 0 |
-| B: first turning point | -30, 55.585 | 15.24, 43.836 | turn to -90 |
-| C: garden turning point | -55.585, 55.585 | 15.24, 108.822 | arrive -90; turn to 0 |
 | D: intake alignment | -60.585, 55.585 | 15.24, 121.522 | 0 |
 | E: collect toward wall | -60.585, 60.585 | 2.54, 121.522 | 0 |
-| Return | E → D → C → A → S | same points in reverse corridor | 0 |
+| Return | E → D → A → S | same points in reverse corridor | 0 |
 
-B is shifted away from the alliance midline before the first turn. C leaves 15 inches to both walls, more than the 12.73-inch circumradius of an 18-inch square. No turn happens at E. D/E leave the body's left edge 1 inch from the side wall; E leaves its front edge 1 inch from the end wall. The intake runs only for D→E and the collection hold, after flywheel speed has fallen to at most 100 ticks/s; agitator stays off. The robot backs out before crossing back to the shooting position. It does not reset odometry during the cycle.
+The chassis keeps its starting orientation throughout. A→D is one sideways move; no turning waypoints are used. D/E leave the body's left edge 1 inch from the side wall; E leaves its front edge 1 inch from the end wall. The intake runs only for D→E and the collection hold; launcher and agitator stay commanded off throughout the garden. The robot backs out before crossing back to the shooting position. It does not reset odometry during the cycle.
 
 **Intake reach is the remaining mechanical assumption.** At E, the leftmost ball center is 8.725 inches left of the robot centerline. A centered mouth would need about **17.45 inches of usable width** to cover all four centers at once, plus appropriate reach into the ball row. A narrower intake can collect fewer balls on this route. The code cannot confirm ball count. Measure the actual intake envelope/reach and test with balls before claiming a four-ball pickup. The footprint checker assumes the entire robot, including intake, fits within 18×18 inches.
 
@@ -240,16 +238,16 @@ or the midline), or promote saved changes into the code. The robot log's START l
 | Shooting intake / agitator | 0.50 / 1.00 |
 | Clearance forward / first turn left / garden turn left | 15.24 / 43.836 / 108.822 cm |
 | Pickup left / forward | 121.522 / 2.54 cm |
-| Transit / pickup heading | -90 / 0 degrees; final shooting heading always returns to zero |
+| Transit / pickup heading | fixed 0 / 0 degrees; final shooting heading always returns to zero |
 | Execution / Side | LIVE (not saved) / AUTO |
 | Park | on; three CAD-derived waypoints (existing departure corridor and parking spot) |
 
-Primary garden is about **11.22 s** and primary park **4.76 s** by the existing drive/turn estimates. These are planning estimates. No default is physically tuned.
+Primary garden is about **6.48 s** and primary park **4.76 s** by the existing drive/turn estimates. These are planning estimates. No default is physically tuned.
 
 ## Timing and autonomous behavior
 
 - Primary first volley ends when the feed time is used, a confirmed DOWN follows some feeding, or its first-shot window ends. A missing/ambiguous observation immediately stops feeding but does not invent a tip.
-- Before garden collection, the launcher is commanded off. If it doesn't slow below 100 ticks/s within two seconds, collection is skipped and the robot departs, so the shared intake never runs toward a spinning launcher during pickup.
+- Before garden collection, the launcher is commanded off. Collection does not wait for flywheel spin-down.
 - Garden admission reserves its estimated duration, three seconds for second spin-up, the second feed duration, estimated parking duration and margins. If time is short, it skips collection and parks; telemetry says why.
 - After return, position must be within 0.5 inch of START, heading within 2 degrees, and speed/turn rate settled for 0.3 seconds. Old readiness is discarded while traveling; fresh observations reconfirm UP. Our cell stays locked.
 - If our cell is DOWN or UNKNOWN after return, primary waits. If it becomes UP in time, it shoots. Secondary behaves the same for its volley. Both reserve departure time and stop all commands at **27 seconds**.

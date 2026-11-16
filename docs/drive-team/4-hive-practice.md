@@ -1,6 +1,6 @@
 # Hive calibration and practice
 
-**Build pollen-hive-v8 - experimental.** Print front/back. Full steps: `docs/POLLEN_HIVE_TESTING.md`.
+**Build pollen-hive-v9 - experimental.** Print front/back. Full steps: `docs/POLLEN_HIVE_TESTING.md`.
 Keep existing match autos available. Rear camera/launcher face hive; **front intake faces end wall**.
 
 <img src="img/hive-height.svg" style="width:4.3in">
@@ -63,8 +63,8 @@ Check BUILD, run type, Execution, CHANGED values, camera profile, cell/alliance 
 
 <img src="../POLLEN_HIVE_GARDEN.svg" style="width:4.9in;max-height:2.7in">
 
-Start every garden test at **S**. Heading changes aim the **front intake** toward the garden;
-return restores rear-to-hive shooting. No midrun odometry reset. No turn at E: body clearance is
+Start every garden test at **S**. Keep the starting heading: back clear, strafe sideways, then
+drive front-first to collect; back out and retrace to S. No midrun odometry reset. Body clearance is
 only **1 in**. Four ball centers need about **17.45 in** of centered intake width; measure actual reach.
 
 **v8 diagnostics:** Before the first departure, motion over 2 in or 10 degrees stops the run.
