@@ -13,6 +13,8 @@ import org.junit.Test;
  * Python field-route checker, for mentors).
  */
 public class PollenTests {
+    @Test public void cameraDrive() { PollenCameraDriveControlTest.main(NO_ARGS); }
+    @Test public void cameraViewer() throws Exception { PollenCameraViewerTest.main(NO_ARGS); }
     @Test public void hiveBenchmark() { PollenHiveBenchmarkTest.main(NO_ARGS); }
     @Test public void hiveCameraJson() throws Exception { PollenHiveCameraTest.main(NO_ARGS); }
 

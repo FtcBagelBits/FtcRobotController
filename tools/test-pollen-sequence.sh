@@ -11,6 +11,8 @@ pkg=org.firstinspires.ftc.teamcode.pollen
 # PollenTests.java (the JUnit wrapper for Android Studio) is left out: it needs JUnit, which
 # Gradle supplies. Everything else here is plain Java.
 javac --release 8 -d "$test_build_dir" "$src/PollenSequence.java" "$src/PollenFeedRule.java" "$src/PollenConfig.java" "$src/PollenParkTuning.java" "$src/PollenShootTuning.java" "$src/PollenDriveCalibration.java" "$src/PollenFieldGeometry.java" "$src/PollenTeleOpTuning.java" "$src/PollenOdometryDrive.java" "$src/PollenOdoParkTuning.java" "$src/PollenAutoLog.java" "$src/PollenFacing.java" "$src/IsHiveReadyForShot.java" "$src/PollenHiveCalibration.java" "$src/PollenHiveCalibrationSession.java" "$src/PollenHiveSettings.java" "$src/PollenHiveRoute.java" "$src/PollenHiveMotion.java" "$src/PollenHiveAuto.java" "$src/PollenHiveTrace.java" "$src/PollenHiveBenchmarkPlan.java" \
+  "$src/PollenCameraDriveControl.java" "$src/PollenCameraViewer.java" \
+  "$tests/PollenCameraDriveControlTest.java" "$tests/PollenCameraViewerTest.java" \
   "$tests/PollenSequenceTest.java" \
   "$tests/PollenParkTuningTest.java" \
   "$tests/PollenShootFirstTest.java" \
@@ -31,6 +33,8 @@ java -cp "$test_build_dir" $pkg.PollenOdometryTest
 java -cp "$test_build_dir" $pkg.PollenHiveTest
 java -cp "$test_build_dir" $pkg.PollenHiveDiagnosticsTest
 java -cp "$test_build_dir" $pkg.PollenHiveBenchmarkTest
+java -cp "$test_build_dir" $pkg.PollenCameraDriveControlTest
+java -cp "$test_build_dir" $pkg.PollenCameraViewerTest
 # Check the routes the Java presets actually drive against the CAD field model.
 java -cp "$test_build_dir" $pkg.PollenPresetExport > "$test_build_dir/presets.json"
 python3 "$repo_dir/tools/check-pollen-field-routes.py" --presets "$test_build_dir/presets.json"

@@ -9,6 +9,7 @@ All of team 31452's robot code lives in this folder. New here? Start with
 | Driver Hub name | File or folder | What it is |
 | --- | --- | --- |
 | **PollenBot** (TeleOp) | `BioBuzzStarterbotOpMode.java` | The match TeleOp |
+| TEST Camera Drive (group Pollen Test) | `pollen/PollenCameraDrive.java` | Slow manual driving with live Limelight video; see `docs/POLLEN_CAMERA_DRIVE.md` |
 | Odo ROBOT Shoot + Park, Odo Supporting Shooter Auto, Odo ROBOT Park, and the EMERGENCY Timed autos | `pollen/` | All the autonomous code; see `pollen/README.md` |
 | Angled Primary Shooter (group Pollen Experimental) | `pollen/PollenAngledPrimaryShooter.java` | **Experimental:** the primary auto with an angled shot. Not yet tried on a field |
 | TEST Hive camera / primary shot ONLY / secondary shot ONLY / garden + return; EXPERIMENTAL Hive Primary + Garden / Secondary | `pollen/PollenHive*.java` | Experimental Limelight readiness and isolated practice; see `docs/POLLEN_HIVE_TESTING.md` |

@@ -296,6 +296,20 @@ particular:
 
 ## Decision log
 
+### 2026-11-15, Codex cloud session: isolated camera driving test
+
+- `[reported]` Ari requested a separate driving TeleOp after merging `pollen-hive-ready`
+  into `main`, rather than adding camera viewing to the competition TeleOp.
+- `[repo]` Based on `main` at `f792a2c`, branch `pollen-camera-drive` adds
+  `PollenCameraDrive` and a viewing-only gateway on Hub port 5800. It reads the default
+  Limelight MJPEG endpoint and runs only during this test OpMode. See
+  [camera driving test](../POLLEN_CAMERA_DRIVE.md). This is an alternative to O3 for
+  viewing; it does not install the Panels proxy or expose ports 5801/5807.
+- `[inferred]` Status **Trying**: loopback socket tests can check the gateway lifecycle,
+  but firmware compatibility, Wi-Fi load and real driving remain to be tested locally.
+  This cloud session cannot reach the robot. The full tuning/backup proxy in O3 remains
+  Proposed; no existing contributor's conclusions above have been replaced.
+
 | Date | Who | Decision |
 | --- | --- | --- |
 | 2026-11-15 | Ari | N1 is already in use (phone on USB). |

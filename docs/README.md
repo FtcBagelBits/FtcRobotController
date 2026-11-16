@@ -8,6 +8,7 @@ Read [Start here](POLLEN_START_HERE.md) first.
 | [Desktop tools](DESKTOP_TOOLS.md) | Claude/Codex setup, ADB recovery, tests, build/install and diagnostics. |
 | [Shared research notes](research/README.md) | Agents and mentors: research, options and decisions that are not yet rules or tested behavior. First note: [agent and robot loop](research/agent-robot-loop.md). |
 | [Pollen code reference](POLLEN_CODE_REFERENCE.md) | Hardware names, facing transforms and established robot architecture. |
+| [Camera driving test](POLLEN_CAMERA_DRIVE.md) | Separate TEST Camera Drive TeleOp: slow manual driving, live browser video and raw tag telemetry. |
 | [Automatic hive pipeline benchmark](POLLEN_HIVE_BENCHMARK.md) | Camera-only profile sweep, raw logs, four physical labels, download and analysis. |
 | [Hive auto diagnostics](POLLEN_HIVE_DIAGNOSTICS.md) | v8 direct garden departure, motor/decision traces, unexpected-motion guard and staged retests. |
 | [Hive camera + garden testing](POLLEN_HIVE_TESTING.md) | Experimental: how the robot finds its hive cell and reads UP/DOWN from tag height, labeled calibration, isolated shot/garden tests, session reports, match modes, CAD garden route, validation. |
