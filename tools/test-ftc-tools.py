@@ -249,6 +249,27 @@ class DesktopTools(unittest.TestCase):
         self.assertEqual(self.calls(), [])
         self.run_tool('patch', str(patch), ok=False)  # Already applied: do not double-commit.
 
+    def test_storage_and_prune_select_the_hub_and_guard_arguments(self):
+        # The fake adb answers no shell questions, so this checks routing and guards only;
+        # tools/test-hive-storage.py covers the report and the checksum comparison.
+        shutil.copyfile(ROOT / 'tools/hive-storage.py', self.repo / 'tools/hive-storage.py')
+        result = self.run_tool('storage')
+        self.assertIn('could not read df', result.stdout)
+        shells = [c for c in self.calls() if c[2:3] == ['shell']]
+        self.assertTrue(shells and all(c[:2] == ['-s', '192.168.43.1:5555'] for c in shells))
+        self.assertFalse(any(c[3].startswith('rm ') for c in shells))
+        self.log.unlink()
+        self.run_tool('storage', ok=False, TEST_MODE='offline', FTC_ADB_RESTART='0')
+        self.run_tool('prune', ok=False)
+        self.run_tool('prune', str(self.folder / 'missing'), '--delete', ok=False)
+        downloaded = self.folder / 'session'
+        (downloaded / 'pollen-hive/teleop').mkdir(parents=True)
+        self.run_tool('prune', str(downloaded), '--force', ok=False)
+        self.assertFalse(any(c[2:3] == ['shell'] for c in self.calls()))
+        result = self.run_tool('prune', str(downloaded), '--delete')
+        self.assertIn('Nothing was removed', result.stdout)
+        self.assertFalse(any(c[2:3] == ['shell'] and c[3].startswith('rm ') for c in self.calls()))
+
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)

@@ -14,6 +14,7 @@ wins until a mentor changes AGENTS.md.
 | Note | Question | Status |
 | --- | --- | --- |
 | [Agent and robot loop](agent-robot-loop.md) | Can a Mac act as the Robot Controller? How can agents observe the robot and iterate faster? | Open: options listed, most untested |
+| [Logging, Hub storage and rehearsal](logging-and-rehearsal.md) | Is every run recorded, can recordings fill the Hub, and can a move driven in TeleOp become autonomous waypoints? | Trying in `pollen-hive-v10`: computer-tested, not yet run on the robot |
 
 ## Where things belong
 

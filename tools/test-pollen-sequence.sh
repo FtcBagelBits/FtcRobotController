@@ -42,3 +42,9 @@ python3 "$repo_dir/tools/test-hive-promote.py"
 python3 "$repo_dir/tools/test-hive-benchmark.py"
 
 python3 "$repo_dir/tools/test-hive-download.py"
+
+# TeleOp recordings: rehearsal marks become draft waypoints.
+python3 "$repo_dir/tools/test-teleop-rehearsal.py"
+
+# Hub storage report and checksum-verified prune (fake adb).
+python3 "$repo_dir/tools/test-hive-storage.py"

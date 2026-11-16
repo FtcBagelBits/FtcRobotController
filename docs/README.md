@@ -7,6 +7,7 @@ Read [Start here](POLLEN_START_HERE.md) first.
 | --- | --- |
 | [Desktop tools](DESKTOP_TOOLS.md) | Claude/Codex setup, ADB recovery, tests, build/install and diagnostics. |
 | [Shared research notes](research/README.md) | Agents and mentors: research, options and decisions that are not yet rules or tested behavior. First note: [agent and robot loop](research/agent-robot-loop.md). |
+| [Recordings and Control Hub storage](POLLEN_LOGGING.md) | Mentors and programmers: what every mode records, folder budgets, how to check free space, download-then-prune, and turning a move rehearsed in TeleOp into draft autonomous waypoints. |
 | [Pollen code reference](POLLEN_CODE_REFERENCE.md) | Hardware names, facing transforms and established robot architecture. |
 | [Automatic hive pipeline benchmark](POLLEN_HIVE_BENCHMARK.md) | Camera-only profile sweep, raw logs, four physical labels, download and analysis. |
 | [Hive auto diagnostics](POLLEN_HIVE_DIAGNOSTICS.md) | v8 direct garden departure, motor/decision traces, unexpected-motion guard and staged retests. |

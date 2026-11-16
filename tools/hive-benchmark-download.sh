@@ -15,7 +15,7 @@ ftc_connect "$device"
 # Large log pulls can take longer than the connection probe.
 export FTC_ADB_TIMEOUT=${FTC_ADB_TIMEOUT:-180}
 mkdir -p "$out"
-echo "Downloading saved settings, reports, benchmarks and auto traces..."
+echo "Downloading saved settings, reports, benchmarks, auto runs and TeleOp recordings..."
 ftc_adb -s "$device" pull /sdcard/FIRST/pollen-hive "$out/pollen-hive"
 echo 'Downloading SDK logs and storage status...'
 ftc_adb -s "$device" shell 'df -h /sdcard; du -k /sdcard/FIRST/pollen-hive' > "$out/storage.txt" 2>&1 || true
@@ -48,9 +48,12 @@ if ! python3 "$(dirname "$0")/hive-benchmark-analyze.py" "$out/pollen-hive" --ou
   echo "Analysis could not finish; raw logs are preserved. See analysis-output.txt." >&2
 fi
 python3 "$(dirname "$0")/hive-auto-analyze.py" "$out/pollen-hive" > "$out/auto-summary.md" 2> "$out/auto-analysis-error.txt" || true
+# TeleOp recordings: each marked rehearsal becomes draft waypoints (docs/POLLEN_LOGGING.md).
+python3 "$(dirname "$0")/teleop-rehearsal.py" "$out/pollen-hive" --out "$out/rehearsals" > "$out/teleop-summary.md" 2> "$out/teleop-analysis-error.txt" || true
 echo "Creating zip..."
 (cd "$(dirname "$out")" && zip -qr "$(basename "$out").zip" "$(basename "$out")")
 # Show the results now, so the next test can be chosen without opening any files.
 cat "$out/auto-summary.md"
 printf "\nCamera benchmark summary, if present: %s/analysis/summary.md\n" "$out"
+printf 'TeleOp recordings and rehearsals: %s/teleop-summary.md\n' "$out"
 printf '\nDownload complete: %s.zip (%s)\nInclude run notes and video; pipeline exports only if changed.\n' "$out" "$(du -h "$out.zip" | cut -f1)"

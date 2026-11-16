@@ -102,4 +102,6 @@ that a mentor reviews.
 The Pollen shoot autos write what they did to the robot's log (search it for `PollenAuto`).
 The log gets overwritten over time, so a mentor saves it after each event: on the robot's Wi-Fi,
 open `http://192.168.43.1:8080` in a browser → **Manage** → **Download Logs**. The adb way is in
-[Desktop tools](DESKTOP_TOOLS.md).
+[Desktop tools](DESKTOP_TOOLS.md). TeleOp and every autonomous also keep their own files on the
+Control Hub: [recordings and storage](POLLEN_LOGGING.md) says what they hold and how a mentor
+downloads them.
