@@ -105,6 +105,14 @@ public final class PollenTeleOpTuning {
 
     public double drainerUpPosition() { return drainerUp; }
     public double drainerDownPosition() { return drainerDown; }
+    /** A nudge that reaches or passes a preset selects it. Between presets keep the last state. */
+    public boolean drainerIsDown(double position, boolean wasDown) {
+        if (drainerDown == drainerUp) return wasDown; // Only the toggle distinguishes equal presets.
+        position = Math.round(position * 1000) / 1000.0; // Same precision as the INIT settings.
+        if (wasDown) return drainerDown < drainerUp ? position < drainerUp : position > drainerUp;
+        return drainerDown < drainerUp ? position <= drainerDown : position >= drainerDown;
+    }
+
     public double drainerStep() { return drainerStep; }
     public double launcherVelocity() { return launcher; }
     /** Longest wait, in seconds of R1, before feeding starts (sooner if up to speed). */

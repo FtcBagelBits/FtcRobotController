@@ -133,6 +133,7 @@ public class BioBuzzStarterbotOpMode extends OpMode {
 
     // Create a variable to set to the intake.
     double intakePower;
+    private double agitatorPower;
 
     private static final String SERVO_NAME    = "pollenDrainer";
 
@@ -140,7 +141,7 @@ public class BioBuzzStarterbotOpMode extends OpMode {
 
     // Tracks where we told the servo to go
     private double armPosition;
-    private boolean isUp = true;
+    private boolean drainerDown;
 
     // Used so holding a button only acts once, not every loop
     private boolean aWasPressed = false;
@@ -314,7 +315,7 @@ public class BioBuzzStarterbotOpMode extends OpMode {
         startRecording();
         // Apply the selected up position only after START.
         armPosition = tuning.drainerUpPosition();
-        isUp = true;
+        drainerDown = false;
         aWasPressed = gamepad1.a;
         upWasPressed = gamepad1.dpad_up;
         downWasPressed = gamepad1.dpad_down;
@@ -341,44 +342,6 @@ public class BioBuzzStarterbotOpMode extends OpMode {
         // Read the launcher's speed sensor (its encoder) once for this loop.
         launcherMeasuredVelocity = launcher.getVelocity();
 
-        /*
-         * Set the intake power variable to equal the right trigger, minus the left trigger.
-         * Each trigger outputs a signal from 0-1, with 0 as fully released, and 1 fully depressed.
-         * This gives us proportional control of the intake speed. The speed increases as we pull
-         * the right trigger further. It's occasionally helpful to be able to reverse the intake,
-         * so we also factor in the left trigger. If the left trigger is fully depressed,
-         * the intakePower variable will be -1. If the right trigger is fully depressed, the variable
-         * will be 1. If the driver pulls both triggers, the intake will remain off.
-         * We use this technique (creating a variable, and setting it to our control inputs) to
-         * allow us to avoid setting the same motors/servos power more than once per loop. That can
-         * create erratic behavior.
-         */
-        intakePower = gamepad1.right_trigger - gamepad1.left_trigger;
-
-        launch();
-
-        // While L1 reverses the launcher, nothing may feed forward (the drive-team guide promises
-        // this): a ball pushed into a wheel spinning backwards jams again. The left trigger can
-        // still run the intake backwards to pull balls out.
-        if (reversing) intakePower = Math.min(intakePower, 0);
-
-        /*
-         * Here we set our intake motor and servos to their intake power. The order of operations
-         * here is important though. The gamepad triggers define the starting point for the intake
-         * power variable in each loop of our code, but inside our launch function we also sometimes
-         * change the intake power. So we need to give our launch function a chance to modify the
-         * variable before we write it to our motor and servos.
-         */
-
-        // R1 plus a full trigger would ask for 1.5; keep commands in the motors' -1..1 range.
-        intakePower = Math.max(-1, Math.min(1, intakePower));
-        // While feeding the launcher, the agitator runs at its own (full by default) power, like
-        // the windmill servo it replaced; otherwise it follows the triggers as before.
-        agitator.setPower(feeding ? tuning.agitatorPower() : intakePower);
-        intake.setPower(intakePower);
-//        leftIntakeServo.setPower(intakePower);
-//        rightIntakeServo.setPower(intakePower);
-
         // D-pad: nudge the position one STEP, only on the moment it is first pressed
         boolean upIsPressed = gamepad1.dpad_up;
         if (upIsPressed && !upWasPressed) {
@@ -395,16 +358,30 @@ public class BioBuzzStarterbotOpMode extends OpMode {
         // A button: toggle, but only on the moment it is first pressed
         boolean aIsPressed = gamepad1.a;
         if (aIsPressed && !aWasPressed) {
-            isUp = !isUp;
-            armPosition = isUp ? tuning.drainerUpPosition() : tuning.drainerDownPosition();
+            drainerDown = !drainerDown;
+            armPosition = drainerDown ? tuning.drainerDownPosition() : tuning.drainerUpPosition();
         }
         aWasPressed = aIsPressed;
 
         // Keep the position inside the servo's 0.0 - 1.0 range
         armPosition = Math.max(0.0, Math.min(1.0, armPosition));
 
+        drainerDown = tuning.drainerIsDown(armPosition, drainerDown);
+
         // Send the servo to the chosen position
         armServo.setPosition(armPosition);
+
+        launch();
+
+        double triggerPower = gamepad1.right_trigger - gamepad1.left_trigger;
+        if (gamepad1.left_bumper) triggerPower = Math.min(triggerPower, 0);
+        agitatorPower = feeding ? tuning.agitatorPower() : triggerPower;
+        // Draining runs the intake roller at full inward power. The agitator still needs driver input.
+        intakePower = drainerDown ? 1.0 : Math.min(1.0, triggerPower + (feeding ? INTAKE_FEED_BOOST : 0));
+        agitator.setPower(agitatorPower);
+        intake.setPower(intakePower);
+//        leftIntakeServo.setPower(intakePower);
+//        rightIntakeServo.setPower(intakePower);
 
         /*
          * Show motor powers on the Driver Station via telemetry.
@@ -415,11 +392,13 @@ public class BioBuzzStarterbotOpMode extends OpMode {
                 tuning.launcherVelocity(), launcherMeasuredVelocity,
                 launching && launcherMeasuredVelocity < 50 ? "  (measured ~0: check launcher encoder cable)" : "");
         telemetry.addData("Feed", reversing ? "REVERSING launcher (L1) - no feed"
+                : gamepad1.left_bumper ? "Raise drainer to unjam (L1)"
                 : !launching ? "off (hold R1; L1 = reverse to clear a jam)"
                 : feeding ? String.format("FEEDING (started at %.1f s: %s)", feedStartedAt, feedStartedBy)
                 : "spinning up");
+        telemetry.addData("Drainer", "%s (%.3f)", drainerDown ? "DOWN - intake ON" : "UP", armPosition);
         telemetry.addData("Intake / agitator command", "%.2f / %.2f",
-                intakePower, feeding ? tuning.agitatorPower() : intakePower);
+                intakePower, agitatorPower);
         telemetry.addData("Drive power", "%.0f%%", tuning.driveScale() * 100);
 
         // Last, after every motor has its command: write this loop to the recording.
@@ -485,7 +464,7 @@ public class BioBuzzStarterbotOpMode extends OpMode {
         sample.wheels[2] = leftBackPower;
         sample.wheels[3] = rightBackPower;
         sample.intake = intakePower;
-        sample.agitator = feeding ? tuning.agitatorPower() : intakePower;
+        sample.agitator = agitatorPower;
         sample.launcherTarget = reversing ? -LAUNCHER_REVERSE_VELOCITY : launching ? tuning.launcherVelocity() : 0;
         sample.launcherMeasured = launcherMeasuredVelocity;
         sample.launching = launching;
@@ -599,11 +578,12 @@ public class BioBuzzStarterbotOpMode extends OpMode {
          * R1, and nothing feeds while reversing, so no ball is pushed into a wheel turning the
          * wrong way. Let go of L1 and R1 works as normal (with a fresh spin-up).
          */
-        reversing = gamepad1.left_bumper;
+        // Raise the drainer before reversing: the intake must pull inward while draining.
+        reversing = gamepad1.left_bumper && !drainerDown;
         if (reversing) {
             launching = false;
             launcher.setVelocity(-LAUNCHER_REVERSE_VELOCITY);
-        } else if (gamepad1.right_bumper) {
+        } else if (gamepad1.right_bumper && !gamepad1.left_bumper) {
             if (!launching) launchTimer.reset(); // R1 just pressed: start the spin-up clock
             launching = true;
             launcher.setVelocity(tuning.launcherVelocity());
@@ -627,12 +607,6 @@ public class BioBuzzStarterbotOpMode extends OpMode {
             feeding = true;
             feedStartedAt = launchTimer.seconds();
             feedStartedBy = upToSpeed ? "up to speed" : "spin-up timer";
-        }
-        if (feeding) {
-            //agitator.setPower(1);
-            intakePower += INTAKE_FEED_BOOST;
-        } else {
-            //agitator.setPower(0);
         }
     }
 }

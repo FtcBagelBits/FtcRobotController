@@ -215,9 +215,10 @@ if __name__ == '__main__':
     placement_picture('S', 'supporting-shooter-placement.svg', 'Where to put the robot (red: scoring-end wall)')
     controller_picture('teleop-controller.svg', 'PollenBot TeleOp: during the match', {
         'LSTICK': 'Left stick: drive and strafe', 'RSTICK': 'Right stick: turn',
-        'R1': 'R1 (hold): shoot', 'L1': 'L1 (hold): launcher backwards\nto clear a jam',
+        'R1': 'R1 (hold): shoot', 'L1': 'L1: unjam with drainer up',
         'RT': 'Right trigger: intake in', 'LT': 'Left trigger: intake out',
-        'DPAD': 'D-pad: INIT menu only\n(UP/DOWN pick a row,\nLEFT/RIGHT change it)', 'TRIANGLE': 'Triangle: INIT menu defaults',
+        'DPAD': 'D-pad up/down:\nnudge drainer', 'TRIANGLE': 'Triangle: INIT menu defaults',
+        'CROSS': 'Cross: lower / raise drainer',
     })
     init_buttons_picture('shoot-and-park-buttons.svg', 'Buttons during INIT (before START)',
                          'Circle: does nothing')

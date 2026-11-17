@@ -40,7 +40,7 @@ public class PollenDrainerTest extends OpMode {
 
     // Tracks where we told the servo to go
     private double armPosition;
-    private boolean isUp = true;
+    private boolean drainerDown;
 
     // Used so holding a button only acts once, not every loop
     private boolean aWasPressed = false;
@@ -83,7 +83,7 @@ public class PollenDrainerTest extends OpMode {
     public void start() {
         tuning.lock();
         armPosition = tuning.drainerUpPosition();
-        isUp = true;
+        drainerDown = false;
         aWasPressed = gamepad1.a;
         upWasPressed = gamepad1.dpad_up;
         downWasPressed = gamepad1.dpad_down;
@@ -110,19 +110,21 @@ public class PollenDrainerTest extends OpMode {
         // A button: toggle, but only on the moment it is first pressed
         boolean aIsPressed = gamepad1.a;
         if (aIsPressed && !aWasPressed) {
-            isUp = !isUp;
-            armPosition = isUp ? tuning.drainerUpPosition() : tuning.drainerDownPosition();
+            drainerDown = !drainerDown;
+            armPosition = drainerDown ? tuning.drainerDownPosition() : tuning.drainerUpPosition();
         }
         aWasPressed = aIsPressed;
 
         // Keep the position inside the servo's 0.0 - 1.0 range
         armPosition = Math.max(0.0, Math.min(1.0, armPosition));
 
+        drainerDown = tuning.drainerIsDown(armPosition, drainerDown);
+
         // Send the servo to the chosen position
         armServo.setPosition(armPosition);
 
         // Show what's happening on the Driver Station
-        telemetry.addData("Toggle state", isUp ? "UP" : "DOWN");
+        telemetry.addData("Toggle state", drainerDown ? "DOWN" : "UP");
         telemetry.addData("Commanded position", "%.2f", armServo.getPosition());
         telemetry.addLine("D-pad up/down to step, A to toggle");
     }

@@ -89,6 +89,11 @@ public final class PollenTeleOpTuningTest {
         near(drainer.drainerUpPosition(), .45, "default drainer up");
         near(drainer.drainerDownPosition(), .02, "default drainer down");
         near(drainer.drainerStep(), .01, "default drainer step");
+        check(drainer.drainerIsDown(.02000000000001, false), "nudging to DOWN starts draining");
+        check(drainer.drainerIsDown(0, false), "nudging past DOWN starts draining");
+        check(drainer.drainerIsDown(.10, true), "trimming a deployed drainer keeps collecting");
+        check(!drainer.drainerIsDown(.10, false), "partial lowering from UP keeps manual intake");
+        check(!drainer.drainerIsDown(.45, true), "nudging back to UP ends draining");
         select(drainer, DRAINER_UP);
         tap(drainer, 1, 1); near(drainer.drainerUpPosition(), .46, "up +0.01");
         tap(drainer, -1, 2); near(drainer.drainerUpPosition(), .44, "up -0.01");
@@ -98,7 +103,11 @@ public final class PollenTeleOpTuningTest {
         tap(drainer, 1, 1); near(drainer.drainerDownPosition(), .03, "down +0.01");
         tap(drainer, -1, 1); near(drainer.drainerDownPosition(), .02, "down -0.01");
         tap(drainer, -1, 200); near(drainer.drainerDownPosition(), 0, "down capped at servo minimum");
+        check(!drainer.drainerIsDown(0, false) && drainer.drainerIsDown(0, true),
+                "equal presets preserve the toggle state");
         tap(drainer, 1, 200); near(drainer.drainerDownPosition(), 1, "down capped at servo maximum");
+        check(drainer.drainerIsDown(1, false) && !drainer.drainerIsDown(0, true),
+                "nudge detection follows reversed calibration");
         select(drainer, DRAINER_STEP);
         drainer.update(false, false, false, true, false);
         drainer.update(false, false, false, true, false);

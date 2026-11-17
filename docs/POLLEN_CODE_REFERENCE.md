@@ -41,7 +41,7 @@ robots' code (DECODE 2025-26). They share some hardware names but nothing else w
 them alone unless asked. `TeamCode/.../teamcode/readme.md` is the student-facing list of what's live.
 
 Every Pollen and Odo mode shows a build id on the INIT screen (`PollenConfig.BUILD`, currently
-`pollen-hive-v13` on this branch). **Bump it whenever behavior changes**, so the drive team can confirm which code is installed.
+`pollen-hive-v14` on this branch). **Bump it whenever behavior changes**, so the drive team can confirm which code is installed.
 
 **Which way the robot faces (since `pollen-odo-v11`).** The launcher shoots out of the robot's back,
 so every autonomous starts with the robot's front against the end wall and its back to the hive.
@@ -137,11 +137,16 @@ Older robots also use `flywheel`, `coreHex`, `servo`, `leftDrive`, `rightDrive`,
   They are data from a flywheel tuner (not in this repo).
 - AprilTag vision: `AprilTagProcessor` + `VisionPortal` on `Webcam 1`; `Camera` wraps it; tag 20 is the blue goal.
 
-## Pollen drainer integration (pollen-hive-v13)
+## Pollen drainer integration (pollen-hive-v14)
 
 This build combines main's run recording and rehearsal markers with the drainer branch.
 PollenBot now requires a servo named `pollenDrainer`. During a run, D-pad Up/Down nudges
 its commanded position by the selected step per press; A toggles between the selected up and down positions.
+Lowering the drainer commands full inward intake. Small position adjustments keep the last
+state until a nudge reaches or passes the opposite preset. The driver strafes with the left stick.
+Raising the drainer returns intake control to the triggers and enables L1 launcher reversal.
+The agitator keeps its normal trigger and R1 feed controls.
+
 The INIT menu adds Drainer up position (default 0.45), Drainer down position (0.02),
 and Drainer step (0.01). D-pad Up/Down selects a row; Left/Right edits up/down by 0.01
 and step by 0.002 per tap. Positions stay within 0–1; step stays within 0.002–1.
@@ -149,7 +154,7 @@ Triangle restores defaults, settings are remembered until app restart, and START
 settings and commands the selected up position. The servo does not move during INIT. INIT tuning and
 Circle/Square recording markers retain main's behavior.
 
-The separate `PollenDrainerTest` OpMode is also included. It uses the same hardware name
+The separate `PollenDrainerTest` OpMode moves only the servo for calibration. It uses the same hardware name
 and controls, with the same three INIT settings, defaults and increments as PollenBot. Its INIT
 menu contains only the drainer rows. Settings are remembered separately for each OpMode
 until the app restarts. The test's up/initial default is now 0.45 (previously 0.60).
