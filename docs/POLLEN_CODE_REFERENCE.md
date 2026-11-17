@@ -41,7 +41,7 @@ robots' code (DECODE 2025-26). They share some hardware names but nothing else w
 them alone unless asked. `TeamCode/.../teamcode/readme.md` is the student-facing list of what's live.
 
 Every Pollen and Odo mode shows a build id on the INIT screen (`PollenConfig.BUILD`, currently
-`pollen-hive-v11` on this branch). **Bump it whenever behavior changes**, so the drive team can confirm which code is installed.
+`pollen-hive-v12` on this branch). **Bump it whenever behavior changes**, so the drive team can confirm which code is installed.
 
 **Which way the robot faces (since `pollen-odo-v11`).** The launcher shoots out of the robot's back,
 so every autonomous starts with the robot's front against the end wall and its back to the hive.
@@ -137,12 +137,16 @@ Older robots also use `flywheel`, `coreHex`, `servo`, `leftDrive`, `rightDrive`,
   They are data from a flywheel tuner (not in this repo).
 - AprilTag vision: `AprilTagProcessor` + `VisionPortal` on `Webcam 1`; `Camera` wraps it; tag 20 is the blue goal.
 
-## Pollen drainer integration (pollen-hive-v11)
+## Pollen drainer integration (pollen-hive-v12)
 
 This build combines main's run recording and rehearsal markers with the drainer branch.
 PollenBot now requires a servo named `pollenDrainer`. During a run, D-pad Up/Down nudges
-its commanded position by 0.01 per press; A toggles between 0.55 (up) and 0.02 (down).
-The initial command at START remains 0.55, as on the drainer branch. INIT tuning and
+its commanded position by the selected step per press; A toggles between the selected up and down positions.
+The INIT menu adds Drainer up position (default 0.45), Drainer down position (0.02),
+and Drainer step (0.01). D-pad Up/Down selects a row; Left/Right edits up/down by 0.01
+and step by 0.002 per tap. Positions stay within 0–1; step stays within 0.002–1.
+Triangle restores defaults, settings are remembered until app restart, and START locks
+settings and commands the selected up position. The servo does not move during INIT. INIT tuning and
 Circle/Square recording markers retain main's behavior.
 
 The separate `PollenDrainerTest` OpMode is also included. It uses the same hardware name

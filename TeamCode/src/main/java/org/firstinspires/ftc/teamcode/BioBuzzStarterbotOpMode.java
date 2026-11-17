@@ -135,15 +135,12 @@ public class BioBuzzStarterbotOpMode extends OpMode {
     double intakePower;
 
     private static final String SERVO_NAME    = "pollenDrainer";
-    private static final double UP_POSITION   = 0.55;
-    private static final double DOWN_POSITION = 0.02;
-    private static final double STEP          = 0.01;
 
     private Servo armServo;
 
     // Tracks where we told the servo to go
-    private double armPosition = UP_POSITION;
-    private boolean isUp = false;
+    private double armPosition;
+    private boolean isUp = true;
 
     // Used so holding a button only acts once, not every loop
     private boolean aWasPressed = false;
@@ -242,7 +239,7 @@ public class BioBuzzStarterbotOpMode extends OpMode {
 //        rightIntakeServo.setDirection(DcMotorSimple.Direction.REVERSE);
 
         tuning = new PollenTeleOpTuning(LAUNCHER_TARGET_VELOCITY, LAUNCHER_SPINUP_SECONDS,
-                PollenConfig.AGITATOR_FEED_POWER, remembered);
+                PollenConfig.AGITATOR_FEED_POWER, remembered, true);
 
         /*
          * Odometry is OPTIONAL here: TeleOp only writes the robot's position into the recording.
@@ -278,7 +275,7 @@ public class BioBuzzStarterbotOpMode extends OpMode {
      */
     @Override
     public void init_loop() {
-        // D-pad and Triangle are not used for driving, so they are free for the INIT menu.
+        // Before START, D-pad edits the menu without moving the drainer.
         tuning.update(gamepad1.dpad_up, gamepad1.dpad_down, gamepad1.dpad_left, gamepad1.dpad_right,
                 gamepad1.triangle);
         remembered = tuning.snapshot();
@@ -291,6 +288,9 @@ public class BioBuzzStarterbotOpMode extends OpMode {
                 tuning.agitatorPower(), PollenConfig.AGITATOR_FEED_POWER);
         telemetry.addData(marker(PollenTeleOpTuning.Row.DRIVE) + "Drive power", "%.0f%% (default 100%%)",
                 tuning.driveScale() * 100);
+        telemetry.addData(marker(PollenTeleOpTuning.Row.DRAINER_UP) + "Drainer up position", "%.2f (+/- 0.01)", tuning.drainerUpPosition());
+        telemetry.addData(marker(PollenTeleOpTuning.Row.DRAINER_DOWN) + "Drainer down position", "%.2f (+/- 0.01)", tuning.drainerDownPosition());
+        telemetry.addData(marker(PollenTeleOpTuning.Row.DRAINER_STEP) + "Drainer step", "%.3f (+/- 0.002)", tuning.drainerStep());
         telemetry.addData("Controls", "D-pad UP/DOWN selects; LEFT/RIGHT edits; Triangle = defaults");
         telemetry.addData("Settings", tuning.isDefault() ? "DEFAULTS" : "CHANGED - check before START");
         telemetry.addData("Recording", "this run is saved on the Hub. Circle = start a rehearsal, Square = end it");
@@ -312,7 +312,12 @@ public class BioBuzzStarterbotOpMode extends OpMode {
         tuning.lock();
         runTimer.reset();
         startRecording();
-        // Start at the drainer branch's configured initial position.
+        // Apply the selected up position only after START.
+        armPosition = tuning.drainerUpPosition();
+        isUp = true;
+        aWasPressed = gamepad1.a;
+        upWasPressed = gamepad1.dpad_up;
+        downWasPressed = gamepad1.dpad_down;
         armServo.setPosition(armPosition);
     }
 
@@ -377,13 +382,13 @@ public class BioBuzzStarterbotOpMode extends OpMode {
         // D-pad: nudge the position one STEP, only on the moment it is first pressed
         boolean upIsPressed = gamepad1.dpad_up;
         if (upIsPressed && !upWasPressed) {
-            armPosition += STEP;
+            armPosition += tuning.drainerStep();
         }
         upWasPressed = upIsPressed;
 
         boolean downIsPressed = gamepad1.dpad_down;
         if (downIsPressed && !downWasPressed) {
-            armPosition -= STEP;
+            armPosition -= tuning.drainerStep();
         }
         downWasPressed = downIsPressed;
 
@@ -391,7 +396,7 @@ public class BioBuzzStarterbotOpMode extends OpMode {
         boolean aIsPressed = gamepad1.a;
         if (aIsPressed && !aWasPressed) {
             isUp = !isUp;
-            armPosition = isUp ? UP_POSITION : DOWN_POSITION;
+            armPosition = isUp ? tuning.drainerUpPosition() : tuning.drainerDownPosition();
         }
         aWasPressed = aIsPressed;
 

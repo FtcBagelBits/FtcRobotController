@@ -84,6 +84,45 @@ public final class PollenTeleOpTuningTest {
         near(t.launcherVelocity(), 1290, "START locks edits and reset");
         check(t.locked(), "locked flag");
 
+        // PollenBot exposes the drainer rows; LauncherTest retains its four-row menu above.
+        PollenTeleOpTuning drainer = new PollenTeleOpTuning(1250, 3, 1, null, true);
+        near(drainer.drainerUpPosition(), .45, "default drainer up");
+        near(drainer.drainerDownPosition(), .02, "default drainer down");
+        near(drainer.drainerStep(), .01, "default drainer step");
+        select(drainer, DRAINER_UP);
+        tap(drainer, 1, 1); near(drainer.drainerUpPosition(), .46, "up +0.01");
+        tap(drainer, -1, 2); near(drainer.drainerUpPosition(), .44, "up -0.01");
+        tap(drainer, 1, 200); near(drainer.drainerUpPosition(), 1, "up capped at servo maximum");
+        tap(drainer, -1, 200); near(drainer.drainerUpPosition(), 0, "up capped at servo minimum");
+        select(drainer, DRAINER_DOWN);
+        tap(drainer, 1, 1); near(drainer.drainerDownPosition(), .03, "down +0.01");
+        tap(drainer, -1, 1); near(drainer.drainerDownPosition(), .02, "down -0.01");
+        tap(drainer, -1, 200); near(drainer.drainerDownPosition(), 0, "down capped at servo minimum");
+        tap(drainer, 1, 200); near(drainer.drainerDownPosition(), 1, "down capped at servo maximum");
+        select(drainer, DRAINER_STEP);
+        drainer.update(false, false, false, true, false);
+        drainer.update(false, false, false, true, false);
+        near(drainer.drainerStep(), .012, "step +0.002, held key does not repeat"); release(drainer);
+        tap(drainer, -1, 2); near(drainer.drainerStep(), .008, "step -0.002 retains precision");
+        tap(drainer, -1, 1000); near(drainer.drainerStep(), .002, "step stays positive");
+        tap(drainer, 1, 1000); near(drainer.drainerStep(), 1, "step capped at servo range");
+        check(!drainer.isDefault(), "drainer edits mark settings changed");
+        PollenTeleOpTuning savedDrainer = new PollenTeleOpTuning(1250, 3, 1, drainer.snapshot(), true);
+        near(savedDrainer.drainerUpPosition(), 0, "up remembered");
+        near(savedDrainer.drainerDownPosition(), 1, "down remembered");
+        near(savedDrainer.drainerStep(), 1, "step remembered");
+        drainer.update(false, true, false, false, false); release(drainer);
+        check(drainer.selected() == LAUNCHER, "extended menu wraps after drainer step");
+        drainer.update(false, false, false, false, true); release(drainer);
+        check(drainer.isDefault(), "Triangle also resets drainer settings");
+        near(drainer.drainerUpPosition(), .45, "reset up");
+        near(drainer.drainerDownPosition(), .02, "reset down");
+        near(drainer.drainerStep(), .01, "reset step");
+        select(drainer, DRAINER_STEP); drainer.lock(); tap(drainer, 1, 2);
+        drainer.update(false, false, false, false, true);
+        near(drainer.drainerStep(), .01, "START freezes drainer step and reset");
+        near(savedDrainer.drainerStep(), 1, "drainer snapshots do not alias");
+
         boolean rejected = false;
         try { new PollenTeleOpTuning(1250, -1, 1, null); } catch (IllegalArgumentException expected) { rejected = true; }
         check(rejected, "negative spin-up rejected");
