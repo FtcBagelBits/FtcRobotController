@@ -15,6 +15,7 @@ After autonomous it is already selected for you: just press INIT, then START.
 | **Left trigger** | Intake out (spits pollen back out) |
 | **R1, hold** | Shoot. The launcher spins up, then feeds by itself and keeps feeding until you let go. |
 | **L1, hold** | **Unjam:** runs the launcher slowly backwards to push a stuck ball out. While you hold L1 nothing feeds, even if R1 is held too. |
+| **Circle** / **Square** | Practice only: mark the **start** / **end** of a move we want to copy into autonomous. The gamepad buzzes once / twice. They do not change how the robot drives. |
 
 **Shooting:** hold R1 the whole time you want to shoot. Feeding starts as soon as the launcher
 is up to speed, or after 3 seconds at most. Let go of R1 to stop.
@@ -36,7 +37,9 @@ You can change four settings before START. Usually leave them alone.
 - **D-pad UP/DOWN:** pick a row (marked `>`). **D-pad LEFT/RIGHT:** change it. Tap and let go.
 - **Triangle:** all back to the defaults. The screen says `Settings: DEFAULTS` or `CHANGED - check before START`.
 - Settings stay until the robot app restarts, so **check the INIT screen before every match**.
-- The screen should show **Build `pollen-hive-v9`**.
+- The screen should show **Build `pollen-hive-v10`**.
+- **Keep the robot still during INIT.** The robot records every TeleOp run for the programmers.
+  If the screen shows `STORAGE WARNING`, tell a mentor after the match; the robot still drives.
 
 ## What the screen tells you during the match
 

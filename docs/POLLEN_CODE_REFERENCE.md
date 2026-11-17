@@ -41,7 +41,7 @@ robots' code (DECODE 2025-26). They share some hardware names but nothing else w
 them alone unless asked. `TeamCode/.../teamcode/readme.md` is the student-facing list of what's live.
 
 Every Pollen and Odo mode shows a build id on the INIT screen (`PollenConfig.BUILD`, currently
-`pollen-hive-v9` on this branch). **Bump it whenever behavior changes**, so the drive team can confirm which code is installed.
+`pollen-hive-v10` on this branch). **Bump it whenever behavior changes**, so the drive team can confirm which code is installed.
 
 **Which way the robot faces (since `pollen-odo-v11`).** The launcher shoots out of the robot's back,
 so every autonomous starts with the robot's front against the end wall and its back to the hive.

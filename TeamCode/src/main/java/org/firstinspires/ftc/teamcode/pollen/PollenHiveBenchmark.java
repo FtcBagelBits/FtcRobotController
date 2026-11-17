@@ -76,6 +76,9 @@ public final class PollenHiveBenchmark extends OpMode {
             plan = new PollenHiveBenchmarkPlan(values[0], values[1], values[2], values[3]);
             File dir = new File(PollenHiveStore.folder(), "benchmark");
             if (!dir.isDirectory() && !dir.mkdirs()) throw new IOException("Cannot create " + dir);
+            // One run may write up to MAX_LOG_BYTES. Do not start without room for all of it and a margin.
+            if (dir.getUsableSpace() < MAX_LOG_BYTES + 100L * 1024 * 1024) throw new IOException(String.format(java.util.Locale.US,
+                    "Only %.2f GB free on the Hub: download, then prune (docs/POLLEN_LOGGING.md)", dir.getUsableSpace() / 1e9));
             file = File.createTempFile("hive-" + System.currentTimeMillis() + "-", ".jsonl", dir);
             writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "UTF-8"), 65536);
             JSONObject config = new JSONObject();

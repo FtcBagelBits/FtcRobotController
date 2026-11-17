@@ -38,7 +38,7 @@ public abstract class PollenHiveOpMode extends OpMode {
     private PollenHiveRoute settings;
     private PollenHiveSettings.Values cameraSettings;
     private PollenHiveCamera camera;
-    private String cameraProblem = "", loadMessage = "", message = "";
+    private String cameraProblem = "", loadMessage = "", message = "", storageLine = "", storageWarning = "";
     private IsHiveReadyForShot hive;
     private PollenHiveAuto auto;
     private PollenHiveAuto.Output last;
@@ -58,6 +58,9 @@ public abstract class PollenHiveOpMode extends OpMode {
         loadMessage = "Auto: " + PollenHiveStore.load(fileName(), settings.values)
                 + ". Camera: " + PollenHiveStore.load(PollenHiveStore.CAMERA, cameraSettings) + ".";
         settings.v[0] = defaultExecution();
+        // Room left for reports and traces, read once. A full trace budget is shown before START.
+        try { PollenRunLog.Storage storage = PollenHiveStore.storage(); storageLine = storage.line(); storageWarning = storage.warning(); }
+        catch (Exception ex) { storageLine = "unknown (" + ex + ")"; }
         try {
             for (int i = 0; i < 4; i++) {
                 drive[i] = hardwareMap.get(DcMotor.class, PollenConfig.DRIVE_NAMES[i]); drive[i].setPower(0);
@@ -112,6 +115,8 @@ public abstract class PollenHiveOpMode extends OpMode {
         telemetry.addData("Estimated garden / park s", "%.1f / %.1f",
                 PollenHiveRoute.planned(settings.garden()), PollenHiveRoute.planned(settings.park()));
         telemetry.addData("Odometry", PollenOdometryHardware.status(pinpoint));
+        telemetry.addData("Hub storage", storageLine);
+        if (!storageWarning.isEmpty()) telemetry.addData("STORAGE WARNING", storageWarning);
         telemetry.addData("Status", fault == null ? validation : fault);
         for (int r = Math.max(0, Math.min(row - 3, rows() - 7)); r <= Math.min(rows() - 1, Math.max(row + 3, 6)); r++)
             telemetry.addLine((r == row ? "> " : "   ") + (r + 1) + "/" + rows() + "  "
@@ -176,6 +181,11 @@ public abstract class PollenHiveOpMode extends OpMode {
         record("START build="+PollenConfig.BUILD+" opmode="+getClass().getSimpleName()+" wall_ms="+System.currentTimeMillis()
                 +" run="+run()+" secondary="+secondary()+" settings="+settings+" camera="+cameraSettings.overrides()
                 +" unsaved_route="+settings.values.unsavedCount()+" unsaved_camera="+cameraSettings.unsavedCount());
+        // Every camera value in effect (the line above has only the rows that differ from the defaults).
+        StringBuilder cameraValues=new StringBuilder();
+        for(int i=0;i<cameraSettings.v.length;i++) cameraValues.append(i==0?"":", ").append(cameraSettings.rows[i].key).append('=').append(cameraSettings.v[i]);
+        record("CAMERA_VALUES "+cameraValues+" camera_open="+(camera==null?"false ("+cameraProblem+")":"true"));
+        record("HUB installed="+PollenHiveStore.installed()+" trace="+(trace==null?"NONE ("+reportError+")":trace.fileName)+" storage=["+storageLine+"]");
         DcMotor[] mapped=motors();
         for(int i=0;i<mapped.length;i++) record("MAP "+PollenHiveHardware.identity(MOTOR_NAMES[i],mapped[i]));
         if (fault != null) { zero(); record("FAULT at START "+fault); traceSample(0,"FAULT",true); return; }

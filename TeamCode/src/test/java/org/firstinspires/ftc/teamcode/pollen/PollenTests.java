@@ -43,4 +43,7 @@ public class PollenTests {
 
     /** Odometry autos against a simulated robot (a stand-in, not the real robot). */
     @Test public void odometry() { PollenOdometryTest.main(NO_ARGS); }
+
+    /** TeleOp recording, rehearsal marks and the Control Hub storage budgets. */
+    @Test public void recording() throws Exception { PollenRecordingTest.main(NO_ARGS); }
 }

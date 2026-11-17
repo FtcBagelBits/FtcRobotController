@@ -5,8 +5,9 @@ import java.util.Locale;
 /**
  * Writes what an autonomous run did to the robot log, so a strange match can be explained
  * afterward ("why did it stop?", "which route was selected?"). The OpMode sends each line to the
- * SDK's RobotLog, which puts it in robotControllerLog.txt and in the match log. Pull those files
- * after every event (see CLAUDE.md, "After an event: pull the robot logs").
+ * SDK's RobotLog, which puts it in robotControllerLog.txt and in the match log, and to the run's
+ * own file in FIRST/pollen-hive/auto (the robot log is overwritten after about 20 MB, and only
+ * the last 9 match logs are kept). Download after every practice and event: docs/POLLEN_LOGGING.md.
  *
  * What gets logged: the route line during INIT whenever it changes (for example someone edited a
  * leg), every setting at START, each phase change, warnings, the final result, the Pinpoint

@@ -6,7 +6,8 @@ import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 
 /** Saved CHANGES (never full copies) on the Control Hub, in FIRST/pollen-hive (normally
  * /sdcard/FIRST/pollen-hive): camera.properties (all hive modes), primary.properties,
- * secondary.properties. Pull the folder to promote changes to code defaults:
+ * secondary.properties. The run recordings live in its subfolders (PollenRunLog lists them).
+ * Pull the folder to promote changes to code defaults:
  *   adb pull /sdcard/FIRST/pollen-hive ~/Desktop/pollen-hive
  *   python3 tools/hive-promote-defaults.py ~/Desktop/pollen-hive */
 public final class PollenHiveStore {
@@ -14,6 +15,20 @@ public final class PollenHiveStore {
     public static final String CAMERA = "camera", PRIMARY = "primary", SECONDARY = "secondary";
     public static File folder() { return new File(AppUtil.FIRST_FOLDER, "pollen-hive"); }
     private static File file(String name) { return new File(folder(), name + ".properties"); }
+
+    /** When this app was last installed on the Hub, by the Hub's clock ("2026-11-15T21:40:12").
+     * Written at START so two installs that share a BUILD label can be told apart in the logs. */
+    public static String installed() {
+        try {
+            android.content.Context context = AppUtil.getDefContext();
+            long millis = context.getPackageManager().getPackageInfo(context.getPackageName(), 0).lastUpdateTime;
+            return new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", java.util.Locale.US).format(new java.util.Date(millis));
+        } catch (Exception ex) { return "unknown"; }
+    }
+
+    /** One line for INIT screens and START logs: free space and how full each log folder is.
+     * Reads the folders, so call it once in init(), not every loop. */
+    public static PollenRunLog.Storage storage() { return PollenRunLog.storage(folder()); }
 
     /** One compact text report per run, alongside the saved settings. */
     public static File newReport(String kind) throws IOException {

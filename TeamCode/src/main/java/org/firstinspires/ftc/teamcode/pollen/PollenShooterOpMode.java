@@ -56,6 +56,13 @@ public abstract class PollenShooterOpMode extends OpMode {
     private String pinpointStatus = "";
     /** Writes this run to the robot log (robotControllerLog.txt); see PollenAutoLog. */
     private PollenAutoLog log;
+    /** The same lines also go to this run's own file on the Hub (FIRST/pollen-hive/auto), because
+     * the robot log is overwritten after about 20 MB. Null if the file could not be opened. */
+    private PollenHiveTrace runFile;
+    /** Lines logged during INIT, kept until START opens the file: {wall clock ms, text}. */
+    private final java.util.List<String[]> beforeStart = new java.util.ArrayList<>();
+    private boolean started;
+    private String storageLine = "", storageWarning = "", runFileProblem = "";
     private final DcMotor[] drive = new DcMotor[4];
     private DcMotorEx launcher;
     private DcMotor intake, agitator;
@@ -69,7 +76,15 @@ public abstract class PollenShooterOpMode extends OpMode {
         blocked = fallback = null;
         sequence = null;
         shooterAvailable = true;
-        log = new PollenAutoLog(modeName(), line -> RobotLog.ii(PollenAutoLog.TAG, "%s", line));
+        runFile = null;
+        started = false;
+        beforeStart.clear();
+        log = new PollenAutoLog(modeName(), this::logLine);
+        try {
+            PollenRunLog.Storage storage = PollenHiveStore.storage();
+            storageLine = storage.line();
+            storageWarning = storage.warning();
+        } catch (Exception ex) { storageLine = "unknown (" + ex + ")"; }
         tuning = new PollenShootTuning(remembered(), supportingShooter(), odometry(), angledShot());
         try {
             mapDrive();
@@ -149,6 +164,8 @@ public abstract class PollenShooterOpMode extends OpMode {
                         : "PINPOINT FAULT - odometry will not work: use the EMERGENCY Timed mode")
                 : fallback != null ? "READY FOR DEPARTURE ONLY - SHOOTER FAILED" : "READY - no movement until START");
         telemetry.addData("Memory", "Settings kept until app restart; start delay resets every INIT");
+        telemetry.addData("Hub storage", storageLine);
+        if (!storageWarning.isEmpty()) telemetry.addData("STORAGE WARNING", storageWarning);
         telemetry.update();
     }
 
@@ -255,8 +272,11 @@ public abstract class PollenShooterOpMode extends OpMode {
     @Override public final void start() {
         tuning.lock();
         clock.reset();
+        openRunFile();
         log.start(tuning.settingsLine(), "shooter=" + (shooterAvailable ? "ok" : "MISSING")
-                + (odometry() ? " pinpoint=" + pinpointStatus : "") + " facing=" + PollenFacing.logName(),
+                + (odometry() ? " pinpoint=" + pinpointStatus : "") + " facing=" + PollenFacing.logName()
+                + " installed=" + PollenHiveStore.installed() + " file=" + (runFile == null ? "NONE (" + runFileProblem + ")" : runFile.fileName)
+                + " storage=[" + storageLine + "]",
                 this::batteryVolts);
         if (blocked == null && !tuning.budgetOk()) {
             blocked = "NOT STARTED: settings over time budget (fix in INIT, or Triangle for defaults)";
@@ -345,6 +365,32 @@ public abstract class PollenShooterOpMode extends OpMode {
         if (sequence != null) sequence.stop("STOPPED");
         zeroHardware();
         if (log != null) log.stop(clock.seconds());
+        if (runFile != null) runFile.close(); // after the STOP line, so the file is complete
+    }
+
+    /** Where every PollenAutoLog line goes: the robot log, and this run's own file. Lines from
+     * INIT (before the file exists) wait in a short list. Never throws into the robot's loop. */
+    private void logLine(String line) {
+        RobotLog.ii(PollenAutoLog.TAG, "%s", line);
+        try {
+            if (runFile != null) runFile.row(clock.seconds(), false, clock.seconds(), System.currentTimeMillis(), line);
+            else if (!started && beforeStart.size() < 50) beforeStart.add(new String[] {Long.toString(System.currentTimeMillis()), line});
+        } catch (RuntimeException ignored) { }
+    }
+
+    /** START: open this run's file and write what was logged during INIT. If it cannot be
+     * opened (no room left on the Hub), the run goes ahead and only the robot log has it. */
+    private void openRunFile() {
+        started = true;
+        try {
+            runFile = PollenRunLog.open(PollenHiveStore.folder(), PollenRunLog.Kind.AUTO, System.currentTimeMillis());
+            runFile.row(0, false, "t_s", "wall_ms", "text");
+            for (String[] early : beforeStart) runFile.row(0, false, 0.0, early[0], "(during INIT) " + early[1]);
+        } catch (Exception ex) {
+            runFile = null;
+            runFileProblem = String.valueOf(ex.getMessage());
+        }
+        beforeStart.clear();
     }
 
     /** Name as shown on the Driver Hub, for the log. */

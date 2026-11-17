@@ -22,6 +22,8 @@ only for web/cloud sessions that cannot reach this laptop, or when the user asks
 - [Code reference](docs/POLLEN_CODE_REFERENCE.md) preserves hardware names, facing
   transforms, legacy modes, feed rules and odometry/Pedro context. Read relevant sections
   before editing robot code. [Docs index](docs/README.md) points to operator instructions.
+- [Recordings and storage](docs/POLLEN_LOGGING.md) says what each mode records, the folder
+  budgets on the hub and the download-then-prune lifecycle. Read it before changing logging.
 - On this branch read [hive testing](docs/POLLEN_HIVE_TESTING.md),
   [benchmark](docs/POLLEN_HIVE_BENCHMARK.md) and
   [diagnostics](docs/POLLEN_HIVE_DIAGNOSTICS.md) for hive work. Source code owns current
@@ -41,6 +43,8 @@ From the repository root (the scripts also resolve their own root):
 | Build and install after operator STOP | `bash tools/ftc.sh deploy` |
 | Install an already built APK after switching to hub Wi-Fi | `bash tools/ftc.sh install` |
 | Download and analyze a stopped session | `bash tools/ftc.sh logs "$HOME/Desktop/hive-session-$(date +%Y%m%d-%H%M%S)"` |
+| Hub free space and recording folder sizes (read-only) | `bash tools/ftc.sh storage` |
+| List hub recordings that match a download | `bash tools/ftc.sh prune DOWNLOADED_FOLDER` |
 | Apply a mail-format patch on a clean branch | `bash tools/ftc.sh patch "$HOME/Downloads/change.patch"` |
 
 `FTC_ROBOT_SERIAL` overrides `192.168.43.1:5555`. Explicit serial arguments override
@@ -60,9 +64,13 @@ never let an emulator or another robot become the implicit deployment target. Ex
 - Install restarts the RC app. Have the operator verify the expected build on Driver Hub
   INIT afterward. Scripts never press INIT/START or drive/feed/shoot. Physical tests are
   run by the operator. Reconnection is not proof the app or its hardware is ready.
-- Download after STOP so traces are closed. Preserve raw data; no remote deletion,
-  calibration resets or automatic promotion of saved settings. A missing hive directory
-  is a download failure, not an empty successful experiment.
+- Download after STOP so traces are closed. Preserve raw data; no calibration resets or
+  automatic promotion of saved settings. A missing hive directory is a download failure,
+  not an empty successful experiment.
+- Remote deletion has exactly one form: `bash tools/ftc.sh prune DOWNLOADED_FOLDER --delete`,
+  after STOP, and only when a mentor asks for it in this session. Run it without `--delete`
+  first and show the list. It removes only recordings whose checksum equals the downloaded
+  copy; never delete hub files any other way. See [recordings and storage](docs/POLLEN_LOGGING.md).
 - Do not uninstall the RC app automatically to fix a signing mismatch. Explain the
   failure and have the mentor decide how to resolve it.
 

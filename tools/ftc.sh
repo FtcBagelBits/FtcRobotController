@@ -14,6 +14,9 @@ Usage: bash tools/ftc.sh COMMAND [arguments]
   deploy [SERIAL]             Build, connect, install that APK on one selected hub
   install [SERIAL]            Install the existing APK; DOES NOT rebuild
   logs NEW_FOLDER [SERIAL]    Download hive data, SDK logs, configs and analysis zip
+  storage [SERIAL]            Show the hub's free space and recording folder sizes (read-only)
+  prune FOLDER [--delete]     Compare the hub's recordings with a downloaded FOLDER; with
+                             --delete, remove from the hub only files identical to the download
   patch FILE.patch           Apply a git-format-patch on clean pollen-hive-ready
   help                       Show this help
 
@@ -85,6 +88,20 @@ case "$command_name" in
   logs)
     [ "$#" -ge 1 ] && [ "$#" -le 2 ] || { usage >&2; exit 2; }
     exec bash "$FTC_ROOT/tools/hive-benchmark-download.sh" "$@" ;;
+  storage)
+    one_optional "$@"
+    ftc_python
+    ftc_connect "${1:-}"
+    python3 "$FTC_ROOT/tools/hive-storage.py" report ;;
+  prune)
+    # Removal is opt-in and checked file by file; see docs/POLLEN_LOGGING.md.
+    [ "$#" -ge 1 ] && [ "$#" -le 2 ] || { usage >&2; exit 2; }
+    [ "$#" -eq 1 ] || [ "$2" = --delete ] || { usage >&2; exit 2; }
+    [ -d "$1" ] || { ftc_error "Not a downloaded folder: $1"; exit 1; }
+    ftc_python
+    ftc_connect
+    echo 'Run prune only after the OpMode is STOPPED: a recording still being written must stay.'
+    python3 "$FTC_ROOT/tools/hive-storage.py" prune "$@" ;;
   patch)
     [ "$#" -eq 1 ] || { usage >&2; exit 2; }
     ftc_python
