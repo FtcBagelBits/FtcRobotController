@@ -29,7 +29,7 @@ public class PollenDrainerTest extends OpMode {
 
     // ---- Things you will probably want to tune ----
     private static final String SERVO_NAME    = "pollenDrainer";
-    private static final double UP_POSITION   = 0.6;
+    private static final double UP_POSITION   = 0.45;
     private static final double DOWN_POSITION = 0.02;
     private static final double STEP          = 0.01;
 
