@@ -33,6 +33,7 @@ public final class PollenTeleOpTuning {
     private double drainerUp, drainerDown, drainerStep;
     private final boolean drainerEnabled;
     private Row selected = Row.LAUNCHER;
+    private int firstRow;
     private boolean locked;
     private final boolean[] previous = new boolean[5];
 
@@ -64,6 +65,15 @@ public final class PollenTeleOpTuning {
         drainerStep = remembered == null ? DEFAULT_DRAINER_STEP : remembered.drainerStep;
     }
 
+    /** Servo-only menu for PollenDrainerTest; shares the TeleOp defaults and edit rules. */
+    public static PollenTeleOpTuning drainerOnly(Snapshot remembered) {
+        PollenTeleOpTuning tuning = new PollenTeleOpTuning(PollenConfig.LAUNCHER_TARGET_VELOCITY,
+                PollenConfig.LAUNCHER_SPINUP_SECONDS, PollenConfig.AGITATOR_FEED_POWER, remembered, true);
+        tuning.firstRow = Row.DRAINER_UP.ordinal();
+        tuning.selected = Row.DRAINER_UP;
+        return tuning;
+    }
+
     /** D-pad UP/DOWN selects, LEFT/RIGHT edits, reset restores defaults. Tap/release; no repeat. */
     public void update(boolean up, boolean down, boolean left, boolean right, boolean reset) {
         if (locked) return;
@@ -74,9 +84,9 @@ public final class PollenTeleOpTuning {
             }
         } else {
             Row[] rows = Row.values();
-            int rowCount = drainerEnabled ? rows.length : Row.DRIVE.ordinal() + 1;
-            if (up && !down && !previous[0]) selected = rows[(selected.ordinal() + rowCount - 1) % rowCount];
-            if (down && !up && !previous[1]) selected = rows[(selected.ordinal() + 1) % rowCount];
+            int rowCount = (drainerEnabled ? rows.length : Row.DRIVE.ordinal() + 1) - firstRow;
+            if (up && !down && !previous[0]) selected = rows[firstRow + (selected.ordinal() - firstRow + rowCount - 1) % rowCount];
+            if (down && !up && !previous[1]) selected = rows[firstRow + (selected.ordinal() - firstRow + 1) % rowCount];
             int sign = right && !left && !previous[3] ? 1 : left && !right && !previous[2] ? -1 : 0;
             if (sign != 0 && selected == Row.LAUNCHER) launcher = step(launcher, sign * LAUNCHER_STEP, MIN_LAUNCHER, MAX_LAUNCHER);
             if (sign != 0 && selected == Row.SPINUP) spinup = step(spinup, sign * SPINUP_STEP, MIN_SPINUP, MAX_SPINUP);

@@ -123,6 +123,26 @@ public final class PollenTeleOpTuningTest {
         near(drainer.drainerStep(), .01, "START freezes drainer step and reset");
         near(savedDrainer.drainerStep(), 1, "drainer snapshots do not alias");
 
+        PollenTeleOpTuning servoOnly = PollenTeleOpTuning.drainerOnly(null);
+        check(servoOnly.selected() == DRAINER_UP, "servo-only menu starts on up");
+        servoOnly.update(true, false, false, false, false); release(servoOnly);
+        check(servoOnly.selected() == DRAINER_STEP, "servo-only UP wraps to step");
+        servoOnly.update(false, true, false, false, false); release(servoOnly);
+        check(servoOnly.selected() == DRAINER_UP, "servo-only DOWN wraps to up");
+        tap(servoOnly, 1, 1); near(servoOnly.drainerUpPosition(), .46, "servo-only up +0.01");
+        select(servoOnly, DRAINER_DOWN); tap(servoOnly, 1, 1);
+        near(servoOnly.drainerDownPosition(), .03, "servo-only down +0.01");
+        select(servoOnly, DRAINER_STEP); tap(servoOnly, 1, 1);
+        near(servoOnly.drainerStep(), .012, "servo-only step +0.002");
+        PollenTeleOpTuning servoRemembered = PollenTeleOpTuning.drainerOnly(servoOnly.snapshot());
+        near(servoRemembered.drainerUpPosition(), .46, "servo-only up remembered");
+        near(servoRemembered.drainerDownPosition(), .03, "servo-only down remembered");
+        near(servoRemembered.drainerStep(), .012, "servo-only step remembered");
+        servoOnly.update(false, false, false, false, true); release(servoOnly);
+        check(servoOnly.isDefault(), "servo-only Triangle resets settings");
+        servoOnly.lock(); tap(servoOnly, 1, 1);
+        near(servoOnly.drainerStep(), .01, "servo-only START locks settings");
+
         boolean rejected = false;
         try { new PollenTeleOpTuning(1250, -1, 1, null); } catch (IllegalArgumentException expected) { rejected = true; }
         check(rejected, "negative spin-up rejected");
