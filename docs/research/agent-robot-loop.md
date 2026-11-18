@@ -44,7 +44,10 @@ this note are in the [folder README](README.md). This note does not change any r
 - `[inferred]` Even if it could be made to work, the robot at a match must run from the
   Control Hub, so code developed against a Mac stand-in would be tested on the wrong system.
 
-### What the tools do today
+### What the tools did at the time of the original review
+
+`[repo]` Update (November 18, 2026, local Mac checkout). [AGENTS.md](../../AGENTS.md)
+now treats an install or deploy request as authorization to proceed without checking OpMode status.
 
 - `[repo]` `tools/ftc.sh` covers doctor, connect, test, build, deploy, install, logs and patch.
   "No command starts an OpMode." (`tools/ftc.sh`, `docs/DESKTOP_TOOLS.md`)

@@ -110,7 +110,7 @@ process or power-cycle a moving robot. ADB online does not prove the RC app is i
 bash tools/ftc.sh test
 bash tools/ftc.sh gradle :TeamCode:testDebugUnitTest :TeamCode:assembleDebug
 
-# Join the intended robot's Wi-Fi and STOP its OpMode on the Driver Hub.
+# Join the intended robot's Wi-Fi.
 bash tools/ftc.sh install
 ```
 
@@ -123,8 +123,7 @@ FTC_OFFLINE=1 bash tools/ftc.sh deploy
 ```
 
 Offline mode works only after the Gradle distribution and dependencies have been cached.
-Installation restarts the RC app. The tools do not check whether an OpMode is stopped and
-do not press INIT/START. After installing, the operator checks the Build line on the
+Installation restarts the RC app. The operator controls INIT/START and checks the Build line on the
 Driver Hub against the expected build (`pollen-hive-v10` since TeleOp recording was added). Source Git
 HEAD is not proof of what is installed. Signing errors are reported; nothing is uninstalled.
 

@@ -44,7 +44,7 @@ file, write failure, run limit, full folder budget, missing/non-READY positions,
 checksum failure, changed/undownloaded files, and invalid download paths. Do not fill the real Hub
 or disconnect hardware during motion to reproduce them.
 
-Only install when deployment is requested and the operator has confirmed STOP. Use the documented
+Only install when deployment is requested. Use the documented
 `ftc.sh install` or `deploy` workflow. At Driver Hub INIT verify **pollen-hive-v10**; retain the APK
 and source identity used. A build label alone cannot distinguish two installs of v10.
 
