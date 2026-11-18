@@ -74,3 +74,6 @@ Construct `PollenCollectionSequence` with the kind, its settings and the current
 apply wheel commands through `PollenFacing.wheelPowers`, and apply intake and drainer
 commands until DONE or fault. Exit in the same odometry frame. The caller owns its
 remaining time budget and can stop the sequence at any point. No Pinpoint reset is needed.
+
+For the drive controller, the vinyl and tile test plan, and a proposed comparison with
+Pedro's full follower, see [Collection motion and Pedro Pathing](research/collection-motion-and-pedro.md).
