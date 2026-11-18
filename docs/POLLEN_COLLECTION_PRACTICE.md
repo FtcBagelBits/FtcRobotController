@@ -1,7 +1,7 @@
 # Garden pickup and flower drain practice
 
-Select **PRACTICE Garden Pickup** or **PRACTICE Flower Drain** under Autonomous. Each
-starts at the pickup site. The older **TEST Hive garden + return** starts at the shooting
+Select **Calibration Garden Pickup** or **Calibration Flower Drain** under Autonomous. Each
+starts at the pickup site. The older **Calibration Garden + Return** starts at the shooting
 position. These practice modes use the four drive motors, front intake and Pinpoint.
 Flower also needs the positional servo named `pollenDrainer`. Neither mode uses the hive
 camera, launcher or agitator.

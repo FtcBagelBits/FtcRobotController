@@ -63,7 +63,7 @@ import org.firstinspires.ftc.teamcode.pollen.PollenTeleOpTuning;
  * we will also need to adjust the "PIDF" coefficients with some that are a better fit for our application.
  */
 
-@TeleOp(name = "PollenBot")
+@TeleOp(name = "PollenBot", group = "1 Match")
 //@Disabled
 public class BioBuzzStarterbotOpMode extends OpMode {
 

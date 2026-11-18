@@ -9,12 +9,12 @@ All of team 31452's robot code lives in this folder. New here? Start with
 | Driver Hub name | File or folder | What it is |
 | --- | --- | --- |
 | **PollenBot** (TeleOp) | `BioBuzzStarterbotOpMode.java` | The match TeleOp |
-| Odo ROBOT Shoot + Park, Odo Supporting Shooter Auto, Odo ROBOT Park, and the EMERGENCY Timed autos | `pollen/` | All the autonomous code; see `pollen/README.md` |
-| Angled Primary Shooter (group Pollen Experimental) | `pollen/PollenAngledPrimaryShooter.java` | **Experimental:** the primary auto with an angled shot. Not yet tried on a field |
-| TEST Hive camera / primary shot ONLY / secondary shot ONLY / garden + return; EXPERIMENTAL Hive Primary + Garden / Secondary | `pollen/PollenHive*.java` | Experimental Limelight readiness and isolated practice; see `docs/POLLEN_HIVE_TESTING.md` |
-| LauncherTest (group Test) | `LauncherTestOpMode.java` | Runs PollenBot's launcher, intake and agitator on their own, for testing. Same buttons, INIT menu and feed rule as the TeleOp |
-| Odometry Check (group Pedro) | `OdometryCheck.java` | Checks the Pinpoint odometry pods; steps in `docs/ODOMETRY_BASELINE_TEST.md` |
-| Pedro Test (group Pedro) | `PedroLocalizationTest.java` | Shows Pedro Pathing's position on the Panels dashboard and follows a short test path |
+| Odo ROBOT Shoot + Park, Odo Supporting Shooter Auto, Emergency Odo Park, and the Emergency Timed autos | `pollen/` | All the autonomous code; see `pollen/README.md` |
+| Calibration Angled Primary (group 4 Calibration) | `pollen/PollenAngledPrimaryShooter.java` | **Experimental:** the primary auto with an angled shot. Not yet tried on a field |
+| Calibration Hive Camera (No Motors), Calibration Primary Shot Only, Calibration Secondary Shot Only, Calibration Garden + Return, and the three Beta Test autos | `pollen/PollenHive*.java` | Experimental Limelight readiness and isolated practice; see `docs/POLLEN_HIVE_TESTING.md` |
+| Calibration Launcher (group 4 Calibration) | `LauncherTestOpMode.java` | Runs PollenBot's launcher, intake and agitator on their own, for testing. Same buttons, INIT menu and feed rule as the TeleOp |
+| Calibration Odometry (group 4 Calibration) | `OdometryCheck.java` | Checks the Pinpoint odometry pods; steps in `docs/ODOMETRY_BASELINE_TEST.md` |
+| Calibration Pedro Pathing (group 4 Calibration) | `PedroLocalizationTest.java` | Shows Pedro Pathing's position on the Panels dashboard and follows a short test path |
 | (not an OpMode) | `pedroPathing/Constants.java` | Robot measurements and settings for Pedro Pathing and the Pinpoint |
 | (hidden) | `SensorGoBildaPinpoint.java` | goBILDA's Pinpoint sample, kept for reference |
 
@@ -24,7 +24,7 @@ run `PollenTests` from Android Studio.
 ### Old: Lox (last season's DECODE robot)
 
 `lox/` holds the code for Lox, kept so it still runs. `BioBuzzOpMode` and `MecanumOpMode` still
-appear in the Driver Hub list; the rest is hidden or helper classes. It uses different motor names
+appear as **Legacy Lox Drive** and **Legacy Lox Mecanum** in the Driver Hub list; the rest is hidden or helper classes. It uses different motor names
 (`flywheel`, `leftDrive`, ...), so it does not work on PollenBot. Don't add new code there.
 
 ### Adding an OpMode
@@ -34,4 +34,4 @@ FtcRobotController module (Project view → `FtcRobotController/java/org.firstin
 Copy one into this folder, change its `@TeleOp(name = ...)`, and remove its `@Disabled` line so
 it shows up on the Driver Hub. Then open a pull request (see ROBOT_CONNECTION.md).
 
-`TEST Hive pipeline benchmark` / `PollenHiveBenchmark` (TeleOp list, like `TEST Hive camera`, so the 30-second autonomous timer cannot stop it): no motors; automatically compare saved camera pipelines and log raw results. See `docs/POLLEN_HIVE_BENCHMARK.md`.
+`Calibration Hive Pipeline Benchmark` / `PollenHiveBenchmark` (TeleOp list, like `Calibration Hive Camera (No Motors)`, so the 30-second autonomous timer cannot stop it): no motors; automatically compare saved camera pipelines and log raw results. See `docs/POLLEN_HIVE_BENCHMARK.md`.

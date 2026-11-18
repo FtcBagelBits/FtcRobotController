@@ -6,7 +6,7 @@ back out, strafe back, and return to S. Launcher and agitator remain off during 
 Old saved nonzero transit/pickup headings are rejected; camera calibration is preserved.
 The old turn-waypoint settings are retained for saved-file compatibility but no longer affect the path.
 The CAD footprint checks cover the new straight corridor. First retest with an empty robot in
-**EXPERIMENTAL Hive Primary + Garden / DRIVE**: garden, return, park. Then STOP and download.
+**Beta Test Primary Shooter + Garden / DRIVE**: garden, return, park. Then STOP and download.
 Computer/geometry checks and Android tests/build passed on the local Mac. On 2026-11-15,
 the operator reported that the empty v9 combined DRIVE trial on vinyl ran successfully.
 Loaded pickup and hive-gated shooting with this route remain unverified.
@@ -66,7 +66,7 @@ approximate start time, ball counts and whether any STOP was intentional. Video 
    launcher, agitator or intake output in DRIVE. Check turns, clearance, return position and heading.
    Then repeat **LIVE** with a small counted group in the garden: intake collects; launcher and
    agitator stay off. Count collected and retained pollen.
-5. **EXPERIMENTAL Hive Primary + Garden, LIVE.** Only once unexpected motion is resolved and the
+5. **Beta Test Primary Shooter + Garden, LIVE.** Only once unexpected motion is resolved and the
    isolated tests pass. Check effective INIT settings again (practice and full modes share saved
    route values; Execution is never saved). With the cell UP throughout, expect first shot, direct
    garden departure, collection, return, second shot and park. Confirm no unwanted balls exit during

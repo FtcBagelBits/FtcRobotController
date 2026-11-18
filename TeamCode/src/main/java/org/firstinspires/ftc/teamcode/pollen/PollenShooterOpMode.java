@@ -192,7 +192,7 @@ public abstract class PollenShooterOpMode extends OpMode {
         if (angledShot()) telemetry.addData("EXPERIMENTAL", "Angled shot: not field-tested. It drives and turns BEFORE it shoots.");
         telemetry.addData("Mode", (odometry() ? "ODOMETRY " : "TIMED ")
                 + (supportingShooter() ? "Supporting Shooter - real motors on START"
-                : angledShot() ? "Angled Primary Shooter - real motors on START" : "Shoot + Park - real motors on START"));
+                : angledShot() ? "Calibration Angled Primary - real motors on START" : "Shoot + Park - real motors on START"));
         if (localizer != null) {
             PollenOdometryHardware.showPose(telemetry, localizer.pose());
             telemetry.addData("Pinpoint status", PollenOdometryDrive.pinpointFault(pinpointStatus)
@@ -396,8 +396,8 @@ public abstract class PollenShooterOpMode extends OpMode {
 
     /** Name as shown on the Driver Hub, for the log. */
     private String modeName() {
-        if (!odometry()) return supportingShooter() ? "EMERGENCY Timed Supporting Shooter" : "EMERGENCY Timed Shoot + Park";
-        if (angledShot()) return "Angled Primary Shooter";
+        if (!odometry()) return supportingShooter() ? "Emergency Timed Supporting Shooter" : "Emergency Timed Shoot + Park";
+        if (angledShot()) return "Calibration Angled Primary";
         return supportingShooter() ? "Odo Supporting Shooter" : "Odo ROBOT Shoot + Park";
     }
 

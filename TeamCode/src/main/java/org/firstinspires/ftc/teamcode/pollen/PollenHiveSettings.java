@@ -41,7 +41,7 @@ public final class PollenHiveSettings {
     /** Auto rows. The index is the PollenHiveRoute.v[] index: do not reorder. */
     public static final Row[] ROUTE = {
         row("execution", "Execution", 2, 2, 1, 0, 2),
-        row("side", "Side", 0, 0, 1, 0, 2),
+        row("side", "Calibration side", 0, 0, 1, 0, 2),
         row("startDelay", "Start delay s", 0, 0, 0.5, 0, 20),
         row("firstFeed", "First feed s", 4, 4, 0.5, 0, 20),
         row("secondFeed", "Second feed s", 4, 4, 0.5, 0, 20),

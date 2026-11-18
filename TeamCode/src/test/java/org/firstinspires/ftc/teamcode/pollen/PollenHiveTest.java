@@ -477,7 +477,35 @@ public final class PollenHiveTest {
         try { c.validate(); } catch(IllegalArgumentException ex) { rejected=true; }
         check(rejected,"Corner past the side wall is rejected at INIT");
     }
+    private static void matchAllianceSetup() {
+        for (int play = 0; play < 3; play++) {
+            boolean secondary = play != 0;
+            PollenHiveRoute route = new PollenHiveRoute(secondary, play == 2);
+            Properties oldProfile = new Properties();
+            oldProfile.setProperty("side", "2");
+            route.values.load(oldProfile);
+            check(route.side() == 2, "Calibration can still load a saved side");
+            for (int color = 1; color <= 2; color++) {
+                route.beginMatchSetup();
+                check(route.needsMatchAlliance(), "New INIT ignores old/saved alliance");
+                boolean blocked = false;
+                try { route.validateForStart(); }
+                catch (IllegalArgumentException ex) { blocked = ex.getMessage().contains("Choose alliance"); }
+                check(blocked, "Match START requires a choice");
+                route.selectMatchAlliance(color == 2);
+                route.validateForStart();
+                int[] cells = IsHiveReadyForShot.allowedCells(secondary, route.side());
+                int expected = secondary ? (color == 1 ? 30 : 38) : (color == 1 ? 34 : 42);
+                check(cells.length == 1 && cells[0] == expected, "Only the correct role and color cell is eligible");
+                check(route.values.unsavedCount() == 0 && route.values.get("side") == 2,
+                        "A match choice never overwrites calibration side");
+                check(route.toString().contains("side=" + color + ".0"), "Log the effective alliance");
+            }
+        }
+    }
+
     public static void main(String[] args) {
+        matchAllianceSetup();
         classifier(); missesVsContradictions(); unsettledReturnParks(); calibration(); sides(); settings(); routes(); secondaryGates(); primaryCycle(false,false); primaryCycle(false,true); primaryCycle(true,false); slowLauncherBudget(); motionFaults(); practice(); noCoastGate(); makeRoom();
         System.out.println("PASS PollenHiveTest: "+checks+" checks");
     }

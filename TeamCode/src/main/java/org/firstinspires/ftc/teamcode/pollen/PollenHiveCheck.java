@@ -10,7 +10,7 @@ import java.util.Locale;
 /** Camera setup, labeled checks and continuous readiness display. Never maps a motor or odometry.
  * It is in the Driver Station's TeleOp list on purpose: the Driver Station stops an Autonomous
  * OpMode after 30 seconds unless its timer is switched off, and these checks take longer. */
-@TeleOp(name = "TEST Hive camera (NO MOTORS)", group = "Pollen Hive")
+@TeleOp(name = "Calibration Hive Camera (No Motors)", group = "4 Calibration")
 public final class PollenHiveCheck extends OpMode {
     private final ElapsedTime clock = new ElapsedTime();
     private final PollenHiveSettings.Values settings = new PollenHiveSettings.Values(PollenHiveSettings.CAMERA, false);

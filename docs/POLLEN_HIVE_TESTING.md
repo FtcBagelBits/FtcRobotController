@@ -5,21 +5,23 @@ For the v8 motion investigation and exact retest order, see [Hive auto diagnosti
 Intermittent tags? Start with the [automatic pipeline benchmark](POLLEN_HIVE_BENCHMARK.md).
 It records raw detections before calibration passes; the current confirmation rule is unchanged.
 
-Build **pollen-hive-v10**. Experimental, for field testing. Keep the existing match autos available.
+Build **pollen-hive-v20**. Experimental, for field testing. Keep the existing match autos available.
 Print [the two-page practice sheet](drive-team/print/4-hive-practice.pdf). This guide explains the
 controls and checks in full; the patch kit README covers applying, building, installing and pushing.
 
 ## Choose the smallest useful test
 
-| Driver Hub entry (Pollen Hive group) | INIT default | Motor permissions and end condition |
+| Driver Hub entry | INIT default | Motor permissions and end condition |
 | --- | --- | --- |
-| TEST Hive camera (NO MOTORS) | No execution row | In the **TeleOp list** (no 30-second timer). Never maps motors or odometry. Continuous camera readiness until STOP. |
-| TEST Hive primary shot ONLY | DRY | No drive in any execution setting. LIVE enables launcher and feed. Completes one volley if started within the primary window, then DONE. |
-| TEST Hive secondary shot ONLY | DRY | No drive. LIVE enables launcher and feed. Waits for UP, one volley, then DONE; 27 s limit. |
-| TEST Hive garden + return | DRIVE | No launcher or agitator in any setting. LIVE adds collection intake. Returns to original S and stops; no shot/park. |
-| EXPERIMENTAL Hive Primary + Garden | LIVE | Shoot, collect, return, wait/shoot if UP, park. |
-| EXPERIMENTAL Hive Secondary | LIVE | Wait for UP, shoot, park. |
-| EXPERIMENTAL Hive Secondary MAKE ROOM | LIVE | Play 2 (partner is the hero): wait for UP, shoot, drive to the scoring-end/side-wall corner and wait there, park in the outer slot with 2 s left before the 27 s stop. Shares the secondary's saved settings. |
+| Calibration Hive Camera (No Motors) | No execution row | In the **TeleOp list** (no 30-second timer). Never maps motors or odometry. Continuous camera readiness until STOP. |
+| Calibration Primary Shot Only | DRY | No drive in any execution setting. LIVE enables launcher and feed. Completes one volley if started within the primary window, then DONE. |
+| Calibration Secondary Shot Only | DRY | No drive. LIVE enables launcher and feed. Waits for UP, one volley, then DONE; 27 s limit. |
+| Calibration Garden + Return | DRIVE | No launcher or agitator in any setting. LIVE adds collection intake. Returns to original S and stops; no shot/park. |
+| Beta Test Primary Shooter + Garden | LIVE | Shoot, collect, return, wait/shoot if UP, park. |
+| Beta Test Secondary Shooter | LIVE | Wait for UP, shoot, park. |
+| Beta Test Secondary Shooter - Make Room | LIVE | Play 2 (partner is the hero): wait for UP, shoot, drive to the scoring-end/side-wall corner and wait there, park in the outer slot with 2 s left before the 27 s stop. Shares the secondary's saved settings. |
+
+**Beta Test INIT:** First row, left = RED or right = BLUE. Check the target IDs before START.
 
 The three isolated motor tests use the same controller/settings as the full autos. They still need
 Pinpoint READY and correct motor names. **Execution resets to the default above every INIT and is
@@ -29,16 +31,16 @@ Camera-only testing needs just the configured Limelight and the Hub; it does not
 
 ## Before the hive is available
 
-1. Apply/build/install the patch. Verify `BUILD pollen-hive-v10` on the Driver Hub.
+1. Apply/build/install the patch. Verify `BUILD pollen-hive-v20` on the Driver Hub.
 2. Mount the Limelight 3A rigidly on the back, looking toward the hive, with negligible camera
-   roll. Measure tiles to **lens center**; 14 inches is a default, not a substitute for measuring.
+   roll. Measure tiles to **lens center**; 11.75 inches is the default, not a substitute for measuring.
 3. Connect USB-C on the Limelight to the Hub's blue USB-A 3.0 port. Configure it as `limelight`.
-4. Pipeline 0: AprilTag **36h11**, tag size **82.55 mm / 3.25 in**, full 3-D results. Record exposure,
+4. Default pipeline 4: AprilTag **36h11**, tag size **82.55 mm / 3.25 in**, full 3-D results. Record exposure,
    resolution and downscale. Use the camera INIT row if you use another pipeline index.
 5. On the Mac, use the printed tags to check IDs, camera connection and interruption/recovery.
    A print at arbitrary height is not a real-hive calibration. A Mac alone cannot run an FTC OpMode;
    computer tests exercise Java logic, while the camera web page exercises live image detection.
-6. Once the Hub is available, use TEST Hive camera to enter measured lens height in INIT and
+6. Once the Hub is available, use Calibration Hive Camera (No Motors) to enter measured lens height in INIT and
    confirm IDs after START. Do not calibrate to a print at the wrong physical height.
 
 ## Camera INIT: measure once, edit without switching modes
@@ -72,7 +74,7 @@ the hive. Make the near cell physically UP. Confirm the printed tag IDs belong t
 red primary **34-37**, blue primary **42-45**. For the sideways fit, see all four tags and center the
 robot on the cell. Do not use the secondary offset start to fit the sideways correction.
 
-1. START **TEST Hive camera (NO MOTORS)**. Confirm the *Our cell* and *Tags* lines against the real
+1. START **Calibration Hive Camera (No Motors)**. Confirm the *Our cell* and *Tags* lines against the real
    hive. The camera test can identify any cell; the operator must verify this is the near cell.
 2. With the cell **UP and still**, press **Square** once. Hold still for three seconds.
    `CANDIDATE` means the displayed tilt/sideways numbers are in use but not saved. At least 20
@@ -196,7 +198,13 @@ resets, until 0.20 s have passed since the last sighting. Uncalibrated, invalid,
 observations produce UNKNOWN. Only UP grants camera readiness. Camera input rejects wrong pipeline,
 invalid poses, duplicate IDs, stale SDK results and excessive total image latency.
 
-Side AUTO locks the nearest eligible cell after four consecutive fresh observations. Primary
+The three Beta Test autos open on Alliance, then Execution, then Start delay. Press D-pad left
+for RED or right for BLUE every INIT. Check the displayed tag range. START without a selection
+blocks the run. Press STOP and INIT to retry. Triangle on Alliance clears the choice. Circle keeps
+the current alliance and execution. Square saves tuning; the match choice never overwrites a calibration profile.
+Alliance and shooter role select the eligible cluster. Its measured tag heights determine UP and DOWN.
+
+In calibration, Side AUTO locks the nearest eligible cell after four consecutive fresh observations. Primary
 allows cells 34/42, secondary 30/38; RED or BLUE forces the appropriate one. Losing observations
 before identification now restarts its count. An established lock survives the garden trip.
 INIT uses the production detector too, so it does not call an average of conflicting tags UP.
@@ -240,7 +248,7 @@ or the midline), or promote saved changes into the code. The robot log's START l
 | Clearance forward / first turn left / garden turn left | 15.24 / 43.836 / 108.822 cm |
 | Pickup left / forward | 121.522 / 2.54 cm |
 | Transit / pickup heading | fixed 0 / 0 degrees; final shooting heading always returns to zero |
-| Execution / Side | LIVE (not saved) / AUTO |
+| Execution / Side | LIVE / choose RED or BLUE each Beta Test INIT |
 | Park | on; three CAD-derived waypoints (existing departure corridor and parking spot) |
 | Make room corner forward / left | 2.54 / -128.41 cm: 1 in off the scoring-end and side walls (CAD); reached via Park1 forward to clear the flower |
 | Make room: park at s left | 2 s before the 27 s stop (match time 25 s); the corner-to-park drive is about 0.75 s planned, INIT rejects a value shorter than that |

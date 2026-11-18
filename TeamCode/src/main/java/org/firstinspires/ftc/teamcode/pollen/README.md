@@ -4,14 +4,14 @@ Experimental hive-gated modes and garden collection: [testing guide](../../../..
 
 Build identifier: **pollen-hive-v10** (`PollenConfig.BUILD`). The match autos are the odometry
 ones (below). Three timed OpModes are kept for **emergencies only** (a match where the Pinpoint
-is not working), in the group *Pollen Emergency (timed)*: `EMERGENCY Timed Park`,
-`EMERGENCY Timed Shoot + Park`, and `EMERGENCY Timed Supporting Shooter` (before `pollen-odo-v9`
+is not working), in the group *3 Emergency*: `Emergency Timed Park`,
+`Emergency Timed Shoot + Park`, and `Emergency Timed Supporting Shooter` (before `pollen-odo-v9`
 they were named `Pollen ROBOT Park`, `Pollen ROBOT Shoot + Park` and
 `Pollen Supporting Shooter Auto`). The PollenBot TeleOp itself
 (`../BioBuzzStarterbotOpMode.java`, outside this package) uses `PollenTeleOpTuning`
 for its INIT launcher-speed and drive-power menu and shows the same build id.
 
-**Odometry versions** (group *Pollen Odometry*): `Odo ROBOT Park`, `Odo ROBOT Shoot + Park`,
+**Odometry versions** (group *1 Match*): `Emergency Odo Park`, `Odo ROBOT Shoot + Park`,
 `Odo Supporting Shooter Auto` do the same jobs, driving each leg to a measured end point. See
 [docs/POLLEN_ODOMETRY_AUTOS.md](../../../../../../../../../docs/POLLEN_ODOMETRY_AUTOS.md).
 
@@ -54,7 +54,7 @@ The experimental profiles/routes are not validated robot settings.
 | PollenShootTuning | B/C menus (launcher, feed, power, three legs' cm/angle), defaults, field presets, budget and route construction |
 | PollenDriveCalibration | Unchanged baseline; opt-in B / default C mat trial; A forward estimate |
 | PollenFieldGeometry | Nominal CAD-derived start/parking coordinates and preset displacements; the assumed angled shooting spot and its aim angle |
-| PollenFeedRule | The one feed rule (up to speed, or the spin-up time is over), used by TeleOp, LauncherTest and every autonomous shot |
+| PollenFeedRule | The one feed rule (up to speed, or the spin-up time is over), used by TeleOp, Calibration Launcher and every autonomous shot |
 | PollenAngledPrimaryShooter | EXPERIMENTAL registered wrapper: B with odometry and `angledShot()` on |
 | PollenFacing | Which way the robot starts: `START_BACK_TO_HIVE` (true since `pollen-odo-v11`: front on the end wall, back/launcher to the hive). Routes are written as if facing the hive; `routePose()` turns the odometry pose around and `wheelPowers()` turns the drive powers around. Used by every autonomous OpMode, nothing else |
 | PollenSequence | Hardware-free step runner. Five kinds of step (`Kind`: DRIVE, SHOOT, MOVE, TURN, ZERO_ODOMETRY), one short method each (`driveStep`, `shootStep`, `moveStep`, `turnStep`, `zeroOdometryStep`); stall/STOP/deadline checks; mixer |
@@ -127,7 +127,7 @@ timer in charge, so it can never delay, pause, skip or stop the feed.
   pass no speed, so the timer decides. B (odometry, timed and angled) uses
   `Step.continuousShoot`. C uses `Step.shootAtSetTime`, which ignores the speed, so C
   never feeds before its 15 s slot.
-- PollenBot TeleOp and LauncherTest: `launch()` latches the feed until R1 is released
+- PollenBot TeleOp and Calibration Launcher: `launch()` latches the feed until R1 is released
   (`launcherIsUpToSpeed` and `spinUpTimeIsOver` in `PollenTeleOpTuning` call the rule):
   the intake gets +0.5 (`PollenConfig.INTAKE_FEED_BOOST`, clipped to 1) and the agitator
   its own feed power. Both read the launcher's speed once per loop
@@ -194,7 +194,7 @@ timing and 350 ms pauses at each step change, and checks that no leg is skipped
 or shortened and that a pause while driving stops the run. `PollenOdometryTest`
 runs the odometry routes on a simulated robot (an assumed robot, not ours),
 including the feed rule in whole runs, turning in place with quicker and
-slower robots, and the Angled Primary Shooter from start to park. The standard-library
+slower robots, and the Calibration Angled Primary from start to park. The standard-library
 Python script checks nominal swept polygons, including the rejected direct route
 and rejected centered support start, plus the angled route and every degree of
 its turn against the end wall and the obstacles. The test script also exports the Java
@@ -217,4 +217,4 @@ worked. Verify `pollen-odo-v11` in INIT. Check the actual installed commit and a
 settings before physical tests. Java changes require rebuild/reinstall; INIT
 settings and documentation edits do not.
 
-`TEST Hive pipeline benchmark` / `PollenHiveBenchmark` (TeleOp list, like `TEST Hive camera`, so the 30-second autonomous timer cannot stop it): no motors; automatically compare saved camera pipelines and log raw results. See `docs/POLLEN_HIVE_BENCHMARK.md`.
+`Calibration Hive Pipeline Benchmark` / `PollenHiveBenchmark` (TeleOp list, like `Calibration Hive Camera (No Motors)`, so the 30-second autonomous timer cannot stop it): no motors; automatically compare saved camera pipelines and log raw results. See `docs/POLLEN_HIVE_BENCHMARK.md`.

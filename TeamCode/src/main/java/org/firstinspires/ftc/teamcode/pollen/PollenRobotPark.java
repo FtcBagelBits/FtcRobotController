@@ -34,7 +34,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * (Pinpoint) is not working. Select delay, power and time during INIT, then drive straight for
  * that time and stop: BACKWARD, launcher end first, when the robot starts with its back to the
  * hive (PollenFacing). */
-@Autonomous(name = "EMERGENCY Timed Park", group = "Pollen Emergency (timed)", preselectTeleOp = "PollenBot")
+@Autonomous(name = "Emergency Timed Park", group = "3 Emergency", preselectTeleOp = "PollenBot")
 public final class PollenRobotPark extends OpMode {
     private static PollenParkTuning.Snapshot remembered;
     private final DcMotor[] drive = new DcMotor[4];
@@ -92,7 +92,7 @@ public final class PollenRobotPark extends OpMode {
 
     private void showSettings() {
         telemetry.addData("Build", PollenConfig.BUILD);
-        telemetry.addData("EMERGENCY ONLY", "Timed driving, no odometry. Use Odo ROBOT Park unless odometry has failed.");
+        telemetry.addData("EMERGENCY ONLY", "Timed driving, no odometry. Use Emergency Odo Park unless odometry has failed.");
         telemetry.addData("Mode", "TIMED Park - real motors on START");
         telemetry.addData("Facing", PollenFacing.placement() + "; drives " + PollenFacing.routeForward());
         if (tuning == null) return;

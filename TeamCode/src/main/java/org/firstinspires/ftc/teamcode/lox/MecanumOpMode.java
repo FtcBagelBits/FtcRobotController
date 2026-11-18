@@ -3,7 +3,7 @@ package org.firstinspires.ftc.teamcode.lox;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 //If we lose it's kiyo's fault
-@TeleOp
+@TeleOp(name = "Legacy Lox Mecanum", group = "5 Legacy")
 public class MecanumOpMode extends LinearOpMode {
     private final Launcher launcher = new Launcher(this);
     private final MecanumDriveTrain driveTrain = new MecanumDriveTrain(this);

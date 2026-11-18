@@ -12,7 +12,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * distance (measured, not timed), then stop. Like every autonomous, it drives as if the robot faced
  * the hive (PollenFacing): with the robot's back to the hive it drives BACKWARD, launcher end first.
  * Same INIT buttons as EMERGENCY Timed Park, except LEFT/RIGHT changes centimetres instead of seconds. */
-@Autonomous(name = "Odo ROBOT Park", group = "Pollen Odometry", preselectTeleOp = "PollenBot")
+@Autonomous(name = "Emergency Odo Park", group = "3 Emergency", preselectTeleOp = "PollenBot")
 public final class PollenOdoPark extends OpMode {
     private static PollenOdoParkTuning.Snapshot remembered;
     private final DcMotor[] drive = new DcMotor[4];

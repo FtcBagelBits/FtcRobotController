@@ -52,7 +52,17 @@ public abstract class PollenHiveOpMode extends OpMode {
     private String fileName() { return secondary() ? PollenHiveStore.SECONDARY : PollenHiveStore.PRIMARY; }
     private int rows() { return settings.v.length + cameraSettings.v.length; }
     private PollenHiveSettings.Values table(int r) { return r < settings.v.length ? settings.values : cameraSettings; }
-    private int index(int r) { return r < settings.v.length ? r : r - settings.v.length; }
+    private boolean matchSetup() { return run() == PollenHiveAuto.Run.MATCH; }
+    private int index(int r) {
+        // Swap only the first two display rows. Route keys/indices and saved profiles stay compatible.
+        if (matchSetup() && r < 2) return 1 - r;
+        return r < settings.v.length ? r : r - settings.v.length;
+    }
+
+    private String allianceLine() {
+        return settings.needsMatchAlliance() ? "Choose alliance: LEFT = RED, RIGHT = BLUE"
+                : IsHiveReadyForShot.clusterName(IsHiveReadyForShot.allowedCells(secondary(), settings.side())[0]);
+    }
 
     @Override public final void init() {
         PollenDrainerHold.holdUp(hardwareMap); // autos never lower the drainer
@@ -61,6 +71,12 @@ public abstract class PollenHiveOpMode extends OpMode {
         loadMessage = "Auto: " + PollenHiveStore.load(fileName(), settings.values)
                 + ". Camera: " + PollenHiveStore.load(PollenHiveStore.CAMERA, cameraSettings) + ".";
         settings.v[0] = defaultExecution();
+        row = 0;
+        if (matchSetup()) {
+            settings.beginMatchSetup();
+            left = gamepad1.dpad_left;
+            right = gamepad1.dpad_right;
+        }
         // Room left for reports and traces, read once. A full trace budget is shown before START.
         try { PollenRunLog.Storage storage = PollenHiveStore.storage(); storageLine = storage.line(); storageWarning = storage.warning(); }
         catch (Exception ex) { storageLine = "unknown (" + ex + ")"; }
@@ -98,10 +114,17 @@ public abstract class PollenHiveOpMode extends OpMode {
         try { if (camera != null && camera.pipeline() != (int) cameraSettings.get("pipeline")) camera.setPipeline((int) cameraSettings.get("pipeline")); }
         catch (Exception ex) { cameraProblem = ex.toString(); }
         String validation = "READY";
-        try { settings.validate(); } catch (Exception ex) { validation = "BLOCKED: " + ex.getMessage(); }
+        try { settings.validateForStart(); } catch (Exception ex) { validation = "BLOCKED: " + ex.getMessage(); }
         IsHiveReadyForShot.Mount mount = IsHiveReadyForShot.Mount.from(cameraSettings);
         int changed = settings.values.changedCount() + cameraSettings.changedCount();
         int unsaved = settings.values.unsavedCount() + cameraSettings.unsavedCount();
+        if (matchSetup() && row > 3) telemetry.addData("Alliance", allianceLine());
+        telemetry.addData("Status", fault == null ? validation : fault);
+        for (int r = Math.max(0, Math.min(row - 3, rows() - 7)); r <= Math.min(rows() - 1, Math.max(row + 3, 6)); r++)
+            telemetry.addLine((r == row ? "> " : "   ") + (r + 1) + "/" + rows() + "  "
+                    + (r == settings.v.length ? "[camera] " : "") + (matchSetup() && r == 0 ? "Alliance: " + allianceLine() : table(r).line(index(r))));
+        telemetry.addLine("D-pad row/value, LB/RB jump 5. Triangle: row to default. Circle: ROUTE defaults (keeps execution/camera). Square: save.");
+        telemetry.addLine(message.isEmpty() ? loadMessage : message);
         telemetry.addData("BUILD", PollenConfig.BUILD);
         telemetry.addData("RUN", run() + " / " + PollenHiveSettings.format("execution", settings.v[0]));
         telemetry.addData("Motor limits", run()==PollenHiveAuto.Run.SHOT_ONLY?"NO DRIVE; LIVE enables launcher/feed":run()==PollenHiveAuto.Run.GARDEN_RETURN?"NO LAUNCHER/AGITATOR; LIVE adds collection intake":"Match auto: selected execution");
@@ -127,12 +150,6 @@ public abstract class PollenHiveOpMode extends OpMode {
         telemetry.addData("Odometry", PollenOdometryHardware.status(pinpoint));
         telemetry.addData("Hub storage", storageLine);
         if (!storageWarning.isEmpty()) telemetry.addData("STORAGE WARNING", storageWarning);
-        telemetry.addData("Status", fault == null ? validation : fault);
-        for (int r = Math.max(0, Math.min(row - 3, rows() - 7)); r <= Math.min(rows() - 1, Math.max(row + 3, 6)); r++)
-            telemetry.addLine((r == row ? "> " : "   ") + (r + 1) + "/" + rows() + "  "
-                    + (r == settings.v.length ? "[camera] " : "") + table(r).line(index(r)));
-        telemetry.addLine("D-pad row/value, LB/RB jump 5. Triangle: row to default. Circle: ROUTE defaults (keeps execution/camera). Square: save.");
-        telemetry.addLine(message.isEmpty() ? loadMessage : message);
         telemetry.update();
     }
 
@@ -143,9 +160,23 @@ public abstract class PollenHiveOpMode extends OpMode {
         if (gamepad1.left_bumper && !lb) row = Math.max(0, row - 5);
         if (gamepad1.right_bumper && !rb) row = Math.min(n - 1, row + 5);
         int delta = (gamepad1.dpad_right && !right ? 1 : 0) - (gamepad1.dpad_left && !left ? 1 : 0);
-        if (delta != 0) table(row).edit(index(row), delta);
-        if (gamepad1.triangle && !triangle) { table(row).reset(index(row)); if(row==0) settings.v[0]=defaultExecution(); message = "Row back to default (Square saves)"; }
-        if (gamepad1.circle && !circle) { settings.values.resetExceptExecution(); message = "Route defaults restored; execution and camera kept (Square saves)"; }
+        boolean allianceRow = matchSetup() && row == 0;
+        if (delta != 0) {
+            if (allianceRow) settings.selectMatchAlliance(delta > 0);
+            else table(row).edit(index(row), delta);
+        }
+        if (gamepad1.triangle && !triangle) {
+            if (allianceRow) settings.beginMatchSetup();
+            else if (table(row) == settings.values && index(row) == 0) settings.v[0] = defaultExecution();
+            else table(row).reset(index(row));
+            message = "Selected row reset";
+        }
+        if (gamepad1.circle && !circle) {
+            double profileSide = settings.v[1];
+            settings.values.resetExceptExecution();
+            if (matchSetup()) settings.v[1] = profileSide;
+            message = "Route defaults restored (Square saves)";
+        }
         if (gamepad1.square && !square) {
             try {
                 settings.validate();
@@ -162,6 +193,10 @@ public abstract class PollenHiveOpMode extends OpMode {
 
     /** What the camera sees behind the robot right now (INIT only; nothing is locked yet). */
     private String hiveView(IsHiveReadyForShot.Mount mount) {
+        if (settings.needsMatchAlliance()) {
+            initHive = null;
+            return "Choose RED or BLUE to preview the target cell";
+        }
         int side = settings.side();
         int[] allowed = IsHiveReadyForShot.allowedCells(secondary(), side);
         String prefix = side == 0 ? "" : "Side forced " + (side == 1 ? "RED" : "BLUE") + ": ";
@@ -200,7 +235,7 @@ public abstract class PollenHiveOpMode extends OpMode {
         for(int i=0;i<mapped.length;i++) record("MAP "+PollenHiveHardware.identity(MOTOR_NAMES[i],mapped[i]));
         if (fault != null) { zero(); record("FAULT at START "+fault); traceSample(0,"FAULT",true); return; }
         try {
-            settings.validate();
+            settings.validateForStart();
             localizer.update();
             if (!"READY".equals(PollenOdometryHardware.status(pinpoint))) throw new IllegalStateException("Pinpoint must be READY at START");
             localizer.setPose(Pose.zero());

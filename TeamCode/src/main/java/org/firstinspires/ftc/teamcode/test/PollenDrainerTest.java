@@ -28,7 +28,7 @@ import org.firstinspires.ftc.teamcode.pollen.PollenTeleOpTuning;
  *   Up/down positions change by 0.01; step changes by 0.002. Triangle resets
  *   defaults (0.45 up, 0.02 down, 0.01 step). START applies the up position.
  */
-@TeleOp(name = "PollenDrainerTest", group = "Test")
+@TeleOp(name = "Calibration Drainer Servo", group = "4 Calibration")
 public class PollenDrainerTest extends OpMode {
 
     // ---- Things you will probably want to tune ----

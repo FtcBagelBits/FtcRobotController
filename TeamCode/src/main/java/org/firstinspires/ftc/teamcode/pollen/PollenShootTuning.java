@@ -20,7 +20,7 @@ import java.util.List;
  * field-tuned timed values: those were shortened (17-21%), most likely to make up for timed driving
  * overshooting its model, so as true distances they would stop B about 19 in and C about 8 in short of the planned spot.
  *
- * ANGLED MODE (the experimental "Angled Primary Shooter", odometry only): the same three legs, in
+ * ANGLED MODE (the experimental "Calibration Angled Primary", odometry only): the same three legs, in
  * a different order. Legs 1 and 2 run FIRST and take the robot to the shooting spot, off the wall
  * and to the side of the hive. There it turns in place to the AIM_ANGLE row, shoots, and turns
  * back. Leg 3 then goes to the same parking spot as the normal route. */

@@ -50,7 +50,7 @@ import org.firstinspires.ftc.teamcode.pollen.PollenTeleOpTuning;
  * If you change launch() here or in the TeleOp, change the other one the same way.
  */
 
-@TeleOp(name = "LauncherTest", group="Test")
+@TeleOp(name = "Calibration Launcher", group = "4 Calibration")
 //@Disabled
 public class LauncherTestOpMode extends OpMode {
 
@@ -140,7 +140,7 @@ public class LauncherTestOpMode extends OpMode {
                 gamepad1.triangle);
         remembered = tuning.snapshot();
         telemetry.addData("Build", PollenConfig.BUILD);
-        telemetry.addData("Mode", "LauncherTest: launcher, intake and agitator only. The wheels stay off.");
+        telemetry.addData("Mode", "Calibration Launcher: launcher, intake and agitator only. The wheels stay off.");
         telemetry.addData(marker(PollenTeleOpTuning.Row.LAUNCHER) + "Launcher ticks/s", "%.0f (default %d)",
                 tuning.launcherVelocity(), LAUNCHER_TARGET_VELOCITY);
         telemetry.addData(marker(PollenTeleOpTuning.Row.SPINUP) + "Spin-up before feed", "%.1f s (default %.1f s)",
@@ -148,7 +148,7 @@ public class LauncherTestOpMode extends OpMode {
         telemetry.addData(marker(PollenTeleOpTuning.Row.AGITATOR) + "Agitator power while feeding", "%.2f (default %.2f)",
                 tuning.agitatorPower(), PollenConfig.AGITATOR_FEED_POWER);
         // The menu is the TeleOp's, so it has a drive power row too. Nothing here uses it.
-        telemetry.addData(marker(PollenTeleOpTuning.Row.DRIVE) + "Drive power", "not used in LauncherTest");
+        telemetry.addData(marker(PollenTeleOpTuning.Row.DRIVE) + "Drive power", "not used in Calibration Launcher");
         telemetry.addData("Controls", "D-pad UP/DOWN selects; LEFT/RIGHT edits; Triangle = defaults");
     }
 

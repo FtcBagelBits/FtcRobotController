@@ -15,7 +15,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
  *
  * The route, its INIT rows and the aim angle are in PollenShootTuning (look for "angled").
  */
-@Autonomous(name = "Angled Primary Shooter", group = "Pollen Experimental", preselectTeleOp = "PollenBot")
+@Autonomous(name = "Calibration Angled Primary", group = "4 Calibration", preselectTeleOp = "PollenBot")
 public final class PollenAngledPrimaryShooter extends PollenShooterOpMode {
     @Override protected boolean supportingShooter() { return false; }
     @Override protected boolean odometry() { return true; }

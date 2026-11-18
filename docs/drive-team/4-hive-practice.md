@@ -1,20 +1,20 @@
 # Hive calibration and practice
 
-**Build pollen-hive-v10 - experimental.** Print front/back. Full steps: `docs/POLLEN_HIVE_TESTING.md`.
+**Build pollen-hive-v20 - experimental.** Print front/back. Full steps: `docs/POLLEN_HIVE_TESTING.md`.
 Keep existing match autos available. Rear camera/launcher face hive; **front intake faces end wall**.
 
 <img src="img/hive-height.svg" style="width:4.3in">
 
-For intermittent tags, run **TEST Hive pipeline benchmark** first (separate benchmark card).
+For intermittent tags, run **Calibration Hive Pipeline Benchmark** first (separate benchmark card).
 
 ## Camera setup and calibration (NO MOTORS)
 
-Limelight named **limelight**; USB to Hub blue port. Saved AprilTag pipeline (code default 0): 36h11, **82.55 mm**, full 3-D.
-Use **TEST Hive camera (NO MOTORS)**, in the **TeleOp list**. It maps no motors or odometry and runs until STOP.
+Limelight named **limelight**; USB to Hub blue port. Saved AprilTag pipeline (code default 4): 36h11, **82.55 mm**, full 3-D.
+Use **Calibration Hive Camera (No Motors)**, in the **TeleOp list**. It maps no motors or odometry and runs until STOP.
 
 | Step | Do this |
 | --- | --- |
-| 1. Measure in INIT | Floor to lens center (default **14 in**); floor to UP/DOWN tag-row centers (**49.7 / 35.6 in** nominal). D-pad selects/edits camera rows. Triangle resets one row; Square saves. |
+| 1. Measure in INIT | Floor to lens center (default **11.75 in**); floor to UP/DOWN tag-row centers (**49.7 / 35.6 in** nominal). D-pad selects/edits camera rows. Triangle resets one row; Square saves. |
 | 2. Fit tilt | PRIMARY start, square to wall, centered. Near cell **physically UP**. START. Check correct IDs; see all four for sideways fit. Square, hands off for **3 s**. Display uses CANDIDATE. |
 | 3. Check UP | Still UP: D-pad **left**, then Circle. Hold still 3 s. Expect **PASS**. |
 | 4. Check DOWN | Tip same cell DOWN, let it settle. D-pad **right**, Circle. Expect PASS, or **BLOCKED ONLY** if tags hidden. Hidden is not a DOWN height measurement. |
@@ -43,12 +43,12 @@ false UP _____ / 20. Capture reports save automatically. The screen tests the **
 
 | Driver Hub mode | Default / what happens |
 | --- | --- |
-| TEST Hive primary shot ONLY | **DRY**. No drive. LIVE must start its volley within the first-shot window. |
-| TEST Hive secondary shot ONLY | **DRY**. No drive. LIVE waits for UP, fires, stops. |
-| TEST Hive garden + return | **DRIVE**. No launcher/agitator. LIVE adds collection intake. Returns to S and stops, no park. |
-| EXPERIMENTAL Hive Primary + Garden | **LIVE**. Shoot, collect, return, wait/shoot if UP, park. |
-| EXPERIMENTAL Hive Secondary | **LIVE**. Wait for UP, shoot, park. |
-| EXPERIMENTAL Hive Secondary MAKE ROOM | **LIVE**. Partner is the hero. Wait for UP, shoot, wait in the far corner, park with **2 s** left. |
+| Calibration Primary Shot Only | **DRY**. No drive. LIVE must start its volley within the first-shot window. |
+| Calibration Secondary Shot Only | **DRY**. No drive. LIVE waits for UP, fires, stops. |
+| Calibration Garden + Return | **DRIVE**. No launcher/agitator. LIVE adds collection intake. Returns to S and stops, no park. |
+| Beta Test Primary Shooter + Garden | **LIVE**. Shoot, collect, return, wait/shoot if UP, park. |
+| Beta Test Secondary Shooter | **LIVE**. Wait for UP, shoot, park. |
+| Beta Test Secondary Shooter - Make Room | **LIVE**. Partner is the hero. Wait for UP, shoot, wait in the far corner, park with **2 s** left. |
 
 **Order:** camera validation; shot ONLY DRY then LIVE with a small batch; garden DRIVE without
 balls then LIVE pickup; full autos last. Someone stays on STOP. Every motor run requires Pinpoint
@@ -58,22 +58,19 @@ for **4 s** through camera changes and speed dips. Use camera-only mode for inde
 
 ## Motor-mode INIT menu
 
+**Beta Test only:** On the first INIT row press **left for RED** or **right for BLUE**. Check the tag IDs before START. Choose again after each INIT.
+
 D-pad row/value; LB/RB jump five. **Triangle** resets one row. **Circle** resets route values only,
 keeping camera and Execution. **Square** saves. Execution is never saved and resets each INIT to
 the mode's default above. Saved practice settings are shared with the corresponding full auto.
 Check BUILD, run type, Execution, CHANGED values, camera profile, cell/alliance and Pinpoint READY.
 
-<img src="../POLLEN_HIVE_GARDEN.svg" style="width:4.9in;max-height:2.7in">
+<img src="../POLLEN_HIVE_GARDEN.svg" style="width:4.4in;max-height:2.3in">
 
-Start every garden test at **S**. Keep the starting heading: back clear, strafe sideways, then
+Start **Calibration Garden + Return** at **S**. For **Calibration Garden Pickup**, start at the garden entry. Keep the starting heading: back clear, strafe sideways, then
 drive front-first to collect; back out and retrace to S. No midrun odometry reset. Body clearance is
 only **1 in**. Four ball centers need about **17.45 in** of centered intake width; measure actual reach.
 
-**v8 diagnostics:** Before the first departure, motion over 2 in or 10 degrees stops the run.
-Confirm motor wiring; run DRY and empty shot-only tests before retrying the garden. Collection no longer waits for flywheel
-spin-down; the agitator stays off throughout the garden. See `docs/POLLEN_HIVE_DIAGNOSTICS.md`.
-
-**After practice:** pull `/sdcard/FIRST/pollen-hive` with adb (settings + reports), and the Robot
-Controller log. Reports record checks, settings, phases, elapsed time and pose. Write down pickup
-count, return error, cycle time and false-UP count. Use `tools/hive-promote-defaults.py` to preview
-proven changes; `--write` promotes them. Test/build/install once after tuning, not after every run.
+Before departure, a shift over 2 in or 10° stops the run. Check drive wiring and retry DRY if this trips.
+After STOP, download the reports with `bash tools/ftc.sh logs NEW_FOLDER`. Record pickup count,
+return error, cycle time, and false UPs. See the full guide for promoting saved settings.

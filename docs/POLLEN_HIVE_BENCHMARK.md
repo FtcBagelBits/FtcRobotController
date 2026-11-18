@@ -11,8 +11,8 @@ that. Install when the Control Hub is available. Check **pollen-hive-v6**.
 Print [the benchmark card](drive-team/print/5-hive-benchmark.pdf). Bring the Mac, normal Limelight
 data cable, and measured lens height. Have Python 3 and adb available before practice.
 
-The new Driver Hub mode is **TEST Hive pipeline benchmark**. **It is in the TeleOp list** (the
-right-hand menu, group *Pollen Hive*), and so is **TEST Hive camera (NO MOTORS)**: the Driver Hub
+The new Driver Hub mode is **Calibration Hive Pipeline Benchmark**. **It is in the TeleOp list** (the
+right-hand menu, group *4 Calibration*), and so is **Calibration Hive Camera (No Motors)**: the Driver Hub
 stops an Autonomous OpMode after 30 seconds unless its timer is switched off, and these run for
 minutes. It maps only `limelight`: no motors,
 launcher or odometry. You can use it before calibration passes. An unset tilt produces UNKNOWN
@@ -40,8 +40,8 @@ export fallback if an endpoint is unavailable on your installed version.
 
 1. Rear camera faces our near hive cell from the actual shooting position. Keep mounting height,
    aim, robot position and lighting fixed. Confirm the printed IDs of that cell once.
-2. Install v6. In TEST Hive camera INIT, verify/save your measured lens height (14 in is only the default).
-   Select **TEST Hive pipeline benchmark** (TeleOp list). INIT defaults to the saved production
+2. Install v6. In Calibration Hive Camera (No Motors) INIT, verify/save your measured lens height (14 in is only the default).
+   Select **Calibration Hive Pipeline Benchmark** (TeleOp list). INIT defaults to the saved production
    pipeline only. Set **Passes = 1**, **Seconds = 5**, and **Our cell first ID** correctly.
    The smoke test does not need the hive: it proves logging and downloading with the camera
    pointed anywhere, so do it before the field time starts if the robot is available.
@@ -202,7 +202,7 @@ tags agree on UP or that readiness was granted. An incomplete run is not validat
 - Re-run the winner at the secondary shooting start, selecting its correct cell and Scenario.
   Test modest left/right placement changes with the corresponding Scenario values. Keep each run
   fixed; do not move during a block. Use First = Last to select a single candidate.
-- Finish calibration using TEST Hive camera and the selected pipeline. Change the camera pipeline
+- Finish calibration using Calibration Hive Camera (No Motors) and the selected pipeline. Change the camera pipeline
   row there and save only after checks pass. Revalidate geometry if resolution/crop changes.
 - Use the existing continuous camera check for deliberate tipping/occlusion transitions before
   shooting tests. Static labels cannot automatically establish the exact instant a moving basket

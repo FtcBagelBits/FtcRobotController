@@ -15,7 +15,7 @@ import org.json.JSONObject;
  * pipelines. Buffered JSONL includes every sampled result, including stale/invalid/empty polls.
  * It is in the Driver Station's TeleOp list on purpose: the Driver Station stops an Autonomous
  * OpMode after 30 seconds unless its timer is switched off, and a run takes minutes. */
-@TeleOp(name = "TEST Hive pipeline benchmark", group = "Pollen Hive")
+@TeleOp(name = "Calibration Hive Pipeline Benchmark", group = "4 Calibration")
 public final class PollenHiveBenchmark extends OpMode {
     /** Stop recording before one run's log gets this big (about 1 byte per character). A full
      * five-pipeline run is very roughly 100-200 MB (estimated with a simulated camera; it grows

@@ -25,7 +25,7 @@ public final class PollenHiveAuto {
     private String reason="",motionPhase="",decision="before first tick";
     public PollenHiveAuto(PollenHiveRoute config,IsHiveReadyForShot hive) { this(config,hive,Run.MATCH); }
     public PollenHiveAuto(PollenHiveRoute config,IsHiveReadyForShot hive,Run run) {
-        config.validate(); this.config=config; this.hive=hive; this.run=run;
+        config.validateForStart(); this.config=config; this.hive=hive; this.run=run;
     }
     public void start(double now) { began=phaseAt=now; previous=now; started=true; hive.reset(); }
     public Output stop(String why) { phase=Phase.DONE; reason=why; wasFeeding=false; return zero(); }

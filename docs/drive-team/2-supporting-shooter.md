@@ -54,7 +54,7 @@ INNER slot. We start shooting at **15 s**. Show them the pit sheet.
 </div>
 </div>
 
-**3. On the Driver Hub**, pick **Odo Supporting Shooter Auto**. It's in the autonomous list, group *Pollen Odometry*.
+**3. On the Driver Hub**, pick **Odo Supporting Shooter Auto**. It's in the autonomous list, group *1 Match*.
 
 **4. Press INIT.** Don't touch the robot for 1 second: the odometry sensor is getting ready.
 
@@ -68,7 +68,7 @@ Then make only the changes the coach asks for. A different wait is a *Start dela
 | Line | Should say |
 | --- | --- |
 | **ROUTE** (the first line) | `SUPPORT PARK: wait, shoot, then park in the outer slot` |
-| Build | `pollen-hive-v10` |
+| Build | `pollen-hive-v20` |
 | Mode | `ODOMETRY Supporting Shooter` |
 | Odometry x fwd / y left / heading | numbers near 0 (not `NOT VALID`) |
 | Start delay seconds | `12.00` |
@@ -95,7 +95,7 @@ Then make only the changes the coach asks for. A different wait is a *Start dela
 
 | You see | What it means | Do this |
 | --- | --- | --- |
-| `BLOCKED: ... No goBILDA Pinpoint named "odometry"` | The odometry sensor isn't found | Use **EMERGENCY Timed Supporting Shooter** instead ([emergency timed page](fallback-timed-autos.md)). Tell a programmer. |
+| `BLOCKED: ... No goBILDA Pinpoint named "odometry"` | The odometry sensor isn't found | Use **Emergency Timed Supporting Shooter** instead ([emergency timed page](fallback-timed-autos.md)). Tell a programmer. |
 | `Odometry ...: NOT VALID` | The odometry sensor isn't reading | Press STOP, then INIT again with the robot still. Still bad: use the emergency timed mode. |
 | `READY FOR DEPARTURE ONLY - SHOOTER FAILED` | The launcher didn't start up | The robot still waits out the shooting time, then parks. Tell a programmer. |
 | `NOT READY - over time budget` | Someone's settings take too long | Press Triangle. |

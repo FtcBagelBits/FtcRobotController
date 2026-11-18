@@ -19,8 +19,13 @@ public final class PollenHiveRoute {
         this.secondary=secondary; this.makeRoom=makeRoom;
         values=new PollenHiveSettings.Values(PollenHiveSettings.ROUTE,secondary); v=values.v;
     }
-    /** Side row: 0 = detect from the tags behind the robot, 1 = red, 2 = blue. */
-    public int side() { return (int)v[1]; }
+    // Calibration uses the saved side row. Each match starts with a fresh driver choice.
+    private static final int USE_PROFILE = -1;
+    private int matchAlliance = USE_PROFILE;
+    public void beginMatchSetup() { matchAlliance = 0; }
+    public void selectMatchAlliance(boolean blue) { matchAlliance = blue ? 2 : 1; }
+    public boolean needsMatchAlliance() { return matchAlliance == 0; }
+    public int side() { return matchAlliance == USE_PROFILE ? (int)v[1] : matchAlliance; }
     public static final class Node {
         public final String name;
         public final double x,y,h,power,seconds;
@@ -77,6 +82,11 @@ public final class PollenHiveRoute {
         }
         return total+nodes.length*.04;
     }
+    public void validateForStart() {
+        if (needsMatchAlliance()) throw new IllegalArgumentException("Choose alliance: D-pad LEFT red / RIGHT blue");
+        validate();
+    }
+
     public void validate() {
         for(double d:v) if(!Double.isFinite(d)) throw new IllegalArgumentException("Nonfinite setting");
         if(v[0]<0||v[0]>2||v[1]<0||v[1]>2||v[6]<500||v[6]>2500)
@@ -146,7 +156,7 @@ public final class PollenHiveRoute {
     /** Every setting with its key, for the robot log. */
     @Override public String toString() {
         StringBuilder b=new StringBuilder();
-        for(int i=0;i<v.length;i++) b.append(i==0?"":", ").append(values.rows[i].key).append('=').append(v[i]);
+        for(int i=0;i<v.length;i++) b.append(i==0?"":", ").append(values.rows[i].key).append('=').append(i==1 ? side() : v[i]);
         return b.toString();
     }
 }
