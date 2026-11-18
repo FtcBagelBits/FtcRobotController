@@ -53,6 +53,7 @@ public abstract class PollenHiveOpMode extends OpMode {
     private int index(int r) { return r < settings.v.length ? r : r - settings.v.length; }
 
     @Override public final void init() {
+        PollenDrainerHold.holdUp(hardwareMap); // autos never lower the drainer
         settings = new PollenHiveRoute(secondary());
         cameraSettings = new PollenHiveSettings.Values(PollenHiveSettings.CAMERA, false);
         loadMessage = "Auto: " + PollenHiveStore.load(fileName(), settings.values)

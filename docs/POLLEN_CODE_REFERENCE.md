@@ -158,3 +158,7 @@ The separate `PollenDrainerTest` OpMode moves only the servo for calibration. It
 and controls, with the same three INIT settings, defaults and increments as PollenBot. Its INIT
 menu contains only the drainer rows. Settings are remembered separately for each OpMode
 until the app restarts. The test's up/initial default is now 0.45 (previously 0.60).
+
+Every autonomous holds the drainer UP (0.45) from INIT through the whole run
+(`PollenDrainerHold`). Without a command the servo goes limp when the previous OpMode ends and the arm drops.
+A robot without the servo still runs its autos.

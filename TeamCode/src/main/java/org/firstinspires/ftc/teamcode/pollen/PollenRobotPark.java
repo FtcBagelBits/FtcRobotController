@@ -44,6 +44,7 @@ public final class PollenRobotPark extends OpMode {
     private String blocked;
 
     @Override public void init() {
+        PollenDrainerHold.holdUp(hardwareMap); // autos never lower the drainer
         blocked = null;
         tuning = null;
         sequence = null;
