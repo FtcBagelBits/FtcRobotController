@@ -28,7 +28,7 @@ the *FIRST* Tech Challenge SDK (`FtcRobotController` **12.0**). The build produc
 | --- | --- | --- |
 | **Odo ROBOT Shoot + Park** | Shoots the preloads, drives to the inner parking slot using odometry | Drive team, primary auto |
 | **Odo Supporting Shooter Auto** | Waits 12 s for the partner, shoots, parks in the outer slot | Drive team, when the partner shoots first |
-| **PollenBot** (TeleOp) | Driving, intake, R1 shoots, L1 reverses the launcher | Drive team |
+| **PollenBot** (TeleOp) | Driving, intake, R1 shoots, Square reverses the launcher | Drive team |
 | Odo ROBOT Park | Drive straight only (no shot), measured with odometry | Testing, or the launcher is broken |
 | Angled Primary Shooter | **Experimental.** Odo ROBOT Shoot + Park with an angled shot: two legs to a spot off the wall and to the side, turn the launcher toward the hive, shoot, turn back, park (on hold since v11: the robot now shoots straight from the wall; it still runs, back to the hive like every auto) | Programmers, until it has been tried on a field |
 | EMERGENCY Timed Shoot + Park / EMERGENCY Timed Supporting Shooter / EMERGENCY Timed Park | The same three jobs with timed driving (no odometry) | **Emergency only:** a match where the Pinpoint is not working |
@@ -41,7 +41,7 @@ robots' code (DECODE 2025-26). They share some hardware names but nothing else w
 them alone unless asked. `TeamCode/.../teamcode/readme.md` is the student-facing list of what's live.
 
 Every Pollen and Odo mode shows a build id on the INIT screen (`PollenConfig.BUILD`, currently
-`pollen-hive-v14` on this branch). **Bump it whenever behavior changes**, so the drive team can confirm which code is installed.
+`pollen-hive-v18` on this branch). **Bump it whenever behavior changes**, so the drive team can confirm which code is installed.
 
 **Which way the robot faces (since `pollen-odo-v11`).** The launcher shoots out of the robot's back,
 so every autonomous starts with the robot's front against the end wall and its back to the hive.
@@ -61,12 +61,13 @@ Odometry Check and Pedro Test are unaffected.
 | TEST Hive primary shot ONLY / TEST Hive secondary shot ONLY | Isolated stationary shooting tests |
 | TEST Hive garden + return | Isolated collection route and return |
 | EXPERIMENTAL Hive Primary + Garden / EXPERIMENTAL Hive Secondary | Hive-aware autonomous modes; use the testing guide before running |
+| EXPERIMENTAL Hive Secondary MAKE ROOM | Play 2 secondary: shoot, wait in the scoring-end/side-wall corner (phases ROOM, WAIT), park with 2 s left before the 27 s stop |
 
-These use `PollenHiveAuto`, not `PollenSequence`. Feeding requires a settled shooting
-pose, fresh hive readiness and measured launcher speed; there is **no timed speed
-bypass**. After the first shot the primary mode can leave directly for the budgeted
-garden route with shooting outputs off. There is **no flywheel coast/spin-down gate**.
-The agitator meters the balls; retained speed readiness applies to feeding, not departure.
+These use `PollenHiveAuto`. A volley starts from a settled shooting pose once measured launcher
+speed is ready and the hive has been confirmed UP for more than one second. Each volley defaults
+to four seconds of continuous feed through subsequent camera changes and speed dips. After the
+first volley, the primary mode can leave directly for the budgeted garden route with shooting
+outputs off. The agitator meters the balls.
 See the hive testing and diagnostics guides for execution modes and current controls.
 
 ## Hardware configuration names (PollenBot)
@@ -144,7 +145,7 @@ PollenBot now requires a servo named `pollenDrainer`. During a run, D-pad Up/Dow
 its commanded position by the selected step per press; A toggles between the selected up and down positions.
 Lowering the drainer commands full inward intake. Small position adjustments keep the last
 state until a nudge reaches or passes the opposite preset. The driver strafes with the left stick.
-Raising the drainer returns intake control to the triggers and enables L1 launcher reversal.
+Raising the drainer returns intake control to the triggers and enables Square launcher reversal.
 The agitator keeps its normal trigger and R1 feed controls.
 
 The INIT menu adds Drainer up position (default 0.45), Drainer down position (0.02),
@@ -152,7 +153,7 @@ and Drainer step (0.01). D-pad Up/Down selects a row; Left/Right edits up/down b
 and step by 0.002 per tap. Positions stay within 0–1; step stays within 0.002–1.
 Triangle restores defaults, settings are remembered until app restart, and START locks
 settings and commands the selected up position. The servo does not move during INIT. INIT tuning and
-Circle/Square recording markers retain main's behavior.
+Circle/Triangle recording markers retain main's behavior (Square ended a rehearsal before it became the unjam button).
 
 The separate `PollenDrainerTest` OpMode moves only the servo for calibration. It uses the same hardware name
 and controls, with the same three INIT settings, defaults and increments as PollenBot. Its INIT

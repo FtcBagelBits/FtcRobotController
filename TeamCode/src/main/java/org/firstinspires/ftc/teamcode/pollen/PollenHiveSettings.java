@@ -43,8 +43,8 @@ public final class PollenHiveSettings {
         row("execution", "Execution", 2, 2, 1, 0, 2),
         row("side", "Side", 0, 0, 1, 0, 2),
         row("startDelay", "Start delay s", 0, 0, 0.5, 0, 20),
-        row("firstFeed", "First feed s", 1.5, 1.5, 0.5, 0, 20),
-        row("secondFeed", "Second feed s", 1.5, 1.5, 0.5, 0, 20),
+        row("firstFeed", "First feed s", 4, 4, 0.5, 0, 20),
+        row("secondFeed", "Second feed s", 4, 4, 0.5, 0, 20),
         row("firstWindow", "First shot window s", 5, 5, 0.5, 0, 20),
         row("launcher", "Launcher ticks/s", 1180, 1180, 20, 500, 2500),
         row("travelPower", "Travel power", 0.6, 0.6, 0.05, 0.1, 0.8),
@@ -70,14 +70,21 @@ public final class PollenHiveSettings {
         row("park2Left", "Park2 left cm", 63.5, 0, 1, -350, 350),
         row("park3Forward", "Park3 forward cm", 222.4659, 37.0459, 1, -350, 350),
         row("park3Left", "Park3 left cm", 109.8762319108, -116.76634, 1, -350, 350),
+        // MAKE ROOM secondary only (Play 2): after the shot, wait in the corner where the scoring
+        // end wall meets the side wall, 1 in off both walls (CAD, docs/POLLEN_FIELD_LAYOUT.md):
+        // center 9 + 1 in from each wall; start center is 10.03 in from the midline, flush.
+        // Left = (-60.585 - -10.029) in = -128.4122 cm; forward = 1 in. Park1 forward clears the flower.
+        row("roomCornerForward", "Make room corner forward cm", 2.54, 2.54, 1, -350, 350),
+        row("roomCornerLeft", "Make room corner left cm", -128.4122, -128.4122, 1, -350, 350),
+        row("roomParkSecondsLeft", "Make room: park at s left (of 27)", 2, 2, 0.5, 0.5, 20),
     };
 
     /** Camera rows, shared by all hive modes (one saved file). See IsHiveReadyForShot. */
     public static final Row[] CAMERA = {
-        row("pipeline", "Limelight pipeline", 0, 0, 1, 0, 9),
-        row("lensHeight", "Lens height in", 14.0, 14.0, 0.25, 2, 30),
-        row("tilt", "Camera tilt up deg", Double.NaN, Double.NaN, 0.1, -10, 80),
-        row("sideways", "Camera sideways correction in", 0.0, 0.0, 0.25, -12, 12),
+        row("pipeline", "Limelight pipeline", 4, 4, 1, 0, 9),
+        row("lensHeight", "Lens height in", 11.75, 11.75, 0.25, 2, 30),
+        row("tilt", "Camera tilt up deg", 31.6, 31.6, 0.1, -10, 80),
+        row("sideways", "Camera sideways correction in", 2.62, 2.62, 0.25, -12, 12),
         row("upHeight", "UP tag height in", 49.7, 49.7, 0.1, 30, 70),
         row("downHeight", "DOWN tag height in", 35.6, 35.6, 0.1, 20, 50),
         row("band", "UP/DOWN band +/- in", 3.0, 3.0, 0.25, 0.5, 6),

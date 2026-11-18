@@ -371,7 +371,7 @@ Q 34.664795 163.376221 37.814795 163.376221
 z
 " style="fill: #ffffff; stroke: #666666; stroke-width: 0.8; stroke-linejoin: miter"/>
     </g>
-    <text style="font-size: 10.5px; font-family: 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start" x="37.814795" y="158.042549" transform="rotate(-0 37.814795 158.042549)">L1: unjam with drainer up</text>
+    <text style="font-size: 10.5px; font-family: 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start" x="37.814795" y="158.042549" transform="rotate(-0 37.814795 158.042549)">L1: not used (unjam = Square)</text>
    </g>
    <g id="patch_30">
     <path d="M 522.576479 71.458526

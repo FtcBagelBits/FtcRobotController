@@ -13,9 +13,9 @@ import java.util.Locale;
  *
  * REHEARSALS: the driver marks the part of the run that should become autonomous.
  *   Circle = this is where the sequence STARTS (like a record button).
- *   Square = the sequence is OVER (like a stop button).
+ *   Triangle = the sequence is OVER (like a stop button).
  * Put the robot where the autonomous would begin that move, press Circle, drive the move, press
- * Square. On the laptop, tools/teleop-rehearsal.py turns each marked part into waypoints measured
+ * Triangle. On the laptop, tools/teleop-rehearsal.py turns each marked part into waypoints measured
  * from the spot where Circle was pressed. Marking changes nothing about how the robot drives.
  *
  * Pure Java (no SDK), so it is tested on a computer. Recording must never stop the robot: every
@@ -76,7 +76,7 @@ public final class PollenTeleOpRecorder {
 
     /**
      * Every loop after START.
-     * @param markStart Circle is down right now; @param markEnd Square is down right now.
+     * @param markStart Circle is down right now; @param markEnd Triangle is down right now.
      * @return what the buttons just did (only on the loop where the button goes down).
      */
     public Mark loop(double now, long wallMillis, boolean markStart, boolean markEnd, Sample s) {
@@ -121,7 +121,7 @@ public final class PollenTeleOpRecorder {
     public String screen(double now) {
         String recording = file == null ? "NOT RECORDING" : "open".equals(file.status)
                 ? String.format(Locale.US, "recording (%d kB)", file.bytes() / 1024) : "STOPPED: " + file.status;
-        if (rehearsal != 0) return String.format(Locale.US, "REHEARSAL %d: %.1f s (Square = end) | %s",
+        if (rehearsal != 0) return String.format(Locale.US, "REHEARSAL %d: %.1f s (Triangle = end) | %s",
                 rehearsal, now - rehearsalStartedAt, recording);
         return recording + " | Circle = start a rehearsal" + (rehearsals == 0 ? "" : " (" + rehearsals + " so far)");
     }

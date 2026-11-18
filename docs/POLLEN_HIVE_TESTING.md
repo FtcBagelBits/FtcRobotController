@@ -14,11 +14,12 @@ controls and checks in full; the patch kit README covers applying, building, ins
 | Driver Hub entry (Pollen Hive group) | INIT default | Motor permissions and end condition |
 | --- | --- | --- |
 | TEST Hive camera (NO MOTORS) | No execution row | In the **TeleOp list** (no 30-second timer). Never maps motors or odometry. Continuous camera readiness until STOP. |
-| TEST Hive primary shot ONLY | DRY | No drive in any execution setting. LIVE enables launcher and feed. One volley or primary window, then DONE. |
+| TEST Hive primary shot ONLY | DRY | No drive in any execution setting. LIVE enables launcher and feed. Completes one volley if started within the primary window, then DONE. |
 | TEST Hive secondary shot ONLY | DRY | No drive. LIVE enables launcher and feed. Waits for UP, one volley, then DONE; 27 s limit. |
 | TEST Hive garden + return | DRIVE | No launcher or agitator in any setting. LIVE adds collection intake. Returns to original S and stops; no shot/park. |
 | EXPERIMENTAL Hive Primary + Garden | LIVE | Shoot, collect, return, wait/shoot if UP, park. |
 | EXPERIMENTAL Hive Secondary | LIVE | Wait for UP, shoot, park. |
+| EXPERIMENTAL Hive Secondary MAKE ROOM | LIVE | Play 2 (partner is the hero): wait for UP, shoot, drive to the scoring-end/side-wall corner and wait there, park in the outer slot with 2 s left before the 27 s stop. Shares the secondary's saved settings. |
 
 The three isolated motor tests use the same controller/settings as the full autos. They still need
 Pinpoint READY and correct motor names. **Execution resets to the default above every INIT and is
@@ -48,12 +49,12 @@ reset. START uses the displayed settings even if not yet saved.
 
 | Camera row | Default | What to do |
 | --- | --- | --- |
-| Lens height | 14.0 in | Measure floor to lens center. |
+| Lens height | 11.75 in (robot, 2026-11-17) | Measure floor to lens center. |
 | UP tag height | 49.7 in | Measure floor to center of the tag row on the physically UP cell. |
 | DOWN tag height | 35.6 in | Measure on the physically DOWN cell when practical. |
-| Tilt up | NOT SET | Fit after START with Square, then validate and save with Cross. |
-| Sideways correction | 0 in | Fitted with tilt if at least 10 accepted frames see all four tags. |
-| Pipeline / band / max sideways | 0 / +/-3 in / 12.5 in | Keep unless field evidence supports changing them. |
+| Tilt up | 31.6 deg (robot, 2026-11-17) | Refit after START with Square if the mount moves, then validate and save with Cross. |
+| Sideways correction | 2.62 in (robot, 2026-11-17) | Fitted with tilt if at least 10 accepted frames see all four tags. |
+| Pipeline / band / max sideways | 4 / +/-3 in / 12.5 in | Keep unless field evidence supports changing them. |
 
 Enter measurements rather than rounding them to the nominal field values. The tilt fit absorbs a
 lens-height error where it was fitted: with the lens entered 1 in wrong, heights read correctly at
@@ -134,8 +135,8 @@ changing lens height, or changing pipeline geometry/resolution/downscale. Confir
 1. **Primary shot ONLY, DRY:** at the proper S pose, test UP, DOWN, obscured tags. Virtual flywheel,
    no motors. It finishes a volley/window; use camera-only mode for indefinite observation.
 2. **Primary shot ONLY, LIVE:** small batch, clear shot area, someone on STOP. No drive output.
-   Feed needs settled odometry, fresh steady UP and measured launcher speed >=96% of target.
-   Repeat with secondary shot ONLY at the secondary start: DOWN must wait, UP must feed.
+   Starting feed needs settled odometry, more than 1 s of confirmed UP, and measured launcher
+   speed at or above 96% of target. Repeat at the secondary start in secondary shot ONLY.
 3. **Garden + return, DRIVE, no balls:** start at normal primary S. It skips shooting, drives the
    existing CAD route, returns and settles at S, then DONE. No park and no coordinate re-zero midrun.
 4. **Garden + return, LIVE:** collection intake runs on pickup/hold, launcher and agitator stay off.
@@ -230,8 +231,8 @@ or the midline), or promote saved changes into the code. The robot log's START l
 | Setting | Default |
 | --- | --- |
 | Start delay | 0 s; secondary waits for an actual UP, not a guessed partner delay |
-| First / second feed | 1.5 / 1.5 s of actual commanded feed; pauses don't count |
-| First-shot window | Primary waits at most 5 s in FIRST; if it has fed, goes to collect; otherwise departs |
+| First / second feed | 4 / 4 s of continuous commanded feed |
+| First-shot window | Primary has 5 s to start its first volley. If started, it completes the volley, then checks the garden budget. |
 | Launcher | 1180 ticks/s; PIDF unchanged |
 | Travel / turn / pickup drive power | 0.60 / 0.40 / 0.20 |
 | Collection intake / hold | 0.50 power / 0.50 s |
@@ -241,19 +242,21 @@ or the midline), or promote saved changes into the code. The robot log's START l
 | Transit / pickup heading | fixed 0 / 0 degrees; final shooting heading always returns to zero |
 | Execution / Side | LIVE (not saved) / AUTO |
 | Park | on; three CAD-derived waypoints (existing departure corridor and parking spot) |
+| Make room corner forward / left | 2.54 / -128.41 cm: 1 in off the scoring-end and side walls (CAD); reached via Park1 forward to clear the flower |
+| Make room: park at s left | 2 s before the 27 s stop (match time 25 s); the corner-to-park drive is about 0.75 s planned, INIT rejects a value shorter than that |
 
 Primary garden is about **6.48 s** and primary park **4.76 s** by the existing drive/turn estimates. These are planning estimates. No default is physically tuned.
 
 ## Timing and autonomous behavior
 
-- Primary first volley ends when the feed time is used, a confirmed DOWN follows some feeding, or its first-shot window ends. A missing/ambiguous observation immediately stops feeding but does not invent a tip.
+- Each volley requires more than 1 s of continuous confirmed UP to latch permission. Before that, losing UP restarts the timer. After the latch, the camera continues reporting its live state through the volley.
+- The launcher must reach measured speed before feed starts. Once started, feeding continues through camera changes and speed dips for the configured duration.
 - Before garden collection, the launcher is commanded off. Collection does not wait for flywheel spin-down.
 - Garden admission reserves its estimated duration, three seconds for second spin-up, the second feed duration, estimated parking duration and margins. If time is short, it skips collection and parks; telemetry says why.
 - After return, position must be within 0.5 inch of START, heading within 2 degrees, and speed/turn rate settled for 0.3 seconds. Old readiness is discarded while traveling; fresh observations reconfirm UP. Our cell stays locked.
-- If our cell is DOWN or UNKNOWN after return, primary waits. If it becomes UP in time, it shoots. Secondary behaves the same for its volley. Both reserve departure time and stop all commands at **27 seconds**.
-- No camera, or no calibration: the auto still drives and parks; it never shoots.
+- Primary waits for a new UP latch after return. Secondary also waits for an UP latch. A volley starts only when there is time to finish it and leave the parking reserve. The hard cutoff is **27 seconds**.
+- A run that cannot confirm UP because the camera is unavailable or uncalibrated skips feeding.
 - A 0.25-second control-loop gap, invalid odometry, lost Pinpoint READY status, stuck drive/turn or route failure latches a stop. There is no guarantee of finishing parking if the robot runs slower than the estimates; the deadline still wins.
-- Permission is checked every loop during feeding. Already released balls keep flying.
 
 ## Code and verification
 

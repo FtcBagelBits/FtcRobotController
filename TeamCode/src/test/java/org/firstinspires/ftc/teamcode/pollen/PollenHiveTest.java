@@ -125,14 +125,6 @@ public final class PollenHiveTest {
         h.update(new IsHiveReadyForShot.Frame(4,tag(42,49.7,1,40,M)),.08);
         h.update(frame(5,true),.10);
         check(h.cluster()<0,"Another allowed cell in between restarts identification");
-        // Auto: one occluded frame during a volley does not stop the feed.
-        PollenHiveRoute c=new PollenHiveRoute(true); c.v[0]=2; c.v[21]=0;
-        PollenHiveAuto a=new PollenHiveAuto(c,hive()); a.start(0);
-        PollenHiveAuto.Output o=null;
-        for(int i=1;i<=40;i++) o=a.tick(i*.02,frame(i,true),0,0,0,1180,true);
-        check(o.feed,"Feeding");
-        o=a.tick(.82,new IsHiveReadyForShot.Frame(41),0,0,0,1180,true); check(o.feed,"Ball in front of the tags for one frame: still feeding");
-        o=a.tick(.84,frame(42,42.6,M),0,0,0,1180,true); check(!o.feed,"Tipping frame stops the feed");
     }
     private static void unsettledReturnParks() {
         PollenHiveRoute c=new PollenHiveRoute(false); c.v[0]=2;
@@ -231,10 +223,11 @@ public final class PollenHiveTest {
     }
     private static void settings() {
         PollenHiveSettings.Values cam=new PollenHiveSettings.Values(PollenHiveSettings.CAMERA,false);
-        check(cam.changedCount()==0&&cam.overrides().isEmpty()&&Double.isNaN(cam.get("tilt")),"Camera starts at defaults, tilt NOT SET");
-        int tilt=cam.index("tilt"); cam.edit(tilt,1); check(cam.v[tilt]==40&&cam.changed(tilt)&&cam.unsaved(tilt),"First press on NOT SET tilt gives 40");
+        check(cam.changedCount()==0&&cam.overrides().isEmpty()&&Double.isFinite(cam.get("tilt")),"Camera starts at defaults (promoted robot calibration)");
+        int tilt=cam.index("tilt"); double tiltDefault=cam.def(tilt);
+        cam.v[tilt]=Double.NaN; cam.edit(tilt,1); check(cam.v[tilt]==40&&cam.changed(tilt)&&cam.unsaved(tilt),"First press on NOT SET tilt gives 40");
         cam.edit(tilt,1); cam.edit(tilt,1); check(cam.v[tilt]==40.2,"Steps without float noise: "+cam.v[tilt]);
-        check(cam.line(tilt).contains("CHANGED (default NOT SET)")&&cam.line(tilt).contains("NOT SAVED"),"Line shows change: "+cam.line(tilt));
+        check(cam.line(tilt).contains("CHANGED (default "+PollenHiveSettings.format("tilt",tiltDefault)+")")&&cam.line(tilt).contains("NOT SAVED"),"Line shows change: "+cam.line(tilt));
         cam.markSaved(); check(!cam.unsaved(tilt)&&!cam.line(tilt).contains("NOT SAVED"),"Saved edit no longer NOT SAVED");
         check(cam.overrides().size()==1&&cam.overrides().getProperty("tilt").equals("40.2"),"Only the change is saved");
         PollenHiveSettings.Values back=new PollenHiveSettings.Values(PollenHiveSettings.CAMERA,false);
@@ -274,20 +267,44 @@ public final class PollenHiveTest {
         new PollenHiveRoute(true).validate();
     }
     private static void secondaryGates() {
-        PollenHiveRoute c=new PollenHiveRoute(true); c.v[0]=2; c.v[3]=10; c.v[21]=0;
-        IsHiveReadyForShot h=hive(); PollenHiveAuto a=new PollenHiveAuto(c,h); a.start(0);
+        PollenHiveRoute c=new PollenHiveRoute(true); c.v[0]=2;
+        PollenHiveAuto a=new PollenHiveAuto(c,hive(),PollenHiveAuto.Run.SHOT_ONLY); a.start(0);
+        for(int i=1;i<=100;i++) {
+            boolean up=i<=50||i>=65;
+            check(!a.tick(i*.02,frame(i,up),0,0,0,1180,true).feed,"DOWN resets the one-second UP timer");
+        }
         PollenHiveAuto.Output o=null;
-        for(int i=1;i<=150;i++) { o=a.tick(i*.02,frame(i,false),0,0,0,1180,true); check(!o.feed,"Secondary waits DOWN"); }
-        for(int i=151;i<=180;i++) o=a.tick(i*.02,frame(i,true),0,0,0,1180,true);
-        check(o.feed,"Secondary shoots after confirmed UP");
-        o=a.tick(3.62,frame(181,true),0,0,0,0,true); check(!o.feed,"No speed timer bypass");
-        o=a.tick(3.64,null,0,0,0,1180,true); check(!o.feed,"Loss revokes feed this loop");
-        for(int i=183;i<=210;i++) o=a.tick(i*.02,frame(i,true),0,0,0,1180,true);
-        check(o.feed,"Vision recovers");
-        o=a.tick(4.22,frame(211,true),1,0,0,1180,true); check(!o.feed,"Moving off shooting pose revokes feed");
-        o=a.tick(4.6,frame(212,true),0,0,0,1180,true);
+        for(int i=101;i<=140;i++) {
+            o=a.tick(i*.02,frame(i,true),0,0,0,1100,true);
+            check(!o.feed,"Must reach launcher speed to start");
+        }
+        check(o.decision.contains("hive_up_latched=true"),"Stable UP latches while spinning up");
+        o=a.tick(2.82,frame(141,true),0,0,0,1180,true);
+        check(o.feed,"Secondary starts once the launcher is ready");
+        for(int i=142;i<=343;i++) {
+            double now=i*.02;
+            o=a.tick(now,i<180?frame(i,false):null,0,0,0,1050,true);
+            check(o.feed==!o.finished,"Active volley continues through confirmed DOWN, camera loss and low speed");
+            check(o.finished?now-2.82>=4:now-2.82<4.000001,"Volley ends on the first tick after four seconds");
+            if(o.finished) break;
+        }
+        check(o.finished&&o.reason.equals("Stationary shot complete")&&o.decision.contains("requested_s=4.000"),
+                "Secondary completes its full four-second volley");
+
+        a=new PollenHiveAuto(c,hive(),PollenHiveAuto.Run.SHOT_ONLY); a.start(0);
+        for(int i=1;i<=100;i++) o=a.tick(i*.02,frame(i,true),0,0,0,1180,true);
+        check(o.feed,"Feeding before simulated stall");
+        o=a.tick(2.4,frame(101,true),0,0,0,1180,true);
         check(o.finished&&o.launcher==0&&o.intake==0,"Loop stall latches zero");
-        check(a.tick(4.62,frame(213,true),0,0,0,1180,true).finished,"Terminal stays stopped");
+        check(a.tick(2.42,frame(102,true),0,0,0,1180,true).finished,"Terminal stays stopped");
+
+        a=new PollenHiveAuto(c,hive(),PollenHiveAuto.Run.SHOT_ONLY); a.start(0);
+        for(int i=1;i<=1180;i++) {
+            o=a.tick(i*.02,frame(i,i>1100),0,0,0,1180,true);
+            check(!o.feed,"Skip a late volley that cannot finish");
+            if(o.finished) break;
+        }
+        check(o.finished&&o.reason.contains("Insufficient time for full volley"),"Preserve the full-volley time reserve");
     }
     private static void primaryCycle(boolean driveOnly,boolean tipped) {
         PollenHiveRoute c=new PollenHiveRoute(false); c.v[0]=driveOnly?1:2;
@@ -410,8 +427,58 @@ public final class PollenHiveTest {
         check(fed&&collected,"A live first shot leads to collection despite persistent high measured flywheel speed");
     }
     private static PollenHiveAuto.Output oDummy;
+    /** Play 2 secondary: shoot, wait in the corner out of the hero's way, park with 2 s left. */
+    private static void makeRoom() {
+        boolean rejected=false;
+        try { new PollenHiveRoute(false,true); } catch(IllegalArgumentException ex) { rejected=true; }
+        check(rejected,"Make room is a secondary mode only");
+        PollenHiveRoute c=new PollenHiveRoute(true,true); c.validate();
+        PollenHiveRoute.Node[] room=c.corner(); PollenHiveRoute.Node k=room[room.length-1];
+        double fieldX=PollenFieldGeometry.SUPPORT_START_X_INCHES+k.y, fieldZ=PollenFieldGeometry.supportStartZInches()+k.x;
+        double corner=-PollenFieldGeometry.END_WALL_INCHES+PollenFieldGeometry.ROBOT_HALF_INCHES+1;
+        check(Math.abs(fieldX-corner)<1e-3&&Math.abs(fieldZ-corner)<1e-3,"Corner is 1 in off the end and side walls: "+fieldX+","+fieldZ);
+        PollenHiveRoute.Node[] park=c.cornerPark(), normal=c.park();
+        check(park.length==1&&park[0].x==normal[normal.length-1].x&&park[0].y==normal[normal.length-1].y,"Parks in the same outer slot");
+        System.out.printf(Locale.US,"Hive make room: corner %.2f s, corner to park %.2f s (estimates only)%n",
+                PollenHiveRoute.planned(room),PollenHiveRoute.planned(park,k.x,k.y));
+        // UP from the start: shoot, corner, wait, park when 2 s are left of 27.
+        for(boolean tips:new boolean[]{true,false}) {
+            PollenHiveAuto a=new PollenHiveAuto(c,hive()); a.start(0);
+            PollenOdometryTest.SimRobot robot=new PollenOdometryTest.SimRobot();
+            PollenHiveAuto.Output o=null; List<String> order=new ArrayList<>();
+            double roomAt=Double.NaN,waitAt=Double.NaN,parkAt=Double.NaN,t=0; boolean fed=false;
+            for(int i=1;i<=1400;i++) {
+                t=i*.02;
+                o=a.tick(t,frame(i,tips),robot.x,robot.y,robot.h,o==null?0:o.launcher,true);
+                String ph=o.phase.split(":")[0];
+                if(order.isEmpty()||!order.get(order.size()-1).equals(ph)) order.add(ph);
+                fed|=o.feed;
+                if(ph.equals("ROOM")&&Double.isNaN(roomAt)) roomAt=t;
+                if(ph.equals("WAIT")&&Double.isNaN(waitAt)) waitAt=t;
+                if(ph.equals("PARK")&&Double.isNaN(parkAt)) parkAt=t;
+                if(ph.equals("ROOM")||ph.equals("WAIT")||ph.equals("PARK")) check(o.launcher==0&&o.agitator==0&&!o.feed,"No shooting after leaving");
+                if(ph.equals("WAIT")) check(o.forward==0&&o.strafe==0&&o.turn==0,"Sits still in the corner");
+                robot.step(o.forward,o.strafe,o.turn,false,.02);
+                if(ph.equals("WAIT")) check(Math.hypot(robot.x-k.x,robot.y-k.y)<=.75,"Waits at the corner");
+                if(o.finished) break;
+            }
+            System.out.printf(Locale.US,"Hive make room tips=%s: room %.2f s, corner %.2f s, park %.2f s, done %.2f s %s%n",tips,roomAt,waitAt,parkAt,t,order);
+            check(fed==tips,"Shoots only when UP");
+            check(order.subList(order.size()-4,order.size()).equals(Arrays.asList("ROOM","WAIT","PARK","DONE")),"Corner, wait, then park: "+order);
+            check(parkAt>=25-1e-9&&parkAt<25.1,"Park starts when 2 s are left: "+parkAt);
+            check(o.finished&&o.reason.equals("Finished departure")&&t<27,"Parks before the 27 s stop: "+o.reason+" at "+t);
+            check(Math.hypot(robot.x-park[0].x,robot.y-park[0].y)<=.75,"Ends in the outer slot");
+            if(tips) check(roomAt<10,"Heads to the corner right after the shot: "+roomAt);
+        }
+        c.v[PollenHiveRoute.ROOM_PARK_SECONDS_LEFT]=.5; rejected=false;
+        try { c.validate(); } catch(IllegalArgumentException ex) { rejected=true; }
+        check(rejected,"Park time shorter than the corner-to-park drive is rejected at INIT");
+        c.v[PollenHiveRoute.ROOM_PARK_SECONDS_LEFT]=2; c.v[PollenHiveRoute.ROOM_LEFT]=-140; rejected=false;
+        try { c.validate(); } catch(IllegalArgumentException ex) { rejected=true; }
+        check(rejected,"Corner past the side wall is rejected at INIT");
+    }
     public static void main(String[] args) {
-        classifier(); missesVsContradictions(); unsettledReturnParks(); calibration(); sides(); settings(); routes(); secondaryGates(); primaryCycle(false,false); primaryCycle(false,true); primaryCycle(true,false); slowLauncherBudget(); motionFaults(); practice(); noCoastGate();
+        classifier(); missesVsContradictions(); unsettledReturnParks(); calibration(); sides(); settings(); routes(); secondaryGates(); primaryCycle(false,false); primaryCycle(false,true); primaryCycle(true,false); slowLauncherBudget(); motionFaults(); practice(); noCoastGate(); makeRoom();
         System.out.println("PASS PollenHiveTest: "+checks+" checks");
     }
 }

@@ -88,7 +88,7 @@ lining up on the flower, a parking path.
 3. Drive the move the way the robot should do it: smoothly, **without turning** (today's routes
    hold one heading), intake on the triggers where the auto should collect. Stopping for a
    moment is fine: a pause becomes a hold.
-4. Press **Square**: two buzzes. To try again, put the robot back and press Circle: that is
+4. Press **Triangle**: two buzzes. To try again, put the robot back and press Circle: that is
    rehearsal 2. Note which ones were good.
 5. STOP, then download. `teleop-summary.md` lists each rehearsal: its timeline, a waypoint table
    in cm from the Circle spot (forward = toward the hive, left = left looking at the hive), each

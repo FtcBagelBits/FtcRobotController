@@ -55,7 +55,7 @@ can also call `bash /absolute/path/to/FtcRobotController/tools/ftc.sh ...` from 
 | Save stopped session | `bash tools/ftc.sh logs "$HOME/Desktop/hive-session-$(date +%Y%m%d-%H%M%S)"` | New directory and ZIP, including raw data and analysis |
 | Hub storage | `bash tools/ftc.sh storage` | Read-only: free space and each recording folder against its budget |
 | Free hub storage | `bash tools/ftc.sh prune FOLDER` then `... prune FOLDER --delete` | Lists, then removes from the hub only recordings whose checksum matches the copy in a downloaded FOLDER. Settings stay. See [recordings and storage](POLLEN_LOGGING.md) |
-| Rehearsals to waypoints | `python3 tools/teleop-rehearsal.py FOLDER --out FOLDER/rehearsals` | Draft autonomous waypoints from the Circle/Square marks in TeleOp recordings; `logs` already runs it |
+| Rehearsals to waypoints | `python3 tools/teleop-rehearsal.py FOLDER --out FOLDER/rehearsals` | Draft autonomous waypoints from the Circle/Triangle marks in TeleOp recordings; `logs` already runs it |
 | Inspect hub model | `bash tools/ftc.sh adb shell getprop ro.product.model` | Explicitly targeted ADB call; no reconnect |
 | Stop a stuck Gradle daemon | `bash tools/ftc.sh gradle --stop` | Stops project Gradle daemons using the selected JDK |
 | Apply a later mail patch | `bash tools/ftc.sh patch "$HOME/Downloads/change.patch"` | Clean-tree/branch checks, backup branch, `git am`; no tests or push |

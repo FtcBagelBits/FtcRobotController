@@ -93,7 +93,7 @@ public class BioBuzzStarterbotOpMode extends OpMode {
      */
     public final int LAUNCHER_TARGET_VELOCITY = PollenConfig.LAUNCHER_TARGET_VELOCITY; //1180 = 2529 RPM (was 1250)
     public final double LAUNCHER_SPINUP_SECONDS = PollenConfig.LAUNCHER_SPINUP_SECONDS; // 3 s
-    // Hold L1 to run the launcher BACKWARDS slowly and push a jammed ball back out.
+    // Hold Square to run the launcher BACKWARDS slowly and push a jammed ball back out.
     // 300 RPM = 300 x 28 / 60 = 140 ticks per second.
     public final int LAUNCHER_REVERSE_VELOCITY = PollenConfig.LAUNCHER_REVERSE_VELOCITY; //140 = 300 RPM
     // While feeding the launcher, this much is added to the intake power from the triggers,
@@ -153,7 +153,7 @@ public class BioBuzzStarterbotOpMode extends OpMode {
      * pollen/PollenTeleOpRecorder.java and docs/POLLEN_LOGGING.md): what the driver did, what
      * every motor was told to do, the launcher speed, the battery and, if the robot has its
      * Pinpoint odometry, where the robot was. Circle marks the start of a "rehearsal" (a move we
-     * may want to turn into autonomous) and Square marks its end.
+     * may want to turn into autonomous) and Triangle marks its end. (Square is the unjam button.)
      *
      * Recording never changes how the robot drives. If anything about it fails (no room on the
      * Hub, no Pinpoint, a write error), TeleOp carries on and the screen says what is missing.
@@ -294,7 +294,7 @@ public class BioBuzzStarterbotOpMode extends OpMode {
         telemetry.addData(marker(PollenTeleOpTuning.Row.DRAINER_STEP) + "Drainer step", "%.3f (+/- 0.002)", tuning.drainerStep());
         telemetry.addData("Controls", "D-pad UP/DOWN selects; LEFT/RIGHT edits; Triangle = defaults");
         telemetry.addData("Settings", tuning.isDefault() ? "DEFAULTS" : "CHANGED - check before START");
-        telemetry.addData("Recording", "this run is saved on the Hub. Circle = start a rehearsal, Square = end it");
+        telemetry.addData("Recording", "this run is saved on the Hub. Circle = start a rehearsal, Triangle = end it");
         telemetry.addData("Recorded position", odometry == null ? "none (" + odometryProblem + "); the run is still recorded"
                 : "Pinpoint " + PollenOdometryHardware.status(pinpoint) + " - keep the robot still during INIT");
         telemetry.addData("Hub storage", storageLine);
@@ -374,7 +374,8 @@ public class BioBuzzStarterbotOpMode extends OpMode {
         launch();
 
         double triggerPower = gamepad1.right_trigger - gamepad1.left_trigger;
-        if (gamepad1.left_bumper) triggerPower = Math.min(triggerPower, 0);
+        // Square (unjam): the triggers may only push balls OUT, never feed toward the launcher.
+        if (gamepad1.square) triggerPower = Math.min(triggerPower, 0);
         agitatorPower = feeding ? tuning.agitatorPower() : triggerPower;
         // Draining runs the intake roller at full inward power. The agitator still needs driver input.
         intakePower = drainerDown ? 1.0 : Math.min(1.0, triggerPower + (feeding ? INTAKE_FEED_BOOST : 0));
@@ -391,9 +392,9 @@ public class BioBuzzStarterbotOpMode extends OpMode {
         telemetry.addData("Launcher target / measured", "%.0f / %.0f ticks/s%s",
                 tuning.launcherVelocity(), launcherMeasuredVelocity,
                 launching && launcherMeasuredVelocity < 50 ? "  (measured ~0: check launcher encoder cable)" : "");
-        telemetry.addData("Feed", reversing ? "REVERSING launcher (L1) - no feed"
-                : gamepad1.left_bumper ? "Raise drainer to unjam (L1)"
-                : !launching ? "off (hold R1; L1 = reverse to clear a jam)"
+        telemetry.addData("Feed", reversing ? "REVERSING launcher (Square) - no feed"
+                : gamepad1.square ? "Raise drainer to unjam (Square)"
+                : !launching ? "off (hold R1; Square = reverse to clear a jam)"
                 : feeding ? String.format("FEEDING (started at %.1f s: %s)", feedStartedAt, feedStartedBy)
                 : "spinning up");
         telemetry.addData("Drainer", "%s (%.3f)", drainerDown ? "DOWN - intake ON" : "UP", armPosition);
@@ -518,7 +519,7 @@ public class BioBuzzStarterbotOpMode extends OpMode {
         try {
             fillSample();
             PollenTeleOpRecorder.Mark mark = recorder.loop(runTimer.seconds(), System.currentTimeMillis(),
-                    gamepad1.circle, gamepad1.square, sample);
+                    gamepad1.circle, gamepad1.triangle, sample);
             // The gamepad buzzes so the driver knows the button counted: once = started, twice = ended.
             if (mark == PollenTeleOpRecorder.Mark.STARTED) gamepad1.rumble(200);
             if (mark == PollenTeleOpRecorder.Mark.ENDED) gamepad1.rumbleBlips(2);
@@ -574,16 +575,16 @@ public class BioBuzzStarterbotOpMode extends OpMode {
          * Otherwise, we start spinning the launcher down.
          */
         /*
-         * L1 clears a jam: the launcher runs backwards at 300 RPM while L1 is held. L1 wins over
-         * R1, and nothing feeds while reversing, so no ball is pushed into a wheel turning the
-         * wrong way. Let go of L1 and R1 works as normal (with a fresh spin-up).
+         * Square clears a jam: the launcher runs backwards at 300 RPM while Square is held. Square
+         * wins over R1, and nothing feeds while reversing, so no ball is pushed into a wheel turning
+         * the wrong way. Let go of Square and R1 works as normal (with a fresh spin-up).
          */
         // Raise the drainer before reversing: the intake must pull inward while draining.
-        reversing = gamepad1.left_bumper && !drainerDown;
+        reversing = gamepad1.square && !drainerDown;
         if (reversing) {
             launching = false;
             launcher.setVelocity(-LAUNCHER_REVERSE_VELOCITY);
-        } else if (gamepad1.right_bumper && !gamepad1.left_bumper) {
+        } else if (gamepad1.right_bumper && !gamepad1.square) {
             if (!launching) launchTimer.reset(); // R1 just pressed: start the spin-up clock
             launching = true;
             launcher.setVelocity(tuning.launcherVelocity());
