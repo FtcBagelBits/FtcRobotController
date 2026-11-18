@@ -43,6 +43,11 @@ public final class PollenFacing {
         return wheelPowers(out, START_BACK_TO_HIVE);
     }
 
+    /** Express a physical forward command (intake first) in the match controller's route convention. */
+    public static double routeForwardFromRobot(double forward) {
+        return START_BACK_TO_HIVE ? flip(forward) : forward;
+    }
+
     /** Same conversion for the experimental hive controller's robot-relative commands. */
     public static double[] wheelPowers(double forward, double strafe, double turn) {
         return PollenSequence.wheelPowers(START_BACK_TO_HIVE ? flip(forward) : forward,

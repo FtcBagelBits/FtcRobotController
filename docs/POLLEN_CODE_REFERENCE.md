@@ -41,7 +41,7 @@ robots' code (DECODE 2025-26). They share some hardware names but nothing else w
 them alone unless asked. `TeamCode/.../teamcode/readme.md` is the student-facing list of what's live.
 
 Every Pollen and Odo mode shows a build id on the INIT screen (`PollenConfig.BUILD`, currently
-`pollen-hive-v18` on this branch). **Bump it whenever behavior changes**, so the drive team can confirm which code is installed.
+`pollen-hive-v19` on this branch). **Bump it whenever behavior changes**, so the drive team can confirm which code is installed.
 
 **Which way the robot faces (since `pollen-odo-v11`).** The launcher shoots out of the robot's back,
 so every autonomous starts with the robot's front against the end wall and its back to the hive.
@@ -160,6 +160,6 @@ and controls, with the same three INIT settings, defaults and increments as Poll
 menu contains only the drainer rows. Settings are remembered separately for each OpMode
 until the app restarts. The test's up/initial default is now 0.45 (previously 0.60).
 
-Every autonomous holds the drainer UP (0.45) from INIT through the whole run
-(`PollenDrainerHold`). Without a command the servo goes limp when the previous OpMode ends and the arm drops.
-A robot without the servo still runs its autos.
+The match autos hold the drainer UP (0.45) from INIT through STOP. A robot without the servo can still run
+those autos. Flower collection practice requires the servo and lowers it at START with full inward intake.
+See [collection practice](POLLEN_COLLECTION_PRACTICE.md) for both isolated pickup routines.
