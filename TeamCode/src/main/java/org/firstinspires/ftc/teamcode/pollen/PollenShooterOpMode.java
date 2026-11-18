@@ -73,6 +73,7 @@ public abstract class PollenShooterOpMode extends OpMode {
     private boolean shooterAvailable;
 
     @Override public final void init() {
+        PollenDrainerHold.holdUp(hardwareMap); // autos never lower the drainer
         blocked = fallback = null;
         sequence = null;
         shooterAvailable = true;

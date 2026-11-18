@@ -43,16 +43,18 @@ false UP _____ / 20. Capture reports save automatically. The screen tests the **
 
 | Driver Hub mode | Default / what happens |
 | --- | --- |
-| TEST Hive primary shot ONLY | **DRY**. No drive in any setting. LIVE fires one volley or stops at first-shot window. |
+| TEST Hive primary shot ONLY | **DRY**. No drive. LIVE must start its volley within the first-shot window. |
 | TEST Hive secondary shot ONLY | **DRY**. No drive. LIVE waits for UP, fires, stops. |
 | TEST Hive garden + return | **DRIVE**. No launcher/agitator. LIVE adds collection intake. Returns to S and stops, no park. |
 | EXPERIMENTAL Hive Primary + Garden | **LIVE**. Shoot, collect, return, wait/shoot if UP, park. |
 | EXPERIMENTAL Hive Secondary | **LIVE**. Wait for UP, shoot, park. |
+| EXPERIMENTAL Hive Secondary MAKE ROOM | **LIVE**. Partner is the hero. Wait for UP, shoot, wait in the far corner, park with **2 s** left. |
 
 **Order:** camera validation; shot ONLY DRY then LIVE with a small batch; garden DRIVE without
 balls then LIVE pickup; full autos last. Someone stays on STOP. Every motor run requires Pinpoint
-READY and ends by **27 s**. DRY uses virtual launcher speed; actual LIVE shots require measured speed,
-fresh steady UP and a settled pose. Camera-only mode is the indefinite test, not DRY full auto.
+READY and ends by **27 s**. DRY uses virtual launcher speed. LIVE starts from a settled pose
+at measured launcher speed after more than **1 s** of confirmed UP. The default volley feeds
+for **4 s** through camera changes and speed dips. Use camera-only mode for indefinite observation.
 
 ## Motor-mode INIT menu
 

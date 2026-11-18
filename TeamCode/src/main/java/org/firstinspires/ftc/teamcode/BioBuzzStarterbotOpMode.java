@@ -34,6 +34,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.RobotLog;
@@ -92,7 +93,7 @@ public class BioBuzzStarterbotOpMode extends OpMode {
      */
     public final int LAUNCHER_TARGET_VELOCITY = PollenConfig.LAUNCHER_TARGET_VELOCITY; //1180 = 2529 RPM (was 1250)
     public final double LAUNCHER_SPINUP_SECONDS = PollenConfig.LAUNCHER_SPINUP_SECONDS; // 3 s
-    // Hold L1 to run the launcher BACKWARDS slowly and push a jammed ball back out.
+    // Hold Square to run the launcher BACKWARDS slowly and push a jammed ball back out.
     // 300 RPM = 300 x 28 / 60 = 140 ticks per second.
     public final int LAUNCHER_REVERSE_VELOCITY = PollenConfig.LAUNCHER_REVERSE_VELOCITY; //140 = 300 RPM
     // While feeding the launcher, this much is added to the intake power from the triggers,
@@ -132,13 +133,27 @@ public class BioBuzzStarterbotOpMode extends OpMode {
 
     // Create a variable to set to the intake.
     double intakePower;
+    private double agitatorPower;
+
+    private static final String SERVO_NAME    = "pollenDrainer";
+
+    private Servo armServo;
+
+    // Tracks where we told the servo to go
+    private double armPosition;
+    private boolean drainerDown;
+
+    // Used so holding a button only acts once, not every loop
+    private boolean aWasPressed = false;
+    private boolean upWasPressed = false;
+    private boolean downWasPressed = false;
 
     /*
      * RECORDING. Every TeleOp run is written to a file on the Control Hub (see
      * pollen/PollenTeleOpRecorder.java and docs/POLLEN_LOGGING.md): what the driver did, what
      * every motor was told to do, the launcher speed, the battery and, if the robot has its
      * Pinpoint odometry, where the robot was. Circle marks the start of a "rehearsal" (a move we
-     * may want to turn into autonomous) and Square marks its end.
+     * may want to turn into autonomous) and Triangle marks its end. (Square is the unjam button.)
      *
      * Recording never changes how the robot drives. If anything about it fails (no room on the
      * Hub, no Pinpoint, a write error), TeleOp carries on and the screen says what is missing.
@@ -171,6 +186,7 @@ public class BioBuzzStarterbotOpMode extends OpMode {
         agitator = hardwareMap.get(DcMotor.class, "agitator");
         intake = hardwareMap.get(DcMotor.class, "intake");
         launcher = hardwareMap.get(DcMotorEx.class, "pollenLauncher");
+        armServo = hardwareMap.get(Servo.class, SERVO_NAME);
 //        leftIntakeServo = hardwareMap.get(CRServo.class, "leftIntakeServo");
 //        rightIntakeServo = hardwareMap.get(CRServo.class, "rightIntakeServo");
 
@@ -224,7 +240,7 @@ public class BioBuzzStarterbotOpMode extends OpMode {
 //        rightIntakeServo.setDirection(DcMotorSimple.Direction.REVERSE);
 
         tuning = new PollenTeleOpTuning(LAUNCHER_TARGET_VELOCITY, LAUNCHER_SPINUP_SECONDS,
-                PollenConfig.AGITATOR_FEED_POWER, remembered);
+                PollenConfig.AGITATOR_FEED_POWER, remembered, true);
 
         /*
          * Odometry is OPTIONAL here: TeleOp only writes the robot's position into the recording.
@@ -260,7 +276,7 @@ public class BioBuzzStarterbotOpMode extends OpMode {
      */
     @Override
     public void init_loop() {
-        // D-pad and Triangle are not used for driving, so they are free for the INIT menu.
+        // Before START, D-pad edits the menu without moving the drainer.
         tuning.update(gamepad1.dpad_up, gamepad1.dpad_down, gamepad1.dpad_left, gamepad1.dpad_right,
                 gamepad1.triangle);
         remembered = tuning.snapshot();
@@ -273,9 +289,12 @@ public class BioBuzzStarterbotOpMode extends OpMode {
                 tuning.agitatorPower(), PollenConfig.AGITATOR_FEED_POWER);
         telemetry.addData(marker(PollenTeleOpTuning.Row.DRIVE) + "Drive power", "%.0f%% (default 100%%)",
                 tuning.driveScale() * 100);
+        telemetry.addData(marker(PollenTeleOpTuning.Row.DRAINER_UP) + "Drainer up position", "%.2f (+/- 0.01)", tuning.drainerUpPosition());
+        telemetry.addData(marker(PollenTeleOpTuning.Row.DRAINER_DOWN) + "Drainer down position", "%.2f (+/- 0.01)", tuning.drainerDownPosition());
+        telemetry.addData(marker(PollenTeleOpTuning.Row.DRAINER_STEP) + "Drainer step", "%.3f (+/- 0.002)", tuning.drainerStep());
         telemetry.addData("Controls", "D-pad UP/DOWN selects; LEFT/RIGHT edits; Triangle = defaults");
         telemetry.addData("Settings", tuning.isDefault() ? "DEFAULTS" : "CHANGED - check before START");
-        telemetry.addData("Recording", "this run is saved on the Hub. Circle = start a rehearsal, Square = end it");
+        telemetry.addData("Recording", "this run is saved on the Hub. Circle = start a rehearsal, Triangle = end it");
         telemetry.addData("Recorded position", odometry == null ? "none (" + odometryProblem + "); the run is still recorded"
                 : "Pinpoint " + PollenOdometryHardware.status(pinpoint) + " - keep the robot still during INIT");
         telemetry.addData("Hub storage", storageLine);
@@ -294,6 +313,13 @@ public class BioBuzzStarterbotOpMode extends OpMode {
         tuning.lock();
         runTimer.reset();
         startRecording();
+        // Apply the selected up position only after START.
+        armPosition = tuning.drainerUpPosition();
+        drainerDown = false;
+        aWasPressed = gamepad1.a;
+        upWasPressed = gamepad1.dpad_up;
+        downWasPressed = gamepad1.dpad_down;
+        armServo.setPosition(armPosition);
     }
 
     /*
@@ -316,40 +342,44 @@ public class BioBuzzStarterbotOpMode extends OpMode {
         // Read the launcher's speed sensor (its encoder) once for this loop.
         launcherMeasuredVelocity = launcher.getVelocity();
 
-        /*
-         * Set the intake power variable to equal the right trigger, minus the left trigger.
-         * Each trigger outputs a signal from 0-1, with 0 as fully released, and 1 fully depressed.
-         * This gives us proportional control of the intake speed. The speed increases as we pull
-         * the right trigger further. It's occasionally helpful to be able to reverse the intake,
-         * so we also factor in the left trigger. If the left trigger is fully depressed,
-         * the intakePower variable will be -1. If the right trigger is fully depressed, the variable
-         * will be 1. If the driver pulls both triggers, the intake will remain off.
-         * We use this technique (creating a variable, and setting it to our control inputs) to
-         * allow us to avoid setting the same motors/servos power more than once per loop. That can
-         * create erratic behavior.
-         */
-        intakePower = gamepad1.right_trigger - gamepad1.left_trigger;
+        // D-pad: nudge the position one STEP, only on the moment it is first pressed
+        boolean upIsPressed = gamepad1.dpad_up;
+        if (upIsPressed && !upWasPressed) {
+            armPosition += tuning.drainerStep();
+        }
+        upWasPressed = upIsPressed;
+
+        boolean downIsPressed = gamepad1.dpad_down;
+        if (downIsPressed && !downWasPressed) {
+            armPosition -= tuning.drainerStep();
+        }
+        downWasPressed = downIsPressed;
+
+        // A button: toggle, but only on the moment it is first pressed
+        boolean aIsPressed = gamepad1.a;
+        if (aIsPressed && !aWasPressed) {
+            drainerDown = !drainerDown;
+            armPosition = drainerDown ? tuning.drainerDownPosition() : tuning.drainerUpPosition();
+        }
+        aWasPressed = aIsPressed;
+
+        // Keep the position inside the servo's 0.0 - 1.0 range
+        armPosition = Math.max(0.0, Math.min(1.0, armPosition));
+
+        drainerDown = tuning.drainerIsDown(armPosition, drainerDown);
+
+        // Send the servo to the chosen position
+        armServo.setPosition(armPosition);
 
         launch();
 
-        // While L1 reverses the launcher, nothing may feed forward (the drive-team guide promises
-        // this): a ball pushed into a wheel spinning backwards jams again. The left trigger can
-        // still run the intake backwards to pull balls out.
-        if (reversing) intakePower = Math.min(intakePower, 0);
-
-        /*
-         * Here we set our intake motor and servos to their intake power. The order of operations
-         * here is important though. The gamepad triggers define the starting point for the intake
-         * power variable in each loop of our code, but inside our launch function we also sometimes
-         * change the intake power. So we need to give our launch function a chance to modify the
-         * variable before we write it to our motor and servos.
-         */
-
-        // R1 plus a full trigger would ask for 1.5; keep commands in the motors' -1..1 range.
-        intakePower = Math.max(-1, Math.min(1, intakePower));
-        // While feeding the launcher, the agitator runs at its own (full by default) power, like
-        // the windmill servo it replaced; otherwise it follows the triggers as before.
-        agitator.setPower(feeding ? tuning.agitatorPower() : intakePower);
+        double triggerPower = gamepad1.right_trigger - gamepad1.left_trigger;
+        // Square (unjam): the triggers may only push balls OUT, never feed toward the launcher.
+        if (gamepad1.square) triggerPower = Math.min(triggerPower, 0);
+        agitatorPower = feeding ? tuning.agitatorPower() : triggerPower;
+        // Draining runs the intake roller at full inward power. The agitator still needs driver input.
+        intakePower = drainerDown ? 1.0 : Math.min(1.0, triggerPower + (feeding ? INTAKE_FEED_BOOST : 0));
+        agitator.setPower(agitatorPower);
         intake.setPower(intakePower);
 //        leftIntakeServo.setPower(intakePower);
 //        rightIntakeServo.setPower(intakePower);
@@ -362,12 +392,14 @@ public class BioBuzzStarterbotOpMode extends OpMode {
         telemetry.addData("Launcher target / measured", "%.0f / %.0f ticks/s%s",
                 tuning.launcherVelocity(), launcherMeasuredVelocity,
                 launching && launcherMeasuredVelocity < 50 ? "  (measured ~0: check launcher encoder cable)" : "");
-        telemetry.addData("Feed", reversing ? "REVERSING launcher (L1) - no feed"
-                : !launching ? "off (hold R1; L1 = reverse to clear a jam)"
+        telemetry.addData("Feed", reversing ? "REVERSING launcher (Square) - no feed"
+                : gamepad1.square ? "Raise drainer to unjam (Square)"
+                : !launching ? "off (hold R1; Square = reverse to clear a jam)"
                 : feeding ? String.format("FEEDING (started at %.1f s: %s)", feedStartedAt, feedStartedBy)
                 : "spinning up");
+        telemetry.addData("Drainer", "%s (%.3f)", drainerDown ? "DOWN - intake ON" : "UP", armPosition);
         telemetry.addData("Intake / agitator command", "%.2f / %.2f",
-                intakePower, feeding ? tuning.agitatorPower() : intakePower);
+                intakePower, agitatorPower);
         telemetry.addData("Drive power", "%.0f%%", tuning.driveScale() * 100);
 
         // Last, after every motor has its command: write this loop to the recording.
@@ -433,7 +465,7 @@ public class BioBuzzStarterbotOpMode extends OpMode {
         sample.wheels[2] = leftBackPower;
         sample.wheels[3] = rightBackPower;
         sample.intake = intakePower;
-        sample.agitator = feeding ? tuning.agitatorPower() : intakePower;
+        sample.agitator = agitatorPower;
         sample.launcherTarget = reversing ? -LAUNCHER_REVERSE_VELOCITY : launching ? tuning.launcherVelocity() : 0;
         sample.launcherMeasured = launcherMeasuredVelocity;
         sample.launching = launching;
@@ -487,7 +519,7 @@ public class BioBuzzStarterbotOpMode extends OpMode {
         try {
             fillSample();
             PollenTeleOpRecorder.Mark mark = recorder.loop(runTimer.seconds(), System.currentTimeMillis(),
-                    gamepad1.circle, gamepad1.square, sample);
+                    gamepad1.circle, gamepad1.triangle, sample);
             // The gamepad buzzes so the driver knows the button counted: once = started, twice = ended.
             if (mark == PollenTeleOpRecorder.Mark.STARTED) gamepad1.rumble(200);
             if (mark == PollenTeleOpRecorder.Mark.ENDED) gamepad1.rumbleBlips(2);
@@ -543,15 +575,16 @@ public class BioBuzzStarterbotOpMode extends OpMode {
          * Otherwise, we start spinning the launcher down.
          */
         /*
-         * L1 clears a jam: the launcher runs backwards at 300 RPM while L1 is held. L1 wins over
-         * R1, and nothing feeds while reversing, so no ball is pushed into a wheel turning the
-         * wrong way. Let go of L1 and R1 works as normal (with a fresh spin-up).
+         * Square clears a jam: the launcher runs backwards at 300 RPM while Square is held. Square
+         * wins over R1, and nothing feeds while reversing, so no ball is pushed into a wheel turning
+         * the wrong way. Let go of Square and R1 works as normal (with a fresh spin-up).
          */
-        reversing = gamepad1.left_bumper;
+        // Raise the drainer before reversing: the intake must pull inward while draining.
+        reversing = gamepad1.square && !drainerDown;
         if (reversing) {
             launching = false;
             launcher.setVelocity(-LAUNCHER_REVERSE_VELOCITY);
-        } else if (gamepad1.right_bumper) {
+        } else if (gamepad1.right_bumper && !gamepad1.square) {
             if (!launching) launchTimer.reset(); // R1 just pressed: start the spin-up clock
             launching = true;
             launcher.setVelocity(tuning.launcherVelocity());
@@ -575,12 +608,6 @@ public class BioBuzzStarterbotOpMode extends OpMode {
             feeding = true;
             feedStartedAt = launchTimer.seconds();
             feedStartedBy = upToSpeed ? "up to speed" : "spin-up timer";
-        }
-        if (feeding) {
-            //agitator.setPower(1);
-            intakePower += INTAKE_FEED_BOOST;
-        } else {
-            //agitator.setPower(0);
         }
     }
 }

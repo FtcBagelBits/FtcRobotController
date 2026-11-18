@@ -9,8 +9,15 @@ public final class PollenHiveRoute {
     public final PollenHiveSettings.Values values;
     public final double[] v;
     public final boolean secondary;
-    public PollenHiveRoute(boolean secondary) {
-        this.secondary=secondary; values=new PollenHiveSettings.Values(PollenHiveSettings.ROUTE,secondary); v=values.v;
+    /** MAKE ROOM secondary (Play 2): after the shot, wait in the far corner, then park late. */
+    public final boolean makeRoom;
+    /** Rows used only by the make-room secondary (indices into v[]). */
+    public static final int ROOM_FORWARD=28, ROOM_LEFT=29, ROOM_PARK_SECONDS_LEFT=30;
+    public PollenHiveRoute(boolean secondary) { this(secondary,false); }
+    public PollenHiveRoute(boolean secondary,boolean makeRoom) {
+        if(makeRoom&&!secondary) throw new IllegalArgumentException("Make room is a secondary mode");
+        this.secondary=secondary; this.makeRoom=makeRoom;
+        values=new PollenHiveSettings.Values(PollenHiveSettings.ROUTE,secondary); v=values.v;
     }
     /** Side row: 0 = detect from the tags behind the robot, 1 = red, 2 = blue. */
     public int side() { return (int)v[1]; }
@@ -44,8 +51,24 @@ public final class PollenHiveRoute {
         return new Node[]{move("PARK CLEAR",v[22],v[23],0,false),
             move("PARK CORNER",v[24],v[25],0,false),move("PARK",v[26],v[27],0,false)};
     }
+    /** Make room: clear the flower (Park1 forward), slide right along the end wall to the side
+     * wall, then back into the corner. */
+    public Node[] corner() {
+        return new Node[]{move("ROOM CLEAR FLOWER",v[22],0,0,false),
+            move("ROOM TO SIDE WALL",v[22],v[ROOM_LEFT],0,false),
+            move("ROOM CORNER",v[ROOM_FORWARD],v[ROOM_LEFT],0,false)};
+    }
+    /** Make room: from the corner straight to the same final parking spot as park(). */
+    public Node[] cornerPark() {
+        if(v[21]==0) return new Node[0];
+        return new Node[]{move("PARK",v[26],v[27],0,false)};
+    }
     public static double planned(Node[] nodes) {
-        double x=0,y=0,h=0,total=0;
+        return planned(nodes,0,0);
+    }
+    /** Estimated seconds for nodes that start at (x, y) inches from START. */
+    public static double planned(Node[] nodes,double startX,double startY) {
+        double x=startX,y=startY,h=0,total=0;
         for(Node n:nodes) {
             if(n.seconds>0) total+=n.seconds;
             else if(n.turn) total+=PollenOdometryDrive.turnPlannedSeconds(Math.toDegrees(PollenOdometryDrive.wrap(n.h-h)),n.power);
@@ -63,8 +86,18 @@ public final class PollenHiveRoute {
         for(int i:new int[]{2,3,4,5,10}) if(v[i]<0||v[i]>20) throw new IllegalArgumentException("Invalid duration");
         if(v[21]!=0&&v[21]!=1) throw new IllegalArgumentException("Invalid park choice");
         if(!secondary) checkGarden();
-        checkPark();
-        if(planned(park())+v[2]+1>=27) throw new IllegalArgumentException("Departure exceeds time budget");
+        if(makeRoom) {
+            if(v[ROOM_PARK_SECONDS_LEFT]<.5||v[ROOM_PARK_SECONDS_LEFT]>20) throw new IllegalArgumentException("Invalid make-room park time");
+            Node c=corner()[2];
+            checkPark(corner(),0,0);
+            checkPark(cornerPark(),c.x,c.y);
+            if(planned(cornerPark(),c.x,c.y)>v[ROOM_PARK_SECONDS_LEFT])
+                throw new IllegalArgumentException("Corner-to-park drive is longer than the make-room park time");
+            if(planned(corner())+v[ROOM_PARK_SECONDS_LEFT]+v[2]+1>=27) throw new IllegalArgumentException("Departure exceeds time budget");
+        } else {
+            checkPark(park(),0,0);
+            if(planned(park())+v[2]+1>=27) throw new IllegalArgumentException("Departure exceeds time budget");
+        }
     }
     private void checkGarden() {
         // Check nominal rigid footprint continuously along each translation and one-degree turn.
@@ -83,9 +116,8 @@ public final class PollenHiveRoute {
             x=n.x; y=n.y; h=n.h;
         }
     }
-    private void checkPark() {
-        double x=0,y=0;
-        for(Node n:park()) {
+    private void checkPark(Node[] nodes,double x,double y) {
+        for(Node n:nodes) {
             int steps=Math.max(1,(int)Math.ceil(Math.hypot(n.x-x,n.y-y)/.1));
             for(int j=0;j<=steps;j++) {
                 double t=(double)j/steps, f=x+(n.x-x)*t, l=y+(n.y-y)*t;

@@ -159,7 +159,7 @@ def controller_picture(name, title, labels):
         'LT': ((-3.6, 3.15), (-6.2, 3.55), 'left'), 'RT': ((3.6, 3.15), (6.2, 3.55), 'right'),
         'DPAD': ((dx - .7, dy), (-6.2, .55), 'left'), 'LSTICK': ((-1.6, -1.2), (-6.2, -2.4), 'left'),
         'RSTICK': ((1.6, -1.2), (6.2, -2.4), 'right'), 'TRIANGLE': ((bx + .24, by + .5), (6.2, 1.5), 'right'),
-        'CIRCLE': ((bx + .74, by), (6.2, -.35), 'right'), 'SQUARE': ((bx - .5, by - .24), (6.2, -1.2), 'right', (bx - .5, -1.2)),
+        'CIRCLE': ((bx + .74, by), (6.2, -.35), 'right'), 'SQUARE': ((bx - .5, by - .24), (6.2, -1.75), 'right', (bx - .5, -1.75)),
         'CROSS': ((bx, by - .74), (6.2, -1.05), 'right'),
     }
     for key, text in labels.items():
@@ -215,9 +215,10 @@ if __name__ == '__main__':
     placement_picture('S', 'supporting-shooter-placement.svg', 'Where to put the robot (red: scoring-end wall)')
     controller_picture('teleop-controller.svg', 'PollenBot TeleOp: during the match', {
         'LSTICK': 'Left stick: drive and strafe', 'RSTICK': 'Right stick: turn',
-        'R1': 'R1 (hold): shoot', 'L1': 'L1 (hold): launcher backwards\nto clear a jam',
+        'R1': 'R1 (hold): shoot', 'SQUARE': 'Square (hold): unjam,\ndrainer up',
         'RT': 'Right trigger: intake in', 'LT': 'Left trigger: intake out',
-        'DPAD': 'D-pad: INIT menu only\n(UP/DOWN pick a row,\nLEFT/RIGHT change it)', 'TRIANGLE': 'Triangle: INIT menu defaults',
+        'DPAD': 'D-pad up/down:\nnudge drainer', 'TRIANGLE': 'Triangle: INIT menu defaults',
+        'CROSS': 'Cross: lower / raise drainer',
     })
     init_buttons_picture('shoot-and-park-buttons.svg', 'Buttons during INIT (before START)',
                          'Circle: does nothing')

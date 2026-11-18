@@ -84,6 +84,74 @@ public final class PollenTeleOpTuningTest {
         near(t.launcherVelocity(), 1290, "START locks edits and reset");
         check(t.locked(), "locked flag");
 
+        // PollenBot exposes the drainer rows; LauncherTest retains its four-row menu above.
+        PollenTeleOpTuning drainer = new PollenTeleOpTuning(1250, 3, 1, null, true);
+        near(drainer.drainerUpPosition(), .45, "default drainer up");
+        near(drainer.drainerDownPosition(), .02, "default drainer down");
+        near(drainer.drainerStep(), .01, "default drainer step");
+        check(drainer.drainerIsDown(.02000000000001, false), "nudging to DOWN starts draining");
+        check(drainer.drainerIsDown(0, false), "nudging past DOWN starts draining");
+        check(drainer.drainerIsDown(.10, true), "trimming a deployed drainer keeps collecting");
+        check(!drainer.drainerIsDown(.10, false), "partial lowering from UP keeps manual intake");
+        check(!drainer.drainerIsDown(.45, true), "nudging back to UP ends draining");
+        select(drainer, DRAINER_UP);
+        tap(drainer, 1, 1); near(drainer.drainerUpPosition(), .46, "up +0.01");
+        tap(drainer, -1, 2); near(drainer.drainerUpPosition(), .44, "up -0.01");
+        tap(drainer, 1, 200); near(drainer.drainerUpPosition(), 1, "up capped at servo maximum");
+        tap(drainer, -1, 200); near(drainer.drainerUpPosition(), 0, "up capped at servo minimum");
+        select(drainer, DRAINER_DOWN);
+        tap(drainer, 1, 1); near(drainer.drainerDownPosition(), .03, "down +0.01");
+        tap(drainer, -1, 1); near(drainer.drainerDownPosition(), .02, "down -0.01");
+        tap(drainer, -1, 200); near(drainer.drainerDownPosition(), 0, "down capped at servo minimum");
+        check(!drainer.drainerIsDown(0, false) && drainer.drainerIsDown(0, true),
+                "equal presets preserve the toggle state");
+        tap(drainer, 1, 200); near(drainer.drainerDownPosition(), 1, "down capped at servo maximum");
+        check(drainer.drainerIsDown(1, false) && !drainer.drainerIsDown(0, true),
+                "nudge detection follows reversed calibration");
+        select(drainer, DRAINER_STEP);
+        drainer.update(false, false, false, true, false);
+        drainer.update(false, false, false, true, false);
+        near(drainer.drainerStep(), .012, "step +0.002, held key does not repeat"); release(drainer);
+        tap(drainer, -1, 2); near(drainer.drainerStep(), .008, "step -0.002 retains precision");
+        tap(drainer, -1, 1000); near(drainer.drainerStep(), .002, "step stays positive");
+        tap(drainer, 1, 1000); near(drainer.drainerStep(), 1, "step capped at servo range");
+        check(!drainer.isDefault(), "drainer edits mark settings changed");
+        PollenTeleOpTuning savedDrainer = new PollenTeleOpTuning(1250, 3, 1, drainer.snapshot(), true);
+        near(savedDrainer.drainerUpPosition(), 0, "up remembered");
+        near(savedDrainer.drainerDownPosition(), 1, "down remembered");
+        near(savedDrainer.drainerStep(), 1, "step remembered");
+        drainer.update(false, true, false, false, false); release(drainer);
+        check(drainer.selected() == LAUNCHER, "extended menu wraps after drainer step");
+        drainer.update(false, false, false, false, true); release(drainer);
+        check(drainer.isDefault(), "Triangle also resets drainer settings");
+        near(drainer.drainerUpPosition(), .45, "reset up");
+        near(drainer.drainerDownPosition(), .02, "reset down");
+        near(drainer.drainerStep(), .01, "reset step");
+        select(drainer, DRAINER_STEP); drainer.lock(); tap(drainer, 1, 2);
+        drainer.update(false, false, false, false, true);
+        near(drainer.drainerStep(), .01, "START freezes drainer step and reset");
+        near(savedDrainer.drainerStep(), 1, "drainer snapshots do not alias");
+
+        PollenTeleOpTuning servoOnly = PollenTeleOpTuning.drainerOnly(null);
+        check(servoOnly.selected() == DRAINER_UP, "servo-only menu starts on up");
+        servoOnly.update(true, false, false, false, false); release(servoOnly);
+        check(servoOnly.selected() == DRAINER_STEP, "servo-only UP wraps to step");
+        servoOnly.update(false, true, false, false, false); release(servoOnly);
+        check(servoOnly.selected() == DRAINER_UP, "servo-only DOWN wraps to up");
+        tap(servoOnly, 1, 1); near(servoOnly.drainerUpPosition(), .46, "servo-only up +0.01");
+        select(servoOnly, DRAINER_DOWN); tap(servoOnly, 1, 1);
+        near(servoOnly.drainerDownPosition(), .03, "servo-only down +0.01");
+        select(servoOnly, DRAINER_STEP); tap(servoOnly, 1, 1);
+        near(servoOnly.drainerStep(), .012, "servo-only step +0.002");
+        PollenTeleOpTuning servoRemembered = PollenTeleOpTuning.drainerOnly(servoOnly.snapshot());
+        near(servoRemembered.drainerUpPosition(), .46, "servo-only up remembered");
+        near(servoRemembered.drainerDownPosition(), .03, "servo-only down remembered");
+        near(servoRemembered.drainerStep(), .012, "servo-only step remembered");
+        servoOnly.update(false, false, false, false, true); release(servoOnly);
+        check(servoOnly.isDefault(), "servo-only Triangle resets settings");
+        servoOnly.lock(); tap(servoOnly, 1, 1);
+        near(servoOnly.drainerStep(), .01, "servo-only START locks settings");
+
         boolean rejected = false;
         try { new PollenTeleOpTuning(1250, -1, 1, null); } catch (IllegalArgumentException expected) { rejected = true; }
         check(rejected, "negative spin-up rejected");

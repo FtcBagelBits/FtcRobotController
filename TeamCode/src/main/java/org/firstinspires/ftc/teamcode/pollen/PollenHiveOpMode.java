@@ -17,6 +17,8 @@ import java.io.File;
  * Circle = route rows to default, preserving execution and camera, Square = save the changes on the Hub. */
 public abstract class PollenHiveOpMode extends OpMode {
     protected abstract boolean secondary();
+    /** Play 2 secondary: after the shot, wait in the corner and park late. */
+    protected boolean makeRoom() { return false; }
     protected PollenHiveAuto.Run run() { return PollenHiveAuto.Run.MATCH; }
     private int defaultExecution() { return run()==PollenHiveAuto.Run.MATCH?2:run()==PollenHiveAuto.Run.GARDEN_RETURN?1:0; }
     private File reportFile;
@@ -53,7 +55,8 @@ public abstract class PollenHiveOpMode extends OpMode {
     private int index(int r) { return r < settings.v.length ? r : r - settings.v.length; }
 
     @Override public final void init() {
-        settings = new PollenHiveRoute(secondary());
+        PollenDrainerHold.holdUp(hardwareMap); // autos never lower the drainer
+        settings = new PollenHiveRoute(secondary(), makeRoom());
         cameraSettings = new PollenHiveSettings.Values(PollenHiveSettings.CAMERA, false);
         loadMessage = "Auto: " + PollenHiveStore.load(fileName(), settings.values)
                 + ". Camera: " + PollenHiveStore.load(PollenHiveStore.CAMERA, cameraSettings) + ".";
@@ -104,6 +107,8 @@ public abstract class PollenHiveOpMode extends OpMode {
         telemetry.addData("Motor limits", run()==PollenHiveAuto.Run.SHOT_ONLY?"NO DRIVE; LIVE enables launcher/feed":run()==PollenHiveAuto.Run.GARDEN_RETURN?"NO LAUNCHER/AGITATOR; LIVE adds collection intake":"Match auto: selected execution");
         telemetry.addData("Plan", run()==PollenHiveAuto.Run.SHOT_ONLY ? "Stationary volley, then DONE; no departure"
                 : run()==PollenHiveAuto.Run.GARDEN_RETURN ? "Garden, return to S, settle, DONE; no shots or park"
+                : makeRoom() ? String.format(Locale.US, "SECONDARY MAKE ROOM: wait for UP, shoot, corner, park at %.1f s left",
+                        settings.v[PollenHiveRoute.ROOM_PARK_SECONDS_LEFT])
                 : secondary() ? "SECONDARY: wait for our cell UP, shoot, park"
                 : "PRIMARY: shoot, garden (front intake), return, wait/shoot, park");
         telemetry.addData("SETTINGS", changed == 0 ? "all defaults" : "*** " + changed + " CHANGED FROM DEFAULT: "
@@ -112,7 +117,12 @@ public abstract class PollenHiveOpMode extends OpMode {
         telemetry.addData("Hive cell behind robot", hiveView(mount));
         telemetry.addData("Camera calibration", mount.problem().isEmpty() ? String.format(Locale.US,
                 "tilt %.1f deg, lens %.2f in", mount.tiltUpDeg, mount.lensHeightIn) : "NOT CALIBRATED - will not shoot");
-        telemetry.addData("Estimated garden / park s", "%.1f / %.1f",
+        if (makeRoom()) {
+            PollenHiveRoute.Node[] corner = settings.corner();
+            PollenHiveRoute.Node c = corner[corner.length - 1];
+            telemetry.addData("Estimated to corner / corner to park s", "%.1f / %.1f",
+                    PollenHiveRoute.planned(corner), PollenHiveRoute.planned(settings.cornerPark(), c.x, c.y));
+        } else telemetry.addData("Estimated garden / park s", "%.1f / %.1f",
                 PollenHiveRoute.planned(settings.garden()), PollenHiveRoute.planned(settings.park()));
         telemetry.addData("Odometry", PollenOdometryHardware.status(pinpoint));
         telemetry.addData("Hub storage", storageLine);
@@ -179,7 +189,7 @@ public abstract class PollenHiveOpMode extends OpMode {
                     "frontLeft","frontRight","backLeft","backRight","pollenLauncher","intake","agitator");
         } catch(Exception ex) { reportError=ex.toString(); }
         record("START build="+PollenConfig.BUILD+" opmode="+getClass().getSimpleName()+" wall_ms="+System.currentTimeMillis()
-                +" run="+run()+" secondary="+secondary()+" settings="+settings+" camera="+cameraSettings.overrides()
+                +" run="+run()+" secondary="+secondary()+" makeRoom="+makeRoom()+" settings="+settings+" camera="+cameraSettings.overrides()
                 +" unsaved_route="+settings.values.unsavedCount()+" unsaved_camera="+cameraSettings.unsavedCount());
         // Every camera value in effect (the line above has only the rows that differ from the defaults).
         StringBuilder cameraValues=new StringBuilder();

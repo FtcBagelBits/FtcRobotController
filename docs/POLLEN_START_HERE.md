@@ -13,7 +13,7 @@ Build: `pollen-odo-v11`. The INIT screen of every Pollen OpMode shows it.
 
 | Driver Station name | File | What it does |
 | --- | --- | --- |
-| **PollenBot** (TeleOp) | [`BioBuzzStarterbotOpMode.java`](../TeamCode/src/main/java/org/firstinspires/ftc/teamcode/BioBuzzStarterbotOpMode.java) | Mecanum driving, intake on the triggers, launcher on R1, L1 reverses the launcher to clear a jam |
+| **PollenBot** (TeleOp) | [`BioBuzzStarterbotOpMode.java`](../TeamCode/src/main/java/org/firstinspires/ftc/teamcode/BioBuzzStarterbotOpMode.java) | Mecanum driving, intake on the triggers, launcher on R1, Square reverses the launcher to clear a jam |
 | **Odo ROBOT Shoot + Park** (our main auto) | [`pollen/PollenOdoRobotShoot.java`](../TeamCode/src/main/java/org/firstinspires/ftc/teamcode/pollen/PollenOdoRobotShoot.java) | Squares against the wall, shoots the 4 pre-loads, then drives each leg to a measured end point with the Pinpoint odometry |
 | **Odo Supporting Shooter Auto** | [`pollen/PollenOdoSupportingShooter.java`](../TeamCode/src/main/java/org/firstinspires/ftc/teamcode/pollen/PollenOdoSupportingShooter.java) | Waits for the partner to shoot first, shoots, then parks using odometry |
 | **Odo ROBOT Park** | [`pollen/PollenOdoPark.java`](../TeamCode/src/main/java/org/firstinspires/ftc/teamcode/pollen/PollenOdoPark.java) | Optional start delay, then drives a set distance with odometry |

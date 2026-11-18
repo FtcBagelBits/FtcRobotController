@@ -190,7 +190,7 @@ autonomous menus. Driving controls are unchanged.
 Since `pollen-hive-v10` every TeleOp run is recorded on the Hub (sticks, every motor
 command, launcher speed, battery and the Pinpoint position), with every INIT setting
 on its first row. During the match **Circle** marks the start of a rehearsal and
-**Square** its end (the gamepad buzzes once, then twice); the marks change nothing
+**Triangle** its end (the gamepad buzzes once, then twice); the marks change nothing
 about driving. Keep the robot still during INIT: TeleOp now opens the Pinpoint, which
 calibrates then. With no Pinpoint, or no room left on the Hub, TeleOp runs as before
 and the screen says what is missing. Details and the rehearsal-to-autonomous steps:
@@ -205,9 +205,9 @@ spinning, the launcher's encoder cable is loose or unplugged: the screen says
 so. Without the encoder, the launcher's speed control does not work properly,
 so fix the cable before relying on shot distance.
 
-**Jammed?** Hold **L1**: the launcher runs backwards at 300 RPM (140 ticks/s) to push the ball
-back out. L1 wins over R1 and nothing feeds while it is held; the screen shows
-`REVERSING launcher (L1)`. The left trigger still reverses the intake and agitator.
+**Jammed?** Raise the drainer and hold **Square**: the launcher runs backwards at 300 RPM (140 ticks/s) to push the ball
+back out. Square wins over R1 and nothing feeds while it is held; the screen shows
+`REVERSING launcher (Square)`. The left trigger still reverses the intake and agitator.
 
 ## Shooting, memory and failure handling
 

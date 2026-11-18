@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Turn rehearsals marked in PollenBot TeleOp recordings into draft autonomous waypoints.
 
-In TeleOp, Circle marks the start of a rehearsal and Square marks its end (see
+In TeleOp, Circle marks the start of a rehearsal and Triangle marks its end (see
 docs/POLLEN_LOGGING.md). This reads the recording(s), and for every rehearsal prints where the
 robot went, measured from the spot where Circle was pressed, in the route directions every
 autonomous uses: forward = toward the hive, left = left as seen looking at the hive, heading
@@ -151,13 +151,13 @@ def describe(recording, number_, rows, args):
     lines = [f'## Rehearsal {number_} in {recording.name}', '']
     t0 = number(rows[0]['t_s'])
     duration = number(rows[-1]['t_s']) - t0
-    end_note = (rows[-1].get('note') or 'Square') if rows[-1]['kind'] == 'MARK_END' else 'the file stops mid-rehearsal'
+    end_note = (rows[-1].get('note') or 'the end mark') if rows[-1]['kind'] == 'MARK_END' else 'the file stops mid-rehearsal'
     lines.append(f'Started {t0:.1f} s into the run, lasted **{duration:.1f} s** (ended by: {end_note}), {len(rows)} rows.')
     for label, test in (('intake in', lambda r: number(r['intake_cmd']) > INTAKE_ON),
                         ('intake out', lambda r: number(r['intake_cmd']) < -INTAKE_ON),
                         ('launcher on', lambda r: r['launching'] == 'true'),
                         ('feeding', lambda r: r['feeding'] == 'true'),
-                        ('launcher reversed (L1)', lambda r: r['reversing'] == 'true')):
+                        ('launcher reversed (Square)', lambda r: r['reversing'] == 'true')):
         spans = intervals(rows, t0, test)
         if spans:
             lines.append(f'- {label}: ' + ', '.join(f'{a:.1f}-{b:.1f} s' for a, b in spans))
@@ -242,7 +242,7 @@ def summarize(recording, args):
     lines += [f'Slowest loop: {slow:.0f} ms.', '']
     numbers = sorted({int(r['rehearsal']) for r in rows if r['rehearsal'].isdigit() and r['rehearsal'] != '0'})
     if not numbers:
-        lines += ['No rehearsals were marked in this run (Circle starts one, Square ends it).', '']
+        lines += ['No rehearsals were marked in this run (Circle starts one, Triangle ends it).', '']
     outputs = []
     for n in numbers:
         part = [r for r in rows if r['rehearsal'] == str(n)]
