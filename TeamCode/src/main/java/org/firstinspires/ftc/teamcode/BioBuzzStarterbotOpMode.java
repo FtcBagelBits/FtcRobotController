@@ -63,7 +63,7 @@ import org.firstinspires.ftc.teamcode.pollen.PollenTeleOpTuning;
  * we will also need to adjust the "PIDF" coefficients with some that are a better fit for our application.
  */
 
-@TeleOp(name = "PollenBot")
+@TeleOp(name = "PollenBot", group = "1 Match")
 //@Disabled
 public class BioBuzzStarterbotOpMode extends OpMode {
 
@@ -377,6 +377,7 @@ public class BioBuzzStarterbotOpMode extends OpMode {
         // Square (unjam): the triggers may only push balls OUT, never feed toward the launcher.
         if (gamepad1.square) triggerPower = Math.min(triggerPower, 0);
         agitatorPower = feeding ? tuning.agitatorPower() : triggerPower;
+        if (!feeding && agitatorPower > 0) agitatorPower *= 0.5;
         // Draining runs the intake roller at full inward power. The agitator still needs driver input.
         intakePower = drainerDown ? 1.0 : Math.min(1.0, triggerPower + (feeding ? INTAKE_FEED_BOOST : 0));
         agitator.setPower(agitatorPower);

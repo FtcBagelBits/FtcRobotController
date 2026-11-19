@@ -37,7 +37,7 @@ import java.util.Locale;
  * After START:
  *   Left stick drives and strafes, right stick turns, same as PollenBot TeleOp, at reduced power.
  */
-@TeleOp(name = "Odometry Check", group = "Pedro")
+@TeleOp(name = "Calibration Odometry", group = "4 Calibration")
 public class OdometryCheck extends OpMode {
     /** Stick scaling after START, so the robot is slow enough to watch and measure. */
     private static final double DRIVE_SCALE = 0.4;

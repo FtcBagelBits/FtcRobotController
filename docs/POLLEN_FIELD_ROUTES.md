@@ -119,7 +119,7 @@ park slot. This does not account for loose game pieces or another robot's route.
 
 ## Angled primary shot (experimental)
 
-`Angled Primary Shooter` starts where the primary shooter starts and parks in the same slot, but
+`Calibration Angled Primary` starts where the primary shooter starts and parks in the same slot, but
 shoots from the team's **assumed** angled spot (strategy canvas, 2026-11-08): the robot's center
 5 in off the wall start and 30 in to its left, at (-42.74, 56.585). From there the estimated
 middle of the hive opening, at (-12.74, 15.7), is **50.7 in away, 36.27 degrees to the robot's

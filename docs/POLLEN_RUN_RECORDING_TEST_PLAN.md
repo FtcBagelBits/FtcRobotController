@@ -44,7 +44,7 @@ file, write failure, run limit, full folder budget, missing/non-READY positions,
 checksum failure, changed/undownloaded files, and invalid download paths. Do not fill the real Hub
 or disconnect hardware during motion to reproduce them.
 
-Only install when deployment is requested and the operator has confirmed STOP. Use the documented
+Only install when deployment is requested. Use the documented
 `ftc.sh install` or `deploy` workflow. At Driver Hub INIT verify **pollen-hive-v10**; retain the APK
 and source identity used. A build label alone cannot distinguish two installs of v10.
 
@@ -125,13 +125,13 @@ review geometry/time budget, empty DRIVE first, then loaded LIVE under existing 
 | --- | --- | --- |
 | A1 | One previously validated Odo Shoot + Park run, empty first. | One `auto/auto-*.csv`; buffered INIT information, START settings/Build/install/storage, phases, periodic samples and STOP. Compare message text with the same run's `PollenAuto` robot-log lines, allowing the CSV's INIT prefix. Normal completion and timing. |
 | A2 | Short trials of Supporting Shooter, Angled and emergency timed shoot/support modes that will be used. Include one operator STOP before completion. | Each supported mode writes its own complete file and records the stop/result. Mark modes not exercised as untested. |
-| H1 | TEST Hive primary shot ONLY, DRY. | Existing zero-output behavior; report and trace present. New `CAMERA_VALUES` includes every camera setting; `HUB` identifies install, trace filename and storage. Values agree with INIT, including defaults. |
-| H2 | TEST Hive garden + return, DRIVE, empty; then a previously validated combined DRIVE route if needed for match coverage. | Normal route, mechanism restrictions and return behavior; trace/report still usable by the hive analyzer. No new loop-stall faults from recording. |
+| H1 | Calibration Primary Shot Only, DRY. | Existing zero-output behavior; report and trace present. New `CAMERA_VALUES` includes every camera setting; `HUB` identifies install, trace filename and storage. Values agree with INIT, including defaults. |
+| H2 | Calibration Garden + Return, DRIVE, empty; then a previously validated combined DRIVE route if needed for match coverage. | Normal route, mechanism restrictions and return behavior; trace/report still usable by the hive analyzer. No new loop-stall faults from recording. |
 | H3 | One short single-pipeline benchmark with ample free space, after camera readiness is established. | Normal recording, STOP/download and summary; no changed saved calibration/pipeline settings. Low-space start refusal is checked with desktop fixtures, not by filling the Hub. |
 
 `auto-summary.md` currently analyzes hive **traces**, not the new match `auto/*.csv` files.
 Inspect A1/A2 CSVs directly; an empty hive summary is not a match-recording failure. Park-only
-modes, LauncherTest and Odometry Check still have no new run file and are not positive file tests.
+modes, Calibration Launcher and Calibration Odometry still have no new run file and are not positive file tests.
 Keep existing hive UP/DOWN/feed gating tests for any intended LIVE use; this branch's added
 recording does not establish loaded pickup or shooting reliability.
 

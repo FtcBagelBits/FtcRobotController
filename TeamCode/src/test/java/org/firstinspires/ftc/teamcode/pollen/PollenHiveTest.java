@@ -130,8 +130,9 @@ public final class PollenHiveTest {
         PollenHiveRoute c=new PollenHiveRoute(false); c.v[0]=2;
         PollenHiveAuto a=new PollenHiveAuto(c,hive()); a.start(0);
         PollenOdometryTest.SimRobot robot=new PollenOdometryTest.SimRobot();
+        robot.leftLimit=48.84;
         PollenHiveAuto.Output o=null; double off=0; boolean secondFeed=false; Set<String> phases=new HashSet<>();
-        for(int i=1;i<=1400;i++) {
+        for(int i=1;i<=1501;i++) {
             double t=i*.02;
             o=a.tick(t,frame(i,true),robot.x+off,robot.y,robot.h,o==null?0:o.launcher,true);
             if(o.phase.equals("SETTLE")) off=1; // odometry/robot ends 1 in off the shot pose
@@ -140,6 +141,36 @@ public final class PollenHiveTest {
             if(o.finished) break;
         }
         check(phases.contains("SETTLE")&&!secondFeed&&o.finished&&o.reason.equals("Finished departure"),"Unsettled return skips the second shot and still parks: "+o.reason+" "+phases);
+    }
+    private static void returnHeadingCorrection(double degrees) {
+        PollenHiveAuto a=new PollenHiveAuto(new PollenHiveRoute(false),hive()); a.start(0);
+        PollenOdometryTest.SimRobot robot=new PollenOdometryTest.SimRobot();
+        robot.leftLimit=48.84;
+        boolean drifted=false,turned=false;
+        for(int i=1;i<=1501;i++) {
+            PollenHiveAuto.Output o=a.tick(i*.02,frame(i,true),robot.x,robot.y,robot.h,1180,true);
+            if(o.phase.equals("SETTLE")&&!drifted) {
+                // The v28 field run settled in position, then drifted just beyond two degrees.
+                robot.h=Math.toRadians(degrees);
+                robot.w=0;
+                drifted=true;
+            }
+            if(o.phase.equals("ALIGN_SHOT")) {
+                check(!a.checksHive()&&o.launcher==1180&&!o.feed&&o.intake==0&&o.agitator==0
+                        &&o.forward==0&&o.strafe==0,"Turn in place while pre-spinning and holding feed off");
+                if(!turned&&o.turn!=0) {
+                    check(Math.signum(o.turn)==Math.signum(degrees),"Turn toward zero from either side");
+                    turned=true;
+                }
+            }
+            if(o.phase.equals("SECOND")&&o.feed) {
+                check(turned&&Math.abs(robot.h)<Math.toRadians(2),"Correct heading before second feed");
+                return;
+            }
+            robot.step(o.forward,o.strafe,o.turn,false,.02);
+            if(o.finished) throw new AssertionError("Never shot after return heading correction: "+o.reason);
+        }
+        throw new AssertionError("Never finished heading correction");
     }
     private static PollenHiveCalibration capture(boolean tilt, IsHiveReadyForShot.Mount mount,
             IsHiveReadyForShot.State expected, double actualHeight) {
@@ -266,6 +297,29 @@ public final class PollenHiveTest {
         check(rejected,"Route crossing end wall rejected");
         new PollenHiveRoute(true).validate();
     }
+    private static void collectionTuning() {
+        PollenHiveRoute primary=new PollenHiveRoute(false), secondary=new PollenHiveRoute(true);
+        for(PollenHiveRoute route:new PollenHiveRoute[]{primary,secondary}) {
+            check(route.collectionSettings().get("intake")==1&&route.feedIntake(true)==1&&route.feedIntake(false)==.5,
+                    "Full beta intake defaults for picking up and shooting");
+        }
+        int sideways=secondary.values.index("collection.sidePower");
+        secondary.values.edit(sideways,1);
+        secondary.v[secondary.values.index("collection.down")]=.06;
+        secondary.v[secondary.values.index("collection.intake")]=.85;
+        PollenHiveRoute loaded=new PollenHiveRoute(true);
+        check(loaded.values.load(secondary.values.overrides()).isEmpty(),"Saved flower settings reload");
+        loaded.validate(true);
+        PollenHiveSettings.Values flower=loaded.collectionSettings();
+        check(flower.get("sidePower")==.45&&flower.get("down")==.06&&flower.get("intake")==.85&&flower.get("shakes")==2,
+                "The collection sequence receives saved flower tuning and the beta cycle count");
+        check(PollenCollectionSequence.settings(PollenCollectionSequence.Kind.FLOWER).get("sidePower")==.4,
+                "Beta tuning leaves the isolated flower profile independent");
+        primary.v[primary.values.index("collection.backoffIn")]=5;
+        primary.v[primary.values.index("matchGardenPasses")]=2;
+        check(primary.collectionSettings().get("backoffIn")==5&&primary.collectionSettings().get("repeats")==1,
+                "Garden tuning and existing pass settings reach the same routine");
+    }
     private static void secondaryGates() {
         PollenHiveRoute c=new PollenHiveRoute(true); c.v[0]=2;
         PollenHiveAuto a=new PollenHiveAuto(c,hive(),PollenHiveAuto.Run.SHOT_ONLY); a.start(0);
@@ -306,45 +360,142 @@ public final class PollenHiveTest {
         }
         check(o.finished&&o.reason.contains("Insufficient time for full volley"),"Preserve the full-volley time reserve");
     }
-    private static void primaryCycle(boolean driveOnly,boolean tipped) {
+    private static double primaryCycle(boolean driveOnly,boolean tipped,double travelPower) {
         PollenHiveRoute c=new PollenHiveRoute(false); c.v[0]=driveOnly?1:2;
+        c.v[c.values.index("matchTravelPower")]=travelPower;
         IsHiveReadyForShot h=hive(); PollenHiveAuto a=new PollenHiveAuto(c,h); a.start(0);
         PollenOdometryTest.SimRobot robot=new PollenOdometryTest.SimRobot();
-        Set<String> phases=new HashSet<>(); boolean collect=false,secondFeed=false,firstFeed=false;
+        robot.leftLimit=48.84;
+        Set<String> phases=new HashSet<>(); boolean collect=false,secondFeed=false,firstFeed=false,wallContact=false;
         PollenHiveAuto.Output o=null;
-        for(int i=1;i<=1400;i++) {
+        double parkStarted=Double.NaN, finishedAt=Double.NaN;
+        for(int i=1;i<=1501;i++) {
             double t=i*.02;
             double velocity=o==null?0:o.launcher;
-            boolean up=!(tipped&&phases.contains("GARDEN"));
+            boolean up=!tipped;
+            if(!phases.contains("RETURN")) check(!a.checksHive(),"Primary must skip Hive UP before returning");
             o=a.tick(t,frame(i,up),robot.x,robot.y,robot.h,velocity,true);
             phases.add(o.phase.split(":")[0]);
+            if(o.phase.startsWith("PARK:")&&Double.isNaN(parkStarted)) parkStarted=t;
             if(o.phase.startsWith("GARDEN")&&o.intake>0) collect=true;
+            if(o.phase.startsWith("GARDEN")) {
+                check(!o.phase.contains("Back off")&&!o.phase.contains("Inward pass 2"),"One forward garden pass");
+                wallContact|=o.decision.contains("CONTACT LIMIT: node=Inward pass 1");
+            }
             if(o.phase.startsWith("GARDEN")||o.phase.startsWith("PARK")) check(o.launcher==0&&o.agitator==0,"No shooting during motion");
-            if(o.phase.equals("FIRST")&&o.feed) firstFeed=true;
+            if(o.phase.startsWith("RETURN")) check(o.launcher==(driveOnly?0:1180)&&o.intake==0&&o.agitator==0&&!o.feed,
+                    "Pre-spin all the way back, with feed off");
+            if(o.phase.equals("FIRST")&&o.feed) {
+                check(!a.checksHive()&&h.lastTagCount==0,"Primary preload never classifies a camera frame");
+                firstFeed=true;
+            }
             if(o.phase.equals("SECOND")&&o.feed) secondFeed=true;
-            if(o.feed) check(Math.hypot(robot.x,robot.y)<=.5&&Math.abs(robot.h)<=Math.toRadians(2),"Feed only at restored shot pose");
+            if(o.feed) check(o.intake==1&&Math.hypot(robot.x,robot.y)<=.5&&Math.abs(robot.h)<=Math.toRadians(2),
+                    "Feed at full intake only at restored shot pose");
             robot.step(o.forward,o.strafe,o.turn,false,.02);
-            if(o.finished) { System.out.printf(Locale.US,"Hive simulated %s tipped=%s: %.2fs %s phases=%s%n",driveOnly?"DRIVE":"LIVE",tipped,t,o.reason,phases); break; }
+            if(o.finished) {
+                finishedAt=t;
+                System.out.printf(Locale.US,"Hive simulated %s tipped=%s power=%.2f: %.2fs, park %.2fs, %s%n",
+                        driveOnly?"DRIVE":"LIVE",tipped,travelPower,t,t-parkStarted,o.reason);
+                break;
+            }
         }
-        check(phases.contains("GARDEN"),"Primary must exercise default garden; last="+o.reason);
+        check(wallContact,"Primary must contact the garden wall before its return; last="+o.reason);
         check(phases.contains("SECOND"),"Primary must return for second shot; last="+o.reason+" pose="+robot.x+","+robot.y+","+robot.h);
-        check(o.finished&&o.reason.equals("Finished departure"),"Default cycle finishes park: "+o.reason);
+        check(phases.contains("PARK")&&o.finished&&o.reason.equals("Finished departure"),
+                "Default cycle attempts and completes park: "+o.reason);
         if(driveOnly) check(!firstFeed&&!secondFeed&&!collect,"Drive-only disables all mechanism actions");
         else { check(firstFeed&&collect,"Primary fires and collects"); check(secondFeed!=tipped,"Second shot respects current hive state"); }
+        return finishedAt;
     }
-    private static void slowLauncherBudget() {
-        PollenHiveRoute c=new PollenHiveRoute(false); c.v[0]=2; c.v[5]=10;
+    private static void secondaryFlower(boolean upAfterReturn) {
+        PollenHiveRoute c=new PollenHiveRoute(true); c.v[21]=0; c.v[3]=5; // Hub's saved calibration duration
+        c.v[c.values.index("collection.intake")]=.85;
+        c.v[c.values.index("collection.sidePower")]=.15;
+        check(c.feedDuration(false,true)==3&&c.feedDuration(true,true)==3&&c.feedDuration(false,false)==5,
+                "The beta uses three-second feeds and preserves the calibration override");
+        c.v[c.values.index("matchFirstFeed")]=5; // Reproduce the long first volley from the field trace
+        PollenHiveAuto a=new PollenHiveAuto(c,hive()); a.start(0);
+        PollenOdometryTest.SimRobot robot=new PollenOdometryTest.SimRobot();
+        Set<String> phases=new HashSet<>();
+        Set<String> cleanup=new HashSet<>(), swings=new HashSet<>();
+        boolean firstFeed=false,secondFeed=false,seated=false;
+        PollenHiveAuto.Output o=null;
+        for(int i=1;i<=1501;i++) {
+            boolean up=phases.contains("RETURN")?upAfterReturn:i*.02>=6.1;
+            o=a.tick(i*.02,frame(i,up),robot.x,robot.y,robot.h,1180,true);
+            String phase=o.phase.split(":")[0];
+            phases.add(phase);
+            if(o.phase.startsWith("FLOWER: ")&&!o.phase.equals("FLOWER: ")) {
+                check(!a.checksHive()&&o.launcher==0&&o.agitator==0,"No aiming or shooting at the flower");
+                check(o.intake==.85&&o.drainerDown,"Tuned intake and drainer down during flower process");
+                if(o.phase.contains("Ingest forward")) cleanup.add(o.phase);
+                if(o.phase.startsWith("FLOWER: Left ")||o.phase.startsWith("FLOWER: Right ")) {
+                    check(Math.abs(o.strafe)<=.150001,"Tuned sideways power limits swing motion");
+                    swings.add(o.phase);
+                }
+                if(o.decision.contains("CONTACT LIMIT")&&o.phase.contains("Seat drainer")) seated=true;
+            } else check(!o.drainerDown,"Drainer raised outside flower process");
+            if(o.phase.equals("FIRST")) firstFeed|=o.feed;
+            if(o.phase.equals("SECOND")) {
+                check(phases.contains("RETURN")&&Math.hypot(robot.x,robot.y)<=.5,"Check again only at the shooting position");
+                secondFeed|=o.feed;
+            }
+            robot.step(o.forward,o.strafe,o.turn,false,.02);
+            if(phase.equals("FLOWER")&&robot.x<5.1) { robot.x=5.1; robot.vf=0; }
+            if(o.finished) break;
+        }
+        check(o.finished&&firstFeed&&seated&&cleanup.size()==1&&swings.size()==4&&phases.contains("SECOND")&&secondFeed==upAfterReturn,
+                "Secondary drains, returns and conditionally fires: "+phases+" "+cleanup+" "+swings+" "+o.reason);
+    }
+    private static void lateCollectionAndPark() {
+        PollenHiveRoute c=new PollenHiveRoute(false); c.v[0]=2;
+        check(c.collectionOutbound()[1].power==1&&c.collectionReturn(0,48)[1].power==1
+                &&c.collectionPark()[2].power==1&&c.park()[2].power==.6,"Full power applies to both beta transit and park");
         PollenHiveAuto a=new PollenHiveAuto(c,hive()); a.start(0);
         PollenHiveAuto.Output o=null;
-        boolean fed=false,skipped=false;
-        for(int i=1;i<=700;i++) {
+        boolean fed=false;
+        for(int i=1;i<=950;i++) {
             double t=i*.02;
-            double velocity=t<8.0?0:(o!=null&&o.launcher>0?1180:0);
+            double velocity=t<17?0:1180;
             o=a.tick(t,frame(i,true),0,0,0,velocity,true);
             fed|=o.feed;
-            if(o.phase.startsWith("PARK")) { skipped=o.reason.contains("not enough estimated cycle time"); break; }
+            if(o.phase.startsWith("OUTBOUND")) break;
         }
-        check(fed&&skipped,"Slow first shot skips a garden cycle that no longer fits");
+        // The first volley completes past the former preload window. The trip estimate still
+        // exceeds the available time, but the first commanded drive leg should be outbound.
+        o=a.tick(19.02,frame(951,true),0,0,0,1180,true);
+        check(fed&&o.phase.equals("FIRST")&&o.feed,"Late first volley continues feeding");
+        for(int i=952;i<=1010;i++) {
+            o=a.tick(i*.02,frame(i,true),0,0,0,1180,true);
+            if(o.phase.startsWith("OUTBOUND")) break;
+        }
+        check(o.phase.startsWith("OUTBOUND"),"Late first volley still starts collection");
+
+        c.v[c.values.index("matchSecondFeed")]=12;
+        c.values.edit(c.values.index("parkMargin"),1);
+        check(c.parkMargin()==1.5,"Park margin defaults to one second and advances by half a second");
+        a=new PollenHiveAuto(c,hive()); a.start(0);
+        PollenOdometryTest.SimRobot robot=new PollenOdometryTest.SimRobot();
+        robot.leftLimit=48.84;
+        boolean secondFeed=false, startedPark=false;
+        for(int i=1;i<=1501;i++) {
+            double t=i*.02;
+            o=a.tick(t,frame(i,true),robot.x,robot.y,robot.h,1180,true);
+            secondFeed|=o.phase.equals("SECOND")&&o.feed;
+            if(!startedPark&&o.phase.startsWith("PARK:")) {
+                check(secondFeed&&o.reason.contains("deadline during SECOND")&&Math.abs(t-23.04)<.03,
+                        "Measured primary park time plus the tuned margin interrupts second feed: "+t+" "+o.reason);
+                check(o.launcher==0&&o.intake==0&&o.agitator==0&&!o.feed&&(o.forward!=0||o.strafe!=0),
+                        "First park tick stops shooting and starts driving");
+                startedPark=true;
+            }
+            if(o.finished) break;
+            robot.step(o.forward,o.strafe,o.turn,false,.02);
+        }
+        check(startedPark&&o.reason.equals("Finished departure")&&o.forward==0&&o.strafe==0,
+                "Interrupted volley parks before the cutoff: "+o.reason);
+
         a=new PollenHiveAuto(c,hive()); a.start(0);
         o=a.tick(.02,frame(1,true),0,0,0,1180,false);
         check(o.finished&&o.launcher==0&&o.intake==0,"Pinpoint not READY latches a stop");
@@ -359,8 +510,38 @@ public final class PollenHiveTest {
         check(o.fault!=null,"Stuck motion stops");
         PollenHiveRoute c=new PollenHiveRoute(true); c.v[21]=0;
         PollenHiveAuto a=new PollenHiveAuto(c,hive()); a.start(0);
-        for(int i=1;i<=1351;i++) oDummy=a.tick(i*.02,null,0,0,0,0,true);
-        check(oDummy.finished,"Deadline stops even with no observation");
+        for(int i=1;i<=1501;i++) oDummy=a.tick(i*.02,null,0,0,0,0,true);
+        check(oDummy.finished&&oDummy.reason.equals("30 second cutoff during FIRST"),"Deadline stops even with no observation");
+    }
+    private static void parkFromCollectionLane() {
+        PollenHiveRoute c=new PollenHiveRoute(false);
+        c.v[c.values.index("matchFirstFeed")]=17;
+        PollenHiveAuto a=new PollenHiveAuto(c,hive()); a.start(0);
+        PollenOdometryTest.SimRobot robot=new PollenOdometryTest.SimRobot();
+        robot.leftLimit=48.84;
+        for(int i=1;i<=1501;i++) {
+            double t=i*.02;
+            PollenHiveAuto.Output o=a.tick(t,frame(i,true),robot.x,robot.y,robot.h,1180,true);
+            if(o.phase.startsWith("PARK:")) {
+                check(t<23.54&&o.phase.contains("CLEAR COLLECTION SITE")&&Math.hypot(robot.x,robot.y)>1.5,
+                        "An away pose budgets the clearance route before parking: "+o.phase+" at "+t);
+                check(o.intake==0&&o.launcher==0&&!o.drainerDown,"Departure interrupts all collection outputs");
+                return;
+            }
+            robot.step(o.forward,o.strafe,o.turn,false,.02);
+        }
+        throw new AssertionError("Never attempted park from the collection lane");
+    }
+    private static void cameraHeightFromFieldTrace() {
+        PollenHiveSettings.Values defaults=new PollenHiveSettings.Values(PollenHiveSettings.CAMERA,false);
+        IsHiveReadyForShot.Mount mount=IsHiveReadyForShot.Mount.from(defaults);
+        IsHiveReadyForShot h=new IsHiveReadyForShot(mount,34);
+        for(int i=1;i<=30;i++) h.update(new IsHiveReadyForShot.Frame(i,
+                tag(34,52.73,-3,60,mount),tag(35,52.73,0,60,mount),
+                tag(36,52.24,3,60,mount),tag(37,53.14,6,60,mount)),i*.02);
+        check(h.isHiveReadyForShot(.6),"The measured primary return heights fit the revised UP center");
+        for(int i=31;i<=60;i++) h.update(new IsHiveReadyForShot.Frame(i,tag(34,35.6,0,60,mount)),i*.02);
+        check(h.state(1.2)==IsHiveReadyForShot.State.DOWN&&!h.isHiveReadyForShot(1.2),"DOWN remains distinct with the new UP center");
     }
     private static void practice() {
         for(boolean secondary:new boolean[]{false,true}) {
@@ -369,10 +550,13 @@ public final class PollenHiveTest {
             PollenHiveAuto.Output o=null; boolean fed=false;
             for(int i=1;i<=1351;i++) {
                 double t=i*.02;
-                o=a.tick(t,frame(i,t>1),0,0,0,1180,true);
+                double velocity=secondary||t>=.8?1180:1100;
+                o=a.tick(t,secondary?frame(i,t>1):null,0,0,0,velocity,true);
                 check(o.forward==0&&o.strafe==0&&o.turn==0,"Shot-only never drives");
                 check(!o.phase.startsWith("PARK")&&!o.phase.startsWith("GARDEN"),"Shot-only never enters route");
-                if(t<=1) check(!o.feed,"Shot-only waits for physical UP");
+                if(secondary&&t<=1) check(!o.feed,"Secondary shot-only waits for physical UP");
+                if(!secondary&&t<.8) check(!o.feed,"Primary shot-only still waits for measured launcher speed");
+                if(!secondary&&i==40) check(o.feed,"Primary shot-only starts as soon as speed is ready without camera");
                 fed|=o.feed; if(o.finished) break;
             }
             check(fed&&o.finished&&o.reason.equals("Stationary shot complete"),"Stationary volley completes without departure");
@@ -402,19 +586,20 @@ public final class PollenHiveTest {
                 PollenHiveAuto a=new PollenHiveAuto(c,hive(),run); a.start(0);
                 PollenHiveAuto.Output o=a.tick(.02,null,0,0,0,velocity,true);
                 if(run==PollenHiveAuto.Run.MATCH) o=a.tick(.04,null,0,0,0,velocity,true);
-                check(o.phase.startsWith("GARDEN"),"No flywheel speed or minimum-time gate before garden");
+                check(o.phase.startsWith(run==PollenHiveAuto.Run.MATCH?"OUTBOUND":"GARDEN"),"No flywheel speed or minimum-time gate before garden");
                 check(o.launcher==0&&o.agitator==0&&o.intake==0,"Departure transition switches all mechanisms off");
             }
         }
         PollenHiveRoute c=new PollenHiveRoute(false); c.v[0]=2;
         PollenHiveAuto a=new PollenHiveAuto(c,hive()); a.start(0);
         PollenOdometryTest.SimRobot robot=new PollenOdometryTest.SimRobot();
+        robot.leftLimit=48.84;
         boolean fed=false,collected=false; String previous="";
         for(int i=1;i<=1400;i++) {
             // Hold measured flywheel speed high for the WHOLE run, even with its command off.
             PollenHiveAuto.Output o=a.tick(i*.02,frame(i,true),robot.x,robot.y,robot.h,1180,true);
             fed|=o.feed;
-            if(o.phase.startsWith("GARDEN")) {
+            if(o.phase.startsWith("GARDEN")||o.phase.startsWith("OUTBOUND")) {
                 check(o.launcher==0&&o.agitator==0&&!o.feed,"Garden never powers launcher or agitator, even while collecting");
                 collected|=o.intake>0;
                 if(previous.equals("FIRST")) check(o.forward==0&&o.strafe==0&&o.turn==0&&o.intake==0,
@@ -427,7 +612,7 @@ public final class PollenHiveTest {
         check(fed&&collected,"A live first shot leads to collection despite persistent high measured flywheel speed");
     }
     private static PollenHiveAuto.Output oDummy;
-    /** Play 2 secondary: shoot, wait in the corner out of the hero's way, park with 2 s left. */
+    /** Play 2 secondary waits out of the way until the corner-to-park deadline. */
     private static void makeRoom() {
         boolean rejected=false;
         try { new PollenHiveRoute(false,true); } catch(IllegalArgumentException ex) { rejected=true; }
@@ -441,7 +626,7 @@ public final class PollenHiveTest {
         check(park.length==1&&park[0].x==normal[normal.length-1].x&&park[0].y==normal[normal.length-1].y,"Parks in the same outer slot");
         System.out.printf(Locale.US,"Hive make room: corner %.2f s, corner to park %.2f s (estimates only)%n",
                 PollenHiveRoute.planned(room),PollenHiveRoute.planned(park,k.x,k.y));
-        // UP from the start: shoot, corner, wait, park when 2 s are left of 27.
+        double plannedDeparture=27-c.cornerParkReserve(k.x,k.y);
         for(boolean tips:new boolean[]{true,false}) {
             PollenHiveAuto a=new PollenHiveAuto(c,hive()); a.start(0);
             PollenOdometryTest.SimRobot robot=new PollenOdometryTest.SimRobot();
@@ -464,21 +649,57 @@ public final class PollenHiveTest {
             }
             System.out.printf(Locale.US,"Hive make room tips=%s: room %.2f s, corner %.2f s, park %.2f s, done %.2f s %s%n",tips,roomAt,waitAt,parkAt,t,order);
             check(fed==tips,"Shoots only when UP");
-            check(order.subList(order.size()-4,order.size()).equals(Arrays.asList("ROOM","WAIT","PARK","DONE")),"Corner, wait, then park: "+order);
-            check(parkAt>=25-1e-9&&parkAt<25.1,"Park starts when 2 s are left: "+parkAt);
+            check(order.equals(Arrays.asList("FIRST","ROOM","WAIT","PARK","DONE"))
+                    || (!tips&&order.equals(Arrays.asList("FIRST","ROOM","PARK","DONE"))),
+                    "Wait when arriving early, then park: "+order);
+            check(Math.abs(parkAt-plannedDeparture)<.1,"Park starts on the projected reserve plus margin: "+parkAt);
             check(o.finished&&o.reason.equals("Finished departure")&&t<27,"Parks before the 27 s stop: "+o.reason+" at "+t);
             check(Math.hypot(robot.x-park[0].x,robot.y-park[0].y)<=.75,"Ends in the outer slot");
             if(tips) check(roomAt<10,"Heads to the corner right after the shot: "+roomAt);
         }
-        c.v[PollenHiveRoute.ROOM_PARK_SECONDS_LEFT]=.5; rejected=false;
+        c.v[c.values.index("parkMargin")]=-0.5; rejected=false;
         try { c.validate(); } catch(IllegalArgumentException ex) { rejected=true; }
-        check(rejected,"Park time shorter than the corner-to-park drive is rejected at INIT");
-        c.v[PollenHiveRoute.ROOM_PARK_SECONDS_LEFT]=2; c.v[PollenHiveRoute.ROOM_LEFT]=-140; rejected=false;
+        check(rejected,"Invalid park margin is rejected at INIT");
+        c.v[c.values.index("parkMargin")]=1; c.v[PollenHiveRoute.ROOM_LEFT]=-140; rejected=false;
         try { c.validate(); } catch(IllegalArgumentException ex) { rejected=true; }
         check(rejected,"Corner past the side wall is rejected at INIT");
     }
+    private static void matchAllianceSetup() {
+        for (int play = 0; play < 3; play++) {
+            boolean secondary = play != 0;
+            PollenHiveRoute route = new PollenHiveRoute(secondary, play == 2);
+            Properties oldProfile = new Properties();
+            oldProfile.setProperty("side", "2");
+            route.values.load(oldProfile);
+            check(route.side() == 2, "Calibration can still load a saved side");
+            for (int color = 1; color <= 2; color++) {
+                route.beginMatchSetup();
+                check(route.needsMatchAlliance(), "New INIT ignores old/saved alliance");
+                boolean blocked = false;
+                try { route.validateForStart(); }
+                catch (IllegalArgumentException ex) { blocked = ex.getMessage().contains("Choose alliance"); }
+                check(blocked, "Match START requires a choice");
+                route.selectMatchAlliance(color == 2);
+                route.validateForStart();
+                int[] cells = IsHiveReadyForShot.allowedCells(secondary, route.side());
+                int expected = secondary ? (color == 1 ? 30 : 38) : (color == 1 ? 34 : 42);
+                check(cells.length == 1 && cells[0] == expected, "Only the correct role and color cell is eligible");
+                check(route.values.unsavedCount() == 0 && route.values.get("side") == 2,
+                        "A match choice never overwrites calibration side");
+                check(route.toString().contains("side=" + color + ".0"), "Log the effective alliance");
+            }
+        }
+    }
+
     public static void main(String[] args) {
-        classifier(); missesVsContradictions(); unsettledReturnParks(); calibration(); sides(); settings(); routes(); secondaryGates(); primaryCycle(false,false); primaryCycle(false,true); primaryCycle(true,false); slowLauncherBudget(); motionFaults(); practice(); noCoastGate(); makeRoom();
+        matchAllianceSetup();
+        classifier(); missesVsContradictions(); unsettledReturnParks(); returnHeadingCorrection(2.07); returnHeadingCorrection(-2.07);
+        calibration(); sides(); settings(); routes(); collectionTuning(); secondaryGates();
+        double fullPower=primaryCycle(false,false,1);
+        double priorPower=primaryCycle(false,false,.6);
+        check(fullPower<priorPower,"Full-power transit improves simulated cycle time");
+        primaryCycle(false,true,1); primaryCycle(true,false,1); secondaryFlower(true); secondaryFlower(false);
+        lateCollectionAndPark(); parkFromCollectionLane(); cameraHeightFromFieldTrace(); motionFaults(); practice(); noCoastGate(); makeRoom();
         System.out.println("PASS PollenHiveTest: "+checks+" checks");
     }
 }

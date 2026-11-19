@@ -41,7 +41,7 @@ public final class PollenHiveSettings {
     /** Auto rows. The index is the PollenHiveRoute.v[] index: do not reorder. */
     public static final Row[] ROUTE = {
         row("execution", "Execution", 2, 2, 1, 0, 2),
-        row("side", "Side", 0, 0, 1, 0, 2),
+        row("side", "Calibration side", 0, 0, 1, 0, 2),
         row("startDelay", "Start delay s", 0, 0, 0.5, 0, 20),
         row("firstFeed", "First feed s", 4, 4, 0.5, 0, 20),
         row("secondFeed", "Second feed s", 4, 4, 0.5, 0, 20),
@@ -76,7 +76,20 @@ public final class PollenHiveSettings {
         // Left = (-60.585 - -10.029) in = -128.4122 cm; forward = 1 in. Park1 forward clears the flower.
         row("roomCornerForward", "Make room corner forward cm", 2.54, 2.54, 1, -350, 350),
         row("roomCornerLeft", "Make room corner left cm", -128.4122, -128.4122, 1, -350, 350),
-        row("roomParkSecondsLeft", "Make room: park at s left (of 27)", 2, 2, 0.5, 0.5, 20),
+        // Retain the saved key and index for compatibility. Park timing now uses the shared margin.
+        row("roomParkSecondsLeft", "Legacy Make Room timing (unused)", 2, 2, 0.5, 0.5, 20),
+        row("collectionEntryForward", "Match collection entry forward cm", 34, 36.58, 1, 20.32, 75),
+        row("collectionEntryLeft", "Match collection entry left cm", 108, -34.06, 1, -150, 150),
+        row("matchTravelPower", "Match travel and park power", 1, 1, .05, .1, 1),
+        row("matchFirstFeed", "Beta first agitator feed s", 3, 3, .5, 0, 20),
+        row("matchSecondFeed", "Beta second agitator feed s", 3, 3, .5, 0, 20),
+        row("matchGardenPasses", "Beta garden total inward passes", 1, 1, 1, 1, 9),
+        row("matchFlowerShakes", "Beta flower left-right cycles", 2, 2, 1, 0, 8),
+        row("matchFlowerCleanup", "Beta flower forward-back cycles", 1, 1, 1, 0, 8),
+        row("matchFeedIntake", "Beta shooting intake power", 1, 1, .05, 0, 1),
+        row("matchParkSeconds", "Beta measured park drive s", 5.46, 3.47, .1, .5, 20),
+        row("parkMargin", "Park margin s", PollenConfig.DEFAULT_PARK_MARGIN, PollenConfig.DEFAULT_PARK_MARGIN,
+                PollenConfig.PARK_MARGIN_STEP, 0, PollenConfig.MAX_PARK_MARGIN),
     };
 
     /** Camera rows, shared by all hive modes (one saved file). See IsHiveReadyForShot. */
@@ -85,7 +98,7 @@ public final class PollenHiveSettings {
         row("lensHeight", "Lens height in", 11.75, 11.75, 0.25, 2, 30),
         row("tilt", "Camera tilt up deg", 31.6, 31.6, 0.1, -10, 80),
         row("sideways", "Camera sideways correction in", 2.62, 2.62, 0.25, -12, 12),
-        row("upHeight", "UP tag height in", 49.7, 49.7, 0.1, 30, 70),
+        row("upHeight", "UP tag height in", 50.7, 50.7, 0.1, 30, 70),
         row("downHeight", "DOWN tag height in", 35.6, 35.6, 0.1, 20, 50),
         row("band", "UP/DOWN band +/- in", 3.0, 3.0, 0.25, 0.5, 6),
         row("oursMaxSideways", "Our cell max sideways in", 12.5, 12.5, 0.5, 2, 30),

@@ -192,7 +192,7 @@ public abstract class PollenShooterOpMode extends OpMode {
         if (angledShot()) telemetry.addData("EXPERIMENTAL", "Angled shot: not field-tested. It drives and turns BEFORE it shoots.");
         telemetry.addData("Mode", (odometry() ? "ODOMETRY " : "TIMED ")
                 + (supportingShooter() ? "Supporting Shooter - real motors on START"
-                : angledShot() ? "Angled Primary Shooter - real motors on START" : "Shoot + Park - real motors on START"));
+                : angledShot() ? "Calibration Angled Primary - real motors on START" : "Shoot + Park - real motors on START"));
         if (localizer != null) {
             PollenOdometryHardware.showPose(telemetry, localizer.pose());
             telemetry.addData("Pinpoint status", PollenOdometryDrive.pinpointFault(pinpointStatus)
@@ -213,8 +213,8 @@ public abstract class PollenShooterOpMode extends OpMode {
                     : String.format(java.util.Locale.US, "%.1f cm @ %+.1f deg -> %.2f s; command %+.1f deg; NO TURN",
                     tuning.legCm(leg), tuning.legAngle(leg), m.seconds, m.commandAngleDegrees));
         }
-        telemetry.addData(odometry() ? "Planned" : "Worst case", "%.2f s; must be < %.0f s (hard stop at %.0f s)",
-                tuning.worstCaseSeconds(), PollenShootTuning.DEADLINE - 1, PollenShootTuning.DEADLINE);
+        telemetry.addData(odometry() ? "Planned" : "Worst case", "%.2f s; must be < %.1f s (hard stop at %.0f s)",
+                tuning.worstCaseSeconds(), PollenShootTuning.DEADLINE - tuning.parkMargin(), PollenShootTuning.DEADLINE);
         if (!odometry()) {
             telemetry.addData("Calibration", tuning.profile());
             telemetry.addData("Angles", "+left / -right as seen from the start looking at the hive; MAT TRIAL converts desired path to command");
@@ -241,8 +241,8 @@ public abstract class PollenShooterOpMode extends OpMode {
                 tuning.shotStartSeconds(), tuning.feedStartSeconds(),
                 tuning.feedStartSeconds() + tuning.value(FEED_SECONDS));
         if (!tuning.budgetOk()) telemetry.addData("OVER TIME BUDGET",
-                "%.2f s planned, must be < %.0f s: lower delay or feed, raise power, or shorten legs",
-                tuning.worstCaseSeconds(), PollenShootTuning.DEADLINE - 1);
+                "%.2f s planned, must be < %.1f s: lower delay or feed, raise power, or shorten legs",
+                tuning.worstCaseSeconds(), PollenShootTuning.DEADLINE - tuning.parkMargin());
         if (fallback != null) telemetry.addData("SHOOTER INIT FAILED", fallback);
         if (!tuning.notice().isEmpty()) telemetry.addData("Settings notice", tuning.notice());
     }
@@ -396,8 +396,8 @@ public abstract class PollenShooterOpMode extends OpMode {
 
     /** Name as shown on the Driver Hub, for the log. */
     private String modeName() {
-        if (!odometry()) return supportingShooter() ? "EMERGENCY Timed Supporting Shooter" : "EMERGENCY Timed Shoot + Park";
-        if (angledShot()) return "Angled Primary Shooter";
+        if (!odometry()) return supportingShooter() ? "Emergency Timed Supporting Shooter" : "Emergency Timed Shoot + Park";
+        if (angledShot()) return "Calibration Angled Primary";
         return supportingShooter() ? "Odo Supporting Shooter" : "Odo ROBOT Shoot + Park";
     }
 

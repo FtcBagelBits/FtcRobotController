@@ -4,7 +4,7 @@ Run this before trusting Pedro Pathing. It answers one question: **is the Pinpoi
 odometry wired and configured so that the numbers it reports match what the robot
 actually did?** Pedro can only be as good as these numbers.
 
-OpMode: **Odometry Check** (TeleOp, group Pedro), file
+OpMode: **Calibration Odometry** (TeleOp, group 4 Calibration), file
 `TeamCode/.../teamcode/OdometryCheck.java`.
 
 It sets the Pinpoint up with exactly the values Pedro uses
@@ -30,7 +30,7 @@ Steps 1-6 are done by hand **during INIT** (motors are off). Steps 7-8 need STAR
 
 | # | Do this | Pass (starting thresholds, our choice) | If it fails |
 |---|---------|------|-------------|
-| 1 | Select Odometry Check, press INIT, don't touch the robot for 1 s. | `Pinpoint status` = READY. LED on the Pinpoint green. `Pedro drive vs PollenConfig` = match. | "No goBILDA Pinpoint named odometry": on the Driver Hub, Configure Robot, open the active configuration and find the I2C device named `odometry`. Its type must be *goBILDA Pinpoint Odometry Computer*; fix the type, or the name in `Constants.localizerConfig`, so they match. FAULT_X / FAULT_Y / NO_PODS: that pod's cable. |
+| 1 | Select Calibration Odometry, press INIT, don't touch the robot for 1 s. | `Pinpoint status` = READY. LED on the Pinpoint green. `Pedro drive vs PollenConfig` = match. | "No goBILDA Pinpoint named odometry": on the Driver Hub, Configure Robot, open the active configuration and find the I2C device named `odometry`. Its type must be *goBILDA Pinpoint Odometry Computer*; fix the type, or the name in `Constants.localizerConfig`, so they match. FAULT_X / FAULT_Y / NO_PODS: that pod's cable. |
 | 2 | Leave it alone 30 s. | X and Y change < 0.05 in. Heading changes < 0.2 deg. | Heading creeping: press Triangle with the robot still, retest. Still creeping: check the Pinpoint is firmly mounted. |
 | 3 | Cross. Push the robot straight forward 48 in along the straight edge. | X = 47.5 to 48.5. Y within +/-0.5. Heading within +/-1. Raw X pod moves about 24,000 ticks; Raw Y pod barely moves. | Y moves instead of X: the pod cables are in each other's ports. Fix the cables, not the code. X negative: flip `xPodDirection` in Constants. X reads about 32 or 72: wrong pod type (`podType`). |
 | 4 | Pull it back to the start line. | X back within +/-0.25 of 0. | Doesn't come back: the forward pod is skipping. Check it touches the floor with spring pressure. |
@@ -54,7 +54,7 @@ offsets are. Pedro's own Pinpoint tuner uses the same idea.
 
 Next, in order, each checked on the robot before moving on:
 
-1. **Pedro reads the same numbers.** Pedro Test OpMode shows the same pose as this check
+1. **Pedro reads the same numbers.** Calibration Pedro Pathing OpMode shows the same pose as this check
    when driven.
 2. **Tune Pedro** with AutoTune (Mecanum, then Foresight), so paths track.
 3. **One short path**: a straight 24 in line, measured end error.

@@ -23,7 +23,7 @@ Usage: bash tools/ftc.sh COMMAND [arguments]
 Default target: FTC_ROBOT_SERIAL or 192.168.43.1:5555. Check the Wi-Fi network!
 Overrides: FTC_ADB, FTC_JAVA_HOME, ANDROID_HOME, FTC_OFFLINE=1,
            FTC_ADB_RESTART=0, FTC_ADB_TIMEOUT (seconds).
-Install/deploy restart the RC app. Stop the OpMode on the Driver Hub first.
+Install/deploy restart the RC app.
 No command starts an OpMode. See docs/DESKTOP_TOOLS.md.
 TXT
 }
@@ -76,7 +76,7 @@ case "$command_name" in
     one_optional "$@"
     ftc_device "${1:-}"
     case "$FTC_DEVICE" in emulator-*) ftc_error 'Refusing robot deployment to an emulator.'; exit 1 ;; esac
-    echo 'Install will restart the Robot Controller app; the operator must stop the OpMode first.'
+    echo 'Install will restart the Robot Controller app.'
     if [ "$command_name" = deploy ]; then ftc_gradle :TeamCode:assembleDebug; fi
     apk="$FTC_ROOT/TeamCode/build/outputs/apk/debug/TeamCode-debug.apk"
     [ -f "$apk" ] || { ftc_error 'APK missing. Run build (on internet Wi-Fi) first.'; exit 1; }

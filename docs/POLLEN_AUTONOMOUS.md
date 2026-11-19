@@ -1,8 +1,8 @@
 # Pollen autonomous operating manual
 
-Experimental hive-gated modes and garden collection: [testing guide](POLLEN_HIVE_TESTING.md). Existing match modes retain their behavior. The hive group also has a persistent NO MOTORS camera check, primary/secondary stationary-shot tests and garden-return practice. Use their dedicated guide: their controls and Execution defaults differ from the legacy modes below.
+Primary Shooter + Garden and Secondary Shooter + Flower are the Match autos. The Hive guide covers these modes, the Beta alternatives, and the isolated calibration routines. The Odo and Timed shoot-and-park modes described below are Emergency options. [Hive guide](POLLEN_HIVE_TESTING.md)
 
-All autonomous modes and PollenBot TeleOp show build **`pollen-hive-v10`**.
+All autonomous modes and PollenBot TeleOp show build **`pollen-hive-v32`**.
 Keep these instructions with the installed code. The new mat calibration and field routes are **experimental**.
 **Drive team:** use the [drive-team guides](drive-team/README.md); this manual is the full reference.
 Since `pollen-odo-v5`, B's default (and Triangle) is the full shoot-and-park route.
@@ -16,17 +16,19 @@ start looking at the hive ([details](POLLEN_ODOMETRY_AUTOS.md#which-way-the-robo
 
 ## Choose the routine
 
+See the [student mode list](drive-team/README.md#choose-a-driver-hub-mode) for the full Auto and TeleOp menus.
+
 **Use the Odo modes** ([odometry autos](POLLEN_ODOMETRY_AUTOS.md)): they are what the team runs in
 matches. The three timed modes in this table are for **emergencies only**, when the odometry
-sensor is not working. Since `pollen-odo-v9` their Driver Hub names start with **EMERGENCY Timed**
-(group *Pollen Emergency (timed)*) and their INIT screen has an `EMERGENCY ONLY` line. The letters
+sensor is not working. Since `pollen-odo-v9` their Driver Hub names start with **Emergency Timed**
+(group *3 Emergency*) and their INIT screen has an `EMERGENCY ONLY` line. The letters
 A, B and C are the names this manual uses for the three jobs.
 
 | Driver Hub choice | Behavior | Starting pose |
 | --- | --- | --- |
-| **EMERGENCY Timed Park** (A) | Selected delay, timed straight drive (backward, launcher end first), hold | Manually aligned with the team's tested parking path, back toward where it should go |
-| **EMERGENCY Timed Shoot + Park** (B) | Delay, stationary shot, up to three selected drive legs, hold | End wall, front flush and square, back (launcher) centerline aimed into the initially upward-facing cell |
-| **EMERGENCY Timed Supporting Shooter** (C) | Wait 12 s, spin up 3 s, stationary forward shot, forward flower clearance, mostly-right travel, hold | Opposite end wall, **flush and square, centered between flower and midline** (below); partner tips the cell before our shot |
+| **Emergency Timed Park** (A) | Selected delay, timed straight drive (backward, launcher end first), hold | Manually aligned with the team's tested parking path, back toward where it should go |
+| **Emergency Timed Shoot + Park** (B) | Delay, stationary shot, up to three selected drive legs, hold | End wall, front flush and square, back (launcher) centerline aimed into the initially upward-facing cell |
+| **Emergency Timed Supporting Shooter** (C) | Wait 12 s, spin up 3 s, stationary forward shot, forward flower clearance, mostly-right travel, hold | Opposite end wall, **flush and square, centered between flower and midline** (below); partner tips the cell before our shot |
 
 All preselect **PollenBot** for TeleOp, without automatically starting it. There
 is no localization, heading correction, obstacle detection or hive-tip sensing.
@@ -63,6 +65,7 @@ substitute either of those poses/routes for the field presets.
 | D-pad UP / DOWN | Delay +/-0.5 s |
 | D-pad RIGHT / LEFT | Forward time +/-0.05 s |
 | R1 / L1 | Power +/-0.05 |
+| R3 / L3 | Park margin +/-0.5 s |
 | Triangle | Restore A defaults |
 
 Defaults remain **2.00 s, power 0.20, delay 0**. Time range is 0.05-5.00 s;
@@ -212,7 +215,7 @@ back out. Square wins over R1 and nothing feeds while it is held; the screen sho
 ## Shooting, memory and failure handling
 
 Since `pollen-odo-v10` autonomous uses the same feed rule as TeleOp and
-LauncherTest (`PollenFeedRule`). After the start delay the launcher runs alone.
+Calibration Launcher (`PollenFeedRule`). After the start delay the launcher runs alone.
 Feeding starts when the launcher reads 96% of its target speed, or when the
 Spin-up row (default **3 s**, the team's measured spin-up) is over, whichever
 comes first. Then launcher, main intake and agitator run together for the full
@@ -239,15 +242,13 @@ raise power, or shorten a leg until the warning clears, or press Triangle for
 the defaults. Edits that would make the route longer are refused meanwhile. App restart/reinstall loses memory. Triangle is not a recall
 of the last successful match settings.
 
-Edits are rejected if worst-case total reaches **26 seconds**. All three legs
-count toward this budget. An independent **27-second cutoff**
-stops outputs. This is the program's guard, not the official autonomous duration.
+The three parking legs count toward the time budget. Edits must leave the configured **Park margin s** before the **27-second cutoff**. The margin defaults to **1.0 s** and adjusts in **0.5 s** steps. A late volley can be interrupted to start parking.
 
 | Warning | Meaning |
 | --- | --- |
 | BLOCKED | Drive/hardware initialization failed, or a shooter stop could not be confirmed. |
 | SHOOTER FAILED / DEPARTURE ONLY | Shooting setup failed but all mapped shooter motors accepted stop commands. The mode can run its own selected route; C also waits through its feed slot. |
-| Change rejected | Requested settings exceed the 26 s budget. |
+| Change rejected | Requested settings exceed the budget after reserving the park margin. |
 | OVER TIME BUDGET / NOT READY | Remembered settings no longer fit after the delay reset. START will not move the robot until fixed or Triangle is pressed. |
 | LOOP STALL WHILE DRIVING - STOPPED | The program paused for more than 0.25 s while the wheels were moving. Every output stops, because the robot's position is no longer known. Report it with the elapsed time shown. |
 | *leg* NOT MOVING - STOPPED | Odometry modes: the wheels were driven but the robot moved less than 0.5 in in 0.75 s while more than 2 in from the leg's end (blocked, pod unplugged, or a frozen reading). Everything stops; the next leg never starts. |

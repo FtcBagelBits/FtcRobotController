@@ -23,6 +23,19 @@ public final class PollenOdometryHardware {
         return new PinpointLocalizer(hardwareMap, Constants.localizerConfig);
     }
 
+    /** Call in INIT with every motor idle and the robot at the route origin. */
+    public static PinpointLocalizer openZeroed(HardwareMap hardwareMap, GoBildaPinpointDriver pinpoint) {
+        // The constructor resets, waits for calibration, then takes one baseline reading.
+        // Accept that deliberate jump even if the SDK cached a pose more than 5 m away.
+        pinpoint.setErrorDetectionType(GoBildaPinpointDriver.ErrorDetectionType.NONE);
+        try {
+            return new PinpointLocalizer(hardwareMap,
+                    Constants.pinpointConfig(PinpointLocalizer.ResetMode.RESET_AND_RECALIBRATE_IMU));
+        } finally {
+            pinpoint.setErrorDetectionType(GoBildaPinpointDriver.ErrorDetectionType.LOCAL_TEST);
+        }
+    }
+
     /** The Pinpoint itself: the same device object Pedro's localizer reads, so its status is
      * refreshed every time the localizer updates. */
     public static GoBildaPinpointDriver device(HardwareMap hardwareMap) {

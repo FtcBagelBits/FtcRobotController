@@ -3,7 +3,7 @@ package org.firstinspires.ftc.teamcode.lox;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-@TeleOp
+@TeleOp(name = "Legacy Lox Drive", group = "5 Legacy")
 public class BioBuzzOpMode extends LinearOpMode {
     private final MecanumDrive driveTrain = new MecanumDrive(this);
     private static final String TELEOP = "TELEOP";

@@ -80,7 +80,7 @@ pause of more than 0.25 s while the wheels are moving stops everything:
 after that, the robot's position is not what the plan assumes.
 
 There is one feed rule, in `PollenFeedRule`, and autonomous, TeleOp and
-LauncherTest all use it: feeding starts when the launcher reads 96% of its
+Calibration Launcher all use it: feeding starts when the launcher reads 96% of its
 target speed, or when the spin-up time (3 s by default, an INIT row) is over,
 whichever comes first. Once feeding has started it stays on: in autonomous for
 the selected feed time, in TeleOp until R1 is released. The speed check can

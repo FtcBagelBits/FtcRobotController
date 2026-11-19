@@ -34,7 +34,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * (Pinpoint) is not working. Select delay, power and time during INIT, then drive straight for
  * that time and stop: BACKWARD, launcher end first, when the robot starts with its back to the
  * hive (PollenFacing). */
-@Autonomous(name = "EMERGENCY Timed Park", group = "Pollen Emergency (timed)", preselectTeleOp = "PollenBot")
+@Autonomous(name = "Emergency Timed Park", group = "3 Emergency", preselectTeleOp = "PollenBot")
 public final class PollenRobotPark extends OpMode {
     private static PollenParkTuning.Snapshot remembered;
     private final DcMotor[] drive = new DcMotor[4];
@@ -70,21 +70,23 @@ public final class PollenRobotPark extends OpMode {
 
     private PollenSequence selectedSequence() {
         return PollenSequence.park(PollenConfig.parkRoute(tuning.seconds(), tuning.power()),
-                PollenConfig.TOTAL_TIME_LIMIT, tuning.delaySeconds());
+                PollenConfig.TOTAL_TIME_LIMIT, tuning.delaySeconds(), tuning.parkMargin());
     }
 
     @Override public void init_loop() {
         if (tuning != null && gamepad1 != null) {
             tuning.update(gamepad1.dpad_up, gamepad1.dpad_down,
                     gamepad1.dpad_left, gamepad1.dpad_right,
-                    gamepad1.left_bumper, gamepad1.right_bumper, gamepad1.triangle);
+                    gamepad1.left_bumper, gamepad1.right_bumper, gamepad1.triangle,
+                    gamepad1.left_stick_button, gamepad1.right_stick_button);
             remembered = tuning.snapshot();
         }
         showSettings();
         telemetry.addData("D-pad", "UP/DOWN delay +/-0.5s; RIGHT/LEFT drive +/-0.05s");
         telemetry.addData("L1 / R1", "Decrease / increase power by 0.05");
-        telemetry.addData("Triangle", "Reset power, time, delay to code defaults");
-        telemetry.addData("Memory", "Power/time kept until app restarts; delay resets each INIT");
+        telemetry.addData("L3 / R3", "Decrease / increase park margin by 0.5 s");
+        telemetry.addData("Triangle", "Reset power, time, delay and margin to code defaults");
+        telemetry.addData("Memory", "Power, time and margin kept until app restarts; delay resets each INIT");
         telemetry.addData("Placement", "Set starting position and angle by hand before START");
         telemetry.addData("Status", blocked == null ? "READY - waiting for START" : "BLOCKED: " + blocked);
         telemetry.update();
@@ -92,13 +94,14 @@ public final class PollenRobotPark extends OpMode {
 
     private void showSettings() {
         telemetry.addData("Build", PollenConfig.BUILD);
-        telemetry.addData("EMERGENCY ONLY", "Timed driving, no odometry. Use Odo ROBOT Park unless odometry has failed.");
+        telemetry.addData("EMERGENCY ONLY", "Timed driving, no odometry. Use Emergency Odo Park unless odometry has failed.");
         telemetry.addData("Mode", "TIMED Park - real motors on START");
         telemetry.addData("Facing", PollenFacing.placement() + "; drives " + PollenFacing.routeForward());
         if (tuning == null) return;
         telemetry.addData("Park power / drive seconds", "%.2f / %.2f s", tuning.power(), tuning.seconds());
         telemetry.addData("Mat distance estimate", "%.1f cm; measured forward at powers .25/.50 (backward assumed the same), extrapolated below .25",
                 PollenDriveCalibration.forwardDistanceCm(tuning.seconds(), tuning.power()));
+        telemetry.addData("Park margin", "%.1f s", tuning.parkMargin());
         telemetry.addData("Start delay / maximum", "%.1f / %.1f seconds",
                 tuning.delaySeconds(), tuning.maximumDelaySeconds());
         telemetry.addData("Selection", tuning.locked() ? "LOCKED" : "Adjust on Gamepad 1 before START");

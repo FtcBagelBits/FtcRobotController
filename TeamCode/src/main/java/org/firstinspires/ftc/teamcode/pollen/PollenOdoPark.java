@@ -12,7 +12,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * distance (measured, not timed), then stop. Like every autonomous, it drives as if the robot faced
  * the hive (PollenFacing): with the robot's back to the hive it drives BACKWARD, launcher end first.
  * Same INIT buttons as EMERGENCY Timed Park, except LEFT/RIGHT changes centimetres instead of seconds. */
-@Autonomous(name = "Odo ROBOT Park", group = "Pollen Odometry", preselectTeleOp = "PollenBot")
+@Autonomous(name = "Emergency Odo Park", group = "3 Emergency", preselectTeleOp = "PollenBot")
 public final class PollenOdoPark extends OpMode {
     private static PollenOdoParkTuning.Snapshot remembered;
     private final DcMotor[] drive = new DcMotor[4];
@@ -51,14 +51,16 @@ public final class PollenOdoPark extends OpMode {
         if (tuning != null && gamepad1 != null) {
             tuning.update(gamepad1.dpad_up, gamepad1.dpad_down,
                     gamepad1.dpad_left, gamepad1.dpad_right,
-                    gamepad1.left_bumper, gamepad1.right_bumper, gamepad1.triangle);
+                    gamepad1.left_bumper, gamepad1.right_bumper, gamepad1.triangle,
+                    gamepad1.left_stick_button, gamepad1.right_stick_button);
             remembered = tuning.snapshot();
         }
         if (odometry != null) odometry.update();
         showSettings();
         telemetry.addData("D-pad", "UP/DOWN delay +/-0.5s; RIGHT/LEFT distance +/-5 cm");
         telemetry.addData("L1 / R1", "Decrease / increase power by 0.05");
-        telemetry.addData("Triangle", "Reset power, distance, delay to code defaults");
+        telemetry.addData("L3 / R3", "Decrease / increase park margin by 0.5 s");
+        telemetry.addData("Triangle", "Reset power, distance, delay and margin to code defaults");
         telemetry.addData("Placement", "Set starting position and angle by hand before START");
         telemetry.addData("Status", blocked == null ? "READY - waiting for START" : "BLOCKED: " + blocked);
         telemetry.update();
@@ -72,6 +74,7 @@ public final class PollenOdoPark extends OpMode {
         telemetry.addData("Distance / max power", "%.0f cm (%.1f in) straight %s / %.2f",
                 tuning.cm(), tuning.cm() / PollenOdometryDrive.CM_PER_INCH, PollenFacing.routeForward(), tuning.power());
         telemetry.addData("Facing", PollenFacing.placement());
+        telemetry.addData("Park margin", "%.1f s", tuning.parkMargin());
         telemetry.addData("Start delay / maximum", "%.1f / %.1f seconds",
                 tuning.delaySeconds(), tuning.maximumDelaySeconds());
         telemetry.addData("Planned", "%.1f s (hard stop at %.0f s)", tuning.plannedSeconds(), PollenConfig.TOTAL_TIME_LIMIT);

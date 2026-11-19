@@ -1,3 +1,13 @@
+# v27 secondary startup: zero Pinpoint during INIT
+
+On the Nov. 18 v26 red Secondary Shooter run, Pinpoint passed the READY check at START.
+The next update reported `FAULT_BAD_READ` with the cached Y still at −215.26 inches, and the
+auto stopped before requesting flywheel speed. The SDK rejects position jumps over 5,000 mm.
+The START write to zero exceeded that threshold. Hive autos now reset position and recalibrate
+the IMU during INIT while stationary. The SDK takes one new baseline reading for the intentional
+reset, then resumes its usual read checks and verifies the origin. START reads the existing
+pose. A Pinpoint fault still stops the auto.
+
 # v9 garden route: keep the starting heading
 
 Build **pollen-hive-v9** replaces the garden turns with a direct sideways approach.
@@ -6,7 +16,7 @@ back out, strafe back, and return to S. Launcher and agitator remain off during 
 Old saved nonzero transit/pickup headings are rejected; camera calibration is preserved.
 The old turn-waypoint settings are retained for saved-file compatibility but no longer affect the path.
 The CAD footprint checks cover the new straight corridor. First retest with an empty robot in
-**EXPERIMENTAL Hive Primary + Garden / DRIVE**: garden, return, park. Then STOP and download.
+**Beta Test Primary Shooter + Garden / DRIVE**: garden, return, park. Then STOP and download.
 Computer/geometry checks and Android tests/build passed on the local Mac. On 2026-11-15,
 the operator reported that the empty v9 combined DRIVE trial on vinyl ran successfully.
 Loaded pickup and hive-gated shooting with this route remain unverified.
@@ -66,14 +76,15 @@ approximate start time, ball counts and whether any STOP was intentional. Video 
    launcher, agitator or intake output in DRIVE. Check turns, clearance, return position and heading.
    Then repeat **LIVE** with a small counted group in the garden: intake collects; launcher and
    agitator stay off. Count collected and retained pollen.
-5. **EXPERIMENTAL Hive Primary + Garden, LIVE.** Only once unexpected motion is resolved and the
+5. **Beta Test Primary Shooter + Garden, LIVE.** Only once unexpected motion is resolved and the
    isolated tests pass. Check effective INIT settings again (practice and full modes share saved
    route values; Execution is never saved). With the cell UP throughout, expect first shot, direct
    garden departure, collection, return, second shot and park. Confirm no unwanted balls exit during
    travel/collection. Do not increase feed duration/window yet; keep the time budget comparable.
 6. **Hive-state checks.** With the cell DOWN on return, no second feed while DOWN; it may wait until
-   the parking reserve requires departure. With the cell DOWN from START, no first feed; the primary
-   parks when the first-shot window ends, without garden. Nobody enters the robot route to tip it.
+   the parking reserve requires departure. With the cell DOWN from START, the primary still feeds
+   the preload once pose and launcher speed are ready, then checks the garden budget. Nobody enters
+   the robot route to tip it.
 
 ## Download after each batch or any unexplained movement
 

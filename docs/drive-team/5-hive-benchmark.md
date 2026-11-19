@@ -1,11 +1,11 @@
 # Hive pipeline benchmark
 
-**Build pollen-hive-v10. Camera only: no motors or odometry.** Full instructions and export commands:
+**Build pollen-hive-v32. Camera only: no motors or odometry.** Full instructions and export commands:
 `docs/POLLEN_HIVE_BENCHMARK.md`. Print this sheet for practice.
 
 ## First prove logging works
 
-Select **TEST Hive pipeline benchmark** in the **TeleOp list** (group *Pollen Hive*; no 30-second
+Select **Calibration Hive Pipeline Benchmark** in the **TeleOp list** (group *4 Calibration*; no 30-second
 timer there). INIT: saved pipeline only, **Passes 1 / Seconds 5**, correct cell ID. START waits.
 Settle our cell UP, tap **LEFT**; at WAIT settle it DOWN, tap **RIGHT**. At DONE, STOP and download.
 Confirm results print and a raw JSONL file exists before longer trials. This needs no hive: do it

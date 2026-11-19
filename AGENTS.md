@@ -40,7 +40,7 @@ From the repository root (the scripts also resolve their own root):
 | Computer tests | `bash tools/ftc.sh test` |
 | Android unit tests and APK | `bash tools/ftc.sh gradle :TeamCode:testDebugUnitTest :TeamCode:assembleDebug` |
 | Build only | `bash tools/ftc.sh build` |
-| Build and install after operator STOP | `bash tools/ftc.sh deploy` |
+| Build and install | `bash tools/ftc.sh deploy` |
 | Install an already built APK after switching to hub Wi-Fi | `bash tools/ftc.sh install` |
 | Download and analyze a stopped session | `bash tools/ftc.sh logs "$HOME/Desktop/hive-session-$(date +%Y%m%d-%H%M%S)"` |
 | Hub free space and recording folder sizes (read-only) | `bash tools/ftc.sh storage` |
@@ -58,9 +58,8 @@ never let an emulator or another robot become the implicit deployment target. Ex
   The restart affects other ADB clients on this laptop; `FTC_ADB_RESTART=0` disables it.
   Do not kill emulators, Java or Android Studio automatically. Do not repeatedly retry
   unreachable networks or disable host security settings.
-- Build/test requests alone do not request installation. Install only for a requested
-  deploy/install workflow, after the operator has stopped the OpMode. Do not repeat a
-  confirmation already supplied in the session. The scripts do not detect the STOP state.
+- Build/test requests alone do not request installation. A deploy/install request
+  authorizes installation without a separate OpMode status check or confirmation.
 - Install restarts the RC app. Have the operator verify the expected build on Driver Hub
   INIT afterward. Scripts never press INIT/START or drive/feed/shoot. Physical tests are
   run by the operator. Reconnection is not proof the app or its hardware is ready.

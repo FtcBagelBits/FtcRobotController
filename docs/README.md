@@ -11,6 +11,7 @@ Read [Start here](POLLEN_START_HERE.md) first.
 | [Pollen code reference](POLLEN_CODE_REFERENCE.md) | Hardware names, facing transforms and established robot architecture. |
 | [Automatic hive pipeline benchmark](POLLEN_HIVE_BENCHMARK.md) | Camera-only profile sweep, raw logs, four physical labels, download and analysis. |
 | [Hive auto diagnostics](POLLEN_HIVE_DIAGNOSTICS.md) | v8 direct garden departure, motor/decision traces, unexpected-motion guard and staged retests. |
+| [Garden pickup and flower drain practice](POLLEN_COLLECTION_PRACTICE.md) | Drivers and programmers tuning collection from a marked entry pose. |
 | [Hive camera + garden testing](POLLEN_HIVE_TESTING.md) | Experimental: how the robot finds its hive cell and reads UP/DOWN from tag height, labeled calibration, isolated shot/garden tests, session reports, match modes, CAD garden route, validation. |
 | [Start here](POLLEN_START_HERE.md) | Everyone new to the code: what runs, the three core ideas, a guided reading path, exercises, build commands. |
 | [Set up, test, install, share](ROBOT_CONNECTION.md) | Students on Windows or Mac: Android Studio notes, running the computer tests, installing over the Control Hub's Wi-Fi, fixing connection problems, branches and pull requests. |

@@ -56,7 +56,7 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
  * idles at the end instead of fighting to hold the last pose, and both paths use constant heading
  * so nothing commands a rotation. Swap constant(start) for tangent() once the tuning is real.
  */
-@TeleOp(name = "Pedro Test", group = "Pedro")
+@TeleOp(name = "Calibration Pedro Pathing", group = "4 Calibration")
 public class PedroLocalizationTest extends OpMode {
     /** Half the robot's width, in inches - only used to size the marker on the field view. */
     private static final double ROBOT_RADIUS = 9;

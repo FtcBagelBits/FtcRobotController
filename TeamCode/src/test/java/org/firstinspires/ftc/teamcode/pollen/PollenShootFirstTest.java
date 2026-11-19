@@ -116,6 +116,22 @@ public final class PollenShootFirstTest {
         check(s.tick(27).finished, "independent deadline");
 
         // UI edges, limits, budget rejection, session memory and locking.
+        select(t, PARK_MARGIN);
+        near(t.parkMargin(), 1, "Default parking margin");
+        change(t, 1); near(t.parkMargin(), 1.5, "Parking margin uses 0.5 s steps");
+        change(t, -1);
+        PollenSequence interrupted = new PollenSequence(new PollenSequence.Step[]{
+                PollenSequence.Step.drive("WAIT", 1, 0, 0, 0),
+                PollenSequence.Step.continuousShoot(3),
+                PollenSequence.Step.drive("PARK", 2, .2, 0, 0)
+        }, 1180, 0, 10, 0, 2, 1.5);
+        interrupted.start(0);
+        interrupted.tick(0);
+        interrupted.tick(5);
+        check(interrupted.tick(5.1).feederPower==1, "Late legacy shot can start feeding");
+        PollenSequence.Output parkNow = interrupted.tick(6.5);
+        check(parkNow.phase.equals("PARK")&&parkNow.forward==.2&&parkNow.feederPower==0&&parkNow.launcherVelocity==0,
+                "Actual time spent before the shot can interrupt it for the configured park margin");
         select(t, FLYWHEEL);
         change(t, 1); near(t.value(FLYWHEEL), 1200, "speed adjustment: one 20 tick/s step");
         t.update(false, false, false, true, false);

@@ -84,7 +84,7 @@ def main():
         new.setdefault(key, [rows[key][0], rows[key][1]])[col] = value
         print(f'{key:16s} {"primary" if col == 0 else "secondary":9s} {java_number(old):>14s} -> {java_number(value):<14s} (from {name})')
         if key == 'side':
-            print('  WARNING: a RED or BLUE side default forces that side in EVERY match. Usually leave it AUTO:'
+            print('  WARNING: this changes the calibration side default. Beta Test matches choose RED or BLUE in INIT:'
                   ' reset the Side row on the robot (Triangle, Square) and pull again.')
     if not args.write:
         print('\nShown only. Add --write to change PollenHiveSettings.java.')

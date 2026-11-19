@@ -11,26 +11,27 @@ public final class PollenOdoParkTuning {
      * the measured powers (extrapolated), so check it on the robot. */
     public static final double DEFAULT_CM = 55;
 
-    /** Only power and distance carry over between OpMode instances; delay resets each INIT. */
+    /** Power, distance and margin carry over between OpMode instances; delay resets each INIT. */
     public static final class Snapshot {
-        public final double power, cm;
-        private Snapshot(double power, double cm) {
+        public final double power, cm, parkMargin;
+        private Snapshot(double power, double cm, double parkMargin) {
             this.power = power;
             this.cm = cm;
+            this.parkMargin = parkMargin;
         }
     }
 
     private final double defaultPower, defaultDelay, deadline, holdSeconds;
-    private double power, cm, delay;
+    private double power, cm, delay, parkMargin;
     private boolean locked, previousUp, previousDown, previousLeft, previousRight;
-    private boolean previousLessPower, previousMorePower, previousReset;
+    private boolean previousLessPower, previousMorePower, previousReset, previousLessMargin, previousMoreMargin;
 
     public PollenOdoParkTuning(double defaultPower, double defaultDelay, double deadline,
                                double holdSeconds, Snapshot remembered) {
         if (!Double.isFinite(defaultPower) || defaultPower < MIN_POWER || defaultPower > MAX_POWER
                 || !Double.isFinite(defaultDelay) || defaultDelay < 0
                 || !Double.isFinite(holdSeconds) || holdSeconds <= 0 || !Double.isFinite(deadline)
-                || routeSeconds(MAX_CM, MIN_POWER, holdSeconds) >= deadline - 1) {
+                || routeSeconds(MAX_CM, MIN_POWER, holdSeconds) >= deadline - PollenConfig.DEFAULT_PARK_MARGIN) {
             throw new IllegalArgumentException("Invalid odometry parking defaults or time budget");
         }
         this.defaultPower = defaultPower;
@@ -40,24 +41,35 @@ public final class PollenOdoParkTuning {
         power = remembered == null ? defaultPower : remembered.power;
         cm = remembered == null ? DEFAULT_CM : remembered.cm;
         delay = defaultDelay;
+        parkMargin = remembered == null ? PollenConfig.DEFAULT_PARK_MARGIN : remembered.parkMargin;
         clampDelay();
     }
 
     /** UP/DOWN delay, LEFT/RIGHT distance, L1/R1 power, Triangle resets. Tap and release. */
     public void update(boolean up, boolean down, boolean left, boolean right,
                        boolean lessPower, boolean morePower, boolean reset) {
+        update(up, down, left, right, lessPower, morePower, reset, false, false);
+    }
+
+    public void update(boolean up, boolean down, boolean left, boolean right,
+            boolean lessPower, boolean morePower, boolean reset, boolean lessMargin, boolean moreMargin) {
         if (locked) return;
         if (reset) {
             if (!previousReset) {
                 power = defaultPower;
                 cm = DEFAULT_CM;
                 delay = defaultDelay;
+                parkMargin = PollenConfig.DEFAULT_PARK_MARGIN;
             }
         } else {
             if (right && !left && !previousRight) cm = step(cm, CM_INCREMENT, MIN_CM, MAX_CM);
             if (left && !right && !previousLeft) cm = step(cm, -CM_INCREMENT, MIN_CM, MAX_CM);
             if (morePower && !lessPower && !previousMorePower) power = step(power, POWER_INCREMENT, MIN_POWER, MAX_POWER);
             if (lessPower && !morePower && !previousLessPower) power = step(power, -POWER_INCREMENT, MIN_POWER, MAX_POWER);
+            if (moreMargin && !lessMargin && !previousMoreMargin)
+                parkMargin = step(parkMargin, PollenConfig.PARK_MARGIN_STEP, 0, PollenConfig.MAX_PARK_MARGIN);
+            if (lessMargin && !moreMargin && !previousLessMargin)
+                parkMargin = step(parkMargin, -PollenConfig.PARK_MARGIN_STEP, 0, PollenConfig.MAX_PARK_MARGIN);
             if (up && !down && !previousUp) delay += DELAY_INCREMENT;
             if (down && !up && !previousDown) delay -= DELAY_INCREMENT;
         }
@@ -69,6 +81,8 @@ public final class PollenOdoParkTuning {
         previousLessPower = lessPower;
         previousMorePower = morePower;
         previousReset = reset;
+        previousLessMargin = lessMargin;
+        previousMoreMargin = moreMargin;
     }
 
     /** Zero, drive, hold: expected seconds after the start delay. */
@@ -87,7 +101,7 @@ public final class PollenOdoParkTuning {
     public double maximumDelaySeconds() {
         double max = 0;
         while (max + DELAY_INCREMENT <= 20
-                && routeSeconds(cm, power, holdSeconds) + max + DELAY_INCREMENT < deadline - 1) {
+                && routeSeconds(cm, power, holdSeconds) + max + DELAY_INCREMENT < deadline - parkMargin) {
             max += DELAY_INCREMENT;
         }
         return max;
@@ -101,7 +115,7 @@ public final class PollenOdoParkTuning {
                         PollenOdometryDrive.plannedSeconds(cm, power), PollenOdometryDrive.timeoutSeconds(cm, power)),
                 PollenSequence.Step.drive("PARK / HOLD", holdSeconds, 0, 0, 0)
         };
-        return PollenSequence.park(steps, deadline, delay);
+        return PollenSequence.park(steps, deadline, delay, parkMargin);
     }
 
     public double plannedSeconds() { return delay + routeSeconds(cm, power, holdSeconds); }
@@ -110,5 +124,6 @@ public final class PollenOdoParkTuning {
     public double power() { return power; }
     public double cm() { return cm; }
     public double delaySeconds() { return delay; }
-    public Snapshot snapshot() { return new Snapshot(power, cm); }
+    public double parkMargin() { return parkMargin; }
+    public Snapshot snapshot() { return new Snapshot(power, cm, parkMargin); }
 }
