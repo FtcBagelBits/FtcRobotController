@@ -1,0 +1,15 @@
+{
+ "build": "pollen-hive-v3",
+ "fault": "",
+ "first_seen_session": "hive-session-20261114-214116",
+ "hub_start": "2026-11-12T17:49:37-08:00",
+ "kind": "camera_check",
+ "opmode": "Calibration Hive Camera",
+ "result": "STOP version=0 UP=false DOWN/blocked=false",
+ "run_id": "camera-1794534577395-727587917",
+ "source_bytes": 112,
+ "sources": [
+  "reports/camera-1794534577395-727587917.txt 667e366666dffaa398e8c379c8820519"
+ ],
+ "tool_version": 1
+}

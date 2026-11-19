@@ -1,0 +1,22 @@
+{
+ "build": "pollen-hive-v24",
+ "collect_s": 1.2311,
+ "done_at": null,
+ "duration_s": 9.1636,
+ "fault": "Find side wall: wall not found | node=Find side wall target_in=93.14/193.41 target_deg=277.64 distance_in=0.48 heading_error_deg=-0.24 node_s=1.250 no_progress_s=0.054",
+ "first_seen_session": "garden-diagnostics-20261118-173847",
+ "hub_start": "2026-11-18T17:35:54-08:00",
+ "kind": "collection_practice",
+ "last_phase": "Find side wall",
+ "opmode": "garden-practice",
+ "result": "FAULT",
+ "run_id": "auto-20261118-173554",
+ "settings": "{intake=1.0}",
+ "settings_id": "9e730c57",
+ "source_bytes": 1322,
+ "sources": [
+  "auto/auto-20261118-173554.csv 64aad12918ae49451d197b03e2f2e856"
+ ],
+ "stopped_early": false,
+ "tool_version": 1
+}

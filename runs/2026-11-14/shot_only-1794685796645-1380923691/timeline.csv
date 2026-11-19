@@ -1,0 +1,35 @@
+t_s,phase,hive_state,feed,reason,x_in,y_in,heading_deg
+0.095,FIRST,UNKNOWN,false,,-0.00,-0.00,0.00
+0.633,FIRST,UP,false,Waiting for measured launcher speed,0.00,0.00,359.99
+1.980,FIRST,UP,true,"Stable UP, 50.1 in",0.00,0.00,359.98
+2.071,FIRST,UP,false,Waiting for measured launcher speed,0.00,0.00,359.99
+2.217,FIRST,UP,true,"Stable UP, 50.0 in",0.00,0.00,359.98
+2.255,FIRST,UP,false,Waiting for measured launcher speed,0.00,0.00,359.97
+2.290,FIRST,UP,true,"Stable UP, 50.1 in",0.00,0.00,359.97
+2.322,FIRST,UP,false,Waiting for measured launcher speed,0.00,0.00,359.97
+2.474,FIRST,UP,true,"Stable UP, 50.0 in",0.00,0.00,359.97
+2.510,FIRST,UP,false,Waiting for measured launcher speed,0.00,0.00,359.98
+2.566,FIRST,UP,true,"Stable UP, 50.1 in",0.00,0.00,359.97
+2.598,FIRST,UP,false,Waiting for measured launcher speed,0.00,0.00,359.98
+2.812,FIRST,UP,true,"Stable UP, 50.0 in",0.00,0.00,359.97
+2.843,FIRST,UP,false,Waiting for measured launcher speed,0.00,0.00,359.98
+3.025,FIRST,UP,true,"Stable UP, 49.9 in",0.00,0.00,359.98
+3.068,FIRST,UP,false,Waiting for measured launcher speed,0.00,0.00,359.99
+3.174,FIRST,UP,true,Waiting for new camera frame,0.00,0.00,359.98
+3.209,FIRST,UP,false,Waiting for measured launcher speed,0.00,0.00,359.99
+3.242,FIRST,UP,true,"Stable UP, 50.0 in",0.00,0.00,359.99
+3.275,FIRST,UP,false,Waiting for measured launcher speed,0.00,0.00,360.00
+3.539,FIRST,UP,true,Waiting for new camera frame,0.00,0.00,359.98
+3.573,FIRST,UP,false,Waiting for measured launcher speed,0.00,0.00,359.99
+3.637,FIRST,UP,true,"Stable UP, 50.0 in",0.00,0.00,359.98
+3.690,FIRST,UP,false,Waiting for measured launcher speed,0.00,0.00,359.99
+4.070,FIRST,UP,true,"Stable UP, 50.0 in",0.00,0.00,359.97
+4.110,FIRST,UP,false,Waiting for measured launcher speed,0.00,0.00,359.97
+4.306,FIRST,UP,true,"Stable UP, 50.0 in",0.00,0.00,359.98
+4.339,FIRST,UP,false,Waiting for measured launcher speed,0.00,0.00,359.98
+4.407,FIRST,UP,true,"Stable UP, 50.0 in",0.00,0.00,359.99
+4.440,FIRST,UP,false,Waiting for measured launcher speed,0.00,0.00,359.99
+4.528,FIRST,UP,true,"Stable UP, 50.0 in",0.00,0.00,360.00
+4.563,FIRST,UP,false,Waiting for measured launcher speed,0.00,0.00,359.99
+5.086,DONE,UP,false,Shot window ended,0.00,-0.00,0.00
+5.294,DONE,UNKNOWN,false,Shot window ended,0.00,-0.00,0.01

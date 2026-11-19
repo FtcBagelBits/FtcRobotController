@@ -1,0 +1,5 @@
+t_s,phase,route_x_in,route_y_in,heading_deg,event
+0.0225,Find side wall,98.9033,193.8937,279.8545,
+0.9542,GARDEN_IN,99.1875,193.8333,280.9715,
+0.9627,Inward pass 1,99.1864,193.8346,280.9854,
+2.3873,FAULT,Inward pass 1,,,

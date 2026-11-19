@@ -14,8 +14,8 @@ need an `adb` alias or an `ftcgradle` shell function for the workflows below.
    this repository in a local environment. A cloud session cannot reach your laptop's
    Wi-Fi robot. These are ordinary local shell scripts; no MCP server is needed.
 3. Confirm the actual checkout with `git branch --show-current` and `git log -1 --oneline`.
-   For this work use `pollen-hive-ready`. If the app made a separate worktree, verify its
-   branch and edits before building; `local.properties` and built APKs may not be there.
+   There is no fixed target branch: work on the branch the laptop has checked out, in this
+   checkout itself, not a separate worktree (see `AGENTS.md`).
 4. Start a new session after `AGENTS.md` changes. `AGENTS.md` contains the shared
    instructions; `CLAUDE.md` imports it. A local session edits the checkout, runs the
    tests/builds and uses these scripts itself; it does not need patch files. A useful
@@ -182,8 +182,8 @@ Terminal aliases or `.zshrc`. Existing personal `ftcgradle` functions remain unt
 
 Local desktop sessions change files directly and do not need patches. `ftc.sh patch` is
 for applying a mail patch produced by a web/cloud session that could not reach this
-laptop. Keep patches outside the checkout. That helper requires
-`pollen-hive-ready`, a clean tree, no in-progress am/rebase, and a successful application
+laptop. Keep patches outside the checkout. That helper applies to the
+branch that is checked out and requires a branch (not a detached HEAD), a clean tree, no in-progress am/rebase, and a successful application
 precheck. It creates a backup branch, then commits the patch locally via `git am`.
 It never stashes, resets, pulls, pushes or deploys. Inspect failures before deciding on
 `git am --continue` or `git am --abort`. It accepts mail-format patches, not plain diffs.

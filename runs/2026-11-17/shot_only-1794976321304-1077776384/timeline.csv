@@ -1,0 +1,16 @@
+t_s,phase,hive_state,feed,reason,x_in,y_in,heading_deg
+0.114,FIRST,UNKNOWN,false,,0.00,0.00,0.00
+5.135,FIRST,UP,false,Timing confirmed hive UP,0.04,0.02,359.61
+5.440,FIRST,UNKNOWN,false,Tags disagree/outside bands: 52.7-52.7 in (mean 52.7),0.04,0.02,359.59
+6.053,FIRST,UP,false,Timing confirmed hive UP,0.05,0.03,359.54
+6.296,FIRST,UNKNOWN,false,Tags disagree/outside bands: 52.7-52.7 in (mean 52.7),0.05,0.03,359.53
+7.344,FIRST,UP,false,Timing confirmed hive UP,0.06,0.03,359.45
+8.398,FIRST,UP,true,Feeding: hive UP latched,0.07,0.04,359.35
+10.394,FIRST,UNKNOWN,true,Feeding: hive UP latched,0.06,0.04,359.30
+10.791,FIRST,UP,true,Feeding: hive UP latched,0.06,0.04,359.26
+11.198,FIRST,UNKNOWN,true,Feeding: hive UP latched,0.07,0.04,359.22
+11.485,FIRST,UP,true,Feeding: hive UP latched,0.07,0.04,359.20
+11.610,FIRST,UNKNOWN,true,Feeding: hive UP latched,0.07,0.04,359.19
+12.607,FIRST,UP,true,Feeding: hive UP latched,0.08,0.05,359.12
+13.477,DONE,UP,false,Stationary shot complete,0.08,0.05,359.06
+13.664,DONE,UNKNOWN,false,Stationary shot complete,0.08,0.05,359.06

@@ -1,0 +1,13 @@
+t_s,phase,hive_state,feed,reason,x_in,y_in,heading_deg
+0.135,FIRST,UNKNOWN,false,,0.00,-0.00,0.01
+5.469,FIRST,UP,false,Timing confirmed hive UP,0.03,0.01,359.78
+5.941,FIRST,UNKNOWN,false,Tags disagree/outside bands: 51.7-53.0 in (mean 52.2),0.03,0.01,359.77
+6.238,FIRST,UP,false,Timing confirmed hive UP,0.03,0.01,359.75
+7.255,FIRST,UP,true,Feeding: hive UP latched,0.03,0.02,359.71
+7.702,FIRST,UNKNOWN,true,Feeding: hive UP latched,0.04,0.02,359.68
+7.950,FIRST,UP,true,Feeding: hive UP latched,0.04,0.02,359.69
+12.264,PARK:,UP,false,Collection skipped: not enough estimated cycle time,0.07,0.03,359.41
+12.349,PARK: PARK CLEAR,UNKNOWN,false,Collection skipped: not enough estimated cycle time,0.07,0.03,359.41
+13.157,PARK: PARK CORNER,UNKNOWN,false,Collection skipped: not enough estimated cycle time,7.69,-0.07,358.31
+13.227,PARK: PARK,UNKNOWN,false,Collection skipped: not enough estimated cycle time,7.65,-0.07,358.21
+15.718,DONE,UNKNOWN,false,Finished departure,14.58,-45.52,359.76

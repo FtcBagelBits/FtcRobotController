@@ -1,0 +1,18 @@
+t_s,phase,hive_state,feed,reason,x_in,y_in,heading_deg
+0.117,FIRST,UNKNOWN,false,,0.00,0.00,0.00
+7.774,FIRST,UP,false,Timing confirmed hive UP,-0.01,-0.01,0.05
+7.853,FIRST,UNKNOWN,false,Tags disagree/outside bands: 51.8-52.8 in (mean 52.3),-0.01,-0.01,0.05
+8.131,FIRST,UP,false,Timing confirmed hive UP,-0.01,-0.01,0.05
+8.236,FIRST,UNKNOWN,false,Tags disagree/outside bands: 52.1-52.7 in (mean 52.4),-0.01,-0.01,0.04
+8.461,FIRST,UP,false,Timing confirmed hive UP,-0.01,-0.01,0.05
+9.225,FIRST,UNKNOWN,false,Tags disagree/outside bands: 52.7-53.0 in (mean 52.8),-0.01,-0.01,0.06
+13.261,FIRST,UP,false,Timing confirmed hive UP,-0.01,-0.01,0.09
+14.289,FIRST,UP,true,Feeding: hive UP latched,-0.01,-0.02,0.10
+19.307,ROOM:,UP,false,Shot complete; making room in the corner,-0.02,-0.02,0.10
+19.385,ROOM: ROOM CLEAR FLOWER,UNKNOWN,false,Shot complete; making room in the corner,-0.02,-0.02,0.09
+20.612,ROOM: ROOM TO SIDE WALL,UNKNOWN,false,Shot complete; making room in the corner,7.91,-0.02,0.18
+23.234,ROOM: ROOM CORNER,UNKNOWN,false,Shot complete; making room in the corner,8.08,-50.50,0.94
+24.319,WAIT,UNKNOWN,false,In the corner; park with 2.0 s left,0.94,-50.66,0.28
+25.167,PARK:,UNKNOWN,false,1.9 s left: park,0.87,-50.67,0.24
+25.253,PARK: PARK,UNKNOWN,false,1.9 s left: park,0.87,-50.67,0.24
+26.732,DONE,UNKNOWN,false,Finished departure,14.43,-45.71,0.91

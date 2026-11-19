@@ -1,0 +1,4 @@
+t_s,phase,route_x_in,route_y_in,heading_deg,event
+0.0234,Lower drainer,0.6100,13.6965,282.1067,
+0.4339,Approach flower,0.6097,13.6968,282.1104,
+1.2051,FAULT,Approach flower,,,

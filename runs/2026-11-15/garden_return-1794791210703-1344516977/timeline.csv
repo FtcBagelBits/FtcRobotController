@@ -1,0 +1,17 @@
+t_s,phase,hive_state,feed,reason,x_in,y_in,heading_deg
+0.097,GARDEN:,UNKNOWN,false,Garden practice; garden cycle budget passed,0.00,0.00,0.00
+0.173,GARDEN: CLEAR END WALL,UNKNOWN,false,Garden practice; garden cycle budget passed,0.00,0.00,0.00
+0.978,GARDEN: REACH FIRST TURN,UNKNOWN,false,Garden practice; garden cycle budget passed,6.38,-0.08,1.02
+2.536,GARDEN: FRONT TOWARD GARDEN,UNKNOWN,false,Garden practice; garden cycle budget passed,5.63,17.28,359.63
+3.940,GARDEN: TRAVEL FRONT FIRST,UNKNOWN,false,Garden practice; garden cycle budget passed,6.04,17.41,269.68
+5.666,GARDEN: FRONT TOWARD BALL ROW,UNKNOWN,false,Garden practice; garden cycle budget passed,6.21,42.86,270.79
+7.081,GARDEN: ALIGN INTAKE,UNKNOWN,false,Garden practice; garden cycle budget passed,5.98,42.87,0.30
+7.817,GARDEN: COLLECT TOWARD WALL,UNKNOWN,false,Garden practice; garden cycle budget passed,5.79,47.70,358.74
+8.666,GARDEN: COLLECT HOLD,UNKNOWN,false,Garden practice; garden cycle budget passed,1.07,47.92,359.88
+9.211,GARDEN: BACK AWAY FROM WALL,UNKNOWN,false,Garden practice; garden cycle budget passed,1.14,47.92,0.06
+10.213,GARDEN: CLEAR SIDE WALL,UNKNOWN,false,Garden practice; garden cycle budget passed,5.92,47.97,359.48
+11.053,GARDEN: RESTORE SHOOT HEADING,UNKNOWN,false,Garden practice; garden cycle budget passed,5.74,42.83,0.48
+11.128,GARDEN: RETURN ACROSS,UNKNOWN,false,Garden practice; garden cycle budget passed,5.77,42.83,0.47
+13.521,GARDEN: RETURN SHOOT POSITION,UNKNOWN,false,Garden practice; garden cycle budget passed,6.16,-0.23,359.55
+14.512,SETTLE,UNKNOWN,false,Garden practice; garden cycle budget passed,0.46,-0.07,0.13
+16.014,DONE,UNKNOWN,false,Return pose did not settle; second shot skipped,0.52,-0.08,0.29

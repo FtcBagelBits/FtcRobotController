@@ -1,0 +1,3 @@
+t_s,phase,hive_state,feed,reason,x_in,y_in,heading_deg
+0.077,FIRST,UNKNOWN,false,,0.00,0.00,0.00
+5.047,DONE,UNKNOWN,false,Shot window ended,-0.00,-0.00,0.00

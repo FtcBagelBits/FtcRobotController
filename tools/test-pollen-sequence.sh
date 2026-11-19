@@ -50,3 +50,6 @@ python3 "$repo_dir/tools/test-teleop-rehearsal.py"
 
 # Hub storage report and checksum-verified prune (fake adb).
 python3 "$repo_dir/tools/test-hive-storage.py"
+
+# Run history: downloaded sessions become small committed summaries (fake sessions).
+python3 "$repo_dir/tools/test-run-history.py"

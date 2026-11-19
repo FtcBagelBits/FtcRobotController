@@ -1,0 +1,9 @@
+t_s,phase,hive_state,feed,reason,x_in,y_in,heading_deg
+0.121,FIRST,UNKNOWN,false,,0.00,0.00,0.00
+6.098,FIRST,UP,true,"Stable UP, 52.1 in",0.02,0.01,359.77
+6.697,FIRST,UP,false,Waiting for measured launcher speed,0.03,0.02,359.73
+6.888,FIRST,UP,true,"Stable UP, 51.8 in",0.03,0.02,359.67
+7.454,FIRST,UP,false,Waiting for measured launcher speed,0.03,0.02,359.65
+7.647,FIRST,UP,true,"Stable UP, 51.9 in",0.03,0.02,359.63
+7.983,DONE,UP,false,Stationary shot complete,0.03,0.02,359.63
+8.174,DONE,UNKNOWN,false,Stationary shot complete,0.04,0.02,359.63

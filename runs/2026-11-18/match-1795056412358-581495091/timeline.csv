@@ -1,0 +1,25 @@
+t_s,phase,hive_state,feed,reason,x_in,y_in,heading_deg
+0.119,FIRST,UNKNOWN,false,,-0.00,-0.00,0.01
+0.957,FIRST,UNKNOWN,true,Feeding primary preload,-0.00,0.00,0.01
+3.966,OUTBOUND:,UNKNOWN,false,First feed duration complete; starting collection trip,-0.00,0.00,0.02
+4.035,OUTBOUND: CLEAR END WALL,UNKNOWN,false,First feed duration complete; starting collection trip,-0.00,0.00,0.01
+5.155,OUTBOUND: ALIGN WITH GARDEN,UNKNOWN,false,First feed duration complete; starting collection trip,13.34,0.01,358.49
+7.084,GARDEN:,UNKNOWN,false,First feed duration complete; starting collection trip,13.51,42.17,359.68
+7.163,GARDEN: Find right wall,UNKNOWN,false,First feed duration complete; starting collection trip,13.51,42.15,359.61
+9.985,GARDEN: GARDEN_IN,UNKNOWN,false,First feed duration complete; starting collection trip,13.63,53.98,0.38
+10.056,GARDEN: Inward pass 1,UNKNOWN,false,First feed duration complete; starting collection trip,13.64,53.96,0.36
+12.134,GARDEN: GARDEN_OUT,UNKNOWN,false,First feed duration complete; starting collection trip,3.14,53.60,357.15
+12.207,GARDEN: Back off 1,UNKNOWN,false,First feed duration complete; starting collection trip,3.17,53.57,357.13
+12.847,GARDEN: GARDEN_IN,UNKNOWN,false,First feed duration complete; starting collection trip,6.01,53.63,0.21
+12.912,GARDEN: Inward pass 2,UNKNOWN,false,First feed duration complete; starting collection trip,5.97,53.63,0.10
+14.360,RETURN:,UNKNOWN,false,Collection complete; returning to shooting position,2.93,53.51,356.11
+14.448,RETURN: CLEAR COLLECTION SITE,UNKNOWN,false,Collection complete; returning to shooting position,2.98,53.49,356.14
+15.325,RETURN: RETURN ACROSS,UNKNOWN,false,Collection complete; returning to shooting position,13.06,53.43,0.08
+17.414,RETURN: RETURN SHOOT POSITION,UNKNOWN,false,Collection complete; returning to shooting position,13.33,0.30,1.00
+18.629,SETTLE,UNKNOWN,false,Collection complete; returning to shooting position,0.07,0.27,0.31
+19.016,SECOND,UNKNOWN,false,Collection complete; returning to shooting position,0.03,0.28,0.25
+21.064,PARK:,UNKNOWN,false,Hive not ready for return shot,0.03,0.29,0.22
+21.131,PARK: PARK CLEAR,UNKNOWN,false,Hive not ready for return shot,0.03,0.29,0.21
+21.682,PARK: PARK CORNER,UNKNOWN,false,Hive not ready for return shot,3.55,0.21,0.01
+23.230,PARK: PARK,UNKNOWN,false,Hive not ready for return shot,3.99,24.60,359.90
+26.102,DONE,UNKNOWN,false,Finished departure,87.32,43.63,0.23

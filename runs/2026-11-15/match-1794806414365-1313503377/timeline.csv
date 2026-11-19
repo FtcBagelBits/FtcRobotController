@@ -1,0 +1,23 @@
+t_s,phase,hive_state,feed,reason,x_in,y_in,heading_deg
+0.114,FIRST,UNKNOWN,false,,0.00,0.00,0.00
+0.193,GARDEN:,UNKNOWN,false,Drive-only skips shot; garden cycle budget passed,-0.00,0.00,0.00
+0.260,GARDEN: CLEAR END WALL,UNKNOWN,false,Drive-only skips shot; garden cycle budget passed,-0.00,0.00,0.00
+1.071,GARDEN: REACH FIRST TURN,UNKNOWN,false,Drive-only skips shot; garden cycle budget passed,6.45,-0.13,0.16
+2.553,GARDEN: FRONT TOWARD GARDEN,UNKNOWN,false,Drive-only skips shot; garden cycle budget passed,5.72,17.44,0.07
+3.969,GARDEN: TRAVEL FRONT FIRST,UNKNOWN,false,Drive-only skips shot; garden cycle budget passed,6.25,17.56,269.83
+5.743,GARDEN: FRONT TOWARD BALL ROW,UNKNOWN,false,Drive-only skips shot; garden cycle budget passed,6.02,42.63,271.80
+7.141,GARDEN: ALIGN INTAKE,UNKNOWN,false,Drive-only skips shot; garden cycle budget passed,5.84,42.38,0.37
+7.919,GARDEN: COLLECT TOWARD WALL,UNKNOWN,false,Drive-only skips shot; garden cycle budget passed,6.07,47.93,358.92
+8.767,GARDEN: COLLECT HOLD,UNKNOWN,false,Drive-only skips shot; garden cycle budget passed,1.16,47.83,0.32
+9.307,GARDEN: BACK AWAY FROM WALL,UNKNOWN,false,Drive-only skips shot; garden cycle budget passed,1.25,47.83,0.14
+10.075,GARDEN: CLEAR SIDE WALL,UNKNOWN,false,Drive-only skips shot; garden cycle budget passed,6.47,47.91,0.36
+10.827,GARDEN: RESTORE SHOOT HEADING,UNKNOWN,false,Drive-only skips shot; garden cycle budget passed,5.93,43.10,0.04
+10.900,GARDEN: RETURN ACROSS,UNKNOWN,false,Drive-only skips shot; garden cycle budget passed,5.92,43.11,0.08
+13.253,GARDEN: RETURN SHOOT POSITION,UNKNOWN,false,Drive-only skips shot; garden cycle budget passed,6.00,-0.17,359.46
+13.924,SETTLE,UNKNOWN,false,Drive-only skips shot; garden cycle budget passed,0.36,-0.19,1.02
+14.330,SECOND,UNKNOWN,false,Drive-only skips shot; garden cycle budget passed,0.46,-0.18,1.08
+14.409,PARK:,UNKNOWN,false,Drive-only departure,0.46,-0.18,1.08
+14.501,PARK: PARK CLEAR,UNKNOWN,false,Drive-only departure,0.46,-0.18,1.08
+15.169,PARK: PARK CORNER,UNKNOWN,false,Drive-only departure,4.08,-0.05,359.92
+17.049,PARK: PARK,UNKNOWN,false,Drive-only departure,4.24,25.31,1.45
+20.759,DONE,UNKNOWN,false,Finished departure,87.37,43.34,358.05

@@ -1,0 +1,42 @@
+t_s,phase,hive_state,feed,reason,x_in,y_in,heading_deg
+0.125,FIRST,UNKNOWN,false,,0.01,-0.00,0.00
+5.779,FIRST,UP,false,Timing confirmed hive UP,0.00,-0.01,0.03
+6.814,FIRST,UP,true,Feeding: hive UP latched,0.00,-0.00,0.02
+7.510,FIRST,UNKNOWN,true,Feeding: hive UP latched,0.01,-0.01,0.02
+7.759,FIRST,UP,true,Feeding: hive UP latched,0.01,-0.01,0.02
+9.472,FIRST,UNKNOWN,true,Feeding: hive UP latched,0.01,-0.01,359.99
+9.790,FIRST,UP,true,Feeding: hive UP latched,0.01,-0.00,359.97
+9.882,OUTBOUND:,UP,false,First feed duration complete; starting collection trip,0.01,-0.00,359.96
+9.949,OUTBOUND: CLEAR END WALL,UNKNOWN,false,First feed duration complete; starting collection trip,0.01,-0.00,359.96
+11.010,OUTBOUND: ALIGN WITH FLOWER,UNKNOWN,false,First feed duration complete; starting collection trip,14.65,0.08,359.03
+12.228,FLOWER:,UNKNOWN,false,First feed duration complete; starting collection trip,14.43,-12.96,359.98
+12.292,FLOWER: Lower drainer,UNKNOWN,false,First feed duration complete; starting collection trip,14.42,-12.94,359.99
+12.715,FLOWER: Approach flower,UNKNOWN,false,First feed duration complete; starting collection trip,14.43,-12.94,359.97
+14.478,FLOWER: Left 1,UNKNOWN,false,First feed duration complete; starting collection trip,7.30,-12.83,0.21
+15.012,FLOWER: Right 1,UNKNOWN,false,First feed duration complete; starting collection trip,7.47,-13.81,359.65
+15.650,FLOWER: Left 2,UNKNOWN,false,First feed duration complete; starting collection trip,7.54,-11.83,0.70
+16.483,FLOWER: Right 2,UNKNOWN,false,First feed duration complete; starting collection trip,7.52,-13.79,359.90
+17.118,FLOWER: Left 3,UNKNOWN,false,First feed duration complete; starting collection trip,7.55,-11.85,0.77
+17.846,FLOWER: Right 3,UNKNOWN,false,First feed duration complete; starting collection trip,7.53,-13.80,359.95
+18.487,FLOWER: Center drainer,UNKNOWN,false,First feed duration complete; starting collection trip,7.56,-11.85,0.67
+18.894,FLOWER: WITHDRAW,UNKNOWN,false,First feed duration complete; starting collection trip,7.52,-12.43,0.04
+18.965,FLOWER: Withdraw drainer,UNKNOWN,false,First feed duration complete; starting collection trip,7.55,-12.42,0.03
+19.732,FLOWER: CLEANUP,UNKNOWN,false,First feed duration complete; starting collection trip,14.21,-12.38,359.08
+19.795,FLOWER: Ingest forward 1,UNKNOWN,false,First feed duration complete; starting collection trip,14.23,-12.38,359.09
+20.298,FLOWER: Back out 1,UNKNOWN,false,First feed duration complete; starting collection trip,12.25,-12.36,0.20
+20.814,FLOWER: Ingest forward 2,UNKNOWN,false,First feed duration complete; starting collection trip,14.49,-12.37,0.03
+21.339,FLOWER: Back out 2,UNKNOWN,false,First feed duration complete; starting collection trip,12.18,-12.36,0.69
+21.879,FLOWER: Finish ingesting,UNKNOWN,false,First feed duration complete; starting collection trip,14.58,-12.36,359.72
+22.932,RETURN:,UNKNOWN,false,Collection complete; returning to shooting position,14.52,-12.36,359.58
+22.993,RETURN: CLEAR COLLECTION SITE,UNKNOWN,false,Collection complete; returning to shooting position,14.52,-12.36,359.57
+23.073,RETURN: RETURN ACROSS,UNKNOWN,false,Collection complete; returning to shooting position,14.52,-12.36,359.57
+24.282,RETURN: RETURN SHOOT POSITION,UNKNOWN,false,Collection complete; returning to shooting position,14.51,-0.43,0.09
+25.231,SETTLE,UNKNOWN,false,Collection complete; returning to shooting position,-0.07,-0.23,0.71
+25.619,SECOND,UNKNOWN,false,Collection complete; returning to shooting position,0.07,-0.23,0.91
+26.674,SECOND,UP,false,Timing confirmed hive UP,0.08,-0.23,0.89
+26.767,SECOND,UNKNOWN,false,Tags disagree/outside bands: 50.7-52.8 in (mean 51.9),0.08,-0.23,0.88
+27.524,SECOND,UP,false,Timing confirmed hive UP,0.08,-0.23,0.85
+27.721,PARK:,UNKNOWN,false,Hive not ready for return shot,0.08,-0.22,0.84
+27.797,PARK: PARK CLEAR,UNKNOWN,false,Hive not ready for return shot,0.08,-0.22,0.84
+28.592,PARK: PARK CORNER,UNKNOWN,false,Hive not ready for return shot,8.16,-0.11,359.05
+28.656,PARK: PARK,UNKNOWN,false,Hive not ready for return shot,8.17,-0.12,358.97

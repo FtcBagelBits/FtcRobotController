@@ -1,0 +1,25 @@
+t_s,kind,rehearsal,note
+0.0000,START,0,build=pollen-hive-v10 installed=2026-11-16T12:21:57 opmode=PollenBot launcher=1180.0 spinup=3.0 agitator=1.0 drive=1.0 settings=DEFAULTS reverse=140 feedBoost=0.5 facing=back-to-hive pinpoint=READY ba
+32.7897,MARK_START,1,
+37.2936,MARK_END,1,ended by the next Circle
+37.2936,MARK_START,2,
+59.3674,MARK_END,2,ended by the next Circle
+59.3674,MARK_START,3,
+61.0095,MARK_END,3,ended by the next Circle
+61.0095,MARK_START,4,
+61.7689,MARK_END,4,ended by the next Circle
+61.7689,MARK_START,5,
+62.2514,MARK_END,5,ended by the next Circle
+62.2514,MARK_START,6,
+62.6150,MARK_END,6,ended by the next Circle
+62.6150,MARK_START,7,
+62.9324,MARK_END,7,ended by the next Circle
+62.9324,MARK_START,8,
+63.4526,MARK_END,8,ended by the next Circle
+63.4526,MARK_START,9,
+63.9770,MARK_END,9,ended by the next Circle
+63.9770,MARK_START,10,
+64.4980,MARK_END,10,ended by the next Circle
+64.4980,MARK_START,11,
+64.7630,MARK_END,11,ended by STOP
+64.7630,STOP,0,

@@ -1,49 +1,87 @@
 # Run history: what to keep in Git from downloaded robot runs
 
-For the coding agent on the laptop that has the downloaded sessions (`bash tools/ftc.sh logs ...`
-folders and their ZIPs). Goal: one small, reviewable record of every run in this repository, so
-any agent, including a cloud session that can only `git clone`, can answer "how often do the match
-autos get both a shot and a reload, and where does the time go?" without the raw logs.
+**Policy for every agent and person who has downloaded sessions on a laptop** (`bash tools/ftc.sh
+logs ...` folders and their ZIPs). Goal: one small, reviewable record of every run in this
+repository, so any agent, including a cloud session that can only `git clone`, can answer "how often
+do the match autos get both a shot and a reload, and where does the time go?" without the raw logs.
 
-Written 2026-11-19 by a Claude cloud session from the code at `b1126e0` plus `pollen-hive-v33`. The
-formats below are read from the code (`[repo]`). **No real download was seen in writing this**: check
-each field against your local runs and fix this file where it is wrong (add a dated line, per
-[research/README.md](research/README.md)). [AGENTS.md](../AGENTS.md) rules apply: raw data is
-preserved, nothing on the Hub is deleted, nothing is pushed unless a mentor asks.
+Written 2026-11-19 by a Claude cloud session from the code at `b1126e0` plus `pollen-hive-v33`.
+Built and checked against 21 real downloads (2026-11-12 to 2026-11-18, builds v3-v29) the same day
+by a Claude local session; corrections from that data are in
+[What the real downloads showed](#what-the-real-downloads-showed). [AGENTS.md](../AGENTS.md) rules
+apply: raw data is preserved, nothing on the Hub is deleted, nothing is pushed unless a mentor asks.
+
+## Adding your downloads (the procedure)
+
+For any agent on the laptop (Claude, Codex, Astra, anyone else). Work in the laptop checkout on
+whatever branch is checked out, as AGENTS.md says. The history is shared, so add to it rather than
+start a second one.
+
+1. `git status --short runs/` first. Uncommitted or untracked files there are normally an earlier
+   agent's finished work (agents run one after another on purpose, see AGENTS.md): build on them.
+   Stop and ask only if another agent seems to be running the tool right now.
+2. Run the tool over the sessions you have, as folders, ZIPs, or a folder that holds them:
+
+   ```bash
+   python3 tools/run-history.py ~/Desktop
+   ```
+
+   ```bash
+   python3 tools/run-history.py ~/Desktop/hive-session-20261119-170000 ~/Downloads/other-session.zip
+   ```
+
+   It reads only `SESSION/pollen-hive/`, never changes it, and prints how many runs changed.
+   Runs already in `runs/` are kept: a run another agent added from a download you do not have stays
+   as it is. A run you also have is re-derived only when your copy is larger (a download made while
+   the run was still being written is shorter) or the tool version changed.
+3. Run it a second time: it must print `0 run file(s) changed`.
+4. Check what you are adding: `git status --short runs/` and `git diff --stat runs/`. Only files the
+   tool writes may appear (see the layout below). If any raw file shows up, stop and report it.
+5. Read `runs/SUMMARY.md` and tell the mentor what changed: new runs, which phase costs the most
+   time, and which runs still need `notes.md`.
+6. Leave the result in the working tree. Commit only when the user asks (AGENTS.md).
+
+Never rename, edit or delete a generated file by hand; fix `tools/run-history.py` (and its test,
+`tools/test-run-history.py`, which `bash tools/ftc.sh test` runs), bump its `TOOL_VERSION`, and rerun.
+Never delete a `notes.md`.
 
 ## Rules for the history
 
 1. **Never commit raw downloads.** Keep the ZIPs on the laptop and in the team Drive. Do not commit
-   `logcat.txt`, `robot-logs/`, `installed-app.txt`, `configs/`, `checkout.txt`,
-   `benchmark/*.jsonl` or TeleOp CSVs. The repo is public; SDK logs and `dumpsys` output may hold
-   the robot's network name, passphrase or device identifiers `[inferred]`, and the files are large
-   (TeleOp up to 8 MiB a run, benchmark 0.1-0.2 GB).
-2. **Generated files come from a script, not by hand.** Write `tools/run-history.py` (Python 3
-   standard library only, like the other tools) and a fake-data test `tools/test-run-history.py`.
-   Add it to `tools/test-ftc-tools.py` or `tools/ftc.sh test` the way the other tool tests are run.
-   Running it twice over the same folders must change nothing.
-3. **Human facts go in `notes.md`, which the script creates once and never overwrites.**
-4. **One run = one report file.** Every download pulls every file still on the Hub, so the same run
-   appears in many sessions. Identify a run by its report file name and MD5, not by session.
+   `logcat.txt`, `robot-logs/`, `installed-app.txt`, `configs/`, `checkout.txt`, `storage.txt`,
+   `*.properties`, `benchmark/*.jsonl`, full traces or TeleOp CSVs. The repo is public; SDK logs and
+   `dumpsys` output may hold the robot's network name, passphrase or device identifiers
+   `[inferred]`, and the files are large (TeleOp up to 8 MiB a run, benchmark 0.1-0.2 GB).
+2. **Generated files come from `tools/run-history.py`, not by hand.** Python 3 standard library only.
+   Running it twice over the same folders changes nothing.
+3. **Human facts go in `notes.md`, which the script creates once and never overwrites.** It creates
+   one for hive autos, collection practice and Odo autos (the runs where balls matter). For a TeleOp
+   run, a person may create `notes.md` by copying one; the script will count it.
+4. **One run = one recording file.** Every download pulls every file still on the Hub, so the same
+   run appears in many sessions. A run is identified by its file name; `sources.csv` lists every
+   session and MD5 it was seen with.
 5. Label simulated or derived numbers as such; only `notes.md` and the robot's own files are evidence.
 
 ## Where it goes
 
 ```text
 runs/
-  README.md             3 lines: what this is, link to docs/RUN_HISTORY.md
-  index.csv             one row per run, all kinds, sorted by hub start time
-  sources.csv           one row per downloaded file used: session, path in session, bytes, md5, run_id
-  YYYY-MM-DD/RUN_ID/    date from the Hub clock at START
-    summary.md          generated: settings in effect, timeline table, metrics, faults, warnings
-    timeline.csv        generated: one row per phase change
-    slim-trace.csv      generated, hive autos only (see below)
+  README.md             3 lines: what this is, link here
+  index.csv             one row per run, all kinds, sorted by Hub start time
+  sources.csv           one row per downloaded file used: session, session_time, path, bytes, md5, run_id
+  SUMMARY.md            generated report (see the end of this file), overwritten each time
+  YYYY-MM-DD/RUN_ID/    date from the Hub clock at START (Pacific)
+    metrics.json        generated: the index row plus full settings and source MD5s. index.csv and
+                        SUMMARY.md are rebuilt from these, so no agent needs another agent's ZIPs
+    summary.md          generated: settings in effect, metrics, timeline table, faults, warnings
+    timeline.csv        generated: one row per phase change (or per event for other kinds)
+    slim-trace.csv      generated, hive autos with a trace only (see below)
     notes.md            human: created once from the template below, never overwritten
 ```
 
-Size check: a 30 s hive trace at 10 rows/s trimmed to the columns below is roughly 300 rows of about
-120 bytes, ~40 KB `[inferred]`. Hundreds of runs stay in the low megabytes. If it grows much past
-that, keep slim traces only for `run=match` with execution LIVE.
+Size, measured 2026-11-19: 196 runs (66 hive autos) from 21 sessions take about 2 MB in 721 files;
+the slim traces are under 1 MB of that. If it grows much past 20 MB, keep slim traces only for
+`run=MATCH` with execution LIVE.
 
 ## The files in a download (what to read)
 
@@ -92,26 +130,30 @@ this recording"; never write 0 for that.
 | Column | How to get it |
 | --- | --- |
 | `run_id` | report file stem (`match-1763512345678-123`), or the CSV stem for other kinds |
-| `kind` | `hive`, `collection_practice`, `odo_auto`, `teleop`, `benchmark` |
-| `hub_start` | ISO time from `wall_ms`. Hub clock: the SDK only corrects it when it reads before 1976, so it can be off; `sources.csv` keeps the laptop's download time as a cross-check |
+| `kind` | `hive`, `camera_check` (`reports/camera-*.txt`), `collection_practice`, `odo_auto`, `teleop`, `benchmark` |
+| `hub_start` | ISO time (Pacific) from `wall_ms`, else the MILLIS or `DATE-TIME` in the file name. Hub clock: the SDK only corrects it when it reads before 1976, so it can be off; `sources.csv` keeps the laptop's download time (from the session folder name) as a cross-check |
 | `first_seen_session` | earliest session folder that contains the file |
 | `build`, `installed` | `START build=`, `HUB installed=` |
 | `opmode`, `run`, `secondary`, `make_room` | `START` line |
 | `execution` | trace `execution`: DRY / DRIVE / LIVE |
-| `settings_changed` | the `START settings=` list as written; empty when all defaults |
+| `settings_id` | first 8 hex digits of the MD5 of the `START settings=` list: runs with the same id ran the same settings. The list itself is in `metrics.json` and `summary.md` |
 | `cell` | most common non-negative trace `cell` |
 | `result` | `reason` of the first DONE row, else of the last row |
-| `fault` | text of any `FAULT` row or report line |
-| `stopped_early` | `STOP requested_by_driver` arrived before DONE |
+| `fault`, `warnings` | text of any `FAULT` row or report line; Odo autos' `WARNING` lines |
+| `stopped_early` | `STOP` arrived before DONE and there was no fault |
+| `feed1_requested_s`, `feed2_requested_s` | `requested_s=` in the first feeding row's `decision_inputs` (the feed time in effect) |
 | `feed1_start`, `feed1_end` | first volley: first and last `t_s` with `feed_requested=true` while phase is FIRST |
 | `feed2_start`, `feed2_end` | same while phase is SECOND |
 | `both_volleys` | true when `feed1_start` and `feed2_start` are both present |
 | `feed2_cut_by_park` | a PARK phase starts while the second volley is running (reason starts `Park deadline during SECOND`) |
-| `outbound_start`, `collect_start`, `collect_end`, `return_end`, `park_wait_start`, `park_start`, `done_at` | first `t_s` of OUTBOUND, GARDEN or FLOWER, RETURN, SETTLE, PARK_WAIT, PARK, DONE |
+| `outbound_start`, `collect_start`, `collect_end`, `return_end`, `second_start`, `park_wait_start`, `park_start`, `done_at` | first `t_s` of OUTBOUND, GARDEN or FLOWER, RETURN, SETTLE or ALIGN_SHOT or SECOND, SECOND, WAIT or PARK_WAIT, PARK, DONE |
+| `park_reason` | `reason` on the first PARK row: why the robot left for park (for example `Hive not ready for return shot`) |
+| `clear_out_s` | first to last row whose `decision_inputs` has `clear_out_s_left=` (v33 on) |
 | `spin_up_s` | `feed1_start` minus first row where `requested_launcher_tps > 0` |
-| `up_wait_s` | `feed2_start` minus SECOND start (hive check plus settle); for the secondary also FIRST start to `feed1_start` |
+| `up_wait_first_s`, `up_wait_s` | `feed1_start` minus FIRST start; `feed2_start` minus SECOND start (hive check plus settle) |
+| `settle_align_s` | SETTLE or ALIGN_SHOT start to the next other phase |
 | `spare_before_park_s` | `park_start` minus `feed2_end` (negative or blank means no slack) |
-| `return_error_in`, `return_heading_deg` | `x_in`, `y_in`, `heading_deg` on the first SECOND row (S is 0,0,0) |
+| `return_error_in`, `return_heading_deg` | distance from S of `x_in`, `y_in`, and `heading_deg` (-180..180), on the first SECOND row (S is 0,0,0) |
 | `final_x_in`, `final_y_in` | pose on the first DONE row |
 | `min_launcher_tps_feed1`, `min_launcher_tps_feed2` | lowest `measured_launcher_tps` during each volley |
 | `dips_feed1`, `dips_feed2`, `dips_clear_out` | count of drops of `measured_launcher_tps` below 90 % of `requested_launcher_tps` that recover above 95 %, in each window. 10 rows/s can miss short dips: a lower bound, not a ball count |
@@ -120,16 +162,22 @@ this recording"; never write 0 for that.
 | `max_gap_s` | longest gap between consecutive trace rows (loop stalls) |
 | `camera_status_last` | last `camera_status` |
 | `trace_rows`, `trace_status` | row count; report `HUB trace=` value (`NONE (...)` means no trace) |
+| `last_phase`, `notes_filled` | last phase seen; `yes` when any line of `notes.md` has an answer |
 
-For **collection practice** runs add `collect_s` (START to the last collection phase) and the final
-phase. For **Odo autos** add each `PHASE` start time and the `RESULT` line. For **TeleOp** add duration,
-number of R1 presses (rising edges of `r1`), rehearsal count, `slowest_loop_ms` max. For a
-**benchmark** add one line linking the session's `analysis/summary.md` (do not copy it).
+Without a trace (builds before v7) the hive columns come from the report's transition lines:
+phase times and feed windows work; launcher, battery and camera columns stay blank.
+
+For **collection practice** runs: `result` DONE or FAULT, `fault`, `done_at`, `last_phase`, `duration_s`
+(to STOP); its timeline has each phase change and FAULT. For **Odo autos**: `result` from `RESULT`,
+`warnings`, battery, `duration_s`; the timeline has each `PHASE`, `RESULT`, `WARNING` and `STOP`. For
+**TeleOp**: `duration_s`, `r1_presses` (rising edges of `r1`), `rehearsals` (MARK_START rows),
+`slowest_loop_ms` max, battery. For a **benchmark**: `result` (complete or not); `summary.md` names the
+session whose `analysis/summary.md` has the analysis (not copied). **Camera checks**: build, time, STOP line.
 
 ## `timeline.csv` and `slim-trace.csv`
 
 - `timeline.csv`: `t_s, phase, hive_state, feed, reason, x_in, y_in, heading_deg`, one row per report
-  transition line. This is the run at a glance.
+  transition line. This is the run at a glance. Other kinds have their own columns (header row).
 - `slim-trace.csv` (hive autos): every trace row from START until 1 s after the first DONE (or the
   last row), columns `t_s, kind, phase, execution, x_in, y_in, heading_deg, requested_forward,
   requested_strafe, requested_turn, requested_launcher_tps, measured_launcher_tps, applied_intake,
@@ -160,10 +208,11 @@ after each session; leave a field blank rather than guess.
 
 ## What to report after building it
 
-Write `runs/SUMMARY.md` (generated, overwritten each time) with one table per opmode and build,
-LIVE runs only:
+`runs/SUMMARY.md` (generated, overwritten each time) has run counts by kind and build, then one table
+per opmode and build, LIVE hive runs only:
 
-1. Runs, runs with both volleys, runs where the park deadline cut the second volley, faults.
+1. Runs, runs with both volleys, runs where the park deadline cut the second volley, faults, why it
+   left for park.
 2. Median and worst of `spin_up_s`, volley 1, outbound, collection, return, `up_wait_s`, volley 2,
    `spare_before_park_s`.
 3. `last_dip_into_feed*_s` against the feed setting (is 3 s longer than needed?).
@@ -173,12 +222,35 @@ LIVE runs only:
 
 Then tell the mentor, in a few lines, which phase costs the most time and which runs lack notes.
 
+## What the real downloads showed
+
+2026-11-19, Claude local session, 21 sessions on the laptop's Desktop (`[tested]` against those files,
+not on the robot). Corrections to the first draft of this file:
+
+- `[tested]` `START settings=` lists **every** route setting, not only changed ones (v8-v29). Hence
+  `settings_id` instead of `settings_changed`.
+- `[tested]` On these downloads the Hub clock was right: `wall_ms` in Pacific time matched the
+  `DATE-TIME` in TeleOp and auto file names to the second.
+- `[tested]` Phase `WAIT` is the make-room park wait (`In the corner; park with 2.0 s left`); there is no
+  `PARK_WAIT`. Phase `BLOCKED` also occurs.
+- `[tested]` Builds v3-v6 write reports without traces, and v6 reports have no `opmode=` or `wall_ms=`.
+- `[tested]` The same file can differ between sessions (a run downloaded while still being written,
+  and every `*.properties`). The tool keeps the largest copy; `sources.csv` lists all of them.
+- `[tested]` Collection practice CSVs have no `wall_ms`; their time comes from the file name.
+- `[tested]` Scanning the generated `runs/` for network names, passphrases and serials found none.
+
+What the first history says (`runs/SUMMARY.md`, `runs/index.csv`): 29 LIVE match-kind runs (v6-v29);
+7 came back from collection, and 1 of those (v27 Primary, 2026-11-18) fired the second volley. Of the
+other 6: 3 left for park with `Hive not ready for return shot`, 1 with `Return pose did not settle`,
+2 were stopped by the driver. 6 LIVE runs faulted at START: 4 with no alliance chosen, 2 with the
+Pinpoint moved since INIT. No `notes.md` is filled in yet and no v33 run has been downloaded yet.
+
 ## Options considered
 
 | Option | Status | Why |
 | --- | --- | --- |
 | Index and summaries only | Possible | Smallest; loses the per-row data a cloud agent needs to check a timeline |
-| **Index + timelines + slim hive traces + notes** | **Proposed** | Enough to recompute every metric above from Git; tens of KB per run |
+| **Index + timelines + slim hive traces + notes** | **In use** (2026-11-19) | Enough to recompute every metric above from Git; tens of KB per run |
 | Full traces gzipped in Git | Not proposed | ~10x larger, mostly camera tags; the ZIP in Drive already has them |
 | Git LFS or a private data repo for ZIPs | Mentor's call | Keeps raw data versioned; LFS on a public repo has bandwidth limits `[inferred]` |
 
@@ -188,6 +260,7 @@ Then tell the mentor, in a few lines, which phase costs the most time and which 
   during volleys, would give per-ball timing; 10 rows/s is coarse for dips.
 - Partner tip time is only visible through `hive_state` from our camera, and only while the robot
   checks the hive.
-- The Hub clock can be wrong; record the laptop time of each download in `sources.csv` too.
+- The Hub clock can be wrong; `sources.csv` records the laptop time of each download (from the
+  session folder name) as a cross-check.
 - Emergency Odo Park, Emergency Timed Park, Calibration Launcher and Calibration Odometry record
   nothing (see [POLLEN_LOGGING.md](POLLEN_LOGGING.md)).

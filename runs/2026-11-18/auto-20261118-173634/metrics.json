@@ -1,0 +1,22 @@
+{
+ "build": "pollen-hive-v24",
+ "collect_s": 1.9868,
+ "done_at": null,
+ "duration_s": 21.713,
+ "fault": "Find side wall did not settle | node=Find side wall target_in=100.55/194.36 target_deg=277.33 distance_in=1.16 heading_error_deg=2.41 node_s=2.040 no_progress_s=0.755",
+ "first_seen_session": "garden-diagnostics-20261118-173847",
+ "hub_start": "2026-11-18T17:36:34-08:00",
+ "kind": "collection_practice",
+ "last_phase": "Find side wall",
+ "opmode": "garden-practice",
+ "result": "FAULT",
+ "run_id": "auto-20261118-173634",
+ "settings": "{sideLimit=-17.78, intake=1.0}",
+ "settings_id": "64e55cfc",
+ "source_bytes": 1886,
+ "sources": [
+  "auto/auto-20261118-173634.csv 311d790be5d61e60c0bcdbc2433d0cea"
+ ],
+ "stopped_early": false,
+ "tool_version": 1
+}

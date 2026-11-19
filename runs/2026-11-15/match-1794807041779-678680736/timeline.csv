@@ -1,0 +1,11 @@
+t_s,phase,hive_state,feed,reason,x_in,y_in,heading_deg
+0.119,FIRST,UNKNOWN,false,,-0.00,-0.00,0.00
+0.221,GARDEN:,UNKNOWN,false,Drive-only skips shot; garden cycle budget passed,-0.00,-0.00,0.00
+0.303,GARDEN: CLEAR END WALL,UNKNOWN,false,Drive-only skips shot; garden cycle budget passed,-0.00,-0.00,0.00
+1.402,GARDEN: STRAFE TO GARDEN,UNKNOWN,false,Drive-only skips shot; garden cycle budget passed,5.94,-0.01,0.62
+4.033,GARDEN: COLLECT TOWARD WALL,UNKNOWN,false,Drive-only skips shot; garden cycle budget passed,5.65,47.85,359.41
+4.936,GARDEN: COLLECT HOLD,UNKNOWN,false,Drive-only skips shot; garden cycle budget passed,1.06,47.89,1.55
+5.470,GARDEN: BACK AWAY FROM WALL,UNKNOWN,false,Drive-only skips shot; garden cycle budget passed,1.12,47.89,1.80
+6.218,GARDEN: RETURN ACROSS,UNKNOWN,false,Drive-only skips shot; garden cycle budget passed,6.36,47.93,358.62
+8.868,GARDEN: RETURN SHOOT POSITION,UNKNOWN,false,Drive-only skips shot; garden cycle budget passed,5.55,0.06,359.75
+10.765,DONE,UNKNOWN,false,RETURN SHOOT POSITION no odometry progress,3.41,-1.45,349.96

@@ -1,0 +1,17 @@
+t_s,phase,hive_state,feed,reason,x_in,y_in,heading_deg
+0.072,FIRST,UNKNOWN,false,,0.00,0.00,0.00
+0.578,FIRST,UP,false,Waiting for measured launcher speed,-0.00,-0.00,0.01
+0.841,FIRST,UP,true,"Stable UP, 50.1 in",0.00,0.00,359.99
+1.240,FIRST,UP,false,Waiting for measured launcher speed,0.00,0.00,359.99
+1.498,FIRST,UP,true,"Stable UP, 50.2 in",0.00,0.01,360.00
+2.005,FIRST,UP,false,Waiting for measured launcher speed,0.00,0.00,359.99
+2.264,FIRST,UP,true,"Stable UP, 50.0 in",0.00,0.01,0.01
+2.769,FIRST,UP,false,Waiting for measured launcher speed,0.01,0.00,359.98
+2.978,FIRST,UP,true,Waiting for new camera frame,0.01,0.01,360.00
+3.105,COAST,UP,false,"Stable UP, 50.1 in",0.01,0.01,0.00
+3.163,COAST,UNKNOWN,false,"Stable UP, 50.1 in",0.01,0.01,360.00
+5.133,PARK:,UNKNOWN,false,Garden skipped: flywheel did not stop,0.00,0.00,0.05
+5.162,PARK: PARK CLEAR,UNKNOWN,false,Garden skipped: flywheel did not stop,0.00,0.00,0.05
+5.783,PARK: PARK CORNER,UNKNOWN,false,Garden skipped: flywheel did not stop,3.63,-0.05,0.01
+7.413,PARK: PARK,UNKNOWN,false,Garden skipped: flywheel did not stop,3.91,24.62,0.20
+10.543,DONE,UNKNOWN,false,Finished departure,87.92,43.36,359.76

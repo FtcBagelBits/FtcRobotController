@@ -1,0 +1,6 @@
+t_s,phase,hive_state,feed,reason,x_in,y_in,heading_deg
+0.122,FIRST,UNKNOWN,false,,0.00,0.00,0.00
+5.115,PARK:,UNKNOWN,false,No first-shot feed before window ended,0.01,-0.01,0.07
+5.198,PARK: PARK CLEAR,UNKNOWN,false,No first-shot feed before window ended,0.01,-0.01,0.06
+5.943,PARK: PARK CORNER,UNKNOWN,false,No first-shot feed before window ended,4.38,-0.04,0.59
+7.808,PARK: PARK,UNKNOWN,false,No first-shot feed before window ended,3.85,25.05,359.71

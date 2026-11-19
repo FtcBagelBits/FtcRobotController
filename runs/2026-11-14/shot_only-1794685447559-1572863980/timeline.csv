@@ -1,0 +1,5 @@
+t_s,phase,hive_state,feed,reason,x_in,y_in,heading_deg
+0.088,FIRST,UNKNOWN,false,,0.00,-0.00,0.00
+0.615,FIRST,UP,true,"Stable UP, 49.7 in",-0.00,-0.00,0.00
+2.147,DONE,UP,false,Stationary shot complete,-0.00,-0.00,0.00
+2.354,DONE,UNKNOWN,false,Stationary shot complete,-0.00,-0.00,0.00

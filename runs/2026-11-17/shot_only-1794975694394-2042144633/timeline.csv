@@ -1,0 +1,10 @@
+t_s,phase,hive_state,feed,reason,x_in,y_in,heading_deg
+0.111,FIRST,UNKNOWN,false,,0.00,0.00,0.00
+3.837,FIRST,UP,false,Timing confirmed hive UP,0.01,-0.00,359.97
+4.131,FIRST,UNKNOWN,false,Tags disagree/outside bands: 52.6-53.4 in (mean 53.0),0.01,-0.00,359.98
+4.523,FIRST,UP,false,Timing confirmed hive UP,0.01,-0.00,359.97
+4.592,FIRST,UNKNOWN,false,Tags disagree/outside bands: 53.0-53.1 in (mean 53.1),0.01,-0.00,359.97
+17.002,FIRST,UP,false,Timing confirmed hive UP,0.01,-0.01,359.99
+18.009,FIRST,UP,true,Feeding: hive UP latched,0.01,-0.01,359.99
+22.048,DONE,UP,false,Stationary shot complete,0.01,-0.01,0.01
+22.249,DONE,UNKNOWN,false,Stationary shot complete,0.02,-0.01,360.00

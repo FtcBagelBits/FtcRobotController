@@ -1,0 +1,11 @@
+t_s,kind,phase,execution,x_in,y_in,heading_deg,requested_forward,requested_strafe,requested_turn,requested_launcher_tps,measured_launcher_tps,applied_intake,applied_agitator,feed_requested,hive_state,cell,battery_v,launcher_current_a,clear_out
+0.07,TRANSITION,DONE,LIVE,0.00,215.26,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,false,UNKNOWN,30,11.99,0.00,false
+0.17,SAMPLE,DONE,LIVE,0.00,215.26,360.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,false,UNKNOWN,30,11.99,0.00,false
+0.28,SAMPLE,DONE,LIVE,0.00,215.26,360.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,false,UNKNOWN,30,12.01,0.00,false
+0.39,SAMPLE,DONE,LIVE,0.00,215.26,360.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,false,UNKNOWN,30,12.00,0.00,false
+0.49,SAMPLE,DONE,LIVE,0.00,215.26,360.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,false,UNKNOWN,30,12.00,0.00,false
+0.62,SAMPLE,DONE,LIVE,0.00,215.26,360.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,false,UNKNOWN,30,12.00,0.00,false
+0.72,SAMPLE,DONE,LIVE,0.00,215.26,360.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,false,UNKNOWN,30,12.00,0.00,false
+0.82,SAMPLE,DONE,LIVE,0.00,215.26,360.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,false,UNKNOWN,30,11.99,0.00,false
+0.93,SAMPLE,DONE,LIVE,0.00,215.26,360.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,false,UNKNOWN,30,12.00,0.00,false
+1.03,SAMPLE,DONE,LIVE,0.00,215.26,360.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,false,UNKNOWN,30,12.00,0.00,false
