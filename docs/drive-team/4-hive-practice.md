@@ -1,6 +1,6 @@
 # Hive match setup and practice
 
-**Build pollen-hive-v32 - experimental.** Print front/back. Full steps: `docs/POLLEN_HIVE_TESTING.md`.
+**Build pollen-hive-v33 - experimental.** Print front/back. Full steps: `docs/POLLEN_HIVE_TESTING.md`.
 Keep existing match autos available. Rear camera/launcher face hive; **front intake faces end wall**.
 
 <img src="img/hive-height.svg" style="width:4.3in">
@@ -53,9 +53,9 @@ false UP _____ / 20. Capture reports save automatically. The screen tests the **
 
 Validate the camera, then test shot-only in DRY and LIVE and garden in DRIVE and LIVE before
 running full autos. Keep someone on STOP and check Pinpoint READY. Match autos and Hero pre-spin on
-return. The **Park margin s** row defaults to **1.0 s** and adjusts in **0.5 s** steps. Park can interrupt feed.
-LIVE feeds from a settled pose at measured launcher speed for up to **3 s**. The return shot and
-secondary preload also require more than **1 s** of confirmed UP.
+return. **Park margin s** defaults to **1.0 s** (0.5 s steps). Park can interrupt feed.
+LIVE feeds from a settled pose at measured launcher speed for up to **3 s**. The return shot and secondary
+preload need over **1 s** of confirmed UP. Match volleys add **3 s** of agitator + launcher (**Clear-out s**).
 
 ## Motor-mode INIT menu
 

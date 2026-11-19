@@ -28,6 +28,8 @@ public final class PollenHiveAuto {
     private double began,phaseAt,previous=Double.NaN,feedSeconds,settledAt=Double.NaN,px,py,ph;
     private double hiveUpSince=Double.NaN;
     private double alignUntil;
+    /** Clear-out after a volley: agitator and launcher keep running until this time. */
+    private double clearOutUntil=Double.NEGATIVE_INFINITY;
     private boolean started,wasFeeding,departed,hiveUpLatched;
     private String reason="",motionPhase="",decision="before first tick";
     public PollenHiveAuto(PollenHiveRoute config,IsHiveReadyForShot hive) { this(config,hive,Run.MATCH); }
@@ -41,7 +43,7 @@ public final class PollenHiveAuto {
     public void start(double now) { start(now,now); }
     void start(double now,double timerStart) { began=timerStart; phaseAt=previous=now; started=true; hive.reset(); }
     boolean checksHive() { return phase==Phase.SECOND||(phase==Phase.FIRST&&config.secondary); }
-    public Output stop(String why) { phase=Phase.DONE; reason=why; wasFeeding=false; return zero(); }
+    public Output stop(String why) { phase=Phase.DONE; reason=why; wasFeeding=false; endClearOut(); return zero(); }
     private Output zero() { Output o=new Output(); o.phase=phase.toString(); o.reason=reason; o.decision=decision; o.finished=phase==Phase.DONE; return o; }
     public Output tick(double now,IsHiveReadyForShot.Frame frame,double x,double y,double h,double velocity,boolean odometryReady) {
         if(!started) return stop("Not started");
@@ -124,6 +126,8 @@ public final class PollenHiveAuto {
                 boolean firstWindow=collectionKind==null&&!volleyStarted&&phase==Phase.FIRST&&!config.secondary&&now-phaseAt>=config.v[5];
                 if(feedSeconds>=requested||firstWindow) {
                     if(run==Run.SHOT_ONLY) return stop(firstWindow?"Shot window ended":"Stationary shot complete");
+                    // A finished volley may leave balls behind: keep clearing while the robot moves on.
+                    if(collectionKind!=null&&feedSeconds>0) startClearOut(now);
                     if(phase==Phase.FIRST&&collectionKind!=null&&feedSeconds>0) {
                         outbound(now,"First feed duration complete");
                     }
@@ -218,11 +222,27 @@ public final class PollenHiveAuto {
         }
         if(collectionKind!=null&&config.v[0]!=1&&(phase==Phase.RETURN||phase==Phase.SETTLE||phase==Phase.ALIGN_SHOT||phase==Phase.SECOND))
             o.launcher=config.v[6];
+        if(phase!=Phase.DONE) applyClearOut(o,now);
         o.finished=phase==Phase.DONE;
         o.phase=phase+((phase==Phase.OUTBOUND||phase==Phase.GARDEN||phase==Phase.FLOWER
                 ||phase==Phase.RETURN||phase==Phase.ROOM||phase==Phase.PARK)?": "+motionPhase:"");
         o.reason=reason; o.decision=decision;
         return o;
+    }
+    /** Clear-out: after a match volley, the agitator keeps delivering and the launcher keeps
+     * shooting for the same set seconds, so the robot is empty before it collects again. Both stop
+     * on the same tick, so the agitator never pushes a ball into a stopped launcher. Only the
+     * agitator and launcher; it never sets feed, never touches the intake or the wheels. */
+    private void startClearOut(double now) {
+        if(config.v[0]==1) return;
+        clearOutUntil=now+config.clearOutSeconds();
+    }
+    private void endClearOut() { clearOutUntil=Double.NEGATIVE_INFINITY; }
+    private void applyClearOut(Output o,double now) {
+        if(now>=clearOutUntil) return;
+        o.agitator=Math.max(o.agitator,config.v[12]);
+        o.launcher=Math.max(o.launcher,config.v[6]);
+        decision+=String.format(Locale.US," clear_out_s_left=%.2f",clearOutUntil-now);
     }
     private void alignForReturnShot(double now,double headingError) {
         alignUntil=now+PollenOdometryDrive.turnTimeoutSeconds(Math.abs(headingError),config.v[8]);
@@ -277,12 +297,14 @@ public final class PollenHiveAuto {
             route=combined;
         }
         collection=null;
+        endClearOut(); // the park deadline wins over clearing
         reason=why;
         motion=new PollenHiveMotion(route);
         enter(Phase.PARK,now);
     }
     private void park(double now,String why) {
         if(run!=Run.MATCH) { stop(why); return; }
+        endClearOut();
         if(config.makeRoom&&phase!=Phase.WAIT) {
             // Make room: get out of the hero's way first; WAIT parks with the set seconds left.
             reason=why+"; making room in the corner"; motion=new PollenHiveMotion(config.corner()); enter(Phase.ROOM,now); return;

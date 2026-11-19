@@ -1,3 +1,15 @@
+# v33 clear-out after each volley
+
+Balls were left in the robot after the first volley, and collecting more then overloaded it. In the
+Match autos and Hero, a finished volley now starts a clear-out: the agitator and launcher keep
+running together for **Clear-out s after volley** (3 s) while the route continues. One time for both,
+because the agitator meters balls into the launcher: a ball delivered after the launcher stopped could
+jam. It is not a feed (the trace's `feed_requested` stays false; the decision column adds
+`clear_out_s_left=`), it never touches the intake or wheels, it does not run in DRIVE, and the park
+deadline cancels it. It costs no route time. Set the row to 0 for the v32 behavior. Calibration modes
+and Out of the Way are unchanged. Field checks: count balls left in the robot at the garden or flower;
+see whether balls fired while backing away land in the hive.
+
 # v27 secondary startup: zero Pinpoint during INIT
 
 On the Nov. 18 v26 red Secondary Shooter run, Pinpoint passed the READY check at START.
@@ -79,7 +91,8 @@ approximate start time, ball counts and whether any STOP was intentional. Video 
 5. **Beta Test Primary Shooter + Garden, LIVE.** Only once unexpected motion is resolved and the
    isolated tests pass. Check effective INIT settings again (practice and full modes share saved
    route values; Execution is never saved). With the cell UP throughout, expect first shot, direct
-   garden departure, collection, return, second shot and park. Confirm no unwanted balls exit during
+   garden departure, collection, return, second shot and park. Since v33 the clear-out fires leftover
+   balls during the first 3 s of travel; after that, confirm no unwanted balls exit during
    travel/collection. Do not increase feed duration/window yet; keep the time budget comparable.
 6. **Hive-state checks.** With the cell DOWN on return, no second feed while DOWN; it may wait until
    the parking reserve requires departure. With the cell DOWN from START, the primary still feeds

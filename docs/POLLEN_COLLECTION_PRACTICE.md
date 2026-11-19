@@ -84,6 +84,10 @@ In Secondary Shooter + Flower, **Sideways power** defaults to 0.40. D-pad left/r
 0.05, up to 0.50. **Intake power** during collection and **Beta shooting intake power** both
 default to 1.00. Press **Square** to save match edits or run them immediately after editing.
 After the first volley, each backs clear of the end wall and aligns with its collection lane.
+While it leaves, the **Clear-out s after volley** row (3 s) keeps the agitator and launcher running
+together to empty the robot; on the secondary both can still be running for the first part of the
+flower approach. The same clear-out runs after the return volley while the robot waits
+to park.
 The two **Match collection entry** rows tune where the match auto starts collection, in route
 coordinates measured from the shooting pose. In particular, adjust the secondary's lateral row
 to center the drainer in the flower opening. The default offsets come from the practice traces

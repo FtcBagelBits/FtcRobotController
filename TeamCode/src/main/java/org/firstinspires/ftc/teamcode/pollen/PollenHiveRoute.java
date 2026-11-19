@@ -25,6 +25,7 @@ public final class PollenHiveRoute {
     private static final int MATCH_FEED_INTAKE=39;
     private static final int MATCH_PARK_SECONDS=40;
     private static final int PARK_MARGIN=41;
+    private static final int CLEAR_OUT=42;
     private static final String COLLECTION_PREFIX="collection.";
     public PollenHiveRoute(boolean secondary) { this(secondary,false); }
     public PollenHiveRoute(boolean secondary,boolean makeRoom) {
@@ -116,6 +117,8 @@ public final class PollenHiveRoute {
         return settings;
     }
     double feedIntake(boolean collectionMatch) { return v[collectionMatch?MATCH_FEED_INTAKE:11]; }
+    /** Seconds the agitator and launcher keep running together after a match volley ends, to empty the robot. */
+    double clearOutSeconds() { return v[CLEAR_OUT]; }
     double feedDuration(boolean second, boolean collectionMatch) {
         if(collectionMatch) return v[second?MATCH_SECOND_FEED:MATCH_FIRST_FEED];
         return v[second?4:3];
@@ -129,6 +132,7 @@ public final class PollenHiveRoute {
         for(int i:new int[]{MATCH_FIRST_FEED,MATCH_SECOND_FEED})
             if(v[i]<0||v[i]>20) throw new IllegalArgumentException("Invalid beta feed duration");
         if(v[MATCH_FEED_INTAKE]<0||v[MATCH_FEED_INTAKE]>1) throw new IllegalArgumentException("Invalid beta shooting intake power");
+        if(v[CLEAR_OUT]<0||v[CLEAR_OUT]>6) throw new IllegalArgumentException("Invalid clear-out time");
         if(v[MATCH_PARK_SECONDS]<.5||v[MATCH_PARK_SECONDS]>20) throw new IllegalArgumentException("Invalid beta measured parking time");
         PollenCollectionSequence.validate(collectionKind(),collectionSettings());
         checkPark(collectionOutbound(),0,0);

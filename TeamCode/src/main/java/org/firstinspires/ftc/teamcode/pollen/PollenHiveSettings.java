@@ -90,6 +90,11 @@ public final class PollenHiveSettings {
         row("matchParkSeconds", "Beta measured park drive s", 5.46, 3.47, .1, .5, 20),
         row("parkMargin", "Park margin s", PollenConfig.DEFAULT_PARK_MARGIN, PollenConfig.DEFAULT_PARK_MARGIN,
                 PollenConfig.PARK_MARGIN_STEP, 0, PollenConfig.MAX_PARK_MARGIN),
+        // Match autos and Hero only: after a volley finishes, keep the agitator AND launcher running
+        // this long to clear leftover balls before collecting. One time for both, so the agitator never
+        // delivers a ball into a stopped launcher (jam). It overlaps the drive (no time cost) and stops
+        // early if the park deadline comes. 0 turns it off.
+        row("clearOut", "Clear-out s after volley", 3, 3, .5, 0, 6),
     };
 
     /** Camera rows, shared by all hive modes (one saved file). See IsHiveReadyForShot. */

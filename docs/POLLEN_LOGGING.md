@@ -120,4 +120,5 @@ converted.
 5. Check the date in a file name against the real time. The file names and `wall_ms` use the
    Hub's clock, which the SDK only corrects when it is wildly wrong.
 
-Evidence and open options: [research note](research/logging-and-rehearsal.md).
+Evidence and open options: [research note](research/logging-and-rehearsal.md). What to keep in Git
+from downloaded runs: [run history](RUN_HISTORY.md).
