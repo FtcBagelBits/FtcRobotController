@@ -13,7 +13,7 @@ After autonomous it is already selected for you: just press INIT, then START.
 | **Right stick** | Turn |
 | **Cross (A), tap** | Lower the flower drainer and run the intake inward at full power. Tap again to raise it and return intake control to the triggers. |
 | **D-pad Up / Down** | Nudge the drainer one step. Reaching the opposite preset switches intake mode. |
-| **Right trigger** | Intake in (squeeze harder = faster) |
+| **Right trigger** | Intake in (squeeze harder = faster). Manual agitator power tops out at 0.50. |
 | **Left trigger** | Intake out (spits pollen back out) |
 | **R1, hold** | Shoot. The launcher spins up, then feeds by itself and keeps feeding until you let go. |
 | **Square, hold** | **Unjam with drainer up:** runs the launcher slowly backwards to push a stuck ball out. While you hold Square nothing feeds, even if R1 is held too. |
@@ -42,7 +42,7 @@ You can change these settings before START. Usually leave them alone.
 - **D-pad UP/DOWN:** pick a row (marked `>`). **D-pad LEFT/RIGHT:** change it. Tap and let go.
 - **Triangle:** all back to the defaults. The screen says `Settings: DEFAULTS` or `CHANGED - check before START`.
 - Settings stay until the robot app restarts, so **check the INIT screen before every match**.
-- The screen should show **Build `pollen-hive-v20`**.
+- The screen should show **Build `pollen-hive-v32`**.
 - **Keep the robot still during INIT.** The robot records every TeleOp run for the programmers.
   If the screen shows `STORAGE WARNING`, tell a mentor after the match; the robot still drives.
 

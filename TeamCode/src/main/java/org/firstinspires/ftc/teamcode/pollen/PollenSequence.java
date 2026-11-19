@@ -152,6 +152,8 @@ public final class PollenSequence {
 
     private final Step[] steps;
     private final double targetVelocity, spinupSeconds, deadline, startDelay;
+    private final int parkStart;
+    private final double parkDeparture;
     /** Which step is running, and whether its clock has started. */
     private int index;
     private boolean stepActive;
@@ -173,10 +175,14 @@ public final class PollenSequence {
 
     /** Drive-only route: callers do not need irrelevant launcher settings. */
     public static PollenSequence park(Step[] steps, double deadline, double startDelay) {
+        return park(steps,deadline,startDelay,PollenConfig.DEFAULT_PARK_MARGIN);
+    }
+
+    public static PollenSequence park(Step[] steps, double deadline, double startDelay, double margin) {
         if (steps != null) for (Step step : steps) {
             if (step != null && step.kind == Kind.SHOOT) throw new IllegalArgumentException("Park route cannot shoot");
         }
-        return new PollenSequence(steps, 0, 0, deadline, startDelay);
+        return new PollenSequence(steps, 0, 0, deadline, startDelay,-1,margin);
     }
 
     /** A shoot step runs the launcher at {@code targetVelocity}. Feeding starts when the launcher
@@ -185,10 +191,17 @@ public final class PollenSequence {
      * time: it never delays, skips or stops the feed. */
     public PollenSequence(Step[] steps, double targetVelocity, double spinupSeconds,
                           double deadline, double startDelay) {
+        this(steps,targetVelocity,spinupSeconds,deadline,startDelay,-1,PollenConfig.DEFAULT_PARK_MARGIN);
+    }
+
+    PollenSequence(Step[] steps, double targetVelocity, double spinupSeconds,
+                   double deadline, double startDelay,int parkStart,double margin) {
         if (steps == null || steps.length == 0 || !Double.isFinite(targetVelocity) || targetVelocity < 0
                 || !Double.isFinite(spinupSeconds) || spinupSeconds < 0
                 || !Double.isFinite(deadline) || deadline <= 0
-                || !Double.isFinite(startDelay) || startDelay < 0) {
+                || !Double.isFinite(startDelay) || startDelay < 0
+                || !Double.isFinite(margin) || margin<0 || margin>PollenConfig.MAX_PARK_MARGIN
+                || parkStart< -1 || parkStart>=steps.length) {
             throw new IllegalArgumentException("Invalid sequence settings");
         }
         for (Step step : steps) {
@@ -196,7 +209,7 @@ public final class PollenSequence {
                 throw new IllegalArgumentException("A shooting step needs a launcher velocity");
         }
         // Leave room for transition loops; the independent deadline always stops outputs.
-        if (startDelay + worstCaseDuration(steps, spinupSeconds) >= deadline - 1) {
+        if (startDelay + worstCaseDuration(steps, spinupSeconds) >= deadline - margin) {
             throw new IllegalArgumentException("Route exceeds autonomous time budget");
         }
         this.steps = steps.clone();
@@ -204,6 +217,9 @@ public final class PollenSequence {
         this.spinupSeconds = spinupSeconds;
         this.deadline = deadline;
         this.startDelay = startDelay;
+        this.parkStart = parkStart;
+        parkDeparture = parkStart<0 ? Double.POSITIVE_INFINITY : deadline-margin
+                -worstCaseDuration(java.util.Arrays.copyOfRange(steps,parkStart,steps.length),spinupSeconds);
     }
 
     /** Route duration, excluding start delay and loop-transition reserve. */
@@ -270,6 +286,12 @@ public final class PollenSequence {
 
         // Run the current step.
         Step step = steps[index];
+        if(index<parkStart&&now-startedAt>=parkDeparture
+                &&(step.kind==Kind.SHOOT||step.name.equals("NO SHOOTER / WAIT FOR DEPARTURE"))) {
+            index=parkStart;
+            stepActive=false;
+            step=steps[index];
+        }
         if (!stepActive) beginStep(now);
         double elapsed = now - stepStartedAt; // seconds since this step began
         if (step.kind == Kind.SHOOT) return shootStep(step, elapsed, launcherVelocity);

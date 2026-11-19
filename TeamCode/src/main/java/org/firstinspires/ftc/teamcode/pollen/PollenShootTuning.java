@@ -40,6 +40,7 @@ public final class PollenShootTuning {
         LEG2_ANGLE("Leg 2 angle deg (+left)", -90, 90, 1, 90),
         LEG3_CM("Leg 3 cm, to park (0 = skip)", 0, 350, 5, 0),
         LEG3_ANGLE("Leg 3 angle deg (+left)", -90, 90, 1, 0),
+        PARK_MARGIN("Park margin s", 0, PollenConfig.MAX_PARK_MARGIN, PollenConfig.PARK_MARGIN_STEP, PollenConfig.DEFAULT_PARK_MARGIN),
         /** Angled mode only (see rows()): the heading the robot turns to for the shot. */
         AIM_ANGLE("Aim angle deg for the shot (+left)", -60, 60, 1, 0);
 
@@ -238,7 +239,7 @@ public final class PollenShootTuning {
             notice = "Change rejected: the robot would hit the wall turning there. Raise Leg 1 first.";
         } else if (!accepted) {
             values[f.ordinal()] = old;
-            notice = wasOk ? "Change rejected: total must be <26s."
+            notice = wasOk ? "Change rejected: route exceeds the parking budget."
                     : overBudgetNotice() + " That change made it longer.";
         } else notice = budgetOk() ? "" : overBudgetNotice();
         if (accepted && value(f) != old && isLegRow(f)) route = Route.EDITED;
@@ -319,8 +320,10 @@ public final class PollenShootTuning {
 
     /** True when these settings fit the time budget; START refuses otherwise. */
     public boolean budgetOk() {
-        return worstCaseSeconds() < DEADLINE - 1;
+        return worstCaseSeconds() < DEADLINE - parkMargin();
     }
+
+    public double parkMargin() { return value(Field.PARK_MARGIN); }
 
     /** Seconds from START until feeding begins AT THE LATEST (delay + the whole spin-up time),
      * assuming a normal loop. The primary shooter feeds sooner if its launcher is up to speed
@@ -349,8 +352,8 @@ public final class PollenShootTuning {
 
     private String overBudgetNotice() {
         return String.format(java.util.Locale.US,
-                "OVER TIME BUDGET: %.2f s planned, must be < %.0f s. Lower delay or feed, raise power, "
-                        + "or shorten legs; Triangle = defaults. Will not start.", worstCaseSeconds(), DEADLINE - 1);
+                "OVER TIME BUDGET: %.2f s planned, must be < %.1f s. Lower delay or feed, raise power, "
+                        + "or shorten legs; Triangle = defaults. Will not start.", worstCaseSeconds(), DEADLINE - parkMargin());
     }
 
     public boolean supporting() { return supporting; }
@@ -440,17 +443,19 @@ public final class PollenShootTuning {
         // agreed with the partner; the primary shooter feeds as soon as its launcher is ready.
         if (shoots) route.add(feedsWhenUpToSpeed() ? PollenSequence.Step.continuousShoot(value(Field.FEED_SECONDS))
                 : PollenSequence.Step.shootAtSetTime(value(Field.FEED_SECONDS)));
+        int parkStart = route.size();
         if (turns) route.add(aimTurn("TURN BACK", 0));
         if (supporting && !shooterAvailable && value(Field.FEED_SECONDS) > 0)
             // Hold still through the spin-up and feed slot so C still departs after the partner.
             route.add(PollenSequence.Step.drive("NO SHOOTER / WAIT FOR DEPARTURE",
                     value(Field.SPINUP) + value(Field.FEED_SECONDS), 0, 0, 0));
+        if (supporting && !shooterAvailable) parkStart = route.size();
         for (int leg = angled ? 3 : 1; leg <= LEGS; leg++) addLeg(route, leg);
         if (!odometry) route.add(PollenSequence.Step.drive("PARK / HOLD", HOLD_SECONDS, 0, 0, 0));
         // Odometry: the prep steps run inside the start delay, so the shot still starts on time.
         double delay = odometry ? Math.max(0, value(Field.START_DELAY) - odometryPrepSeconds()) : value(Field.START_DELAY);
         return new PollenSequence(route.toArray(new PollenSequence.Step[0]), value(Field.FLYWHEEL),
-                value(Field.SPINUP), DEADLINE, delay);
+                value(Field.SPINUP), DEADLINE, delay, parkStart < route.size() ? parkStart : -1, parkMargin());
     }
 
     /** Adds leg 1, 2 or 3 to the route: an odometry move, or a timed drive in the timed modes.

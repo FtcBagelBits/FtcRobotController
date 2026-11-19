@@ -5,7 +5,7 @@ For the v8 motion investigation and exact retest order, see [Hive auto diagnosti
 Intermittent tags? Start with the [automatic pipeline benchmark](POLLEN_HIVE_BENCHMARK.md).
 It records raw detections before calibration passes; the current confirmation rule is unchanged.
 
-Build **pollen-hive-v20**. Experimental, for field testing. Keep the existing match autos available.
+Build **pollen-hive-v32**. The two tested Hive shooters are in Match. Hero and Out of the Way are in Beta Test.
 Print [the two-page practice sheet](drive-team/print/4-hive-practice.pdf). This guide explains the
 controls and checks in full; the patch kit README covers applying, building, installing and pushing.
 
@@ -14,14 +14,15 @@ controls and checks in full; the patch kit README covers applying, building, ins
 | Driver Hub entry | INIT default | Motor permissions and end condition |
 | --- | --- | --- |
 | Calibration Hive Camera (No Motors) | No execution row | In the **TeleOp list** (no 30-second timer). Never maps motors or odometry. Continuous camera readiness until STOP. |
-| Calibration Primary Shot Only | DRY | No drive in any execution setting. LIVE enables launcher and feed. Completes one volley if started within the primary window, then DONE. |
+| Calibration Primary Shot Only | DRY | No drive. LIVE enables launcher and feed. Starts without a Hive UP check within the primary window, then finishes the volley and stops. |
 | Calibration Secondary Shot Only | DRY | No drive. LIVE enables launcher and feed. Waits for UP, one volley, then DONE; 27 s limit. |
 | Calibration Garden + Return | DRIVE | No launcher or agitator in any setting. LIVE adds collection intake. Returns to original S and stops; no shot/park. |
-| Beta Test Primary Shooter + Garden | LIVE | Shoot, collect, return, wait/shoot if UP, park. |
-| Beta Test Secondary Shooter | LIVE | Wait for UP, shoot, park. |
-| Beta Test Secondary Shooter - Make Room | LIVE | Play 2 (partner is the hero): wait for UP, shoot, drive to the scoring-end/side-wall corner and wait there, park in the outer slot with 2 s left before the 27 s stop. Shares the secondary's saved settings. |
+| Primary Shooter + Garden | LIVE | Shoot, collect on one forward garden pass, return to S, shoot again if UP, then park. 30 s cutoff. |
+| Secondary Shooter + Flower | LIVE | Wait for UP, shoot, drain the nearby flower with two swings and one cleanup cycle, return to S, shoot again if UP, then park. 30 s cutoff. |
+| Beta Primary Shooter - Hero | LIVE | Runs the primary garden route with its own saved tuning profile. |
+| Beta Secondary Shooter - Out of the Way | LIVE | Wait for UP, shoot, move to the scoring-end/side-wall corner, and leave for the outer parking slot when the estimated park drive plus margin remains. Shares the secondary's saved settings. |
 
-**Beta Test INIT:** First row, left = RED or right = BLUE. Check the target IDs before START.
+**Match and Beta Test INIT:** First row, left = RED or right = BLUE. Check the target IDs before START.
 
 The three isolated motor tests use the same controller/settings as the full autos. They still need
 Pinpoint READY and correct motor names. **Execution resets to the default above every INIT and is
@@ -29,9 +30,13 @@ never saved.** DRY uses virtual launcher readiness and commands zero real motor 
 commands only the drivetrain. LIVE enables the mechanisms allowed by the selected test.
 Camera-only testing needs just the configured Limelight and the Hub; it does not need Pinpoint.
 
+Place the robot at the shooting mark before pressing INIT and keep it stationary while Pinpoint
+zeros its position and heading. Wait for READY. If you move the robot to a new starting spot,
+press STOP and INIT again to use that spot as the origin.
+
 ## Before the hive is available
 
-1. Apply/build/install the patch. Verify `BUILD pollen-hive-v20` on the Driver Hub.
+1. Apply/build/install the patch. Verify `BUILD pollen-hive-v32` on the Driver Hub.
 2. Mount the Limelight 3A rigidly on the back, looking toward the hive, with negligible camera
    roll. Measure tiles to **lens center**; 11.75 inches is the default, not a substitute for measuring.
 3. Connect USB-C on the Limelight to the Hub's blue USB-A 3.0 port. Configure it as `limelight`.
@@ -52,7 +57,7 @@ reset. START uses the displayed settings even if not yet saved.
 | Camera row | Default | What to do |
 | --- | --- | --- |
 | Lens height | 11.75 in (robot, 2026-11-17) | Measure floor to lens center. |
-| UP tag height | 49.7 in | Measure floor to center of the tag row on the physically UP cell. |
+| UP tag height | 50.7 in | The center used by the classifier. Replay of v28 and v29 return frames favored 50.7 in. Verify on a visibly UP cell from the shooting spot. |
 | DOWN tag height | 35.6 in | Measure on the physically DOWN cell when practical. |
 | Tilt up | 31.6 deg (robot, 2026-11-17) | Refit after START with Square if the mount moves, then validate and save with Cross. |
 | Sideways correction | 2.62 in (robot, 2026-11-17) | Fitted with tilt if at least 10 accepted frames see all four tags. |
@@ -134,18 +139,18 @@ changing lens height, or changing pipeline geometry/resolution/downscale. Confir
 
 ## Fast motor-testing loop
 
-1. **Primary shot ONLY, DRY:** at the proper S pose, test UP, DOWN, obscured tags. Virtual flywheel,
-   no motors. It finishes a volley/window; use camera-only mode for indefinite observation.
+1. **Primary shot ONLY, DRY:** at the proper S pose, confirm the simulated preload starts with
+   the hive DOWN or out of view. DRY uses virtual flywheel speed and keeps all motors off.
 2. **Primary shot ONLY, LIVE:** small batch, clear shot area, someone on STOP. No drive output.
-   Starting feed needs settled odometry, more than 1 s of confirmed UP, and measured launcher
-   speed at or above 96% of target. Repeat at the secondary start in secondary shot ONLY.
+   Starting feed needs settled odometry and measured launcher speed at or above 96% of target.
+   Repeat at the secondary start in secondary shot ONLY, which also requires more than 1 s of confirmed UP.
 3. **Garden + return, DRIVE, no balls:** start at normal primary S. It skips shooting, drives the
    existing CAD route, returns and settles at S, then DONE. No park and no coordinate re-zero midrun.
 4. **Garden + return, LIVE:** collection intake runs on pickup/hold, launcher and agitator stay off.
    Check actual pickup, retention with a stopped flywheel, clearances and return error.
-5. **Full primary / secondary, LIVE:** integrate only after the isolated tests work. First run
-   with small batches. Tip before the return shot to confirm waiting; tip UP to confirm resuming.
-   Keep the 27-second deadline and departure reserve. Existing match autos remain available.
+5. **Full primary / secondary, LIVE:** integrate after the isolated tests work. First run with
+   small batches. Record when PARK starts and whether the robot arrives before the 30 s cutoff.
+   The trace records the last phase and pose if the timer interrupts travel.
 
 Motor tests use the regular INIT menu: D-pad row/value, LB/RB jump five, Triangle resets one row,
 Square saves. **Circle resets route values only, keeping camera settings and selected Execution.**
@@ -198,7 +203,7 @@ resets, until 0.20 s have passed since the last sighting. Uncalibrated, invalid,
 observations produce UNKNOWN. Only UP grants camera readiness. Camera input rejects wrong pipeline,
 invalid poses, duplicate IDs, stale SDK results and excessive total image latency.
 
-The three Beta Test autos open on Alliance, then Execution, then Start delay. Press D-pad left
+The Match and Beta Test Hive autos open on Alliance, then Execution, then Start delay. Press D-pad left
 for RED or right for BLUE every INIT. Check the displayed tag range. START without a selection
 blocks the run. Press STOP and INIT to retry. Triangle on Alliance clears the choice. Circle keeps
 the current alliance and execution. Square saves tuning; the match choice never overwrites a calibration profile.
@@ -207,9 +212,10 @@ Alliance and shooter role select the eligible cluster. Its measured tag heights 
 In calibration, Side AUTO locks the nearest eligible cell after four consecutive fresh observations. Primary
 allows cells 34/42, secondary 30/38; RED or BLUE forces the appropriate one. Losing observations
 before identification now restarts its count. An established lock survives the garden trip.
-INIT uses the production detector too, so it does not call an average of conflicting tags UP.
+Secondary INIT uses the production detector. Primary shooter INIT shows the configured target
+without checking its state. Use the camera-only mode to check UP or DOWN before a run.
 
-## Default garden route, derived from the saved repo layout
+## Calibration Garden + Return route, derived from the saved repo layout
 
 The source of field measurements is [POLLEN_FIELD_LAYOUT.md](POLLEN_FIELD_LAYOUT.md), especially Zones and Game pieces. Nominal red primary start is `(X,Z)=(-12.74164098,61.585)` inches. Garden ball centers are approximately `(-69.31,69.3), (-66.42,69.3), (-63.53,69.3), (-60.64,69.3)`. Blue uses the 180-degree rotated setup, with identical relative route settings.
 
@@ -239,31 +245,34 @@ or the midline), or promote saved changes into the code. The robot log's START l
 | Setting | Default |
 | --- | --- |
 | Start delay | 0 s; secondary waits for an actual UP, not a guessed partner delay |
-| First / second feed | 4 / 4 s of continuous commanded feed |
-| First-shot window | Primary has 5 s to start its first volley. If started, it completes the volley, then checks the garden budget. |
+| Match first / second agitator feed | 3 / 3 s from feed start in the two Match modes and Hero. Calibrations and Make Room use their existing feed rows. |
+| First-shot window | 5 s in Calibration Primary Shot Only. The Match primary and Hero waits for a ready launcher and settled pose. |
 | Launcher | 1180 ticks/s; PIDF unchanged |
 | Travel / turn / pickup drive power | 0.60 / 0.40 / 0.20 |
+| Match travel and park power | 1.00 for the two Match modes and Hero, which ramp and brake at the route targets |
+| Measured park drive from the shooting spot | 5.46 s primary and Hero, 3.47 s secondary. |
 | Collection intake / hold | 0.50 power / 0.50 s |
-| Shooting intake / agitator | 0.50 / 1.00 |
+| Shooting intake / agitator | 1.00 / 1.00 in the Match autos and Hero. The calibration and Make Room shooting intake defaults to 0.50. |
 | Clearance forward / first turn left / garden turn left | 15.24 / 43.836 / 108.822 cm |
 | Pickup left / forward | 121.522 / 2.54 cm |
 | Transit / pickup heading | fixed 0 / 0 degrees; final shooting heading always returns to zero |
-| Execution / Side | LIVE / choose RED or BLUE each Beta Test INIT |
+| Execution / Side | LIVE / choose RED or BLUE each Match and Beta Test INIT |
 | Park | on; three CAD-derived waypoints (existing departure corridor and parking spot) |
 | Make room corner forward / left | 2.54 / -128.41 cm: 1 in off the scoring-end and side walls (CAD); reached via Park1 forward to clear the flower |
-| Make room: park at s left | 2 s before the 27 s stop (match time 25 s); the corner-to-park drive is about 0.75 s planned, INIT rejects a value shorter than that |
+| Park margin s | 1.0 s by default. D-pad left/right changes it by 0.5 s. The controller reserves estimated travel plus this margin and can interrupt shooting or collection for parking. |
 
-Primary garden is about **6.48 s** and primary park **4.76 s** by the existing drive/turn estimates. These are planning estimates. No default is physically tuned.
+The Calibration Garden + Return route is about **6.48 s** by the existing drive estimate. The Match modes and Hero use the wall-contact collection routines, separate entry waypoints, and their own collection settings in INIT. [Collection practice](POLLEN_COLLECTION_PRACTICE.md)
 
 ## Timing and autonomous behavior
 
-- Each volley requires more than 1 s of continuous confirmed UP to latch permission. Before that, losing UP restarts the timer. After the latch, the camera continues reporting its live state through the volley.
+- Primary preloads skip the Hive UP check. The primary return shot and secondary volley require more than 1 s of continuous confirmed UP to latch permission. Before the latch, losing UP restarts the timer. After the latch, the camera continues reporting through the volley.
 - The launcher must reach measured speed before feed starts. Once started, feeding continues through camera changes and speed dips for the configured duration.
+- In the latest field traces, the last clear velocity dip came 2.11 s into the primary preload and 1.68 s into the return volley. The 3 s settings shorten the feed window while leaving margin for those events. Count all balls on the next field run because velocity alone cannot confirm the last ball cleared.
 - Before garden collection, the launcher is commanded off. Collection does not wait for flywheel spin-down.
-- Garden admission reserves its estimated duration, three seconds for second spin-up, the second feed duration, estimated parking duration and margins. If time is short, it skips collection and parks; telemetry says why.
-- After return, position must be within 0.5 inch of START, heading within 2 degrees, and speed/turn rate settled for 0.3 seconds. Old readiness is discarded while traveling; fresh observations reconfirm UP. Our cell stays locked.
-- Primary waits for a new UP latch after return. Secondary also waits for an UP latch. A volley starts only when there is time to finish it and leave the parking reserve. The hard cutoff is **27 seconds**.
-- A run that cannot confirm UP because the camera is unavailable or uncalibrated skips feeding.
+- The Match autos and Hero keep the launcher off during collection and bring it up to speed as soon as they start the return. The intake and agitator stay off during return transit and alignment.
+- After return, position must be within 0.5 inch of START, heading within 2 degrees, and speed/turn rate settled for 0.3 seconds. At the shooting position, the Match autos and Hero turn toward 0 degrees if the heading error exceeds 2 degrees. Old readiness is discarded while traveling and during the correction. Fresh observations reconfirm UP. Our cell stays locked.
+- The collection autos wait for a fresh UP latch after settling back at the shooting pose. The park deadline interrupts the active phase and zeroes shooting outputs. From the shooting position, the default deadlines are **23.54 s primary** and **25.53 s secondary**. When farther away, departure also budgets the clearance and return route before parking. The **30-second** cutoff stops whatever phase is active.
+- An unavailable or uncalibrated camera prevents only the hive-gated volleys.
 - A 0.25-second control-loop gap, invalid odometry, lost Pinpoint READY status, stuck drive/turn or route failure latches a stop. There is no guarantee of finishing parking if the robot runs slower than the estimates; the deadline still wins.
 
 ## Code and verification
@@ -277,6 +286,4 @@ and `PollenHiveRoute`. `PollenHiveStore` writes overrides and compact reports.
 Computer regressions cover the wrong-state fit, impossible solves, per-tag disagreement, duplicate
 frames/minimum span, hidden versus disconnected DOWN, candidate resets, cell identification,
 settings and primary/secondary/practice simulations. The camera decoder has 13 real-JSON checks.
-All hive hardware classes compile against genuine FTC 12.0.0 / Pedro 3.0.2 libraries. The kit's
-mail patch is checked on its exact base. **No full Android APK build or physical camera/robot/hive
-validation was performed here.** Run the README's Gradle checks on the Mac before installing.
+The v32 desktop verification included Android unit tests and debug APK assembly. The park-margin tests exercise the predicted timing on the computer. Field timing still depends on actual travel speed and wall contact.

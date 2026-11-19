@@ -213,8 +213,8 @@ public abstract class PollenShooterOpMode extends OpMode {
                     : String.format(java.util.Locale.US, "%.1f cm @ %+.1f deg -> %.2f s; command %+.1f deg; NO TURN",
                     tuning.legCm(leg), tuning.legAngle(leg), m.seconds, m.commandAngleDegrees));
         }
-        telemetry.addData(odometry() ? "Planned" : "Worst case", "%.2f s; must be < %.0f s (hard stop at %.0f s)",
-                tuning.worstCaseSeconds(), PollenShootTuning.DEADLINE - 1, PollenShootTuning.DEADLINE);
+        telemetry.addData(odometry() ? "Planned" : "Worst case", "%.2f s; must be < %.1f s (hard stop at %.0f s)",
+                tuning.worstCaseSeconds(), PollenShootTuning.DEADLINE - tuning.parkMargin(), PollenShootTuning.DEADLINE);
         if (!odometry()) {
             telemetry.addData("Calibration", tuning.profile());
             telemetry.addData("Angles", "+left / -right as seen from the start looking at the hive; MAT TRIAL converts desired path to command");
@@ -241,8 +241,8 @@ public abstract class PollenShooterOpMode extends OpMode {
                 tuning.shotStartSeconds(), tuning.feedStartSeconds(),
                 tuning.feedStartSeconds() + tuning.value(FEED_SECONDS));
         if (!tuning.budgetOk()) telemetry.addData("OVER TIME BUDGET",
-                "%.2f s planned, must be < %.0f s: lower delay or feed, raise power, or shorten legs",
-                tuning.worstCaseSeconds(), PollenShootTuning.DEADLINE - 1);
+                "%.2f s planned, must be < %.1f s: lower delay or feed, raise power, or shorten legs",
+                tuning.worstCaseSeconds(), PollenShootTuning.DEADLINE - tuning.parkMargin());
         if (fallback != null) telemetry.addData("SHOOTER INIT FAILED", fallback);
         if (!tuning.notice().isEmpty()) telemetry.addData("Settings notice", tuning.notice());
     }

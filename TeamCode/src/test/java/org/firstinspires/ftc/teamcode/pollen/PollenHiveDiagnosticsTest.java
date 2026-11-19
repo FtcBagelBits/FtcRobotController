@@ -30,11 +30,19 @@ public final class PollenHiveDiagnosticsTest {
         PollenHiveAuto a=auto(c);
         a.tick(.02,null,0,0,0,1180,true);
         PollenHiveAuto.Output o=a.tick(.04,null,0,0,0,1180,true);
-        check(o.phase.startsWith("GARDEN"),"Garden starts at high flywheel speed without a coast phase");
-        check(o.decision.contains("evaluated=FIRST")&&o.decision.contains("garden_need_s="),"Departure decision retains evaluated phase and budget");
+        check(o.phase.startsWith("OUTBOUND"),"Garden trip starts at high flywheel speed without a coast phase");
+        check(o.decision.contains("evaluated=FIRST")&&o.decision.contains("collection_need_s="),"Departure decision retains evaluated phase and budget");
         check(!o.decision.contains("coast_"),"Removed coast gates no longer appear in decisions");
         o=a.stop("Driver STOP");
         check(o.finished&&o.reason.equals("Driver STOP"),"Intentional STOP distinct from fault");
+    }
+    private static void secondarySpinup() {
+        PollenHiveAuto a=auto(new PollenHiveRoute(true));
+        a.tick(.02,null,0,0,0,0,true);
+        PollenHiveAuto.Output o=a.tick(.04,null,0,0,0,0,true);
+        check(o.phase.equals("FIRST")&&o.launcher==1180&&!o.feed,"Healthy Secondary starts spinning before Hive UP");
+        o=a.tick(.06,null,0,0,0,0,false);
+        check(o.finished&&o.launcher==0&&!o.feed,"A real Pinpoint fault still stops the auto");
     }
     private static void trace() throws Exception {
         StringWriter out=new StringWriter(); PollenHiveTrace trace=new PollenHiveTrace(out);
@@ -64,7 +72,7 @@ public final class PollenHiveDiagnosticsTest {
         } finally { Files.delete(dir); }
     }
     public static void main(String[] args) throws Exception {
-        unexpectedMotion(); gardenDecision(); trace();
+        unexpectedMotion(); gardenDecision(); secondarySpinup(); trace();
         System.out.println("PASS PollenHiveDiagnosticsTest: "+checks+" checks");
     }
 }

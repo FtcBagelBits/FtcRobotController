@@ -69,8 +69,10 @@ public class Constants {
      * offsets, which is why they can stay in millimetres here; globalDistanceUnit (inches)
      * is the separate unit every pose is reported in.
      */
-    public static PinpointConfig localizerConfig = new PinpointConfig(
-            c -> {
+    public static PinpointConfig localizerConfig = pinpointConfig(PinpointLocalizer.ResetMode.RECALIBRATE_IMU);
+
+    public static PinpointConfig pinpointConfig(PinpointLocalizer.ResetMode resetMode) {
+        return new PinpointConfig(c -> {
                 // Must match the Pinpoint's name in the Control Hub's active configuration.
                 c.name.set("odometry");
                 c.xPodOffset.set(156.0);
@@ -80,8 +82,9 @@ public class Constants {
                 c.podType.set(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
                 c.xPodDirection.set(GoBildaPinpointDriver.EncoderDirection.REVERSED);
                 c.yPodDirection.set(GoBildaPinpointDriver.EncoderDirection.REVERSED);
-            }
-    );
+                c.resetMode.set(resetMode);
+            });
+    }
 
     /*
      * PLACEHOLDER - not Lox's numbers. See the class comment. Pedro 3 gives these no defaults

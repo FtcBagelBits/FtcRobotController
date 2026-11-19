@@ -187,9 +187,13 @@ public final class PollenOdometryDrive {
      * the target heading.
      */
     public static double turnPower(double targetHeading, double maxPower, double heading, double turnRate) {
+        return turnPower(targetHeading,maxPower,heading,turnRate,HEADING_TOLERANCE_DEG);
+    }
+
+    static double turnPower(double targetHeading, double maxPower, double heading, double turnRate, double toleranceDeg) {
         double degreesOff = Math.toDegrees(wrap(heading - targetHeading)); // + = counterclockwise of the target
         double degreesToGo = Math.abs(degreesOff);
-        if (degreesToGo <= HEADING_TOLERANCE_DEG) return 0;
+        if (degreesToGo <= toleranceDeg) return 0;
         // How fast it is closing on the target, and where it will be after coasting.
         double closingDegPerSecond = -Math.signum(degreesOff) * Math.toDegrees(turnRate);
         double brakingDegrees = degreesToGo - Math.max(0, closingDegPerSecond) * LOOKAHEAD_SECONDS;

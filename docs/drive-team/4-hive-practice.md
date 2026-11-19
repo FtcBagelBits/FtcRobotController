@@ -1,6 +1,6 @@
-# Hive calibration and practice
+# Hive match setup and practice
 
-**Build pollen-hive-v20 - experimental.** Print front/back. Full steps: `docs/POLLEN_HIVE_TESTING.md`.
+**Build pollen-hive-v32 - experimental.** Print front/back. Full steps: `docs/POLLEN_HIVE_TESTING.md`.
 Keep existing match autos available. Rear camera/launcher face hive; **front intake faces end wall**.
 
 <img src="img/hive-height.svg" style="width:4.3in">
@@ -43,33 +43,35 @@ false UP _____ / 20. Capture reports save automatically. The screen tests the **
 
 | Driver Hub mode | Default / what happens |
 | --- | --- |
-| Calibration Primary Shot Only | **DRY**. No drive. LIVE must start its volley within the first-shot window. |
+| Calibration Primary Shot Only | **DRY**. No drive. LIVE fires within the first-shot window without checking UP. |
 | Calibration Secondary Shot Only | **DRY**. No drive. LIVE waits for UP, fires, stops. |
 | Calibration Garden + Return | **DRIVE**. No launcher/agitator. LIVE adds collection intake. Returns to S and stops, no park. |
-| Beta Test Primary Shooter + Garden | **LIVE**. Shoot, collect, return, wait/shoot if UP, park. |
-| Beta Test Secondary Shooter | **LIVE**. Wait for UP, shoot, park. |
-| Beta Test Secondary Shooter - Make Room | **LIVE**. Partner is the hero. Wait for UP, shoot, wait in the far corner, park with **2 s** left. |
+| Primary Shooter + Garden | **LIVE**. Shoot, one garden approach, return to S, shoot if UP, park. 30 s cutoff. |
+| Secondary Shooter + Flower | **LIVE**. Wait for UP, shoot, drain with two swings and one cleanup cycle, return to S, shoot if UP, park. 30 s cutoff. |
+| Beta Primary Shooter - Hero | **LIVE**. Primary garden plan with separate saved settings for beta testing. |
+| Beta Secondary Shooter - Out of the Way | **LIVE**. Wait for UP, shoot, wait in the far corner, park on its deadline. |
 
-**Order:** camera validation; shot ONLY DRY then LIVE with a small batch; garden DRIVE without
-balls then LIVE pickup; full autos last. Someone stays on STOP. Every motor run requires Pinpoint
-READY and ends by **27 s**. DRY uses virtual launcher speed. LIVE starts from a settled pose
-at measured launcher speed after more than **1 s** of confirmed UP. The default volley feeds
-for **4 s** through camera changes and speed dips. Use camera-only mode for indefinite observation.
+Validate the camera, then test shot-only in DRY and LIVE and garden in DRIVE and LIVE before
+running full autos. Keep someone on STOP and check Pinpoint READY. Match autos and Hero pre-spin on
+return. The **Park margin s** row defaults to **1.0 s** and adjusts in **0.5 s** steps. Park can interrupt feed.
+LIVE feeds from a settled pose at measured launcher speed for up to **3 s**. The return shot and
+secondary preload also require more than **1 s** of confirmed UP.
 
 ## Motor-mode INIT menu
 
-**Beta Test only:** On the first INIT row press **left for RED** or **right for BLUE**. Check the tag IDs before START. Choose again after each INIT.
+**Match and Beta:** On the first INIT row press **left for RED** or **right for BLUE**. Check the tag IDs before START.
 
 D-pad row/value; LB/RB jump five. **Triangle** resets one row. **Circle** resets route values only,
 keeping camera and Execution. **Square** saves. Execution is never saved and resets each INIT to
-the mode's default above. Saved practice settings are shared with the corresponding full auto.
+the mode's default above. The Match autos and Hero show their garden or flower settings just after
+Alliance and Execution. Collection and shooting intake default to 1.00.
 Check BUILD, run type, Execution, CHANGED values, camera profile, cell/alliance and Pinpoint READY.
 
 <img src="../POLLEN_HIVE_GARDEN.svg" style="width:4.4in;max-height:2.3in">
 
-Start **Calibration Garden + Return** at **S**. For **Calibration Garden Pickup**, start at the garden entry. Keep the starting heading: back clear, strafe sideways, then
-drive front-first to collect; back out and retrace to S. No midrun odometry reset. Body clearance is
-only **1 in**. Four ball centers need about **17.45 in** of centered intake width; measure actual reach.
+The diagram shows **Calibration Garden + Return** from **S**. **Calibration Garden Pickup** starts at
+the garden entry and finds the right wall, then the wall behind the balls. Four ball centers need
+about **17.45 in** of centered intake width. Measure actual reach.
 
 Before departure, a shift over 2 in or 10° stops the run. Check drive wiring and retry DRY if this trips.
 After STOP, download the reports with `bash tools/ftc.sh logs NEW_FOLDER`. Record pickup count,

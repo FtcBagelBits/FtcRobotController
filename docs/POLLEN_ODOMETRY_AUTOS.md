@@ -7,13 +7,10 @@ for a guessed time:
 | Odometry OpMode | Same job as | Code |
 |---|---|---|
 | Emergency Odo Park | Emergency Timed Park (A) | `PollenOdoPark`, `PollenOdoParkTuning` |
-| Odo ROBOT Shoot + Park | Emergency Timed Shoot + Park (B) | `PollenOdoRobotShoot` |
-| Odo Supporting Shooter Auto | Emergency Timed Supporting Shooter (C) | `PollenOdoSupportingShooter` |
+| Emergency Odo Shoot + Park | Emergency Timed Shoot + Park (B) | `PollenOdoRobotShoot` |
+| Emergency Odo Supporting Shooter | Emergency Timed Supporting Shooter (C) | `PollenOdoSupportingShooter` |
 
-The odometry modes are the ones the team runs in matches: at the 2026-11-07 meet they were used
-for every match and did much better than timed driving had. The timed OpModes are kept for
-**emergencies only** (the odometry sensor is not working); since `pollen-odo-v9` their names start
-with **Emergency Timed**. Run [the odometry baseline test](ODOMETRY_BASELINE_TEST.md) first.
+The legacy Odo modes ran every match at the 2026-11-07 meet and now appear under **Emergency**. Use the **Emergency Timed** modes when the odometry sensor is unavailable. Run [the odometry baseline test](ODOMETRY_BASELINE_TEST.md) first.
 
 ## What is the same
 
@@ -165,7 +162,7 @@ Shoot + Park with the shot taken from an angle. **It has not been run on the rob
   first runs, raise Leg 1 by two steps, to 22.7 cm (gap about 5 in). The Aim angle does not follow
   the legs: from there it should be about -39.
 - **It drives before it shoots**, so it needs odometry to shoot at all. With a Pinpoint problem at
-  INIT, use Odo ROBOT Shoot + Park (shoots first) or the Emergency Timed mode.
+  INIT, use Emergency Odo Shoot + Park (shoots first) or the Emergency Timed mode.
 - If the shooter fails at INIT, or Feed seconds is 0, there are no turns: it drives legs 1, 2, 3.
 - A turn that is more than 5 deg short when it gives up, or a robot that does not turn while the
   wheels are driven (`TURN TO AIM NOT TURNING - STOPPED`), stops the whole route **without
@@ -196,7 +193,7 @@ Do these on the practice field if you can. A slippery floor makes squaring and s
 
 1. **Emergency Odo Park**, defaults. Tape-measure the travel: 55 cm, within 1 in. Robot should not drift sideways.
    Try it at 0.30 power first (L1 to lower), then the 0.60 default.
-2. **Odo ROBOT Shoot + Park**, **feed seconds 0** (skips the shot, saves 13 s), **legs 1 and 2 set to 0 cm**
+2. **Emergency Odo Shoot + Park**, **feed seconds 0** (skips the shot, saves 13 s), **legs 1 and 2 set to 0 cm**
    (one diagonal leg; ROUTE shows EDITED LEGS). Needs about 8 ft of open floor. Ends 83.6 in forward and
    18.3 in left of the start (217.5 cm @ +12.3), within 1 in, not rotated. Press Triangle afterward.
 3. **Wall square**, same as 2, but start the robot visibly crooked (3-5 deg) against a wall. With the

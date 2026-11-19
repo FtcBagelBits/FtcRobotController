@@ -6,7 +6,7 @@ public final class PollenConfig {
 
     /** Shown in INIT by every Pollen and Odo autonomous mode and by PollenBot TeleOp, and written to
      * the robot log at START. Change it whenever the Pollen code changes. */
-    public static final String BUILD = "pollen-hive-v20";
+    public static final String BUILD = "pollen-hive-v32";
 
     // Hive camera and hive-auto numbers (with their defaults): PollenHiveSettings.
 
@@ -43,6 +43,7 @@ public final class PollenConfig {
 
     public static final double START_DELAY_SECONDS = 0.0; // default; Park can override during INIT
     public static final double TOTAL_TIME_LIMIT = 27.0; // local guard, not a rule claim
+    public static final double DEFAULT_PARK_MARGIN = 1.0, PARK_MARGIN_STEP = .5, MAX_PARK_MARGIN = 10;
 
     // Option A uses timed forward movement; retain the tested defaults.
     // The two manually mirrored start poses use this same forward-only route.

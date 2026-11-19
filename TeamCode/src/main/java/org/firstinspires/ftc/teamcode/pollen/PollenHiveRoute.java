@@ -1,5 +1,9 @@
 package org.firstinspires.ftc.teamcode.pollen;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 /** Garden route derived from docs/POLLEN_FIELD_LAYOUT.md, red primary start; blue rotates 180 deg.
  * Route coordinates remain x toward hive, y left, h CCW from START, although front faces the wall.
  * Points are robot centers. 18x18 footprint; the mounted intake must fit that footprint.
@@ -12,12 +16,28 @@ public final class PollenHiveRoute {
     /** MAKE ROOM secondary (Play 2): after the shot, wait in the far corner, then park late. */
     public final boolean makeRoom;
     /** Rows used only by the make-room secondary (indices into v[]). */
-    public static final int ROOM_FORWARD=28, ROOM_LEFT=29, ROOM_PARK_SECONDS_LEFT=30;
+    public static final int ROOM_FORWARD=28, ROOM_LEFT=29;
+    private static final double CORNER_SETTLE_PER_LEG = .4;
+    private static final int COLLECTION_ENTRY_FORWARD=31, COLLECTION_ENTRY_LEFT=32;
+    private static final int MATCH_TRAVEL_POWER=33;
+    private static final int MATCH_FIRST_FEED=34, MATCH_SECOND_FEED=35;
+    private static final int MATCH_GARDEN_PASSES=36, MATCH_FLOWER_SHAKES=37, MATCH_FLOWER_CLEANUP=38;
+    private static final int MATCH_FEED_INTAKE=39;
+    private static final int MATCH_PARK_SECONDS=40;
+    private static final int PARK_MARGIN=41;
+    private static final String COLLECTION_PREFIX="collection.";
     public PollenHiveRoute(boolean secondary) { this(secondary,false); }
     public PollenHiveRoute(boolean secondary,boolean makeRoom) {
         if(makeRoom&&!secondary) throw new IllegalArgumentException("Make room is a secondary mode");
         this.secondary=secondary; this.makeRoom=makeRoom;
-        values=new PollenHiveSettings.Values(PollenHiveSettings.ROUTE,secondary); v=values.v;
+        List<PollenHiveSettings.Row> rows=new ArrayList<>(Arrays.asList(PollenHiveSettings.ROUTE));
+        for(PollenHiveSettings.Row row:PollenCollectionSequence.rows(collectionKind())) {
+            // Existing beta cycle rows already tune these counts and preserve saved settings.
+            if(row.key.equals("repeats")||row.key.equals("shakes")) continue;
+            rows.add(new PollenHiveSettings.Row(COLLECTION_PREFIX+row.key,row.label,
+                    row.primary,row.secondary,row.step,row.min,row.max));
+        }
+        values=new PollenHiveSettings.Values(rows.toArray(new PollenHiveSettings.Row[0]),secondary); v=values.v;
     }
     // Calibration uses the saved side row. Each match starts with a fresh driver choice.
     private static final int USE_PROFILE = -1;
@@ -38,6 +58,9 @@ public final class PollenHiveRoute {
     private Node move(String name,double xCm,double yCm,double h,boolean collect) {
         return new Node(name,xCm/2.54,yCm/2.54,h,collect?v[20]:v[7],false,collect,0);
     }
+    private Node transit(String name,double xCm,double yCm,double power) {
+        return new Node(name,xCm/2.54,yCm/2.54,0,power,false,false,0);
+    }
     public Node[] garden() {
         double f=v[13], side=v[16], near=v[17];
         // Keep the starting heading: back clear, strafe to the row, drive front-first
@@ -51,10 +74,84 @@ public final class PollenHiveRoute {
             move("RETURN ACROSS",f,0,0,false),
             move("RETURN SHOOT POSITION",0,0,0,false)};
     }
-    public Node[] park() {
+    /** Back clear of the end wall, then line up with the correct collection entry. */
+    public Node[] collectionOutbound() {
+        double clear=v[COLLECTION_ENTRY_FORWARD], left=v[COLLECTION_ENTRY_LEFT];
+        double power=v[MATCH_TRAVEL_POWER];
+        return new Node[]{transit("CLEAR END WALL",clear,0,power),
+                transit(secondary?"ALIGN WITH FLOWER":"ALIGN WITH GARDEN",clear,left,power)};
+    }
+    /** Back clear on the current lane before crossing to the original shooting pose. */
+    public Node[] collectionReturn(double x,double y) {
+        double clear=Math.max(x*2.54,v[COLLECTION_ENTRY_FORWARD]);
+        double power=v[MATCH_TRAVEL_POWER];
+        return new Node[]{transit("CLEAR COLLECTION SITE",clear,y*2.54,power),
+                transit("RETURN ACROSS",clear,0,power),transit("RETURN SHOOT POSITION",0,0,power)};
+    }
+    double collectionEstimate() {
+        // Approximate process time from v28 field traces with the requested cycle counts.
+        double process=secondary?8.3+(v[MATCH_FLOWER_SHAKES]-2)*1.4+(v[MATCH_FLOWER_CLEANUP]-1)*1.05
+                :5.5+(v[MATCH_GARDEN_PASSES]-1)*2;
+        PollenHiveSettings.Values tuning=collectionSettings();
+        double exitX=secondary?(v[COLLECTION_ENTRY_FORWARD]-tuning.get("gap")+tuning.get("back"))/2.54:0;
+        double exitY=secondary?v[COLLECTION_ENTRY_LEFT]/2.54:
+                PollenFieldGeometry.END_WALL_INCHES-PollenFieldGeometry.ROBOT_HALF_INCHES+PollenFieldGeometry.RED_HIVE_X_INCHES;
+        return planned(collectionOutbound())+process+planned(collectionReturn(exitX,exitY),exitX,exitY)+.5;
+    }
+    PollenCollectionSequence.Kind collectionKind() {
+        return secondary?PollenCollectionSequence.Kind.FLOWER:PollenCollectionSequence.Kind.GARDEN;
+    }
+    PollenHiveSettings.Values collectionSettings() {
+        PollenHiveSettings.Values settings=PollenCollectionSequence.settings(collectionKind());
+        for(int i=PollenHiveSettings.ROUTE.length;i<v.length;i++) {
+            String key=values.rows[i].key.substring(COLLECTION_PREFIX.length());
+            settings.v[settings.index(key)]=v[i];
+        }
+        if(secondary) {
+            settings.v[settings.index("shakes")]=v[MATCH_FLOWER_SHAKES];
+            settings.v[settings.index("repeats")]=v[MATCH_FLOWER_CLEANUP];
+        } else {
+            settings.v[settings.index("repeats")]=v[MATCH_GARDEN_PASSES]-1;
+        }
+        return settings;
+    }
+    double feedIntake(boolean collectionMatch) { return v[collectionMatch?MATCH_FEED_INTAKE:11]; }
+    double feedDuration(boolean second, boolean collectionMatch) {
+        if(collectionMatch) return v[second?MATCH_SECOND_FEED:MATCH_FIRST_FEED];
+        return v[second?4:3];
+    }
+    void validateCollection() {
+        double forward=v[COLLECTION_ENTRY_FORWARD], left=v[COLLECTION_ENTRY_LEFT];
+        if(forward<20.32||forward>75||(secondary?(left>=0||left< -150):(left<=0||left>150)))
+            throw new IllegalArgumentException("Invalid match collection entry");
+        if(v[MATCH_TRAVEL_POWER]<.1||v[MATCH_TRAVEL_POWER]>1)
+            throw new IllegalArgumentException("Invalid match travel power");
+        for(int i:new int[]{MATCH_FIRST_FEED,MATCH_SECOND_FEED})
+            if(v[i]<0||v[i]>20) throw new IllegalArgumentException("Invalid beta feed duration");
+        if(v[MATCH_FEED_INTAKE]<0||v[MATCH_FEED_INTAKE]>1) throw new IllegalArgumentException("Invalid beta shooting intake power");
+        if(v[MATCH_PARK_SECONDS]<.5||v[MATCH_PARK_SECONDS]>20) throw new IllegalArgumentException("Invalid beta measured parking time");
+        PollenCollectionSequence.validate(collectionKind(),collectionSettings());
+        checkPark(collectionOutbound(),0,0);
+    }
+    public Node[] park() { return park(v[7]); }
+    boolean parkEnabled() { return v[21]!=0; }
+    double measuredParkSeconds() { return v[MATCH_PARK_SECONDS]; }
+    double parkMargin() { return v[PARK_MARGIN]; }
+    double cornerParkReserve(double x,double y) {
+        Node[] park=cornerPark();
+        return planned(park,x,y)+park.length*CORNER_SETTLE_PER_LEG+parkMargin();
+    }
+    double cornerDepartureReserve() {
+        Node[] approach=corner();
+        Node end=approach[approach.length-1];
+        // The base estimate understates braking and settling at the corner waypoints in simulation.
+        return planned(approach)+approach.length*CORNER_SETTLE_PER_LEG+cornerParkReserve(end.x,end.y);
+    }
+    public Node[] collectionPark() { return park(v[MATCH_TRAVEL_POWER]); }
+    private Node[] park(double power) {
         if(v[21]==0) return new Node[0];
-        return new Node[]{move("PARK CLEAR",v[22],v[23],0,false),
-            move("PARK CORNER",v[24],v[25],0,false),move("PARK",v[26],v[27],0,false)};
+        return new Node[]{transit("PARK CLEAR",v[22],v[23],power),
+            transit("PARK CORNER",v[24],v[25],power),transit("PARK",v[26],v[27],power)};
     }
     /** Make room: clear the flower (Park1 forward), slide right along the end wall to the side
      * wall, then back into the corner. */
@@ -83,12 +180,18 @@ public final class PollenHiveRoute {
         return total+nodes.length*.04;
     }
     public void validateForStart() {
+        validateForStart(false);
+    }
+    void validateForStart(boolean collectionMatch) {
         if (needsMatchAlliance()) throw new IllegalArgumentException("Choose alliance: D-pad LEFT red / RIGHT blue");
-        validate();
+        validate(collectionMatch);
     }
 
-    public void validate() {
+    public void validate() { validate(false); }
+
+    void validate(boolean collectionMatch) {
         for(double d:v) if(!Double.isFinite(d)) throw new IllegalArgumentException("Nonfinite setting");
+        if(parkMargin()<0||parkMargin()>PollenConfig.MAX_PARK_MARGIN) throw new IllegalArgumentException("Invalid park margin");
         if(v[0]<0||v[0]>2||v[1]<0||v[1]>2||v[6]<500||v[6]>2500)
             throw new IllegalArgumentException("Invalid execution/side/velocity");
         for(int i:new int[]{7,8,20}) if(v[i]<.1||v[i]>.8) throw new IllegalArgumentException("Invalid drive power");
@@ -97,16 +200,14 @@ public final class PollenHiveRoute {
         if(v[21]!=0&&v[21]!=1) throw new IllegalArgumentException("Invalid park choice");
         if(!secondary) checkGarden();
         if(makeRoom) {
-            if(v[ROOM_PARK_SECONDS_LEFT]<.5||v[ROOM_PARK_SECONDS_LEFT]>20) throw new IllegalArgumentException("Invalid make-room park time");
             Node c=corner()[2];
             checkPark(corner(),0,0);
             checkPark(cornerPark(),c.x,c.y);
-            if(planned(cornerPark(),c.x,c.y)>v[ROOM_PARK_SECONDS_LEFT])
-                throw new IllegalArgumentException("Corner-to-park drive is longer than the make-room park time");
-            if(planned(corner())+v[ROOM_PARK_SECONDS_LEFT]+v[2]+1>=27) throw new IllegalArgumentException("Departure exceeds time budget");
+            if(cornerDepartureReserve()+v[2]>=27) throw new IllegalArgumentException("Departure exceeds time budget");
         } else {
             checkPark(park(),0,0);
-            if(planned(park())+v[2]+1>=27) throw new IllegalArgumentException("Departure exceeds time budget");
+            if(collectionMatch) validateCollection();
+            else if(planned(park())+v[2]+parkMargin()>=27) throw new IllegalArgumentException("Departure exceeds time budget");
         }
     }
     private void checkGarden() {

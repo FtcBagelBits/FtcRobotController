@@ -18,7 +18,10 @@ the odometry sensor isn't working.
 | D-pad UP / DOWN | Start delay +/- 0.5 s | Start delay +/- 0.5 s |
 | D-pad RIGHT / LEFT | Distance +/- 5 cm | Drive time +/- 0.05 s |
 | R1 / L1 | Power +/- 0.05 | Power +/- 0.05 |
+| R3 / L3 | Park margin +/- 0.5 s | Park margin +/- 0.5 s |
 | Triangle | Back to the defaults | Back to the defaults |
+
+Park margin defaults to 1.0 s. It limits the latest selectable start delay.
 
 ## Placement
 
@@ -27,4 +30,4 @@ the robot's back where you want it to go, so that straight behind it is clear an
 how far to set the distance for that start. Don't drive the straight diagonal from the middle of
 the audience wall: it hits the hive frame.
 
-Check for **Build `pollen-hive-v20`** and `READY - waiting for START` before START.
+Check for **Build `pollen-hive-v32`** and `READY - waiting for START` before START.

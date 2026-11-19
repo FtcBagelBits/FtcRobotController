@@ -7,8 +7,8 @@ Odometry line says `NOT VALID`.
 
 | Instead of | Pick |
 | --- | --- |
-| Odo ROBOT Shoot + Park | **Emergency Timed Shoot + Park** |
-| Odo Supporting Shooter Auto | **Emergency Timed Supporting Shooter** |
+| Emergency Odo Shoot + Park | **Emergency Timed Shoot + Park** |
+| Emergency Odo Supporting Shooter | **Emergency Timed Supporting Shooter** |
 
 Both are in the autonomous list, in the group *3 Emergency*. Every one of these modes
 has **EMERGENCY** in its name and an `EMERGENCY ONLY` line on its INIT screen.
@@ -33,7 +33,7 @@ has **EMERGENCY** in its name and an `EMERGENCY ONLY` line on its INIT screen.
 
 | Line | Should say |
 | --- | --- |
-| Build | `pollen-hive-v20` |
+| Build | `pollen-hive-v32` |
 | EMERGENCY ONLY | `Timed driving, no odometry. Use the Odo mode unless odometry has failed.` |
 | Mode | `TIMED Shoot + Park - real motors on START` (or `TIMED Supporting Shooter ...`) |
 | Status | `READY - no movement until START` |

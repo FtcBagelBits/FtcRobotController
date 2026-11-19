@@ -11,7 +11,7 @@ yet** (written in a cloud session, 2026-11-16). The first-run checks are at the 
 
 | Mode | Robot log (`PollenAuto` / `PollenHive` / `PollenTeleOp` lines) | Its own file under `/sdcard/FIRST/pollen-hive` |
 | --- | --- | --- |
-| **Calibration Garden Pickup / Flower Drain** | Driver Hub shows current phase and elapsed seconds. | `auto/auto-DATE-TIME.csv` records settings overrides, phase times and poses, final state and faults. See [collection practice](POLLEN_COLLECTION_PRACTICE.md). |
+| **Calibration Garden Pickup / Flower Drain** | Driver Hub shows phase, elapsed seconds and pose relative to START. | `auto/auto-DATE-TIME.csv` records overrides, phase changes, pose about every 0.1 s, contact limits, final state and fault details. See [collection practice](POLLEN_COLLECTION_PRACTICE.md). |
 | **PollenBot TeleOp** | START line with every setting; STOP line | `teleop/teleop-DATE-TIME.csv`: 20 rows a second while anything is happening (1 a second when idle): sticks, triggers, R1/L1, power to all four wheels, intake and agitator power, launcher target and measured speed, launching/feeding/reversing, Pinpoint position, battery, slowest loop. Rehearsal marks. |
 | **Odo Shoot + Park, Odo Supporting Shooter, Angled, Emergency Timed Shoot/Support** | Route during INIT, every setting at START, phases, warnings, result, 4 samples a second | `auto/auto-DATE-TIME.csv`: the same lines, with the Hub's clock. New in v10. |
 | **Hive autos and Calibration shot and garden modes** | START, transitions, camera frames while shooting | `reports/*.txt` (settings, motor map, decisions) and `traces/*.csv` (10 rows a second: decisions, motors, encoders, camera tags, battery). v10 adds every camera value, the trace name, install time and storage to the report. |

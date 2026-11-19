@@ -1,8 +1,8 @@
 # Pollen autonomous operating manual
 
-Experimental hive-gated modes and garden collection: [testing guide](POLLEN_HIVE_TESTING.md). Existing match modes retain their behavior. The hive group also has a persistent NO MOTORS camera check, primary/secondary stationary-shot tests and garden-return practice. Use their dedicated guide: their controls and Execution defaults differ from the legacy modes below.
+Primary Shooter + Garden and Secondary Shooter + Flower are the Match autos. The Hive guide covers these modes, the Beta alternatives, and the isolated calibration routines. The Odo and Timed shoot-and-park modes described below are Emergency options. [Hive guide](POLLEN_HIVE_TESTING.md)
 
-All autonomous modes and PollenBot TeleOp show build **`pollen-hive-v20`**.
+All autonomous modes and PollenBot TeleOp show build **`pollen-hive-v32`**.
 Keep these instructions with the installed code. The new mat calibration and field routes are **experimental**.
 **Drive team:** use the [drive-team guides](drive-team/README.md); this manual is the full reference.
 Since `pollen-odo-v5`, B's default (and Triangle) is the full shoot-and-park route.
@@ -65,6 +65,7 @@ substitute either of those poses/routes for the field presets.
 | D-pad UP / DOWN | Delay +/-0.5 s |
 | D-pad RIGHT / LEFT | Forward time +/-0.05 s |
 | R1 / L1 | Power +/-0.05 |
+| R3 / L3 | Park margin +/-0.5 s |
 | Triangle | Restore A defaults |
 
 Defaults remain **2.00 s, power 0.20, delay 0**. Time range is 0.05-5.00 s;
@@ -241,15 +242,13 @@ raise power, or shorten a leg until the warning clears, or press Triangle for
 the defaults. Edits that would make the route longer are refused meanwhile. App restart/reinstall loses memory. Triangle is not a recall
 of the last successful match settings.
 
-Edits are rejected if worst-case total reaches **26 seconds**. All three legs
-count toward this budget. An independent **27-second cutoff**
-stops outputs. This is the program's guard, not the official autonomous duration.
+The three parking legs count toward the time budget. Edits must leave the configured **Park margin s** before the **27-second cutoff**. The margin defaults to **1.0 s** and adjusts in **0.5 s** steps. A late volley can be interrupted to start parking.
 
 | Warning | Meaning |
 | --- | --- |
 | BLOCKED | Drive/hardware initialization failed, or a shooter stop could not be confirmed. |
 | SHOOTER FAILED / DEPARTURE ONLY | Shooting setup failed but all mapped shooter motors accepted stop commands. The mode can run its own selected route; C also waits through its feed slot. |
-| Change rejected | Requested settings exceed the 26 s budget. |
+| Change rejected | Requested settings exceed the budget after reserving the park margin. |
 | OVER TIME BUDGET / NOT READY | Remembered settings no longer fit after the delay reset. START will not move the robot until fixed or Triangle is pressed. |
 | LOOP STALL WHILE DRIVING - STOPPED | The program paused for more than 0.25 s while the wheels were moving. Every output stops, because the robot's position is no longer known. Report it with the elapsed time shown. |
 | *leg* NOT MOVING - STOPPED | Odometry modes: the wheels were driven but the robot moved less than 0.5 in in 0.75 s while more than 2 in from the leg's end (blocked, pod unplugged, or a frozen reading). Everything stops; the next leg never starts. |

@@ -28,12 +28,13 @@ public abstract class PollenCollectionPractice extends OpMode {
     private String fault, message, lastPhase, recording;
     private int row;
     private boolean finished;
-    private double elapsed;
+    private double elapsed, lastSample, forwardCm, leftCm;
+    private double[] entry;
 
     @Override public void init() {
         row = 0;
         finished = false;
-        elapsed = 0;
+        elapsed = lastSample = forwardCm = leftCm = 0;
         fault = lastPhase = null;
         sequence = null;
         trace = null;
@@ -83,8 +84,11 @@ public abstract class PollenCollectionPractice extends OpMode {
         try { if (localizer != null) localizer.update(); }
         catch (RuntimeException ex) { block(ex.toString()); }
         telemetry.addData("Build / practice", "%s / %s", PollenConfig.BUILD, kind());
-        telemetry.addData("Placement", flower() ? "Drainer centered on flower, %.2f cm back from seated mark"
-                : "Intake on pickup lane, front edge %.2f cm from wall", settings.get("gap"));
+        if (flower()) {
+            telemetry.addData("Placement", "Drainer centered on flower, %.2f cm back from seated mark", settings.get("gap"));
+        } else {
+            telemetry.addLine("Intake faces garden wall. Side wall on robot right.");
+        }
         telemetry.addData("Pinpoint", PollenOdometryHardware.status(pinpoint));
         telemetry.addData("Settings", fault == null ? validation : fault);
         for (int i = Math.max(0,row - 2); i <= Math.min(n - 1,row + 2); i++)
@@ -100,12 +104,12 @@ public abstract class PollenCollectionPractice extends OpMode {
         try {
             localizer.update();
             if (!"READY".equals(PollenOdometryHardware.status(pinpoint))) throw new IllegalStateException("Pinpoint must be READY");
-            double[] entry = pose();
+            entry = pose();
             sequence = new PollenCollectionSequence(kind(), settings, entry[0], entry[1], entry[2]);
             try {
                 trace = PollenRunLog.open(PollenHiveStore.folder(), PollenRunLog.Kind.AUTO, System.currentTimeMillis());
                 trace.row(0, true, "START", PollenConfig.BUILD, profile(), settings.overrides());
-                trace.row(0, false, "seconds", "phase", "route_x_in", "route_y_in", "heading_deg", "intake", "drainer_down");
+                trace.row(0, false, "seconds", "phase", "route_x_in", "route_y_in", "heading_deg", "intake", "drainer_down", "event");
                 recording = trace.fileName;
             } catch (IOException | RuntimeException ex) { recording = "Recording unavailable: " + ex.getMessage(); }
             step();
@@ -122,6 +126,7 @@ public abstract class PollenCollectionPractice extends OpMode {
         catch (RuntimeException ex) { block(ex.toString()); }
         telemetry.addData("Phase", fault == null ? lastPhase : "BLOCKED: " + fault);
         telemetry.addData("Elapsed", "%.2f s", elapsed);
+        telemetry.addData("From START", "%+.1f cm forward / %+.1f cm left", forwardCm, leftCm);
         telemetry.addData("Recording", trace == null ? recording : recording + " / " + trace.status);
         telemetry.update();
     }
@@ -134,14 +139,20 @@ public abstract class PollenCollectionPractice extends OpMode {
         PollenCollectionSequence.Output o = sequence.tick(now, p[0], p[1], p[2],
                 "READY".equals(PollenOdometryHardware.status(pinpoint)));
         if (o.fault != null) { block(o.fault); return; }
+        double[] delta = PollenFacing.routePose(p[0] - entry[0], p[1] - entry[1], 0);
+        double cos = Math.cos(entry[2]), sin = Math.sin(entry[2]);
+        forwardCm = (cos * delta[0] + sin * delta[1]) * 2.54;
+        leftCm = (-sin * delta[0] + cos * delta[1]) * 2.54;
         intake.setPower(o.intake);
         if (drainer != null) drainer.setPosition(o.drainerDown ? settings.get("down") : PollenTeleOpTuning.DEFAULT_DRAINER_UP);
         double[] powers = PollenFacing.wheelPowers(o.forward, o.strafe, o.turn);
         for (int i = 0; i < drive.length; i++) drive[i].setPower(powers[i]);
-        if (!o.phase.equals(lastPhase)) {
-            if (trace != null) trace.row(now, false, now, o.phase, p[0], p[1], Math.toDegrees(p[2]), o.intake, o.drainerDown);
-            lastPhase = o.phase;
+        if (trace != null && (!o.phase.equals(lastPhase) || now - lastSample >= .1 || o.contactLimit != null)) {
+            trace.row(now, false, now, o.phase, p[0], p[1], Math.toDegrees(p[2]), o.intake, o.drainerDown,
+                    o.contactLimit == null ? "" : "CONTACT LIMIT: " + o.contactLimit);
+            lastSample = now;
         }
+        lastPhase = o.phase;
         finished = o.done;
     }
 

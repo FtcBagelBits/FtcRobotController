@@ -26,11 +26,11 @@ the *FIRST* Tech Challenge SDK (`FtcRobotController` **12.0**). The build produc
 
 | Driver Hub name | What it is | Who uses it |
 | --- | --- | --- |
-| **Odo ROBOT Shoot + Park** | Shoots the preloads, drives to the inner parking slot using odometry | Drive team, primary auto |
-| **Odo Supporting Shooter Auto** | Waits 12 s for the partner, shoots, parks in the outer slot | Drive team, when the partner shoots first |
+| **Emergency Odo Shoot + Park** | Shoots the preloads, drives to the inner parking slot using odometry | Drive team, primary fallback |
+| **Emergency Odo Supporting Shooter** | Waits 12 s for the partner, shoots, parks in the outer slot | Drive team, supporting fallback |
 | **PollenBot** (TeleOp) | Driving, intake, R1 shoots, Square reverses the launcher | Drive team |
 | Emergency Odo Park | Drive straight only (no shot), measured with odometry | Testing, or the launcher is broken |
-| Calibration Angled Primary | **Experimental.** Odo ROBOT Shoot + Park with an angled shot: two legs to a spot off the wall and to the side, turn the launcher toward the hive, shoot, turn back, park (on hold since v11: the robot now shoots straight from the wall; it still runs, back to the hive like every auto) | Programmers, until it has been tried on a field |
+| Calibration Angled Primary | **Experimental.** Emergency Odo Shoot + Park with an angled shot: two legs to a spot off the wall and to the side, turn the launcher toward the hive, shoot, turn back, park (on hold since v11: the robot now shoots straight from the wall; it still runs, back to the hive like every auto) | Programmers, until it has been tried on a field |
 | Emergency Timed Shoot + Park / Emergency Timed Supporting Shooter / Emergency Timed Park | The same three jobs with timed driving (no odometry) | **Emergency only:** a match where the Pinpoint is not working |
 | Calibration Odometry | Pinpoint wiring and settings test ([docs/ODOMETRY_BASELINE_TEST.md](ODOMETRY_BASELINE_TEST.md)) | Programmers |
 | Calibration Pedro Pathing | Pedro pose on the Panels dashboard, plus a short test path (A also spins Lox's `flywheel` if the robot has one) | Programmers |
@@ -41,7 +41,7 @@ robots' code (DECODE 2025-26). They share some hardware names but nothing else w
 them alone unless asked. `TeamCode/.../teamcode/readme.md` is the student-facing list of what's live.
 
 Every Pollen and Odo mode shows a build id on the INIT screen (`PollenConfig.BUILD`, currently
-`pollen-hive-v20` on this branch). **Bump it whenever behavior changes**, so the drive team can confirm which code is installed.
+`pollen-hive-v32` on this branch). **Bump it whenever behavior changes**, so the drive team can confirm which code is installed.
 
 **Which way the robot faces (since `pollen-odo-v11`).** The launcher shoots out of the robot's back,
 so every autonomous starts with the robot's front against the end wall and its back to the hive.
@@ -60,14 +60,16 @@ Calibration Odometry and Calibration Pedro Pathing are unaffected.
 | Calibration Hive Pipeline Benchmark | Camera-only pipeline comparison with recorded results |
 | Calibration Primary Shot Only / Calibration Secondary Shot Only | Isolated stationary shooting tests |
 | Calibration Garden + Return | Isolated collection route and return |
-| Beta Test Primary Shooter + Garden / Beta Test Secondary Shooter | Hive-aware autonomous modes; use the testing guide before running |
-| Beta Test Secondary Shooter - Make Room | Play 2 secondary: shoot, wait in the scoring-end/side-wall corner (phases ROOM, WAIT), park with 2 s left before the 27 s stop |
+| Primary Shooter + Garden / Secondary Shooter + Flower | Hive-aware autonomous modes; use the testing guide before running |
+| Beta Primary Shooter - Hero | Primary garden route with independent INIT settings |
+| Beta Secondary Shooter - Out of the Way | Shoot, wait in the scoring-end/side-wall corner (phases ROOM, WAIT), then park with the configured margin |
 
 These use `PollenHiveAuto`. A volley starts from a settled shooting pose once measured launcher
-speed is ready and the hive has been confirmed UP for more than one second. Each volley defaults
-to four seconds of continuous feed through subsequent camera changes and speed dips. After the
-first volley, the primary mode can leave directly for the budgeted garden route with shooting
-outputs off. The agitator meters the balls.
+speed is ready. Both return shots and the secondary preload require confirmed Hive UP for more
+than one second. The main beta autos default to three seconds of continuous feed through subsequent
+camera changes and speed dips, subject to the parking deadline and 30-second cutoff. The beta primary collects from the garden
+and the main beta secondary drains the nearby flower before returning to the shooting pose and
+checking UP again. They pre-spin the flywheel on the return, with the intake and agitator off.
 See the hive testing and diagnostics guides for execution modes and current controls.
 
 ## Hardware configuration names (PollenBot)
@@ -146,7 +148,7 @@ its commanded position by the selected step per press; A toggles between the sel
 Lowering the drainer commands full inward intake. Small position adjustments keep the last
 state until a nudge reaches or passes the opposite preset. The driver strafes with the left stick.
 Raising the drainer returns intake control to the triggers and enables Square launcher reversal.
-The agitator keeps its normal trigger and R1 feed controls.
+Manual inward agitation follows the trigger up to 0.50. R1 shooting uses the configured feed power.
 
 The INIT menu adds Drainer up position (default 0.45), Drainer down position (0.02),
 and Drainer step (0.01). D-pad Up/Down selects a row; Left/Right edits up/down by 0.01
@@ -160,6 +162,7 @@ and controls, with the same three INIT settings, defaults and increments as Poll
 menu contains only the drainer rows. Settings are remembered separately for each OpMode
 until the app restarts. The test's up/initial default is now 0.45 (previously 0.60).
 
-The match autos hold the drainer UP (0.45) from INIT through STOP. A robot without the servo can still run
-those autos. Flower collection practice requires the servo and lowers it at START with full inward intake.
+Flower collection practice and the main beta secondary in LIVE require `pollenDrainer`. They lower
+it during the flower process with full inward intake and raise it at the end, on fault, or at STOP.
+The remaining match autos hold the drainer UP (0.45) when it is mapped.
 See [collection practice](POLLEN_COLLECTION_PRACTICE.md) for both isolated pickup routines.
