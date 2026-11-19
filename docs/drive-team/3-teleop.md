@@ -42,7 +42,7 @@ You can change these settings before START. Usually leave them alone.
 - **D-pad UP/DOWN:** pick a row (marked `>`). **D-pad LEFT/RIGHT:** change it. Tap and let go.
 - **Triangle:** all back to the defaults. The screen says `Settings: DEFAULTS` or `CHANGED - check before START`.
 - Settings stay until the robot app restarts, so **check the INIT screen before every match**.
-- The screen should show **Build `pollen-hive-v33`**.
+- The screen should show **Build `pollen-hive-v34`**.
 - **Keep the robot still during INIT.** The robot records every TeleOp run for the programmers.
   If the screen shows `STORAGE WARNING`, tell a mentor after the match; the robot still drives.
 

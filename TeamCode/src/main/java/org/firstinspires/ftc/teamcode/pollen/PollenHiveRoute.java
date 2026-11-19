@@ -25,13 +25,29 @@ public final class PollenHiveRoute {
     private static final int MATCH_FEED_INTAKE=39;
     private static final int MATCH_PARK_SECONDS=40;
     private static final int PARK_MARGIN=41;
-    private static final int CLEAR_OUT=42;
+    private static final int CLEAR_OUT=42, FEED_PAUSE_PCT=43;
+    /** Beta Primary Shooter - Fast: its own defaults (FAST_DEFAULTS) and one return nudge. */
+    public final boolean fast;
+    /** Fast mode defaults, from the 2026-11-18 traces (docs/research/cycle-time.md): enter the
+     * garden 8 in off the end wall and about 3 in short of the side wall instead of 13.4 in and 6.5 in,
+     * so the slow contact passes are short; feeds of 2.5 s, since the last launcher dip came by
+     * 2.2 s in every 3 s volley and the clear-out catches stragglers. */
+    private static final String[][] FAST_DEFAULTS={
+        {"collectionEntryForward","20.32"},{"collectionEntryLeft","116"},
+        {"matchFirstFeed","2.5"},{"matchSecondFeed","2.5"}};
     private static final String COLLECTION_PREFIX="collection.";
     public PollenHiveRoute(boolean secondary) { this(secondary,false); }
-    public PollenHiveRoute(boolean secondary,boolean makeRoom) {
+    public PollenHiveRoute(boolean secondary,boolean makeRoom) { this(secondary,makeRoom,false); }
+    public PollenHiveRoute(boolean secondary,boolean makeRoom,boolean fast) {
         if(makeRoom&&!secondary) throw new IllegalArgumentException("Make room is a secondary mode");
-        this.secondary=secondary; this.makeRoom=makeRoom;
+        if(fast&&secondary) throw new IllegalArgumentException("Fast mode is a primary mode");
+        this.secondary=secondary; this.makeRoom=makeRoom; this.fast=fast;
         List<PollenHiveSettings.Row> rows=new ArrayList<>(Arrays.asList(PollenHiveSettings.ROUTE));
+        if(fast) for(String[] d:FAST_DEFAULTS) for(int i=0;i<rows.size();i++) {
+            PollenHiveSettings.Row r=rows.get(i);
+            if(r.key.equals(d[0])) rows.set(i,new PollenHiveSettings.Row(r.key,r.label,
+                    Double.parseDouble(d[1]),r.secondary,r.step,r.min,r.max));
+        }
         for(PollenHiveSettings.Row row:PollenCollectionSequence.rows(collectionKind())) {
             // Existing beta cycle rows already tune these counts and preserve saved settings.
             if(row.key.equals("repeats")||row.key.equals("shakes")) continue;
@@ -119,6 +135,10 @@ public final class PollenHiveRoute {
     double feedIntake(boolean collectionMatch) { return v[collectionMatch?MATCH_FEED_INTAKE:11]; }
     /** Seconds the agitator and launcher keep running together after a match volley ends, to empty the robot. */
     double clearOutSeconds() { return v[CLEAR_OUT]; }
+    /** Paced feed: pause the agitator below this fraction of the launcher target; 0 = never pause. */
+    double feedPauseFraction() { return v[FEED_PAUSE_PCT]/100; }
+    /** Fast mode: one short leg back onto the shot spot when the return stopped just off it. */
+    Node returnNudge() { return transit("RETURN NUDGE",0,0,v[MATCH_TRAVEL_POWER]); }
     double feedDuration(boolean second, boolean collectionMatch) {
         if(collectionMatch) return v[second?MATCH_SECOND_FEED:MATCH_FIRST_FEED];
         return v[second?4:3];

@@ -31,6 +31,8 @@ public final class PollenHiveAuto {
     /** Clear-out after a volley: agitator and launcher keep running until this time. */
     private double clearOutUntil=Double.NEGATIVE_INFINITY;
     private boolean started,wasFeeding,departed,hiveUpLatched;
+    /** Paced feed: agitator held while the launcher recovers. Fast mode: return nudge used. */
+    private boolean feedPaused,nudged;
     private String reason="",motionPhase="",decision="before first tick";
     public PollenHiveAuto(PollenHiveRoute config,IsHiveReadyForShot hive) { this(config,hive,Run.MATCH); }
     public PollenHiveAuto(PollenHiveRoute config,IsHiveReadyForShot hive,Run run) {
@@ -142,7 +144,14 @@ public final class PollenHiveAuto {
                 o.launcher=config.v[6];
                 // After feed starts, finish the volley through camera changes and flywheel dips.
                 o.feed=volleyStarted||(settled&&readySpeed&&(!checksHive||hiveUpLatched));
-                if(o.feed) { o.intake=config.feedIntake(collectionKind!=null); o.agitator=config.v[12]; wasFeeding=true; }
+                if(o.feed) {
+                    // Paced feed (off at 0 %): hold the agitator while the launcher recovers from a ball.
+                    double pause=config.feedPauseFraction();
+                    if(pause<=0||readySpeed) feedPaused=false;
+                    else if(velocity<config.v[6]*pause) feedPaused=true;
+                    o.intake=config.feedIntake(collectionKind!=null); o.agitator=feedPaused?0:config.v[12]; wasFeeding=true;
+                    if(feedPaused) decision+=" feed_paused=true";
+                }
                 if(o.feed) reason=checksHive?"Feeding: hive UP latched":"Feeding primary preload";
                 else if(!settled) reason="Not settled at shooting pose";
                 else if(!readySpeed) reason="Waiting for measured launcher speed";
@@ -163,6 +172,11 @@ public final class PollenHiveAuto {
                 }
                 // Calibration Garden + Return retains its standalone route.
             case OUTBOUND: case RETURN: case ROOM: case PARK:
+                // The nudge is one short leg; if it cannot finish quickly, skip the volley and park as before.
+                if(phase==Phase.RETURN&&nudged&&now-phaseAt>1.5) {
+                    waitForBetaPark(now,"Return nudge did not reach the shot spot; second shot skipped");
+                    break;
+                }
                 if(phase==Phase.RETURN&&atShotPosition&&headingNeedsCorrection) {
                     alignForReturnShot(now,headingError);
                     break;
@@ -200,6 +214,14 @@ public final class PollenHiveAuto {
                 } else if(settled) {
                     if(run==Run.GARDEN_RETURN) return stop("Garden returned and settled at S");
                     enter(Phase.SECOND,now);
+                }
+                // Fast mode: stopped just off the spot (0.5-3 in). One short leg back instead of losing the volley.
+                else if(config.fast&&!nudged&&collectionKind!=null&&!atShotPosition&&distanceFromShot<=3
+                        &&speed<=1.5&&now-phaseAt>=.3) {
+                    nudged=true;
+                    motion=new PollenHiveMotion(new PollenHiveRoute.Node[]{config.returnNudge()});
+                    reason=String.format(Locale.US,"Stopped %.2f in off the shot spot; nudging back",distanceFromShot);
+                    enter(Phase.RETURN,now);
                 }
                 // Off the shot pose: skip the second shot but still park (park() stops in practice runs).
                 else if(now-phaseAt>1.5) {

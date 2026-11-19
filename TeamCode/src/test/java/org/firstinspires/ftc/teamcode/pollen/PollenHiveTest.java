@@ -439,6 +439,86 @@ public final class PollenHiveTest {
         try { new PollenHiveAuto(c,hive()); } catch(IllegalArgumentException ex) { rejected=true; }
         check(rejected,"Clear-out longer than 6 s is rejected at INIT");
     }
+    /** Full simulated primary run; returns {second feed end s or NaN, finish s, volleys}. */
+    private static double[] simulatePrimary(PollenHiveRoute c) {
+        PollenHiveAuto a=new PollenHiveAuto(c,hive()); a.start(0);
+        PollenOdometryTest.SimRobot robot=new PollenOdometryTest.SimRobot(); robot.leftLimit=48.84;
+        double feed2End=Double.NaN; int volleys=0; boolean wasFeed=false; PollenHiveAuto.Output o=null;
+        for(int i=1;i<=1501;i++) {
+            o=a.tick(i*.02,frame(i,true),robot.x,robot.y,robot.h,1180,true);
+            if(wasFeed&&!o.feed) { volleys++; if(volleys==2) feed2End=i*.02; }
+            wasFeed=o.feed;
+            robot.step(o.forward,o.strafe,o.turn,false,.02);
+            if(o.finished) return new double[]{feed2End,i*.02,volleys,o.reason.equals("Finished departure")?1:0};
+        }
+        return new double[]{feed2End,Double.NaN,volleys,0};
+    }
+    /** Beta Primary Shooter - Fast: own defaults, same route checks, both volleys, earlier finish. */
+    private static void fastCycle() {
+        PollenHiveRoute f=new PollenHiveRoute(false,false,true), m=new PollenHiveRoute(false);
+        check(f.values.get("collectionEntryForward")==20.32&&f.values.get("collectionEntryLeft")==116
+                &&f.values.get("matchFirstFeed")==2.5&&f.values.get("matchSecondFeed")==2.5&&f.values.changedCount()==0,
+                "Fast mode defaults: entry 20.32/116 cm, feeds 2.5 s, shown as defaults (not CHANGED)");
+        check(m.values.get("collectionEntryForward")==34&&m.values.get("collectionEntryLeft")==108
+                &&m.values.get("matchFirstFeed")==3&&m.values.get("matchSecondFeed")==3,"Match primary defaults unchanged");
+        boolean rejected=false;
+        try { new PollenHiveRoute(true,false,true); } catch(IllegalArgumentException ex) { rejected=true; }
+        check(rejected,"Fast mode is primary only");
+        f.selectMatchAlliance(false); m.selectMatchAlliance(false); f.v[0]=2; m.v[0]=2;
+        double[] fast=simulatePrimary(f), match=simulatePrimary(m);
+        check(fast[2]==2&&fast[3]==1&&match[2]==2&&match[3]==1,"Both simulate two volleys and park: "+fast[2]+" "+match[2]);
+        check(fast[0]<match[0]-1,"Fast mode's second volley ends over 1 s earlier in simulation: "+fast[0]+" vs "+match[0]);
+        System.out.printf(Locale.US,"Fast mode simulated (assumed robot): second volley ends %.2f s vs %.2f s Match%n",fast[0],match[0]);
+    }
+    /** Fast mode: stopped 0.5-3 in off the spot after the return, it nudges back once and shoots;
+     * Match skips the volley as before; a nudge that cannot finish gives up within 1.5 s and parks. */
+    private static void returnNudge() {
+        for(int variant=0;variant<3;variant++) {
+            boolean fast=variant>0, stuck=variant==2;
+            PollenHiveRoute c=new PollenHiveRoute(false,false,fast); c.selectMatchAlliance(false); c.v[0]=2;
+            PollenHiveAuto a=new PollenHiveAuto(c,hive()); a.start(0);
+            PollenOdometryTest.SimRobot robot=new PollenOdometryTest.SimRobot(); robot.leftLimit=48.84;
+            boolean pushed=false,nudgedSeen=false,second=false; String reason="";
+            for(int i=1;i<=1501;i++) {
+                double t=i*.02;
+                PollenHiveAuto.Output o=a.tick(t,frame(i,true),robot.x,robot.y,robot.h,1180,true);
+                // As the return arrives, shove the robot 1 in sideways off the spot (as if it coasted).
+                if(!pushed&&o.phase.equals("SETTLE")) { robot.y+=1.0; robot.vl=0; pushed=true; }
+                nudgedSeen|=o.reason.startsWith("Stopped")&&o.phase.startsWith("RETURN");
+                second|=o.feed&&pushed;
+                if(stuck&&nudgedSeen&&o.phase.startsWith("RETURN")) { robot.step(0,0,0,false,.02); }
+                else robot.step(o.forward,o.strafe,o.turn,false,.02);
+                reason=o.reason;
+                if(o.finished) break;
+            }
+            if(!fast) check(!nudgedSeen&&!second,"Match does not nudge; it skips the volley as before");
+            else if(!stuck) check(nudgedSeen&&second&&reason.equals("Finished departure"),"Fast mode nudges back once and fires the second volley: "+reason);
+            else check(nudgedSeen&&!second&&reason.equals("Finished departure"),"A stuck nudge gives up and still parks: "+reason);
+        }
+    }
+    /** Paced feed: the agitator holds while the launcher is below the set %, restarts at 96 %; 0 = old behavior. */
+    private static void pacedFeed() {
+        for(double pct:new double[]{0,92}) {
+            PollenHiveRoute c=new PollenHiveRoute(false); c.selectMatchAlliance(false); c.v[0]=2;
+            c.v[c.values.index("feedPausePct")]=pct;
+            PollenHiveAuto a=new PollenHiveAuto(c,hive()); a.start(0);
+            int held=0,fed=0; boolean resumedBeforeReady=false; double feedStart=Double.NaN,feedEnd=Double.NaN;
+            for(int i=1;i<=400;i++) {
+                double t=i*.02;
+                // Launcher: full speed, then a ball dips it to 1000 at 1.0 s and it climbs 20 ticks/s per tick.
+                double since=t-(Double.isNaN(feedStart)?99:feedStart);
+                double v=since>=.5&&since<.5+.02*9?1000+20*((since-.5)/.02):1180;
+                PollenHiveAuto.Output o=a.tick(t,frame(i,true),0,0,0,v,true);
+                if(o.feed&&Double.isNaN(feedStart)) feedStart=t;
+                if(!o.phase.equals("FIRST")) { feedEnd=t; break; }
+                if(o.feed) { if(o.agitator==0) held++; else fed++; }
+                if(o.feed&&o.agitator>0&&v<1180*.96&&since>.5) resumedBeforeReady|=held>0;
+            }
+            if(pct==0) check(held==0,"0 % feeds continuously through the dip");
+            else check(held>0&&!resumedBeforeReady,"92 % holds the agitator through the dip and restarts at 96 %: held "+held);
+            check(Math.abs(feedEnd-feedStart-3)<.1,"The volley clock keeps running while held: "+(feedEnd-feedStart));
+        }
+    }
     private static double primaryCycle(boolean driveOnly,boolean tipped,double travelPower) {
         PollenHiveRoute c=new PollenHiveRoute(false); c.v[0]=driveOnly?1:2;
         c.v[c.values.index("matchTravelPower")]=travelPower;
@@ -780,7 +860,7 @@ public final class PollenHiveTest {
     public static void main(String[] args) {
         matchAllianceSetup();
         classifier(); missesVsContradictions(); unsettledReturnParks(); returnHeadingCorrection(2.07); returnHeadingCorrection(-2.07);
-        calibration(); sides(); settings(); routes(); collectionTuning(); secondaryGates(); clearOutAfterVolley();
+        calibration(); sides(); settings(); routes(); collectionTuning(); secondaryGates(); clearOutAfterVolley(); fastCycle(); returnNudge(); pacedFeed();
         double fullPower=primaryCycle(false,false,1);
         double priorPower=primaryCycle(false,false,.6);
         check(fullPower<priorPower,"Full-power transit improves simulated cycle time");

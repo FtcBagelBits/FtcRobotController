@@ -1,6 +1,6 @@
 # Hive match setup and practice
 
-**Build pollen-hive-v33 - experimental.** Print front/back. Full steps: `docs/POLLEN_HIVE_TESTING.md`.
+**Build pollen-hive-v34 - experimental.** Print front/back. Full steps: `docs/POLLEN_HIVE_TESTING.md`.
 Keep existing match autos available. Rear camera/launcher face hive; **front intake faces end wall**.
 
 <img src="img/hive-height.svg" style="width:4.3in">
@@ -48,7 +48,8 @@ false UP _____ / 20. Capture reports save automatically. The screen tests the **
 | Calibration Garden + Return | **DRIVE**. No launcher/agitator. LIVE adds collection intake. Returns to S and stops, no park. |
 | Primary Shooter + Garden | **LIVE**. Shoot, one garden approach, return to S, shoot if UP, park. 30 s cutoff. |
 | Secondary Shooter + Flower | **LIVE**. Wait for UP, shoot, drain with two swings and one cleanup cycle, return to S, shoot if UP, park. 30 s cutoff. |
-| Beta Primary Shooter - Hero | **LIVE**. Primary garden plan with separate saved settings for beta testing. |
+| Beta Primary Shooter - Hero | **LIVE**. Primary garden plan, own saved settings. |
+| Beta Primary Shooter - Fast | **LIVE**. Like Hero: closer garden entry, 2.5 s feeds, return nudge. |
 | Beta Secondary Shooter - Out of the Way | **LIVE**. Wait for UP, shoot, wait in the far corner, park on its deadline. |
 
 Validate the camera, then test shot-only in DRY and LIVE and garden in DRIVE and LIVE before
@@ -59,7 +60,7 @@ preload need over **1 s** of confirmed UP. Match volleys add **3 s** of agitator
 
 ## Motor-mode INIT menu
 
-**Match and Beta:** On the first INIT row press **left for RED** or **right for BLUE**. Check the tag IDs before START.
+**Match and Beta:** On the first INIT row press **left for RED** or **right for BLUE**. Check tag IDs before START.
 
 D-pad row/value; LB/RB jump five. **Triangle** resets one row. **Circle** resets route values only,
 keeping camera and Execution. **Square** saves. Execution is never saved and resets each INIT to

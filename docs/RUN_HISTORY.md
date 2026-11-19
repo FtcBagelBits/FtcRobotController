@@ -181,10 +181,13 @@ session whose `analysis/summary.md` has the analysis (not copied). **Camera chec
 - `slim-trace.csv` (hive autos): every trace row from START until 1 s after the first DONE (or the
   last row), columns `t_s, kind, phase, execution, x_in, y_in, heading_deg, requested_forward,
   requested_strafe, requested_turn, requested_launcher_tps, measured_launcher_tps, applied_intake,
-  applied_agitator, feed_requested, hive_state, cell, battery_v, launcher_current_a`, plus
-  `clear_out` (true when `decision_inputs` contains `clear_out_s_left=`). Round to 2 decimals.
-  Leave out tags, motor sample strings, `decision_inputs` and `hive_reason`: they are the bulk of the
-  bytes and remain in the ZIP.
+  applied_agitator, feed_requested, hive_state, hive_reason, cell, battery_v, launcher_current_a`,
+  plus `clear_out` (true when `decision_inputs` contains `clear_out_s_left=`). Round to 2 decimals.
+  Leave out tags, motor sample strings and `decision_inputs`: they are the bulk of the bytes and
+  remain in the ZIP.
+  - 2026-11-19, Claude cloud session: `hive_reason` added. Without it the history could show the
+    v28/v29 return volleys waiting on `UNKNOWN` but not why (no tags, between bands, tags disagree).
+    Re-run `tools/run-history.py` over the downloads to fill it in for existing runs.
 
 ## `notes.md` template (what only people know)
 

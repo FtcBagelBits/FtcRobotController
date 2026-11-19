@@ -20,6 +20,8 @@ public abstract class PollenHiveOpMode extends OpMode {
     /** Play 2 secondary: after the shot, wait in the corner and park late. */
     protected boolean makeRoom() { return false; }
     protected boolean hero() { return false; }
+    /** Beta Primary Shooter - Fast: own saved file and defaults (see PollenHiveRoute.FAST_DEFAULTS). */
+    protected boolean fast() { return false; }
     protected PollenHiveAuto.Run run() { return PollenHiveAuto.Run.MATCH; }
     private int defaultExecution() { return run()==PollenHiveAuto.Run.MATCH?2:run()==PollenHiveAuto.Run.GARDEN_RETURN?1:0; }
     private File reportFile;
@@ -52,7 +54,7 @@ public abstract class PollenHiveOpMode extends OpMode {
     private boolean up, down, left, right, lb, rb, square, triangle, circle;
     private double displayAt = -1, hiveLogAt = -1, hiveLogStamp = Double.NaN;
 
-    private String fileName() { return hero() ? "primary-hero" : secondary() ? PollenHiveStore.SECONDARY : PollenHiveStore.PRIMARY; }
+    private String fileName() { return fast() ? "primary-fast" : hero() ? "primary-hero" : secondary() ? PollenHiveStore.SECONDARY : PollenHiveStore.PRIMARY; }
     private int routeRows() { return matchCollection() ? settings.v.length : PollenHiveSettings.ROUTE.length; }
     private int rows() { return routeRows() + cameraSettings.v.length; }
     private PollenHiveSettings.Values table(int r) { return r < routeRows() ? settings.values : cameraSettings; }
@@ -73,7 +75,7 @@ public abstract class PollenHiveOpMode extends OpMode {
 
     @Override public final void init() {
         PollenDrainerHold.holdUp(hardwareMap);
-        settings = new PollenHiveRoute(secondary(), makeRoom());
+        settings = new PollenHiveRoute(secondary(), makeRoom(), fast());
         cameraSettings = new PollenHiveSettings.Values(PollenHiveSettings.CAMERA, false);
         loadMessage = "Auto: " + PollenHiveStore.load(fileName(), settings.values)
                 + ". Camera: " + PollenHiveStore.load(PollenHiveStore.CAMERA, cameraSettings) + ".";

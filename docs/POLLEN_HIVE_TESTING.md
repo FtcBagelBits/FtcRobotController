@@ -5,7 +5,7 @@ For the v8 motion investigation and exact retest order, see [Hive auto diagnosti
 Intermittent tags? Start with the [automatic pipeline benchmark](POLLEN_HIVE_BENCHMARK.md).
 It records raw detections before calibration passes; the current confirmation rule is unchanged.
 
-Build **pollen-hive-v33**. The two tested Hive shooters are in Match. Hero and Out of the Way are in Beta Test.
+Build **pollen-hive-v34**. The two tested Hive shooters are in Match. Hero, Fast and Out of the Way are in Beta Test.
 Print [the two-page practice sheet](drive-team/print/4-hive-practice.pdf). This guide explains the
 controls and checks in full; the patch kit README covers applying, building, installing and pushing.
 
@@ -20,6 +20,7 @@ controls and checks in full; the patch kit README covers applying, building, ins
 | Primary Shooter + Garden | LIVE | Shoot, collect on one forward garden pass, return to S, shoot again if UP, then park. 30 s cutoff. |
 | Secondary Shooter + Flower | LIVE | Wait for UP, shoot, drain the nearby flower with two swings and one cleanup cycle, return to S, shoot again if UP, then park. 30 s cutoff. |
 | Beta Primary Shooter - Hero | LIVE | Runs the primary garden route with its own saved tuning profile. |
+| Beta Primary Shooter - Fast | LIVE | Primary garden plan with its own saved profile and faster defaults: garden entry 20.32 cm forward / 116 cm left (8 in off the end wall, about 3 in short of the side wall), 2.5 s feeds, and one nudge back onto the shot spot if the return stops 0.5-3 in off it (gives up after 1.5 s and parks as before). Why: [cycle-time research](research/cycle-time.md). |
 | Beta Secondary Shooter - Out of the Way | LIVE | Wait for UP, shoot, move to the scoring-end/side-wall corner, and leave for the outer parking slot when the estimated park drive plus margin remains. Shares the secondary's saved settings. |
 
 **Match and Beta Test INIT:** First row, left = RED or right = BLUE. Check the target IDs before START.
@@ -36,7 +37,7 @@ press STOP and INIT again to use that spot as the origin.
 
 ## Before the hive is available
 
-1. Apply/build/install the patch. Verify `BUILD pollen-hive-v33` on the Driver Hub.
+1. Apply/build/install the patch. Verify `BUILD pollen-hive-v34` on the Driver Hub.
 2. Mount the Limelight 3A rigidly on the back, looking toward the hive, with negligible camera
    roll. Measure tiles to **lens center**; 11.75 inches is the default, not a substitute for measuring.
 3. Connect USB-C on the Limelight to the Hub's blue USB-A 3.0 port. Configure it as `limelight`.
@@ -253,6 +254,7 @@ or the midline), or promote saved changes into the code. The robot log's START l
 | Measured park drive from the shooting spot | 5.46 s primary and Hero, 3.47 s secondary. |
 | Collection intake / hold | 0.50 power / 0.50 s |
 | Shooting intake / agitator | 1.00 / 1.00 in the Match autos and Hero. The calibration and Make Room shooting intake defaults to 0.50. |
+| Pause feed below launcher % | 0 (off), all hive modes. During a volley the agitator holds while the launcher is below this % of its target and restarts at 96 %, so each ball leaves near full speed. The volley clock keeps running. For accuracy A/B tests in Calibration Primary Shot Only (try 92). |
 | Clear-out s after volley | 3 s, Match autos and Hero only. After a volley finishes, the agitator and launcher keep running together this long while the robot drives on (or waits to park), so leftover balls leave before collecting. One time for both, so the agitator never feeds a stopped launcher. Not a feed: no pose, speed or UP check, intake and wheels untouched. The park deadline cancels it. 0 turns it off. Range 0-6 s. |
 | Clearance forward / first turn left / garden turn left | 15.24 / 43.836 / 108.822 cm |
 | Pickup left / forward | 121.522 / 2.54 cm |

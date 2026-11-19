@@ -95,6 +95,10 @@ public final class PollenHiveSettings {
         // delivers a ball into a stopped launcher (jam). It overlaps the drive (no time cost) and stops
         // early if the park deadline comes. 0 turns it off.
         row("clearOut", "Clear-out s after volley", 3, 3, .5, 0, 6),
+        // Paced feed, for accuracy tests (all hive modes): during a volley, stop the agitator when the
+        // launcher falls below this % of its target and restart it at the ready speed (96 %), so
+        // each ball leaves at full speed. The volley clock keeps running. 0 = feed continuously.
+        row("feedPausePct", "Pause feed below launcher %", 0, 0, 1, 0, 95),
     };
 
     /** Camera rows, shared by all hive modes (one saved file). See IsHiveReadyForShot. */

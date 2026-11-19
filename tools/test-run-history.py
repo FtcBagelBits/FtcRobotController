@@ -14,7 +14,7 @@ TOOL = Path(__file__).resolve().parent / 'run-history.py'
 RUN = 'match-1795054654268-811650241'
 TRACE_HEADER = ['t_s', 'wall_ms', 'kind', 'phase', 'reason', 'decision_inputs', 'execution', 'odom_status',
                 'x_in', 'y_in', 'heading_deg', 'requested_launcher_tps', 'measured_launcher_tps',
-                'feed_requested', 'hive_state', 'cell', 'camera_status', 'battery_v', 'tags_id_xyz_m_height_in']
+                'feed_requested', 'hive_state', 'hive_reason', 'cell', 'camera_status', 'battery_v', 'tags_id_xyz_m_height_in']
 
 
 def report():
@@ -43,7 +43,7 @@ def trace():
     def add(t, phase, feed=False, meas=1180, req=1180, kind='SAMPLE', decision='requested_s=3.000', x=0, y=0, reason='', h=0.0):
         rows.append([f'{t:.4f}', str(1795054654270 + int(t * 1000)), kind, phase, reason, decision, '2.0000', 'READY',
                      f'{x:.4f}', f'{y:.4f}', f'{h:.4f}', f'{req:.4f}', f'{meas:.4f}', 'true' if feed else 'false',
-                     'UP', '42', 'OK', '12.5000' if t < 5 else '11.9000', ''])
+                     'UP', 'Stable UP, 50.6 in', '42', 'OK', '12.5000' if t < 5 else '11.9000', ''])
     add(0.1, 'FIRST', req=0, meas=0, kind='TRANSITION')
     add(0.2, 'FIRST', meas=200)
     for i in range(30):  # First volley 1.0 .. 3.9 s with one dip at 2.0 s.
@@ -146,6 +146,7 @@ class RunHistoryTest(unittest.TestCase):
         slim = list(csv.DictReader((folder / 'slim-trace.csv').read_text().splitlines()))
         self.assertEqual(slim[-1]['t_s'], '22.00')  # Stops 1 s after the first DONE.
         self.assertNotIn('tags_id_xyz_m_height_in', slim[0])
+        self.assertEqual(slim[0]['hive_reason'], 'Stable UP, 50.6 in')  # Why the hive read UP/DOWN/UNKNOWN.
         self.assertEqual(sum(r['clear_out'] == 'true' for r in slim), 2)
         self.assertEqual(len(list(csv.reader((folder / 'timeline.csv').read_text().splitlines()))), 11)  # header + 10 transitions
         self.assertIn('Settings at START', (folder / 'summary.md').read_text())

@@ -50,7 +50,7 @@ SOURCE_COLUMNS = ['session', 'session_time', 'path', 'bytes', 'md5', 'run_id']
 SLIM_COLUMNS = ['t_s', 'kind', 'phase', 'execution', 'x_in', 'y_in', 'heading_deg',
                 'requested_forward', 'requested_strafe', 'requested_turn',
                 'requested_launcher_tps', 'measured_launcher_tps', 'applied_intake',
-                'applied_agitator', 'feed_requested', 'hive_state', 'cell', 'battery_v',
+                'applied_agitator', 'feed_requested', 'hive_state', 'hive_reason', 'cell', 'battery_v',
                 'launcher_current_a', 'clear_out']
 NOTES_TEMPLATE = """# {run_id}
 

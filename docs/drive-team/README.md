@@ -1,14 +1,14 @@
 # Drive team guides
 
 For the students who run the robot at matches. Each guide prints on one sheet (the two autos and
-TeleOp front and back); the PDFs are in [print/](print/). Build `pollen-hive-v33`.
+TeleOp front and back); the PDFs are in [print/](print/). Build `pollen-hive-v34`.
 
 ## Choose a Driver Hub mode
 
 | Group | Autonomous | TeleOp |
 | --- | --- | --- |
 | 1 Match | Primary Shooter + Garden, Secondary Shooter + Flower | PollenBot |
-| 2 Beta Test | Beta Primary Shooter - Hero, Beta Secondary Shooter - Out of the Way | |
+| 2 Beta Test | Beta Primary Shooter - Hero, Beta Primary Shooter - Fast, Beta Secondary Shooter - Out of the Way | |
 | 3 Emergency | Emergency Odo Shoot + Park, Emergency Odo Supporting Shooter, Emergency Odo Park, and the three Emergency Timed modes | |
 | 4 Calibration | Primary or secondary shot only, angled primary, garden pickup, garden + return, flower drain | Hive camera, hive pipeline benchmark, launcher, drainer servo, odometry, Pedro Pathing |
 | 5 Legacy | | Legacy Lox Drive and Legacy Lox Mecanum use the Lox hardware configuration. |
@@ -47,7 +47,7 @@ Use the Hive practice sheet for the Match and Beta modes.
 1. **Agree with the partner first:** who shoots first, who parks in which slot.
 2. **Place the robot, then INIT, then press Triangle once.** Make only the changes the coach asks for.
 3. **Front flat on the wall, back (launcher) to the hive** for every auto: the robot drives its routes backward.
-4. **Check the first line, ROUTE, is the route you want**, the Build line says `pollen-hive-v33`, and Status says `READY`.
+4. **Check the first line, ROUTE, is the route you want**, the Build line says `pollen-hive-v34`, and Status says `READY`.
 5. After the match, photograph the Driver Hub screen **before** INIT on TeleOp, and tell a programmer the
    match number and what happened, especially any **Warning** on the screen.
 
