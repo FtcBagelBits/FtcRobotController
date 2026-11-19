@@ -245,6 +245,18 @@ other 6: 3 left for park with `Hive not ready for return shot`, 1 with `Return p
 2 were stopped by the driver. 6 LIVE runs faulted at START: 4 with no alliance chosen, 2 with the
 Pinpoint moved since INIT. No `notes.md` is filled in yet and no v33 run has been downloaded yet.
 
+- 2026-11-19, Codex local, `[tested]` on the laptop: all 2,421 recording copies in the 21 Desktop
+  ZIPs match `sources.csv` by MD5. The same ZIPs contain 45 saved settings `.properties` files.
+  `sources.csv` inventories recording copies only, so it has no rows for those settings snapshots.
+- 2026-11-19, Codex local, `[tested]` on the laptop: the trace header omits `drainer_down` in the
+  sampled v8–v20 builds. It includes the column in the sampled v26–v29 builds.
+- 2026-11-19, Codex local, `[tested]` on the laptop: 12 v6 runs with a first-volley feed and no trace
+  display `dips_feed1=0` in the index. Launcher velocity is unavailable for those runs, so the
+  displayed zeros should be treated as missing measurements.
+- 2026-11-19, Codex local, `[tested]` on the laptop: the generated summary for the one incomplete
+  v10 benchmark points to `analysis/summary.md`. That file is absent from all 11 downloaded folders
+  containing the benchmark recording.
+
 ## Options considered
 
 | Option | Status | Why |
