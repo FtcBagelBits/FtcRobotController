@@ -12,6 +12,7 @@ Numbers come from the robot's own recordings. Ball counts come only from `notes.
 | camera_check | pollen-hive-v10 | 1 |
 | camera_check | pollen-hive-v14 | 1 |
 | camera_check | pollen-hive-v3 | 17 |
+| camera_check | pollen-hive-v34 | 2 |
 | camera_check | pollen-hive-v6 | 5 |
 | collection_practice | pollen-hive-v22 | 15 |
 | collection_practice | pollen-hive-v23 | 11 |
@@ -26,6 +27,10 @@ Numbers come from the robot's own recordings. Ball counts come only from `notes.
 | hive | pollen-hive-v27 | 3 |
 | hive | pollen-hive-v28 | 4 |
 | hive | pollen-hive-v29 | 5 |
+| hive | pollen-hive-v30 | 10 |
+| hive | pollen-hive-v31 | 1 |
+| hive | pollen-hive-v34 | 2 |
+| hive | pollen-hive-v35 | 9 |
 | hive | pollen-hive-v6 | 16 |
 | hive | pollen-hive-v8 | 10 |
 | hive | pollen-hive-v9 | 2 |
@@ -44,6 +49,9 @@ Numbers come from the robot's own recordings. Ball counts come only from `notes.
 | teleop | pollen-hive-v27 | 3 |
 | teleop | pollen-hive-v28 | 9 |
 | teleop | pollen-hive-v29 | 1 |
+| teleop | pollen-hive-v30 | 3 |
+| teleop | pollen-hive-v34 | 5 |
+| teleop | pollen-hive-v35 | 5 |
 
 ## Hive autos, LIVE only
 
@@ -197,6 +205,72 @@ Results: java.lang.IllegalStateException: Pinpoint is away from the INIT zero.  
 
 Why it left for park: Hive not ready for return shot (1)
 
+### PollenHivePrimaryAuto, pollen-hive-v30
+
+Runs 10; both volleys 0; second volley cut by park 0; faults 6; stopped early by the driver 0.
+
+| Step | Seconds |
+| --- | --- |
+| Spin-up to first feed | 0.8 / 0.8 (n=4) |
+| Wait for UP before first feed | 0.9 / 1.0 (n=4) |
+| Volley 1 | 3.0 / 3.0 (n=4) |
+| Outbound | 3.1 / 3.3 (n=4) |
+| Collection | 3.8 / 3.8 (n=1) |
+| Return | 4.0 / 4.0 (n=1) |
+| Settle / align | 0.4 / 0.4 (n=1) |
+| Wait for UP before second feed |  |
+| Volley 2 |  |
+| Spare before park |  |
+| Return error (in) | 0.5 / 0.5 (n=1) |
+
+Results: java.lang.IllegalStateException: Pinpoint is away from the INIT zero.  (4); Driver STOP (3); java.lang.IllegalArgumentException: Choose alliance: D-pad LEFT red /  (2); Finished departure (1)
+
+Why it left for park: Hive not ready for return shot (1)
+
+### PollenHivePrimaryAuto, pollen-hive-v34
+
+Runs 1; both volleys 1; second volley cut by park 0; faults 0; stopped early by the driver 0.
+
+| Step | Seconds |
+| --- | --- |
+| Spin-up to first feed | 0.8 / 0.8 (n=1) |
+| Wait for UP before first feed | 0.9 / 0.9 (n=1) |
+| Volley 1 | 2.9 / 2.9 (n=1) |
+| Outbound | 3.3 / 3.3 (n=1) |
+| Collection | 3.9 / 3.9 (n=1) |
+| Return | 3.9 / 3.9 (n=1) |
+| Settle / align | 0.8 / 0.8 (n=1) |
+| Wait for UP before second feed | 1.2 / 1.2 (n=1) |
+| Volley 2 | 2.9 / 2.9 (n=1) |
+| Spare before park | 3.5 / 3.5 (n=1) |
+| Return error (in) | 0.3 / 0.3 (n=1) |
+
+Results: Finished departure (1)
+
+Why it left for park: Park deadline during PARK_WAIT, 6.43 s left (1)
+
+### PollenHivePrimaryAuto, pollen-hive-v35
+
+Runs 6; both volleys 3; second volley cut by park 1; faults 2; stopped early by the driver 0.
+
+| Step | Seconds |
+| --- | --- |
+| Spin-up to first feed | 0.7 / 0.7 (n=4) |
+| Wait for UP before first feed | 0.8 / 0.8 (n=4) |
+| Volley 1 | 2.9 / 2.9 (n=4) |
+| Outbound | 3.1 / 3.2 (n=3) |
+| Collection | 4.2 / 4.6 (n=3) |
+| Return | 4.0 / 8.7 (n=3) |
+| Settle / align | 0.8 / 0.8 (n=3) |
+| Wait for UP before second feed | 3.6 / 4.1 (n=3) |
+| Volley 2 | 2.9 / 3.0 (n=3) |
+| Spare before park | 0.2 / 0.1 (n=3) |
+| Return error (in) | 0.2 / 0.4 (n=3) |
+
+Results: Finished departure (3); java.lang.IllegalArgumentException: Choose alliance: D-pad LEFT red /  (2); Driver STOP (1)
+
+Why it left for park: Park deadline during PARK_WAIT, 6.44 s left (1); Park deadline during PARK_WAIT, 6.43 s left (1); Park deadline during SECOND, 6.45 s left (1)
+
 ### PollenHivePrimaryAuto, pollen-hive-v8
 
 Runs 4; both volleys 0; second volley cut by park 0; faults 0; stopped early by the driver 0.
@@ -302,6 +376,72 @@ Runs 3; both volleys 0; second volley cut by park 0; faults 1; stopped early by 
 | Return error (in) |  |
 
 Results: Driver STOP (2); java.lang.IllegalArgumentException: Choose alliance: D-pad LEFT red /  (1)
+
+### PollenHiveSecondaryAuto, pollen-hive-v31
+
+Runs 1; both volleys 0; second volley cut by park 0; faults 0; stopped early by the driver 0.
+
+| Step | Seconds |
+| --- | --- |
+| Spin-up to first feed | 5.3 / 5.3 (n=1) |
+| Wait for UP before first feed | 5.4 / 5.4 (n=1) |
+| Volley 1 | 2.9 / 2.9 (n=1) |
+| Outbound | 2.5 / 2.5 (n=1) |
+| Collection | 8.4 / 8.4 (n=1) |
+| Return |  |
+| Settle / align |  |
+| Wait for UP before second feed |  |
+| Volley 2 |  |
+| Spare before park |  |
+| Return error (in) |  |
+
+Results: Finished departure (1)
+
+Why it left for park: Park deadline during RETURN, 4.46 s left (1)
+
+### PollenHiveSecondaryAuto, pollen-hive-v34
+
+Runs 1; both volleys 0; second volley cut by park 0; faults 0; stopped early by the driver 0.
+
+| Step | Seconds |
+| --- | --- |
+| Spin-up to first feed | 8.0 / 8.0 (n=1) |
+| Wait for UP before first feed | 8.2 / 8.2 (n=1) |
+| Volley 1 | 3.0 / 3.0 (n=1) |
+| Outbound | 2.5 / 2.5 (n=1) |
+| Collection | 8.7 / 8.7 (n=1) |
+| Return |  |
+| Settle / align |  |
+| Wait for UP before second feed |  |
+| Volley 2 |  |
+| Spare before park |  |
+| Return error (in) |  |
+
+Results: Finished departure (1)
+
+Why it left for park: Park deadline during RETURN, 5.59 s left (1)
+
+### PollenHiveSecondaryAuto, pollen-hive-v35
+
+Runs 3; both volleys 2; second volley cut by park 1; faults 1; stopped early by the driver 0.
+
+| Step | Seconds |
+| --- | --- |
+| Spin-up to first feed | 3.5 / 5.5 (n=2) |
+| Wait for UP before first feed | 3.6 / 5.6 (n=2) |
+| Volley 1 | 3.0 / 3.0 (n=2) |
+| Outbound | 2.6 / 2.7 (n=2) |
+| Collection | 8.6 / 9.0 (n=2) |
+| Return | 2.4 / 2.4 (n=2) |
+| Settle / align | 0.5 / 0.7 (n=2) |
+| Wait for UP before second feed | 1.3 / 1.3 (n=2) |
+| Volley 2 | 2.4 / 2.9 (n=2) |
+| Spare before park | 1.1 / 0.1 (n=2) |
+| Return error (in) | 0.2 / 0.2 (n=2) |
+
+Results: Finished departure (2); java.lang.IllegalStateException: Pinpoint is away from the INIT zero.  (1)
+
+Why it left for park: Park deadline during SECOND, 4.44 s left (1); Park deadline during PARK_WAIT, 4.43 s left (1)
 
 ### PollenHiveSecondaryMakeRoomAuto, pollen-hive-v16
 
@@ -465,6 +605,19 @@ Last dip is seconds after the volley started. If it is well before the requested
 | match-1795058969741-1506116415 | pollen-hive-v29 | 3.0 | 2 | 1.1 |  |  |  |  |
 | match-1795059055549-240547908 | pollen-hive-v29 | 3.0 | 3 | 2.2 |  |  |  |  |
 | match-1795059128825-1036357046 | pollen-hive-v29 | 3.0 | 2 | 1.0 |  |  |  |  |
+| match-1795060498840-74467650 | pollen-hive-v30 | 3.0 | 3 | 2.1 |  |  |  |  |
+| match-1795060597163-736787148 | pollen-hive-v30 | 3.0 | 0 |  |  |  |  |  |
+| match-1795060637287-1811525435 | pollen-hive-v30 | 3.0 | 0 |  |  |  |  |  |
+| match-1795060677209-1365711345 | pollen-hive-v30 | 3.0 | 2 | 1.1 |  |  |  |  |
+| match-1795060836002-1358614014 | pollen-hive-v31 | 3.0 | 2 | 2.1 |  |  |  |  |
+| match-1795137665694-204786521 | pollen-hive-v34 | 3.0 | 1 | 0.8 | 3.0 | 0 |  | 2 |
+| match-1795138112989-1346937594 | pollen-hive-v34 | 3.0 | 1 | 0.2 |  |  |  | 1 |
+| match-1795139076466-1383110924 | pollen-hive-v35 | 3.0 | 2 | 1.7 | 3.0 | 0 |  | 0 |
+| match-1795139210395-774829685 | pollen-hive-v35 | 3.0 | 3 | 1.9 | 3.0 | 2 | 1.6 | 0 |
+| match-1795139723477-1690903111 | pollen-hive-v35 | 3.0 | 3 | 2.4 |  |  |  | 0 |
+| match-1795139796154-1126397761 | pollen-hive-v35 | 3.0 | 3 | 1.7 | 3.0 | 1 | 1.3 | 0 |
+| match-1795140354055-828029730 | pollen-hive-v35 | 3.0 | 3 | 1.8 | 3.0 | 3 | 2.2 | 0 |
+| match-1795140747909-686674422 | pollen-hive-v35 | 3.0 | 3 | 2.2 | 3.0 | 1 | 0.5 | 0 |
 
 ## Return and settle
 
@@ -496,9 +649,16 @@ Runs where SETTLE or ALIGN_SHOT took over 1 s: garden_return-1794791210703-13445
 | match-1795056741649-1788934707 | pollen-hive-v28 | 6.7 | false |
 | match-1795059055549-240547908 | pollen-hive-v29 | 4.1 | false |
 | match-1795059128825-1036357046 | pollen-hive-v29 | 1.5 | false |
+| match-1795060836002-1358614014 | pollen-hive-v31 | 5.4 | false |
+| match-1795138112989-1346937594 | pollen-hive-v34 | 8.2 | false |
+| match-1795139076466-1383110924 | pollen-hive-v35 | 5.6 | true |
+| match-1795139210395-774829685 | pollen-hive-v35 | 1.6 | true |
 
 ## From notes.md
 
-No notes filled in yet.
+| Run | Build | Balls left after volley 1 | Jam or overload |
+| --- | --- | --- | --- |
+| match-1795137665694-204786521 | pollen-hive-v34 |  |  |
+| match-1795139723477-1690903111 | pollen-hive-v35 |  |  |
 
-LIVE hive runs without notes: 49 of 49.
+LIVE hive runs without notes: 69 of 71.

@@ -1,0 +1,25 @@
+t_s,phase,hive_state,feed,reason,x_in,y_in,heading_deg
+0.136,FIRST,UNKNOWN,false,,0.00,0.00,359.99
+1.054,FIRST,UNKNOWN,true,Feeding primary preload,0.00,0.00,359.97
+4.061,OUTBOUND:,UNKNOWN,false,First feed duration complete; starting collection trip,0.02,0.01,359.85
+4.135,OUTBOUND: CLEAR END WALL,UNKNOWN,false,First feed duration complete; starting collection trip,0.02,0.01,359.85
+5.218,OUTBOUND: ALIGN WITH GARDEN,UNKNOWN,false,First feed duration complete; starting collection trip,13.23,0.08,0.62
+7.361,GARDEN:,UNKNOWN,false,First feed duration complete; starting collection trip,13.43,42.11,359.93
+7.449,GARDEN: Find right wall,UNKNOWN,false,First feed duration complete; starting collection trip,13.43,42.10,359.90
+9.018,GARDEN: GARDEN_IN,UNKNOWN,false,First feed duration complete; starting collection trip,13.83,50.23,0.19
+9.101,GARDEN: Inward pass 1,UNKNOWN,false,First feed duration complete; starting collection trip,13.82,50.18,0.10
+11.290,RETURN:,UNKNOWN,false,Collection complete; returning to shooting position,5.54,49.54,354.03
+11.357,RETURN: CLEAR COLLECTION SITE,UNKNOWN,false,Collection complete; returning to shooting position,5.62,49.51,353.96
+12.136,RETURN: RETURN ACROSS,UNKNOWN,false,Collection complete; returning to shooting position,13.08,49.67,1.25
+14.322,RETURN: RETURN SHOOT POSITION,UNKNOWN,false,Collection complete; returning to shooting position,13.32,0.43,0.34
+15.174,ALIGN_SHOT,UNKNOWN,false,Correcting return heading to 0 degrees,0.29,0.21,3.14
+15.557,SETTLE,UNKNOWN,false,Heading corrected; settling for return shot,0.24,0.13,0.60
+15.945,SECOND,UNKNOWN,false,Heading corrected; settling for return shot,0.23,0.13,0.74
+16.191,SECOND,UP,false,Timing confirmed hive UP,0.23,0.13,0.73
+17.209,SECOND,UP,true,Feeding: hive UP latched,0.23,0.13,0.72
+20.212,PARK_WAIT,UP,false,Shot complete; waiting for park deadline,0.24,0.13,0.64
+20.284,PARK_WAIT,UNKNOWN,false,Shot complete; waiting for park deadline,0.24,0.13,0.63
+23.591,PARK: PARK CLEAR,UNKNOWN,false,"Park deadline during PARK_WAIT, 6.43 s left",0.25,0.14,0.54
+24.155,PARK: PARK CORNER,UNKNOWN,false,"Park deadline during PARK_WAIT, 6.43 s left",3.50,0.10,359.69
+25.901,PARK: PARK,UNKNOWN,false,"Park deadline during PARK_WAIT, 6.43 s left",3.97,24.54,0.07
+28.807,DONE,UNKNOWN,false,Finished departure,87.85,43.39,0.29
