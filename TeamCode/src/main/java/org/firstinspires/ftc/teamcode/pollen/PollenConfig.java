@@ -6,7 +6,7 @@ public final class PollenConfig {
 
     /** Shown in INIT by every Pollen and Odo autonomous mode and by PollenBot TeleOp, and written to
      * the robot log at START. Change it whenever the Pollen code changes. */
-    public static final String BUILD = "pollen-hive-v48";
+    public static final String BUILD = "pollen-hive-v49";
     /** Where Circle (TeleOp) and Beta Primary Shooter - Angled Left aim: this many inches LEFT of
      * the middle of our hive cell (negative = right). The robot shoots a little left and a miss
      * left of center costs more (drive team, 2026-11-19), so the default aims 2 in right. */
@@ -16,8 +16,8 @@ public final class PollenConfig {
 
     /** Launcher speed in encoder ticks per second: the default in TeleOp, autonomous and
      * LauncherTest (the INIT menus can change it). The encoder counts 28 ticks per turn, so
-     * 1180 ticks/s = 1180 / 28 x 60 = 2529 RPM. */
-    public static final int LAUNCHER_TARGET_VELOCITY = 1180;
+     * 1140 ticks/s = 1140 / 28 x 60 = 2443 RPM. v49: 1140 (was 1180), drive team 2026-11-21. */
+    public static final int LAUNCHER_TARGET_VELOCITY = 1140;
     /** The longest the launcher runs alone before feeding starts, in auto, TeleOp and
      * LauncherTest (team-measured). Feeding starts sooner if the launcher is already up to
      * speed: see PollenFeedRule. */
@@ -25,8 +25,8 @@ public final class PollenConfig {
     /** Agitator power while feeding the launcher, in auto and TeleOp. It replaced a windmill
      * servo that ran at full power while shooting; half power can stall the hopper. */
     public static final double AGITATOR_FEED_POWER = 1.0;
-    /** The launcher counts as "up to speed" at this fraction of its target (about 1133 of the
-     * 1180 target; originally 1200 of 1250, the StarterBot check). Feeding starts at that speed
+    /** The launcher counts as "up to speed" at this fraction of its target (about 1094 of the
+     * 1140 target; originally 1200 of 1250, the StarterBot check). Feeding starts at that speed
      * or after the spin-up time, whichever comes first, so a bad encoder reading can never stop
      * the feed. The rule itself is in PollenFeedRule. */
     public static final double LAUNCHER_READY_FRACTION = 0.96;

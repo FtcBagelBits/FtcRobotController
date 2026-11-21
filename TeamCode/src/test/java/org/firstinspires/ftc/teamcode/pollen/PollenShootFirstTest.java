@@ -65,7 +65,7 @@ public final class PollenShootFirstTest {
         zero(s.tick(0));
         s.start(0);
         PollenSequence.Output spin = s.tick(0);
-        near(spin.launcherVelocity, 1180, "flywheel starts alone");
+        near(spin.launcherVelocity, PollenConfig.LAUNCHER_TARGET_VELOCITY, "flywheel starts alone");
         near(spin.feederPower, 0, "no premature feed");
         near(spin.forward, 0, "no approach drive");
         near(t.value(SPINUP), 3, "three-second spin-up default");
@@ -74,7 +74,7 @@ public final class PollenShootFirstTest {
         near(s.tick(3).feederPower, 1, "feed at 3 s even with zero measured speed");
         PollenSequence.Output dip = s.tick(4);
         near(dip.feederPower, 1, "ordinary speed dip does not pause continuous feed");
-        near(dip.launcherVelocity, 1180, "flywheel target maintained during feed");
+        near(dip.launcherVelocity, PollenConfig.LAUNCHER_TARGET_VELOCITY, "flywheel target maintained during feed");
         near(dip.forward, 0, "stationary shooting");
         near(s.tick(12.99).feederPower, 1, "full ten seconds after spin-up");
         zero(s.tick(13));
@@ -132,22 +132,22 @@ public final class PollenShootFirstTest {
         check(parkNow.phase.equals("PARK")&&parkNow.forward==.2&&parkNow.feederPower==0&&parkNow.launcherVelocity==0,
                 "Actual time spent before the shot can interrupt it for the configured park margin");
         select(t, FLYWHEEL);
-        change(t, 1); near(t.value(FLYWHEEL), 1200, "speed adjustment: one 20 tick/s step");
+        change(t, 1); near(t.value(FLYWHEEL), PollenConfig.LAUNCHER_TARGET_VELOCITY + 20, "speed adjustment: one 20 tick/s step");
         t.update(false, false, false, true, false);
         t.update(false, false, false, true, false);
-        near(t.value(FLYWHEEL), 1220, "held key does not repeat"); release(t);
+        near(t.value(FLYWHEEL), PollenConfig.LAUNCHER_TARGET_VELOCITY + 40, "held key does not repeat"); release(t);
         t.update(false, false, true, true, false);
-        near(t.value(FLYWHEEL), 1220, "opposite arrows cancel"); release(t);
+        near(t.value(FLYWHEEL), PollenConfig.LAUNCHER_TARGET_VELOCITY + 40, "opposite arrows cancel"); release(t);
         select(t, START_DELAY); change(t, 1);
         PollenShootTuning remembered = new PollenShootTuning(t.snapshot());
-        near(remembered.value(FLYWHEEL), 1220, "remember speed");
+        near(remembered.value(FLYWHEEL), PollenConfig.LAUNCHER_TARGET_VELOCITY + 40, "remember speed");
         near(remembered.value(START_DELAY), 0, "reset delay on INIT");
         near(t.value(START_DELAY), .5, "snapshots do not alias");
         for (int i = 0; i < 60; i++) change(t, 1);
         check(t.worstCaseSeconds() < 26, "budget bounded");
         check(t.notice().contains("rejected"), "budget rejection visible");
         s = t.sequence(); s.start(0); zero(s.tick(t.value(START_DELAY) - .01));
-        near(s.tick(t.value(START_DELAY)).launcherVelocity, 1220, "delay precedes spinup");
+        near(s.tick(t.value(START_DELAY)).launcherVelocity, t.value(FLYWHEEL), "delay precedes spinup");
         t.lock(); double before = t.value(START_DELAY);
         change(t, -1); t.update(false, false, false, false, true);
         near(t.value(START_DELAY), before, "START locks edits and reset");

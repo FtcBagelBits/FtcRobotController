@@ -46,7 +46,7 @@ public final class PollenHiveSettings {
         row("firstFeed", "First feed s", 4, 4, 0.5, 0, 20),
         row("secondFeed", "Second feed s", 4, 4, 0.5, 0, 20),
         row("firstWindow", "First shot window s", 5, 5, 0.5, 0, 20),
-        row("launcher", "Launcher ticks/s", 1180, 1180, 20, 500, 2500),
+        row("launcher", "Launcher ticks/s", 1140, 1140, 20, 500, 2500),
         row("travelPower", "Travel power", 0.6, 0.6, 0.05, 0.1, 0.8),
         row("turnPower", "Turn power", 0.4, 0.4, 0.05, 0.1, 0.8),
         row("collectPower", "Collection intake power", 0.5, 0.5, 0.05, 0, 1),
