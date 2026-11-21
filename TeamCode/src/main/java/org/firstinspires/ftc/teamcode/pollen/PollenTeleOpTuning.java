@@ -77,7 +77,7 @@ public final class PollenTeleOpTuning {
 
     /** Servo-only menu for PollenDrainerTest; shares the TeleOp defaults and edit rules. */
     public static PollenTeleOpTuning drainerOnly(Snapshot remembered) {
-        PollenTeleOpTuning tuning = new PollenTeleOpTuning(PollenConfig.LAUNCHER_TARGET_VELOCITY,
+        PollenTeleOpTuning tuning = new PollenTeleOpTuning(PollenConfig.TELEOP_LAUNCHER_TARGET_VELOCITY,
                 PollenConfig.LAUNCHER_SPINUP_SECONDS, PollenConfig.AGITATOR_FEED_POWER, remembered, true);
         tuning.menu = DRAINER_MENU;
         tuning.selected = Row.DRAINER_UP;
@@ -143,7 +143,7 @@ public final class PollenTeleOpTuning {
     public double agitatorPower() { return agitator; }
     /** Multiplies all four wheel powers after the normal mecanum normalization. */
     public double driveScale() { return drive; }
-    /** "Up to speed" means 96% of the target: about 1094 ticks/s for the default 1140. */
+    /** "Up to speed" means 96% of the target: about 1133 ticks/s for the TeleOp default 1180. */
     public double launcherReadyVelocity() { return launcher * PollenConfig.LAUNCHER_READY_FRACTION; }
 
     /** Feeding rule 1: the launcher's encoder says it is up to speed (PollenFeedRule). */

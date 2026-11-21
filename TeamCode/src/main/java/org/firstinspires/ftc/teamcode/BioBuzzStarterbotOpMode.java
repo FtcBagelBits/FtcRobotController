@@ -96,7 +96,7 @@ public class BioBuzzStarterbotOpMode extends OpMode {
      * That feed rule is written once, in pollen/PollenFeedRule.java, and autonomous and
      * LauncherTest use the same one. The default speed is shared too (pollen/PollenConfig.java).
      */
-    public final int LAUNCHER_TARGET_VELOCITY = PollenConfig.LAUNCHER_TARGET_VELOCITY; //1140 = 2443 RPM (was 1250, then 1180)
+    public final int LAUNCHER_TARGET_VELOCITY = PollenConfig.TELEOP_LAUNCHER_TARGET_VELOCITY; //1180 = 2529 RPM (was 1250)
     public final double LAUNCHER_SPINUP_SECONDS = PollenConfig.LAUNCHER_SPINUP_SECONDS; // 3 s
     // Hold Square to run the launcher BACKWARDS slowly and push a jammed ball back out.
     // 300 RPM = 300 x 28 / 60 = 140 ticks per second.

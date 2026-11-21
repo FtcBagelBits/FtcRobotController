@@ -63,7 +63,7 @@ public class LauncherTestOpMode extends OpMode {
      * The same numbers as PollenBot TeleOp, from the same place (pollen/PollenConfig.java).
      * Speeds are in encoder ticks per second: 28 ticks per turn, so 1180 ticks/s is 2529 RPM.
      */
-    public final int LAUNCHER_TARGET_VELOCITY = PollenConfig.LAUNCHER_TARGET_VELOCITY; // 1140
+    public final int LAUNCHER_TARGET_VELOCITY = PollenConfig.TELEOP_LAUNCHER_TARGET_VELOCITY; // 1180
     public final double LAUNCHER_SPINUP_SECONDS = PollenConfig.LAUNCHER_SPINUP_SECONDS; // 3 s
     public final int LAUNCHER_REVERSE_VELOCITY = PollenConfig.LAUNCHER_REVERSE_VELOCITY; // 140 = 300 RPM
     public final double INTAKE_FEED_BOOST = PollenConfig.INTAKE_FEED_BOOST; // 0.5
