@@ -770,9 +770,9 @@ public final class PollenHiveTest {
         boolean rejected=false;
         try { new PollenHiveRoute(true,true,false,true); } catch(IllegalArgumentException ex) { rejected=true; }
         check(rejected,"Angled is not a make-room mode");
-        check(Math.abs(PollenFieldGeometry.cellLeftOfStartInches(false)-.991)<.001
+        check(PollenFieldGeometry.cellLeftOfStartInches(false)==0
                 &&Math.abs(PollenFieldGeometry.cellLeftOfStartInches(true)+2.713)<.001,
-                "v41: cell middle 0.99 in left of the tile-centered primary start, 2.71 in right of the secondary start");
+                "v42: primary start centered on the hive; cell middle 2.71 in right of the secondary start");
         PollenHiveRoute c=new PollenHiveRoute(false,false,false,true);
         check(c.values.get("shotLeftIn")==8&&c.values.get("shotAwayIn")==8,"Angled spot defaults to 8 in left, 8 in away");
         int aimRow=c.values.index("aimTargetLeftIn"); c.values.edit(aimRow,-1);
@@ -790,8 +790,8 @@ public final class PollenHiveTest {
         check(rejected,"A spot too close to the wall for the aim turn fails INIT");
         double aim=Math.toRadians(PollenFieldGeometry.aimDegrees(8,8,PollenConfig.AIM_TARGET_LEFT_IN,
                 PollenFieldGeometry.cellLeftOfStartInches(false)));
-        check(c.values.get("aimTargetLeftIn")==-2&&Math.abs(Math.toDegrees(aim)+13.38)<.05&&Math.abs(c.shotHeading()-aim)<1e-12,
-                "v41: angled primary aims 2 in right of the cell's middle, from the tile-centered start: "+Math.toDegrees(aim));
+        check(c.values.get("aimTargetLeftIn")==-2&&Math.abs(Math.toDegrees(aim)+14.78)<.05&&Math.abs(c.shotHeading()-aim)<1e-12,
+                "Angled primary aims 2 in right of the cell's middle, from the hive-centered start: "+Math.toDegrees(aim));
         IsHiveReadyForShot h=hive(); PollenHiveAuto a=new PollenHiveAuto(c,h); a.start(0);
         PollenOdometryTest.SimRobot robot=new PollenOdometryTest.SimRobot();
         robot.leftLimit=48.84;

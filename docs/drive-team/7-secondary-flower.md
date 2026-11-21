@@ -73,7 +73,7 @@ lane, and park in the **INNER** slot. Show them the partner sheet.
 | --- | --- |
 | Status | `READY` |
 | Row 1 Alliance | `RED scoring-side cell (tags 30-33)` or `BLUE audience-side cell (tags 38-41)` |
-| BUILD / RUN | `pollen-hive-v41` / `MATCH / LIVE` |
+| BUILD / RUN | `pollen-hive-v42` / `MATCH / LIVE` |
 | SETTINGS | `all defaults` (or only the change the coach asked for) |
 | Hive cell behind robot | Our cell's name and **DOWN** (it starts down). Not `NO CAMERA`, and not UNKNOWN for long. |
 | Camera calibration | tilt and lens numbers (not `NOT CALIBRATED`) |

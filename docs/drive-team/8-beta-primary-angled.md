@@ -19,7 +19,7 @@ One practice run (Nov 19, v36); later builds untested on the field.
 | Time | What happens |
 | --- | --- |
 | 0 - 1.2 s | One straight leg to the spot: 8 in off the wall, 8 in left. Launcher spins up on the way. |
-| 1.2 - 2 s | Turns in place to the **calculated** aim, about 13.4 deg right. |
+| 1.2 - 2 s | Turns in place to the **calculated** aim, about 14.8 deg right. |
 | 2 - 5 s | Shoots its 4 pollen. Does not wait for the camera. |
 | 5 - 11 s | Straight to the garden, picks up, like the match Primary. |
 | 11 - 14 s | Back to the same spot; turns to the same aim. |
@@ -44,14 +44,14 @@ the garden lane. Our robot also uses the space 8 in off the wall in front of the
 <div class="side" markdown="1">
 <div markdown="1">
 
-![Placement: front flat on the wall, back (launcher) to the hive, centered in its wall tile, 2.75 in from each tile seam](img/shoot-and-park-placement.svg)
+![Placement: front flat on the wall, back (launcher) to the hive, centered on the hive, 3.7 in from the center seam](img/shoot-and-park-placement.svg)
 
 </div>
 <div markdown="1">
 
 - **Red:** at the **audience** wall. **Blue:** at the **scoring-end** wall.
 - **Front** (intake) **flat on the wall**, **back** (launcher and camera) **to the hive**.
-- **Center the robot exactly in its wall tile:** 2.75 in (7 cm) from each tile seam. The aim
+- **Center the robot on the hive.** Its edge is 3.7 in (9.5 cm) from the center seam. The aim
   angle is calculated from this spot, so placement matters more than in the match Primary.
 - Exactly **4 pollen**. **Fresh battery.**
 
@@ -68,8 +68,8 @@ the garden lane. Our robot also uses the space 8 in off the wall in front of the
 | --- | --- |
 | Status | `READY` |
 | Row 1 Alliance | `RED audience-side cell (tags 34-37)` or `BLUE scoring-side cell (tags 42-45)` |
-| BUILD / RUN | `pollen-hive-v41` / `MATCH / LIVE` |
-| Plan | `PRIMARY ANGLED: drive to 8.0 in away / 8.0 in left, turn -13.4 deg, ...` |
+| BUILD / RUN | `pollen-hive-v42` / `MATCH / LIVE` |
+| Plan | `PRIMARY ANGLED: drive to 8.0 in away / 8.0 in left, turn -14.8 deg, ...` |
 | SETTINGS | `all defaults` (or only the change the coach asked for) |
 | Odometry | `READY` |
 

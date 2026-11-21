@@ -223,11 +223,6 @@ inch to the center seam. A 1.0-inch spacer gauge is an allowed alignment device
 (G302) and must be taken off the field before the match (G303.C). The loading
 zone tape sits about 0.4 inch inside one tile row along the side wall.
 
-Since match 2 (2026-11-21) the drive team places the primary **centered in its wall tile**
-(2.75 in from each tile seam). By the CAD that is 0.99 in toward the seam from the hive center
-assumed above. The Match routes are unchanged (about 1 in is inside their margins); the beta
-angled modes aim from the tile-centered start (`PollenFieldGeometry.cellLeftOfStartInches`).
-
 [POLLEN_PIT_SHEET.svg](POLLEN_PIT_SHEET.svg) is the simplified alliance version of
 this guide: tile grid, both alliances, inner/outer slots, the no-wall strip and
 timeline badges. `python3 tools/draw-pollen-pit-sheet.py out.pdf` makes a

@@ -11,7 +11,7 @@ odometry the whole time.
 <div class="side" markdown="1">
 <div markdown="1">
 
-![Route: start centered in its wall tile, out to the garden corner and back, then park in the INNER slot](img/primary-garden-route.svg)
+![Route: start centered on the hive, out to the garden corner and back, then park in the INNER slot](img/primary-garden-route.svg)
 
 </div>
 <div markdown="1">
@@ -43,14 +43,14 @@ the garden lane until about 16 s, and park in the **OUTER** slot. Show them the 
 <div class="side" markdown="1">
 <div markdown="1">
 
-![Placement: front flat on the wall, back (launcher) to the hive, centered in its wall tile, 2.75 in from each tile seam](img/shoot-and-park-placement.svg)
+![Placement: front flat on the wall, back (launcher) to the hive, centered on the hive, 3.7 in from the center seam](img/shoot-and-park-placement.svg)
 
 </div>
 <div markdown="1">
 
 - **Red:** at the **audience** wall. **Blue:** at the **scoring-end** wall.
 - **Front** (intake) **flat on the wall**. The **back** (launcher and camera) **faces the hive**.
-- **Center the robot exactly in its wall tile:** 2.75 in (7 cm) from each tile seam.
+- **Center the robot on the hive.** Its edge is 3.7 in (9.5 cm) from the center seam.
 - Exactly **4 pollen** loaded. Not touching a flower. Not in the loading zone.
 - **Fresh battery.** Practice runs dropped to about 10 V during shooting.
 
@@ -73,7 +73,7 @@ Without it the Status says `BLOCKED` and the robot does nothing in auto.
 | --- | --- |
 | Status | `READY` |
 | Row 1 Alliance | `RED audience-side cell (tags 34-37)` or `BLUE scoring-side cell (tags 42-45)` |
-| BUILD / RUN | `pollen-hive-v41` / `MATCH / LIVE` |
+| BUILD / RUN | `pollen-hive-v42` / `MATCH / LIVE` |
 | SETTINGS | `all defaults` (or only the change the coach asked for) |
 | Hive cell behind robot | `Primary preload skips Hive UP` (not `NO CAMERA`) |
 | Camera calibration | tilt and lens numbers (not `NOT CALIBRATED`) |

@@ -125,9 +125,7 @@ def placement_picture(tag, name, title):
     fig = plt.figure(figsize=(6.4, 5.4))
     ax = fig.add_axes([.01, .01, .98, .98])
     if tag == 'P':
-        # Since match 2 the drive team centers the primary in its wall tile (CAD: 0.99 in toward the
-        # seam from the hive center; the code's routes still assume the hive center).
-        (x, z), wall, away = (-SEAM / 2, P[0][1]), W, -1
+        (x, z), wall, away = P[0], W, -1
     else:
         (x, z), wall, away = S[0], -W, 1
     xmin, xmax = -36, 12
@@ -144,13 +142,9 @@ def placement_picture(tag, name, title):
             continue
         rect(ax, *f, fc='#f2b134', ec='#8a5a00', zorder=4)
         ax.text((f[0] + f[1]) / 2, wall + away * 9.5, 'flower', fontsize=13.6, ha='center', va='center', weight='bold', color='#8a5a00')
-    if tag == 'P':  # the tile seam on the far side of the robot's tile
-        ax.plot([-SEAM, -SEAM], [zlo, zhi], color='#999', lw=1.2, ls='--', zorder=2)
-        ax.text(-SEAM - .8, wall + away * 36, 'tile seam', fontsize=13.6, color='#333', va='center', ha='right')
-    else:
-        ax.plot([hx, hx], [zlo, zhi], color='#888', lw=1, ls=':', zorder=2)
-        ax.text(hx, wall + away * 38, 'hive center', fontsize=13.6, color='#555', ha='center', va='center',
-                bbox=dict(fc='white', ec='none', pad=1))
+    ax.plot([hx, hx], [zlo, zhi], color='#888', lw=1, ls=':', zorder=2)
+    ax.text(hx, wall + away * 38, 'hive center', fontsize=13.6, color='#555', ha='center', va='center',
+            bbox=dict(fc='white', ec='none', pad=1))
     col = P_COL if tag == 'P' else S_COL
     ax.add_patch(Rectangle((x - R, z - R), 2 * R, 2 * R, fc=col, ec='#111', lw=1.5, alpha=.9, zorder=6))
     ax.text(x, z, 'ROBOT\nFRONT flat\non the wall', ha='center', va='center', fontsize=14.4, weight='bold', color='white', zorder=7)
@@ -159,10 +153,8 @@ def placement_picture(tag, name, title):
                 arrowprops=dict(arrowstyle='-|>', lw=2.5, color='#111', mutation_scale=18), zorder=7)
     ax.text(x + 1.2, back + away * 5, 'BACK\n(launcher)\nto the hive', ha='left', va='center', fontsize=14.4, weight='bold')
     if tag == 'P':
-        gap(ax, x + R, 0, z, '2.75 in\n(7 cm)', (2.0, wall + away * 20), 'left')
-        gap(ax, -SEAM, x - R, z + away * 4, '2.75 in', (xmin + 1, wall + away * 20), 'left')
-        ax.text(xmin + 1, wall + away * 30, 'Center the robot in its wall tile:\n2.75 in to each tile seam.',
-                fontsize=14.4, weight='bold', va='center')
+        gap(ax, x + R, 0, z, '3.7 in\n(9.5 cm)', (2.0, wall + away * 20), 'left')
+        ax.text(xmin + 1, wall + away * 30, 'Center the robot on the hive.', fontsize=15.2, weight='bold')
     else:
         gap(ax, -20.058, x - R, wall + away * 4, 'about 1 in', (xmin + 1, wall + away * 16), 'left')
         gap(ax, x + R, 0, wall + away * 4, 'about 1 in', (2.0, wall + away * 16), 'left')
