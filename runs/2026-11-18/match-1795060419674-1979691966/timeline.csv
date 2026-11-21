@@ -1,0 +1,3 @@
+t_s,phase,hive_state,feed,reason,x_in,y_in,heading_deg
+0.0968,BLOCKED,UNKNOWN,false,java.lang.IllegalArgumentException: Choose alliance: D-pad LEFT red / RIGHT blue,0.0000,0.0000,0.0000
+0.6990,BLOCKED,UNKNOWN,false,java.lang.IllegalArgumentException: Choose alliance: D-pad LEFT red / RIGHT blue,0.0000,0.0000,0.0000

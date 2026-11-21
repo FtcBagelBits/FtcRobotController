@@ -1,0 +1,28 @@
+t_s,kind,rehearsal,note
+0.0000,START,0,build=pollen-hive-v36 installed=2026-11-19T18:16:55 opmode=PollenBot launcher=1180.0 spinup=3.0 agitator=1.0 drive=1.0 settings=DEFAULTS reverse=140 feedBoost=0.5 facing=back-to-hive pinpoint=READY ba
+6.7413,AIM,0,AIM_START n=1 source=CAMERA target_deg=358.30 camera_bearing_deg=0.39 cell=30 tags=1 cam_dist_in=71.37 odo_target_deg=unknown odo_turn_deg=unknown x_in=-1.27 y_in=-3.40 heading_deg=358.70
+8.6041,AIM,0,AIM_CANCEL n=1 reason=circle_again turned_deg=2.62 after_s=1.86
+10.6251,AIM,0,AIM_START n=2 source=CAMERA target_deg=354.64 camera_bearing_deg=4.42 cell=30 tags=2 cam_dist_in=69.98 odo_target_deg=unknown odo_turn_deg=unknown x_in=1.33 y_in=-3.77 heading_deg=359.06
+11.7800,AIM,0,AIM_CANCEL n=2 reason=circle_again turned_deg=3.38 after_s=1.16
+16.7553,AIM,0,AIM_START n=3 source=CAMERA target_deg=343.87 camera_bearing_deg=-12.48 cell=34 tags=2 cam_dist_in=35.10 odo_target_deg=unknown odo_turn_deg=unknown x_in=11.17 y_in=-4.40 heading_deg=331.38
+17.8295,AIM,0,AIM_CANCEL n=3 reason=circle_again turned_deg=-12.08 after_s=1.07
+18.6756,AIM,0,AIM_START n=4 source=CAMERA target_deg=350.86 camera_bearing_deg=-8.10 cell=34 tags=4 cam_dist_in=35.43 odo_target_deg=unknown odo_turn_deg=unknown x_in=11.15 y_in=-4.52 heading_deg=342.76
+19.7689,AIM,0,AIM_CANCEL n=4 reason=circle_again turned_deg=-7.86 after_s=1.09
+20.1040,AIM,0,AIM_START n=5 source=CAMERA target_deg=350.48 camera_bearing_deg=-0.35 cell=34 tags=4 cam_dist_in=36.03 odo_target_deg=unknown odo_turn_deg=unknown x_in=10.99 y_in=-4.55 heading_deg=350.13
+20.5301,AIM,0,AIM_DONE n=5 source=CAMERA result=camera_confirmed turned_right_deg=0.00 seconds=0.43 passes=1 first_camera_bearing_deg=-0.35 camera_residual_deg=-0.34 odo_target_deg=unknown odo_residual_deg=NaN head
+23.0997,AIM,0,AIM_START n=6 source=CAMERA target_deg=377.55 camera_bearing_deg=-28.12 cell=34 tags=2 cam_dist_in=40.17 odo_target_deg=unknown odo_turn_deg=unknown x_in=7.55 y_in=-27.89 heading_deg=349.43
+24.6373,AIM,0,AIM_CANCEL n=6 reason=circle_again turned_deg=-27.28 after_s=1.54
+29.4962,AIM,0,AIM_START n=7 source=CAMERA target_deg=-8.33 camera_bearing_deg=29.76 cell=34 tags=1 cam_dist_in=39.09 odo_target_deg=unknown odo_turn_deg=unknown x_in=11.41 y_in=2.38 heading_deg=21.43
+30.6224,AIM,0,AIM_CANCEL n=7 reason=circle_again turned_deg=29.37 after_s=1.13
+31.1957,AIM,0,AIM_START n=8 source=CAMERA target_deg=349.91 camera_bearing_deg=1.81 cell=30 tags=1 cam_dist_in=61.47 odo_target_deg=unknown odo_turn_deg=unknown x_in=9.53 y_in=5.99 heading_deg=351.72
+31.8587,AIM,0,AIM_CANCEL n=8 reason=circle_again turned_deg=1.69 after_s=0.66
+32.1099,AIM,0,AIM_START n=9 source=CAMERA target_deg=349.96 camera_bearing_deg=0.07 cell=30 tags=1 cam_dist_in=61.12 odo_target_deg=unknown odo_turn_deg=unknown x_in=9.52 y_in=5.96 heading_deg=350.03
+32.4706,AIM,0,AIM_CANCEL n=9 reason=circle_again turned_deg=0.00 after_s=0.36
+34.4683,AIM,0,AIM_START n=10 source=CAMERA target_deg=325.78 camera_bearing_deg=23.87 cell=34 tags=3 cam_dist_in=41.40 odo_target_deg=unknown odo_turn_deg=unknown x_in=14.42 y_in=14.54 heading_deg=349.65
+35.3645,AIM,0,AIM_CANCEL n=10 reason=circle_again turned_deg=23.42 after_s=0.90
+35.6630,AIM,0,AIM_START n=11 source=CAMERA target_deg=320.43 camera_bearing_deg=5.09 cell=34 tags=3 cam_dist_in=38.87 odo_target_deg=unknown odo_turn_deg=unknown x_in=15.06 y_in=16.17 heading_deg=325.52
+35.8795,AIM,0,AIM_CANCEL n=11 reason=circle_again turned_deg=3.53 after_s=0.22
+36.1858,AIM,0,AIM_START n=12 source=CAMERA target_deg=320.55 camera_bearing_deg=1.30 cell=34 tags=3 cam_dist_in=38.47 odo_target_deg=unknown odo_turn_deg=unknown x_in=15.00 y_in=16.20 heading_deg=321.85
+38.7159,AIM,0,AIM_DONE n=12 source=CAMERA result=turn_timeout turned_right_deg=0.38 seconds=2.53 passes=1 first_camera_bearing_deg=1.30 camera_residual_deg=0.90 odo_target_deg=unknown odo_residual_deg=NaN heading_d
+44.4567,AIM,0,AIM_REFUSED source=CAMERA reason=no_tags camera_bearing_deg=none cell=none tags=0 cam_dist_in=none odo_target_deg=unknown odo_turn_deg=unknown x_in=14.75 y_in=16.39 heading_deg=322.83
+106.9676,STOP,0,

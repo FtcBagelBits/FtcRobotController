@@ -149,6 +149,12 @@ public final class PollenOdometryDrive {
      */
     public static Command command(double targetForwardIn, double targetLeftIn, double maxPower,
                                   double x, double y, double heading, double vx, double vy) {
+        return command(targetForwardIn, targetLeftIn, maxPower, x, y, heading, vx, vy, SLOWDOWN_POWER_PER_SQRT_INCH);
+    }
+
+    /** As above with a different slow-down gain (power per sqrt inch still to go); bigger brakes later. */
+    static Command command(double targetForwardIn, double targetLeftIn, double maxPower,
+                           double x, double y, double heading, double vx, double vy, double slowdownPerSqrtInch) {
         double toGoForward = targetForwardIn - x, toGoLeft = targetLeftIn - y;
         double distance = Math.hypot(toGoForward, toGoLeft);
         if (distance <= POSITION_TOLERANCE_IN) return new Command(0, 0, 0, distance);
@@ -166,7 +172,7 @@ public final class PollenOdometryDrive {
         double robotLeft = -sin * toGoForward + cos * toGoLeft;
 
         double power = Math.min(maxPower, Math.max(Math.min(MIN_POWER, maxPower),
-                SLOWDOWN_POWER_PER_SQRT_INCH * Math.sqrt(brakingDistance)));
+                slowdownPerSqrtInch * Math.sqrt(brakingDistance)));
         double forward = power * robotForward / distance;
         double strafe = -power * robotLeft / distance; // strafe + is RIGHT
         // Heading counterclockwise of zero -> turn clockwise (turn +) to come back.
@@ -176,7 +182,10 @@ public final class PollenOdometryDrive {
 
     /** Leg power allowed {@code secondsIntoLeg} after the leg started: ramps up from MIN_POWER. */
     public static double rampedPower(double secondsIntoLeg, double maxPower) {
-        return Math.min(maxPower, MIN_POWER + RAMP_POWER_PER_SECOND * Math.max(0, secondsIntoLeg));
+        return rampedPower(secondsIntoLeg, maxPower, RAMP_POWER_PER_SECOND);
+    }
+    static double rampedPower(double secondsIntoLeg, double maxPower, double rampPerSecond) {
+        return Math.min(maxPower, MIN_POWER + rampPerSecond * Math.max(0, secondsIntoLeg));
     }
 
     /**

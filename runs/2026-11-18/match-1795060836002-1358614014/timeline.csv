@@ -1,0 +1,29 @@
+t_s,phase,hive_state,feed,reason,x_in,y_in,heading_deg
+0.125,FIRST,UNKNOWN,false,,0.00,0.00,359.99
+4.442,FIRST,UP,false,Timing confirmed hive UP,-0.00,-0.00,0.00
+5.510,FIRST,UP,true,Feeding: hive UP latched,-0.00,-0.00,0.01
+8.545,OUTBOUND:,UP,false,First feed duration complete; starting collection trip,0.01,0.00,359.92
+8.612,OUTBOUND: CLEAR END WALL,UNKNOWN,false,First feed duration complete; starting collection trip,0.01,0.00,359.92
+9.681,OUTBOUND: ALIGN WITH FLOWER,UNKNOWN,false,First feed duration complete; starting collection trip,14.29,0.15,358.75
+10.976,FLOWER:,UNKNOWN,false,First feed duration complete; starting collection trip,14.36,-12.96,0.02
+11.048,FLOWER: Lower drainer,UNKNOWN,false,First feed duration complete; starting collection trip,14.36,-12.94,0.01
+11.480,FLOWER: Approach flower,UNKNOWN,false,First feed duration complete; starting collection trip,14.34,-12.94,0.00
+13.238,FLOWER: Left 1,UNKNOWN,false,First feed duration complete; starting collection trip,7.45,-12.81,359.71
+13.791,FLOWER: Right 1,UNKNOWN,false,First feed duration complete; starting collection trip,7.51,-13.78,359.57
+14.524,FLOWER: Left 2,UNKNOWN,false,First feed duration complete; starting collection trip,7.57,-11.90,0.76
+15.163,FLOWER: Right 2,UNKNOWN,false,First feed duration complete; starting collection trip,7.54,-13.74,359.50
+15.882,FLOWER: Center drainer,UNKNOWN,false,First feed duration complete; starting collection trip,7.57,-11.92,0.70
+16.275,FLOWER: WITHDRAW,UNKNOWN,false,First feed duration complete; starting collection trip,7.56,-12.36,359.79
+16.342,FLOWER: Withdraw drainer,UNKNOWN,false,First feed duration complete; starting collection trip,7.57,-12.34,359.79
+17.186,FLOWER: CLEANUP,UNKNOWN,false,First feed duration complete; starting collection trip,14.44,-12.42,359.69
+17.268,FLOWER: Ingest forward 1,UNKNOWN,false,First feed duration complete; starting collection trip,14.43,-12.43,359.60
+17.792,FLOWER: Back out 1,UNKNOWN,false,First feed duration complete; starting collection trip,12.10,-12.40,0.27
+18.338,FLOWER: Finish ingesting,UNKNOWN,false,First feed duration complete; starting collection trip,14.35,-12.42,359.72
+19.390,RETURN:,UNKNOWN,false,Collection complete; returning to shooting position,14.29,-12.42,359.75
+19.462,RETURN: CLEAR COLLECTION SITE,UNKNOWN,false,Collection complete; returning to shooting position,14.29,-12.42,359.75
+19.560,RETURN: RETURN ACROSS,UNKNOWN,false,Collection complete; returning to shooting position,14.29,-12.42,359.76
+20.866,RETURN: RETURN SHOOT POSITION,UNKNOWN,false,Collection complete; returning to shooting position,14.40,-0.47,0.34
+25.558,PARK: PARK CLEAR,UNKNOWN,false,"Park deadline during RETURN, 4.46 s left",0.62,-0.08,359.14
+26.324,PARK: PARK CORNER,UNKNOWN,false,"Park deadline during RETURN, 4.46 s left",8.10,-0.10,359.07
+26.389,PARK: PARK,UNKNOWN,false,"Park deadline during RETURN, 4.46 s left",8.12,-0.10,359.06
+28.476,DONE,UNKNOWN,false,Finished departure,14.66,-45.52,359.65

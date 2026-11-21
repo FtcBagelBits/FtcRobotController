@@ -1,0 +1,25 @@
+{
+ "battery_min_v": 10.66,
+ "battery_start_v": 13.02,
+ "build": "pollen-hive-v10",
+ "done_at": 25.6123,
+ "duration_s": 30.1747,
+ "first_seen_session": "hive-secondary-20261117-194258",
+ "hub_start": "2026-11-16T17:13:53-08:00",
+ "installed": "2026-11-16T12:21:57",
+ "kind": "odo_auto",
+ "last_phase": "RESULT",
+ "opmode": "Odo Supporting Shooter",
+ "result": "DONE - all outputs zero",
+ "run": "SUPPORT_PARK",
+ "run_id": "auto-20261116-171353",
+ "settings": "FLYWHEEL=1180.0 SPINUP=3.0 FEED_SECONDS=7.5 FEED_POWER=0.5 AGITATOR_POWER=1.0 START_DELAY=12.0 CALIBRATION=1.0 DRIVE_POWER=0.6 LEG1_CM=20.32 LEG1_ANGLE=0.0 LEG2_CM=0.0 LEG2_ANGLE=-90.0 LEG3_CM=117.95818703170036 LEG3_ANGLE=-81.84826224462856",
+ "settings_id": "91233325",
+ "source_bytes": 8598,
+ "sources": [
+  "auto/auto-20261116-171353.csv 03d878fa583c58d6eec62336848a848d"
+ ],
+ "stopped_early": false,
+ "tool_version": 1,
+ "warnings": ""
+}

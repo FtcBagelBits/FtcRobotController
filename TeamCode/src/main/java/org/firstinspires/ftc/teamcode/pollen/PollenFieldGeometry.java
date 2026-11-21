@@ -32,6 +32,22 @@ public final class PollenFieldGeometry {
     public static final double ANGLED_OFF_WALL_INCHES = 5, ANGLED_SIDE_INCHES = 30;
     private static final double LEFT_TO_PARK = RED_HIVE_X_INCHES - PARK_X_INCHES;
 
+    /** Hive opening straight ahead of the primary start, inches forward of the start (45.9 in). */
+    public static double hiveOpeningForwardInches() { return START_Z - HIVE_OPENING_Z_INCHES; }
+    /** Beta Angled Left: heading (degrees, +left) that points the launcher at the middle of our hive
+     * cell's opening from a spot this far from the start (away = off the wall, left = toward the
+     * garden). Left of the cell gives a negative answer: turn right. 8 in / 8 in: about -11.9 deg. */
+    public static double aimDegrees(double awayInches, double leftInches) {
+        return aimDegrees(awayInches, leftInches, 0);
+    }
+    /** Aim at a point targetLeftInches left of the opening's middle (negative = right of it). */
+    public static double aimDegrees(double awayInches, double leftInches, double targetLeftInches) {
+        return -Math.toDegrees(Math.atan2(leftInches - targetLeftInches, hiveOpeningForwardInches() - awayInches));
+    }
+    public static double aimDistanceInches(double awayInches, double leftInches) {
+        return Math.hypot(leftInches, hiveOpeningForwardInches() - awayInches);
+    }
+
     /** Primary leg 3: after forward wall clearance and the left hive clearance. */
     public static double primaryDistanceCm() {
         return Math.hypot(primaryLeftRemainingInches(), primaryForwardRemainingInches()) * INCH_TO_CM;

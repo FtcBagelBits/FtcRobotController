@@ -1,0 +1,37 @@
+t_s,kind,rehearsal,note
+0.0000,START,0,build=pollen-hive-v37 installed=2026-11-19T18:36:38 opmode=PollenAimCalibration launcher=1180.0 spinup=3.0 agitator=1.0 drive=1.0 settings=CHANGED reverse=140 feedBoost=0.5 facing=back-to-hive pinpoin
+1.1500,AIM,0,AIM_START n=1 source=CAMERA target_deg=7.68 target_left_in=-10.5 camera_bearing_deg=-7.67 cell=30 tags=2 cam_dist_in=68.47 odo_target_deg=-12.89 odo_turn_deg=12.90 x_in=-0.00 y_in=-0.00 heading_deg=0.
+1.6817,AIM,0,AIM_CANCEL n=1 reason=restarted_by_circle turned_deg=-7.47 after_s=0.53
+1.6843,AIM,0,AIM_START n=2 source=CAMERA target_deg=7.55 target_left_in=-10.5 camera_bearing_deg=-0.07 cell=30 tags=2 cam_dist_in=69.45 odo_target_deg=-12.92 odo_turn_deg=20.40 x_in=0.07 y_in=0.01 heading_deg=7.48
+1.8498,AIM,0,AIM_DONE n=2 source=CAMERA result=done turned_right_deg=0.01 seconds=0.17 camera_updates=4 target_left_in=-10.5 first_camera_bearing_deg=-0.07 camera_residual_deg=0.08 odo_target_deg=-12.92 odo_residu
+1.9317,AIM,0,AIM_START n=3 source=CAMERA target_deg=7.33 target_left_in=-10.5 camera_bearing_deg=0.14 cell=30 tags=2 cam_dist_in=69.26 odo_target_deg=-12.93 odo_turn_deg=20.40 x_in=0.09 y_in=0.02 heading_deg=7.47
+2.1067,AIM,0,AIM_DONE n=3 source=CAMERA result=done turned_right_deg=0.02 seconds=0.18 camera_updates=5 target_left_in=-10.5 first_camera_bearing_deg=0.14 camera_residual_deg=0.02 odo_target_deg=-12.93 odo_residua
+2.2085,AIM,0,AIM_START n=4 source=CAMERA target_deg=7.36 target_left_in=-10.5 camera_bearing_deg=0.10 cell=30 tags=2 cam_dist_in=69.39 odo_target_deg=-12.93 odo_turn_deg=20.39 x_in=0.09 y_in=0.02 heading_deg=7.46
+2.3660,AIM,0,AIM_DONE n=4 source=CAMERA result=done turned_right_deg=0.00 seconds=0.16 camera_updates=5 target_left_in=-10.5 first_camera_bearing_deg=0.10 camera_residual_deg=0.12 odo_target_deg=-12.93 odo_residua
+2.4229,AIM,0,AIM_START n=5 source=CAMERA target_deg=7.38 target_left_in=-10.5 camera_bearing_deg=0.08 cell=30 tags=2 cam_dist_in=69.46 odo_target_deg=-12.93 odo_turn_deg=20.39 x_in=0.09 y_in=0.02 heading_deg=7.46
+2.6066,AIM,0,AIM_DONE n=5 source=CAMERA result=done turned_right_deg=0.00 seconds=0.18 camera_updates=5 target_left_in=-10.5 first_camera_bearing_deg=0.08 camera_residual_deg=0.05 odo_target_deg=-12.93 odo_residua
+2.6783,AIM,0,AIM_START n=6 source=CAMERA target_deg=7.34 target_left_in=-10.5 camera_bearing_deg=0.12 cell=30 tags=2 cam_dist_in=69.20 odo_target_deg=-12.93 odo_turn_deg=20.39 x_in=0.09 y_in=0.02 heading_deg=7.46
+2.8363,AIM,0,AIM_DONE n=6 source=CAMERA result=done turned_right_deg=0.00 seconds=0.16 camera_updates=4 target_left_in=-10.5 first_camera_bearing_deg=0.12 camera_residual_deg=0.14 odo_target_deg=-12.93 odo_residua
+3.0300,AIM,0,AIM_START n=7 source=CAMERA target_deg=7.37 target_left_in=-10.5 camera_bearing_deg=0.09 cell=30 tags=2 cam_dist_in=69.47 odo_target_deg=-12.93 odo_turn_deg=20.39 x_in=0.09 y_in=0.02 heading_deg=7.46
+3.2050,AIM,0,AIM_DONE n=7 source=CAMERA result=done turned_right_deg=0.00 seconds=0.18 camera_updates=5 target_left_in=-10.5 first_camera_bearing_deg=0.09 camera_residual_deg=0.17 odo_target_deg=-12.93 odo_residua
+3.2538,AIM,0,AIM_START n=8 source=CAMERA target_deg=7.40 target_left_in=-10.5 camera_bearing_deg=0.06 cell=30 tags=2 cam_dist_in=69.67 odo_target_deg=-12.93 odo_turn_deg=20.39 x_in=0.09 y_in=0.02 heading_deg=7.46
+3.4153,AIM,0,AIM_DONE n=8 source=CAMERA result=done turned_right_deg=0.00 seconds=0.16 camera_updates=5 target_left_in=-10.5 first_camera_bearing_deg=0.06 camera_residual_deg=0.15 odo_target_deg=-12.93 odo_residua
+3.4932,AIM,0,AIM_START n=9 source=CAMERA target_deg=7.35 target_left_in=-10.5 camera_bearing_deg=0.11 cell=30 tags=2 cam_dist_in=69.28 odo_target_deg=-12.93 odo_turn_deg=20.39 x_in=0.09 y_in=0.02 heading_deg=7.46
+3.6595,AIM,0,AIM_DONE n=9 source=CAMERA result=done turned_right_deg=0.00 seconds=0.17 camera_updates=5 target_left_in=-10.5 first_camera_bearing_deg=0.11 camera_residual_deg=0.05 odo_target_deg=-12.93 odo_residua
+3.7911,AIM,0,AIM_START n=10 source=CAMERA target_deg=7.42 target_left_in=-10.5 camera_bearing_deg=0.04 cell=30 tags=2 cam_dist_in=69.73 odo_target_deg=-12.93 odo_turn_deg=20.39 x_in=0.09 y_in=0.02 heading_deg=7.46
+3.9512,AIM,0,AIM_DONE n=10 source=CAMERA result=done turned_right_deg=0.00 seconds=0.16 camera_updates=4 target_left_in=-10.5 first_camera_bearing_deg=0.04 camera_residual_deg=0.14 odo_target_deg=-12.93 odo_residu
+4.9038,AIM,0,AIM_START n=11 source=CAMERA target_deg=5.43 target_left_in=-10.5 camera_bearing_deg=2.17 cell=30 tags=2 cam_dist_in=69.55 odo_target_deg=-14.99 odo_turn_deg=22.60 x_in=-1.03 y_in=2.06 heading_deg=7.6
+5.2871,AIM,0,AIM_DONE n=11 source=CAMERA result=done turned_right_deg=1.98 seconds=0.38 camera_updates=10 target_left_in=-10.5 first_camera_bearing_deg=2.17 camera_residual_deg=-0.05 odo_target_deg=-14.99 odo_resi
+5.9363,AIM,0,AIM_START n=12 source=CAMERA target_deg=5.69 target_left_in=-10.5 camera_bearing_deg=-0.07 cell=30 tags=2 cam_dist_in=70.01 odo_target_deg=-15.00 odo_turn_deg=20.62 x_in=-0.98 y_in=2.05 heading_deg=5.
+6.1138,AIM,0,AIM_DONE n=12 source=CAMERA result=done turned_right_deg=-0.00 seconds=0.18 camera_updates=6 target_left_in=-10.5 first_camera_bearing_deg=-0.07 camera_residual_deg=-0.00 odo_target_deg=-15.00 odo_res
+6.8552,AIM,0,AIM_START n=13 source=CAMERA target_deg=7.48 target_left_in=-10.5 camera_bearing_deg=-1.28 cell=30 tags=3 cam_dist_in=71.25 odo_target_deg=-8.50 odo_turn_deg=14.71 x_in=-0.35 y_in=-3.59 heading_deg=6.
+7.4212,AIM,0,AIM_CANCEL n=13 reason=restarted_by_circle turned_deg=-2.05 after_s=0.57
+7.4237,AIM,0,AIM_START n=14 source=CAMERA target_deg=7.55 target_left_in=-10.5 camera_bearing_deg=0.71 cell=30 tags=3 cam_dist_in=72.41 odo_target_deg=-8.46 odo_turn_deg=16.71 x_in=-0.43 y_in=-3.61 heading_deg=8.2
+7.5795,AIM,0,AIM_DONE n=14 source=CAMERA result=done turned_right_deg=0.01 seconds=0.16 camera_updates=5 target_left_in=-10.5 first_camera_bearing_deg=0.71 camera_residual_deg=0.70 odo_target_deg=-8.46 odo_residua
+7.6876,AIM,0,AIM_START n=15 source=CAMERA target_deg=7.48 target_left_in=-10.5 camera_bearing_deg=0.76 cell=30 tags=3 cam_dist_in=72.36 odo_target_deg=-8.45 odo_turn_deg=16.69 x_in=-0.44 y_in=-3.62 heading_deg=8.2
+7.8718,AIM,0,AIM_DONE n=15 source=CAMERA result=done turned_right_deg=0.16 seconds=0.18 camera_updates=5 target_left_in=-10.5 first_camera_bearing_deg=0.76 camera_residual_deg=0.62 odo_target_deg=-8.45 odo_residua
+7.9458,AIM,0,AIM_START n=16 source=CAMERA target_deg=7.45 target_left_in=-10.5 camera_bearing_deg=0.64 cell=30 tags=3 cam_dist_in=71.89 odo_target_deg=-8.44 odo_turn_deg=16.53 x_in=-0.44 y_in=-3.62 heading_deg=8.0
+8.1094,AIM,0,AIM_DONE n=16 source=CAMERA result=done turned_right_deg=0.00 seconds=0.16 camera_updates=4 target_left_in=-10.5 first_camera_bearing_deg=0.64 camera_residual_deg=0.61 odo_target_deg=-8.44 odo_residua
+8.2646,AIM,0,AIM_START n=17 source=CAMERA target_deg=7.43 target_left_in=-10.5 camera_bearing_deg=0.65 cell=30 tags=3 cam_dist_in=71.69 odo_target_deg=-8.44 odo_turn_deg=16.53 x_in=-0.44 y_in=-3.62 heading_deg=8.0
+8.4391,AIM,0,AIM_DONE n=17 source=CAMERA result=done turned_right_deg=0.00 seconds=0.17 camera_updates=4 target_left_in=-10.5 first_camera_bearing_deg=0.65 camera_residual_deg=0.63 odo_target_deg=-8.44 odo_residua
+8.7133,STOP,0,

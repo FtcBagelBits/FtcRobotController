@@ -1,0 +1,9 @@
+t_s,phase,hive_state,feed,reason,x_in,y_in,heading_deg
+0.120,FIRST,UNKNOWN,false,,0.00,0.00,0.00
+7.428,FIRST,UP,true,"Stable UP, 51.7 in",-0.02,-0.01,0.14
+7.605,FIRST,UNKNOWN,false,Tags disagree/outside bands: 52.4-52.8 in (mean 52.6),-0.02,-0.01,0.15
+8.698,FIRST,UP,true,"Stable UP, 52.3 in",-0.02,-0.01,0.19
+9.347,FIRST,UP,false,Waiting for measured launcher speed,-0.02,-0.01,0.19
+9.777,FIRST,UP,true,"Stable UP, 52.3 in",-0.03,-0.01,0.22
+10.448,DONE,UP,false,Stationary shot complete,-0.03,-0.02,0.24
+10.661,DONE,UNKNOWN,false,Stationary shot complete,-0.03,-0.02,0.25

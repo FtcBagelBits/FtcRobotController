@@ -232,16 +232,19 @@ class DesktopTools(unittest.TestCase):
         self.run_tool('patch', str(patch), ok=False)
         self.assertEqual(self.git('rev-parse', 'HEAD'), base)
         (self.repo / 'local-work.txt').unlink()
-        self.git('switch', '-c', 'wrong-branch')
-        self.run_tool('patch', str(patch), ok=False)
-        self.git('switch', 'pollen-hive-ready')
+        self.git('switch', '--detach')
+        self.run_tool('patch', str(patch), ok=False)  # Detached HEAD: no branch to apply to.
+        self.assertEqual(self.git('rev-parse', 'HEAD'), base)
+        self.git('switch', '-c', 'any-feature-branch')  # Any checked-out branch is accepted.
         plain = self.folder / 'change.diff'  # Same change without mail headers, as `git diff` writes it.
         body = patch.read_text()
         plain.write_text(body[body.index('diff --git'):body.rindex('\n-- \n') + 1])
         self.run_tool('patch', str(plain), ok=False)  # Plain diff: refuse before any backup branch.
         self.assertEqual(self.git('for-each-ref', 'refs/heads/backup/'), '')
         self.assertEqual(self.git('rev-parse', 'HEAD'), base)
-        self.run_tool('patch', str(patch))
+        result = self.run_tool('patch', str(patch))
+        self.assertIn('Applying to branch: any-feature-branch', result.stdout)
+        self.assertEqual(self.git('branch', '--show-current'), 'any-feature-branch')
         self.assertEqual((self.repo / 'change.txt').read_text(), 'a change\n')
         backup = self.git('for-each-ref', '--format=%(objectname)', 'refs/heads/backup/')
         self.assertEqual(backup, base)

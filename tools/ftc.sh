@@ -17,7 +17,7 @@ Usage: bash tools/ftc.sh COMMAND [arguments]
   storage [SERIAL]            Show the hub's free space and recording folder sizes (read-only)
   prune FOLDER [--delete]     Compare the hub's recordings with a downloaded FOLDER; with
                              --delete, remove from the hub only files identical to the download
-  patch FILE.patch           Apply a git-format-patch on clean pollen-hive-ready
+  patch FILE.patch           Apply a git-format-patch on the clean checked-out branch
   help                       Show this help
 
 Default target: FTC_ROBOT_SERIAL or 192.168.43.1:5555. Check the Wi-Fi network!
@@ -108,7 +108,9 @@ case "$command_name" in
     patch_file=$(python3 -c 'import os,sys; print(os.path.abspath(sys.argv[1]))' "$1")
     [ -f "$patch_file" ] || { ftc_error "Missing patch: $patch_file"; exit 1; }
     cd "$FTC_ROOT"
-    [ "$(git branch --show-current)" = pollen-hive-ready ] || { ftc_error 'Patch command requires pollen-hive-ready.'; exit 1; }
+    # There is no fixed target branch (AGENTS.md): apply to the branch the laptop has checked out.
+    branch=$(git branch --show-current)
+    [ -n "$branch" ] || { ftc_error 'Detached HEAD: check out the branch to apply the patch to first.'; exit 1; }
     [ -z "$(git status --porcelain)" ] || { ftc_error 'Review and commit local work first. Keep the downloaded patch outside the checkout.'; exit 1; }
     [ ! -d "$(git rev-parse --git-path rebase-apply)" ] && [ ! -d "$(git rev-parse --git-path rebase-merge)" ] || {
       ftc_error 'Finish the existing git am/rebase operation first.'; exit 1;
@@ -121,7 +123,7 @@ case "$command_name" in
     git apply --check "$patch_file"
     backup="backup/pollen-before-patch-$(date +%Y%m%d-%H%M%S)-$$"
     git branch "$backup"
-    printf 'Backup branch: %s\n' "$backup"
+    printf 'Applying to branch: %s\nBackup branch: %s\n' "$branch" "$backup"
     git am "$patch_file"
     echo 'Patch committed locally. Run test and build before deploying or pushing.' ;;
   *) usage >&2; exit 2 ;;

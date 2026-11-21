@@ -1,0 +1,24 @@
+t_s,phase,hive_state,feed,reason,x_in,y_in,heading_deg
+0.099,FIRST,UNKNOWN,false,,0.02,0.00,359.99
+0.911,FIRST,UNKNOWN,true,Feeding primary preload,0.02,-0.00,0.00
+3.951,OUTBOUND:,UNKNOWN,false,First feed duration complete; starting collection trip,0.02,0.00,0.02
+4.018,OUTBOUND: CLEAR END WALL,UNKNOWN,false,First feed duration complete; starting collection trip,0.03,0.00,0.00
+5.215,OUTBOUND: ALIGN WITH GARDEN,UNKNOWN,false,First feed duration complete; starting collection trip,13.21,-0.05,359.14
+7.077,GARDEN:,UNKNOWN,false,First feed duration complete; starting collection trip,13.39,42.16,359.72
+7.157,GARDEN: Find right wall,UNKNOWN,false,First feed duration complete; starting collection trip,13.39,42.14,359.65
+9.329,GARDEN: GARDEN_IN,UNKNOWN,false,First feed duration complete; starting collection trip,13.73,49.64,0.78
+9.396,GARDEN: Inward pass 1,UNKNOWN,false,First feed duration complete; starting collection trip,13.73,49.64,0.76
+12.591,GARDEN: GARDEN_OUT,UNKNOWN,false,First feed duration complete; starting collection trip,2.97,49.14,355.92
+12.660,GARDEN: Back off 1,UNKNOWN,false,First feed duration complete; starting collection trip,3.02,49.12,355.95
+13.203,GARDEN: GARDEN_IN,UNKNOWN,false,First feed duration complete; starting collection trip,5.77,49.10,0.46
+13.283,GARDEN: Inward pass 2,UNKNOWN,false,First feed duration complete; starting collection trip,5.75,49.11,0.40
+14.727,RETURN:,UNKNOWN,false,Collection complete; returning to shooting position,2.98,49.10,356.09
+14.804,RETURN: CLEAR COLLECTION SITE,UNKNOWN,false,Collection complete; returning to shooting position,3.03,49.08,356.12
+15.863,RETURN: RETURN ACROSS,UNKNOWN,false,Collection complete; returning to shooting position,13.51,49.14,358.89
+17.930,RETURN: RETURN SHOOT POSITION,UNKNOWN,false,Collection complete; returning to shooting position,13.34,0.44,0.27
+18.990,SETTLE,UNKNOWN,false,Collection complete; returning to shooting position,0.37,0.20,1.84
+20.505,PARK:,UNKNOWN,false,Return pose did not settle; second shot skipped,0.43,0.19,2.07
+20.577,PARK: PARK CLEAR,UNKNOWN,false,Return pose did not settle; second shot skipped,0.43,0.19,2.07
+21.136,PARK: PARK CORNER,UNKNOWN,false,Return pose did not settle; second shot skipped,3.62,0.14,359.80
+22.694,PARK: PARK,UNKNOWN,false,Return pose did not settle; second shot skipped,3.97,24.59,0.24
+25.613,DONE,UNKNOWN,false,Finished departure,87.34,43.61,0.44

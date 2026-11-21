@@ -1,0 +1,5 @@
+t_s,phase,hive_state,feed,reason,x_in,y_in,heading_deg
+0.085,FIRST,UNKNOWN,false,,0.08,0.08,358.68
+5.068,PARK:,UNKNOWN,false,No first-shot feed before window ended,0.65,0.32,353.54
+5.101,PARK: PARK CLEAR,UNKNOWN,false,No first-shot feed before window ended,0.96,0.43,350.84
+17.109,DONE,UNKNOWN,false,PARK CLEAR move timeout,41.35,-28.30,295.59

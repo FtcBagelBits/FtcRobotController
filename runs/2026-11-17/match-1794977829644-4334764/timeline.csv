@@ -1,0 +1,12 @@
+t_s,phase,hive_state,feed,reason,x_in,y_in,heading_deg
+0.107,FIRST,UNKNOWN,false,,0.00,-0.00,360.00
+4.825,FIRST,UP,false,Timing confirmed hive UP,-0.00,0.00,359.97
+5.833,FIRST,UP,true,Feeding: hive UP latched,-0.00,0.00,359.97
+10.860,ROOM:,UP,false,Shot complete; making room in the corner,-0.01,0.00,0.05
+10.937,ROOM: ROOM CLEAR FLOWER,UNKNOWN,false,Shot complete; making room in the corner,-0.01,0.00,0.05
+12.158,ROOM: ROOM TO SIDE WALL,UNKNOWN,false,Shot complete; making room in the corner,7.69,0.09,359.51
+14.870,ROOM: ROOM CORNER,UNKNOWN,false,Shot complete; making room in the corner,8.12,-50.61,358.90
+16.057,WAIT,UNKNOWN,false,In the corner; park with 2.0 s left,1.31,-50.57,0.50
+25.090,PARK:,UNKNOWN,false,2.0 s left: park,1.28,-50.56,0.56
+25.171,PARK: PARK,UNKNOWN,false,2.0 s left: park,1.28,-50.56,0.56
+27.090,DONE,UNKNOWN,false,Finished departure,14.80,-46.04,359.87

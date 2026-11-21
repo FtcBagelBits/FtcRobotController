@@ -1,0 +1,22 @@
+{
+ "build": "pollen-hive-v23",
+ "collect_s": 2.7489,
+ "done_at": null,
+ "duration_s": 2.8452,
+ "fault": "",
+ "first_seen_session": "garden-diagnostics-20261118-173847",
+ "hub_start": "2026-11-18T17:34:11-08:00",
+ "kind": "collection_practice",
+ "last_phase": "Inward pass 2",
+ "opmode": "garden-practice",
+ "result": "Inward pass 2",
+ "run_id": "auto-20261118-173411",
+ "settings": "{intake=1.0, gap=21.24}",
+ "settings_id": "61db5eef",
+ "source_bytes": 2375,
+ "sources": [
+  "auto/auto-20261118-173411.csv 146a1f879f4d79ab38bcbddc4ee4e494"
+ ],
+ "stopped_early": true,
+ "tool_version": 1
+}

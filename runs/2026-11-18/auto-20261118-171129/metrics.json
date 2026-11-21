@@ -1,0 +1,22 @@
+{
+ "build": "pollen-hive-v22",
+ "collect_s": 10.7465,
+ "done_at": 10.7465,
+ "duration_s": 11.1263,
+ "fault": "",
+ "first_seen_session": "garden-diagnostics-20261118-173847",
+ "hub_start": "2026-11-18T17:11:29-08:00",
+ "kind": "collection_practice",
+ "last_phase": "DONE",
+ "opmode": "flower-practice",
+ "result": "DONE",
+ "run_id": "auto-20261118-171129",
+ "settings": "{repeats=4.0, hold=1.0, gap=24.0}",
+ "settings_id": "b8e9d033",
+ "source_bytes": 8348,
+ "sources": [
+  "auto/auto-20261118-171129.csv 66494547badda7c6bbb72259ec99af68"
+ ],
+ "stopped_early": false,
+ "tool_version": 1
+}

@@ -1,0 +1,8 @@
+t_s,phase,hive_state,feed,reason,x_in,y_in,heading_deg
+0.138,FIRST,UNKNOWN,false,,0.00,0.00,360.00
+1.034,FIRST,UNKNOWN,true,Feeding primary preload,0.00,-0.00,0.00
+4.091,OUTBOUND:,UNKNOWN,false,First feed duration complete; starting collection trip,0.01,-0.00,360.00
+4.164,OUTBOUND: CLEAR END WALL,UNKNOWN,false,First feed duration complete; starting collection trip,0.01,-0.00,0.00
+5.215,OUTBOUND: ALIGN WITH GARDEN,UNKNOWN,false,First feed duration complete; starting collection trip,13.43,-0.08,359.61
+7.163,GARDEN:,UNKNOWN,false,First feed duration complete; starting collection trip,13.45,42.08,359.45
+7.240,GARDEN: Find right wall,UNKNOWN,false,First feed duration complete; starting collection trip,13.44,42.06,359.40

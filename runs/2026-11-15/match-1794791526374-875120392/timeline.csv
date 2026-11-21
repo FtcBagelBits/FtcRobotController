@@ -1,0 +1,6 @@
+t_s,phase,hive_state,feed,reason,x_in,y_in,heading_deg
+0.116,FIRST,UNKNOWN,false,,0.00,0.00,360.00
+5.171,PARK:,UNKNOWN,false,No first-shot feed before window ended,0.01,0.00,359.92
+5.271,PARK: PARK CLEAR,UNKNOWN,false,No first-shot feed before window ended,0.01,0.00,359.92
+5.996,PARK: PARK CORNER,UNKNOWN,false,No first-shot feed before window ended,4.04,-0.10,0.96
+9.086,DONE,UNKNOWN,false,PARK CORNER no odometry progress,-3.09,2.97,3.67

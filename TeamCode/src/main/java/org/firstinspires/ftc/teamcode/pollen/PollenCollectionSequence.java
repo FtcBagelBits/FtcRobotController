@@ -25,17 +25,20 @@ public final class PollenCollectionSequence {
     private static final PollenHiveSettings.Row[] FLOWER = {
         row("gap", "Start to fully inserted mark cm", 24, 1, 4, 100),
         row("creep", "Switch to seating power this many cm short", 3, .5, 0, 10),
-        row("inPower", "Approach power", .20, .05, .10, .60),
+        // 2026-11-19 secondary trace: the flower took 8.7 s. Faster approach and withdrawal (v35).
+        row("inPower", "Approach power", .30, .05, .10, .60),
         row("lower", "Let drainer lower s", .4, .1, .1, 2),
         row("down", "Drainer down position", PollenTeleOpTuning.DEFAULT_DRAINER_DOWN, .01, 0, 1),
         row("seatPower", "Final wall approach power", .15, .01, .05, .35),
         row("shakes", "Left-right cycles", 3, 1, 0, 8),
         row("amplitude", "Travel each side of center cm", 3.5, .5, 2, 12),
-        row("sidePower", "Sideways power", .40, .05, .10, .50),
+        // Own key since v35, so the old saved 0.40-0.50 "sidePower" no longer slows the swings:
+        // the drive team asked for at least 50 % more swing speed to empty the flower (0.50 -> 0.75).
+        row("shakePower", "Swing sideways power", .75, .05, .10, .90),
         row("back", "Full withdrawal cm", 18, 1, 4, 60),
         row("stroke", "Cleanup forward stroke cm", 7, 1, 2, 40),
         row("repeats", "Cleanup forward/back cycles", 2, 1, 0, 8),
-        row("outPower", "Withdrawal / cleanup power", .30, .05, .10, .60),
+        row("outPower", "Withdrawal / cleanup power", .40, .05, .10, .60),
         row("hold", "Final intake dwell s", 1, .1, 0, 3),
         row("intake", "Intake power", 1, .05, .05, 1),
     };
@@ -111,6 +114,13 @@ public final class PollenCollectionSequence {
                 Math.toDegrees(heading), power, false, true, dwell);
     }
 
+    /** A flower swing leg: same target as node(), braking later so the swing power is reached. */
+    private PollenHiveRoute.Node swing(String name, double left, double power) {
+        double[] offset = routeVector(0, left / 2.54);
+        return new PollenHiveRoute.Node(name, anchorX + offset[0], anchorY + offset[1],
+                Math.toDegrees(heading), power, false, true, 0, true);
+    }
+
     private double[] routeVector(double forward, double left) {
         double[] offset = PollenFacing.routePose(forward, left, 0);
         double c = Math.cos(heading), sin = Math.sin(heading);
@@ -146,10 +156,10 @@ public final class PollenCollectionSequence {
         } else if (part == Stage.SHAKE) {
             contact = PollenHiveMotion.Contact.ALLOWED;
             for (int i = 1; i <= count(s, "shakes"); i++) {
-                nodes.add(node("Left " + i, 0, s.get("amplitude"), s.get("sidePower"), 0));
-                nodes.add(node("Right " + i, 0, -s.get("amplitude"), s.get("sidePower"), 0));
+                nodes.add(swing("Left " + i, s.get("amplitude"), s.get("shakePower")));
+                nodes.add(swing("Right " + i, -s.get("amplitude"), s.get("shakePower")));
             }
-            if (count(s, "shakes") > 0) nodes.add(node("Center drainer", 0, 0, s.get("sidePower"), 0));
+            if (count(s, "shakes") > 0) nodes.add(swing("Center drainer", 0, s.get("shakePower")));
         } else if (part == Stage.WITHDRAW) {
             nodes.add(node("Withdraw drainer", -s.get("back"), 0, out, 0));
         } else {

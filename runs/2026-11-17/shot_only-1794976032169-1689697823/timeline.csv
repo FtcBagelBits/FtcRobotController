@@ -1,0 +1,6 @@
+t_s,phase,hive_state,feed,reason,x_in,y_in,heading_deg
+0.102,FIRST,UNKNOWN,false,,0.00,0.00,0.00
+0.660,FIRST,UP,false,Waiting for measured launcher speed,0.00,0.00,360.00
+1.712,FIRST,UP,true,Feeding: hive UP latched,-0.00,-0.00,0.00
+5.749,DONE,UP,false,Stationary shot complete,-0.01,-0.01,0.10
+5.938,DONE,UNKNOWN,false,Stationary shot complete,-0.02,-0.01,0.11

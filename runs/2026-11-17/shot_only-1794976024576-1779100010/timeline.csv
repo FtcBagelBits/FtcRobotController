@@ -1,0 +1,4 @@
+t_s,phase,hive_state,feed,reason,x_in,y_in,heading_deg
+0.094,FIRST,UNKNOWN,false,,0.00,0.00,0.00
+0.676,FIRST,UP,false,Timing confirmed hive UP,-0.00,-0.00,0.00
+1.724,FIRST,UP,true,Feeding: hive UP latched,-0.00,-0.00,0.00

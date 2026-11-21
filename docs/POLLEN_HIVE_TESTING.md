@@ -5,7 +5,7 @@ For the v8 motion investigation and exact retest order, see [Hive auto diagnosti
 Intermittent tags? Start with the [automatic pipeline benchmark](POLLEN_HIVE_BENCHMARK.md).
 It records raw detections before calibration passes; the current confirmation rule is unchanged.
 
-Build **pollen-hive-v32**. The two tested Hive shooters are in Match. Hero and Out of the Way are in Beta Test.
+Build **pollen-hive-v34**. The two tested Hive shooters are in Match. Hero, Fast and Out of the Way are in Beta Test.
 Print [the two-page practice sheet](drive-team/print/4-hive-practice.pdf). This guide explains the
 controls and checks in full; the patch kit README covers applying, building, installing and pushing.
 
@@ -20,6 +20,8 @@ controls and checks in full; the patch kit README covers applying, building, ins
 | Primary Shooter + Garden | LIVE | Shoot, collect on one forward garden pass, return to S, shoot again if UP, then park. 30 s cutoff. |
 | Secondary Shooter + Flower | LIVE | Wait for UP, shoot, drain the nearby flower with two swings and one cleanup cycle, return to S, shoot again if UP, then park. 30 s cutoff. |
 | Beta Primary Shooter - Hero | LIVE | Runs the primary garden route with its own saved tuning profile. |
+| Beta Primary Shooter - Angled Left | LIVE | Primary garden plan with its own saved profile `primary-angled`: one straight leg from the start to a spot **Angled shot spot away from wall in** (8) and **left in** (8, toward the garden), flywheel spinning up on the way, then a turn in place to `PollenFieldGeometry.aimDegrees` (atan of left minus **Aim target in left of center** over 45.9 in minus away, to our cell's opening; the target defaults to -2 in, 2 in right of the middle, so about -14.8 deg at 8/8), both volleys there, a straight leg to the garden entry, the return to the same spot, and a park that skips PARK CLEAR. INIT checks the turned footprint against the wall. The launcher speed is unchanged although the shot is about 7 in shorter (38.7 in). Not field-tested. |
+| Beta Primary Shooter - Fast | LIVE | Primary garden plan with its own saved profile and faster defaults: garden entry 20.32 cm forward / 116 cm left (8 in off the end wall, about 3 in short of the side wall), 2.5 s feeds, and one nudge back onto the shot spot if the return stops 0.5-3 in off it (gives up after 1.5 s and parks as before). Why: [cycle-time research](research/cycle-time.md). |
 | Beta Secondary Shooter - Out of the Way | LIVE | Wait for UP, shoot, move to the scoring-end/side-wall corner, and leave for the outer parking slot when the estimated park drive plus margin remains. Shares the secondary's saved settings. |
 
 **Match and Beta Test INIT:** First row, left = RED or right = BLUE. Check the target IDs before START.
@@ -36,7 +38,7 @@ press STOP and INIT again to use that spot as the origin.
 
 ## Before the hive is available
 
-1. Apply/build/install the patch. Verify `BUILD pollen-hive-v32` on the Driver Hub.
+1. Apply/build/install the patch. Verify `BUILD pollen-hive-v34` on the Driver Hub.
 2. Mount the Limelight 3A rigidly on the back, looking toward the hive, with negligible camera
    roll. Measure tiles to **lens center**; 11.75 inches is the default, not a substitute for measuring.
 3. Connect USB-C on the Limelight to the Hub's blue USB-A 3.0 port. Configure it as `limelight`.
@@ -253,6 +255,8 @@ or the midline), or promote saved changes into the code. The robot log's START l
 | Measured park drive from the shooting spot | 5.46 s primary and Hero, 3.47 s secondary. |
 | Collection intake / hold | 0.50 power / 0.50 s |
 | Shooting intake / agitator | 1.00 / 1.00 in the Match autos and Hero. The calibration and Make Room shooting intake defaults to 0.50. |
+| Pause feed below launcher % | 0 (off), all hive modes. During a volley the agitator holds while the launcher is below this % of its target and restarts at 96 %, so each ball leaves near full speed. The volley clock keeps running. For accuracy A/B tests in Calibration Primary Shot Only (try 92). |
+| Clear-out s after volley | 3 s, Match autos and Hero only. After a volley finishes, the agitator and launcher keep running together this long while the robot drives on (or waits to park), so leftover balls leave before collecting. One time for both, so the agitator never feeds a stopped launcher. Not a feed: no pose, speed or UP check, intake and wheels untouched. The park deadline cancels it. 0 turns it off. Range 0-6 s. |
 | Clearance forward / first turn left / garden turn left | 15.24 / 43.836 / 108.822 cm |
 | Pickup left / forward | 121.522 / 2.54 cm |
 | Transit / pickup heading | fixed 0 / 0 degrees; final shooting heading always returns to zero |
@@ -268,8 +272,8 @@ The Calibration Garden + Return route is about **6.48 s** by the existing drive 
 - Primary preloads skip the Hive UP check. The primary return shot and secondary volley require more than 1 s of continuous confirmed UP to latch permission. Before the latch, losing UP restarts the timer. After the latch, the camera continues reporting through the volley.
 - The launcher must reach measured speed before feed starts. Once started, feeding continues through camera changes and speed dips for the configured duration.
 - In the latest field traces, the last clear velocity dip came 2.11 s into the primary preload and 1.68 s into the return volley. The 3 s settings shorten the feed window while leaving margin for those events. Count all balls on the next field run because velocity alone cannot confirm the last ball cleared.
-- Before garden collection, the launcher is commanded off. Collection does not wait for flywheel spin-down.
-- The Match autos and Hero keep the launcher off during collection and bring it up to speed as soon as they start the return. The intake and agitator stay off during return transit and alignment.
+- Since v33, after each volley in the Match autos and Hero, the **clear-out** keeps the agitator and launcher running 3 s together while the robot leaves (**Clear-out s after volley**). It adds no time: it overlaps the outbound drive, or the wait before parking after the return volley. Balls it fires while the robot moves may not score; the point is an empty robot before collecting. Both stop on the same tick, so no ball is pushed into a stopped launcher. The park deadline cancels the clear-out. Before v33 the launcher and agitator were commanded off on the departure tick.
+- Collection does not wait for flywheel spin-down. The Match autos and Hero keep the launcher off during collection (after the clear-out) and bring it up to speed as soon as they start the return. The intake and agitator stay off during return transit and alignment.
 - After return, position must be within 0.5 inch of START, heading within 2 degrees, and speed/turn rate settled for 0.3 seconds. At the shooting position, the Match autos and Hero turn toward 0 degrees if the heading error exceeds 2 degrees. Old readiness is discarded while traveling and during the correction. Fresh observations reconfirm UP. Our cell stays locked.
 - The collection autos wait for a fresh UP latch after settling back at the shooting pose. The park deadline interrupts the active phase and zeroes shooting outputs. From the shooting position, the default deadlines are **23.54 s primary** and **25.53 s secondary**. When farther away, departure also budgets the clearance and return route before parking. The **30-second** cutoff stops whatever phase is active.
 - An unavailable or uncalibrated camera prevents only the hive-gated volleys.

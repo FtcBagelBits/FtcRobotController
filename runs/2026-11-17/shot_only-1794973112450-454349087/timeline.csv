@@ -1,0 +1,20 @@
+t_s,phase,hive_state,feed,reason,x_in,y_in,heading_deg
+0.112,FIRST,UNKNOWN,false,,0.00,0.00,0.00
+4.252,FIRST,UP,false,Waiting for measured launcher speed,-0.01,-0.00,0.01
+4.341,FIRST,UP,true,"Stable UP, 51.9 in",-0.00,-0.00,0.01
+4.764,FIRST,UP,false,Waiting for measured launcher speed,-0.01,-0.00,0.03
+4.859,FIRST,UP,true,"Stable UP, 51.6 in",-0.01,0.00,359.99
+5.073,FIRST,UP,false,Waiting for measured launcher speed,-0.01,-0.00,0.03
+5.179,FIRST,UP,true,"Stable UP, 51.7 in",-0.01,0.00,360.00
+5.421,FIRST,UP,false,Waiting for measured launcher speed,-0.01,-0.00,0.02
+5.509,FIRST,UP,true,"Stable UP, 51.5 in",-0.01,-0.00,0.01
+5.705,FIRST,UP,false,Waiting for measured launcher speed,-0.01,-0.00,0.03
+5.938,FIRST,UP,true,"Stable UP, 52.0 in",-0.02,-0.00,0.04
+6.052,FIRST,UP,false,Waiting for measured launcher speed,-0.01,-0.00,0.02
+6.136,FIRST,UP,true,"Stable UP, 51.7 in",-0.01,-0.00,0.01
+6.323,FIRST,UP,false,Waiting for measured launcher speed,-0.02,-0.00,0.03
+6.424,FIRST,UP,true,"Stable UP, 51.7 in",-0.01,-0.00,0.02
+6.512,FIRST,UP,false,Waiting for measured launcher speed,-0.01,-0.00,0.01
+6.590,FIRST,UP,true,"Stable UP, 51.7 in",-0.02,-0.00,0.02
+6.672,DONE,UP,false,Stationary shot complete,-0.02,-0.00,0.04
+6.867,DONE,UNKNOWN,false,Stationary shot complete,-0.02,-0.01,0.03

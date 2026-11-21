@@ -1,0 +1,22 @@
+{
+ "build": "pollen-hive-v22",
+ "collect_s": 1.0932,
+ "done_at": null,
+ "duration_s": 3.6821,
+ "fault": "Approach flower no odometry progress | node=Approach flower target_in=-1.12/21.78 target_deg=282.11 distance_in=8.16 heading_error_deg=-0.04 node_s=0.761 no_progress_s=0.761",
+ "first_seen_session": "garden-diagnostics-20261118-173847",
+ "hub_start": "2026-11-18T17:15:03-08:00",
+ "kind": "collection_practice",
+ "last_phase": "Approach flower",
+ "opmode": "flower-practice",
+ "result": "FAULT",
+ "run_id": "auto-20261118-171503",
+ "settings": "{repeats=4.0, hold=1.0, gap=24.0}",
+ "settings_id": "b8e9d033",
+ "source_bytes": 1243,
+ "sources": [
+  "auto/auto-20261118-171503.csv f43ca4b44c731e0b66cf3e0daa276d85"
+ ],
+ "stopped_early": false,
+ "tool_version": 1
+}

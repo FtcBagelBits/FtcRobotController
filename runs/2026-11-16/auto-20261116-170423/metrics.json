@@ -1,0 +1,25 @@
+{
+ "battery_min_v": 9.57,
+ "battery_start_v": 11.39,
+ "build": "pollen-hive-v10",
+ "done_at": 18.02,
+ "duration_s": 22.4903,
+ "first_seen_session": "teleop-final-20261116-170640",
+ "hub_start": "2026-11-16T17:04:23-08:00",
+ "installed": "2026-11-16T12:21:57",
+ "kind": "odo_auto",
+ "last_phase": "RESULT",
+ "opmode": "Odo ROBOT Shoot + Park",
+ "result": "DONE - all outputs zero",
+ "run": "FULL_PARK",
+ "run_id": "auto-20261116-170423",
+ "settings": "FLYWHEEL=1180.0 SPINUP=3.0 FEED_SECONDS=10.0 FEED_POWER=0.5 AGITATOR_POWER=1.0 START_DELAY=0.0 CALIBRATION=1.0 DRIVE_POWER=0.6 LEG1_CM=10.0 LEG1_ANGLE=0.0 LEG2_CM=63.5 LEG2_ANGLE=90.0 LEG3_CM=217.46841965916408 LEG3_ANGLE=12.313173198378223",
+ "settings_id": "77cb5ecb",
+ "source_bytes": 10439,
+ "sources": [
+  "auto/auto-20261116-170423.csv fafb432ec245b04361ac4e009ef4d340"
+ ],
+ "stopped_early": false,
+ "tool_version": 1,
+ "warnings": ""
+}

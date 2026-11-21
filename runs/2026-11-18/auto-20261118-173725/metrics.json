@@ -1,0 +1,22 @@
+{
+ "build": "pollen-hive-v24",
+ "collect_s": 2.3647,
+ "done_at": null,
+ "duration_s": 30.1591,
+ "fault": "Inward pass 1: wall not found | node=Inward pass 1 target_in=97.13/205.66 target_deg=279.85 distance_in=0.53 heading_error_deg=0.20 node_s=1.416 no_progress_s=0.049",
+ "first_seen_session": "garden-diagnostics-20261118-173847",
+ "hub_start": "2026-11-18T17:37:25-08:00",
+ "kind": "collection_practice",
+ "last_phase": "Inward pass 1",
+ "opmode": "garden-practice",
+ "result": "FAULT",
+ "run_id": "auto-20261118-173725",
+ "settings": "{sideLimit=-5.08, intake=1.0}",
+ "settings_id": "bb3e1b7a",
+ "source_bytes": 2479,
+ "sources": [
+  "auto/auto-20261118-173725.csv 9e2602c27c3cf157df19a16b15cdf5f8"
+ ],
+ "stopped_early": false,
+ "tool_version": 1
+}

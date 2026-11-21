@@ -1,0 +1,7 @@
+t_s,kind,rehearsal,note
+0.0000,START,0,build=pollen-hive-v37 installed=2026-11-19T18:36:38 opmode=PollenAimCalibration launcher=1180.0 spinup=3.0 agitator=1.0 drive=1.0 settings=DEFAULTS reverse=140 feedBoost=0.5 facing=back-to-hive pinpoi
+1.6613,AIM,0,AIM_START n=1 source=CAMERA target_deg=-23.57 target_left_in=-2.0 camera_bearing_deg=24.44 cell=30 tags=2 cam_dist_in=76.34 odo_target_deg=-2.55 odo_turn_deg=3.41 x_in=3.59 y_in=-0.12 heading_deg=0.86
+2.1883,AIM,0,AIM_CANCEL n=1 reason=restarted_by_circle turned_deg=26.83 after_s=0.53
+2.1909,AIM,0,AIM_START n=2 source=CAMERA target_deg=322.55 target_left_in=-2.0 camera_bearing_deg=11.48 cell=34 tags=3 cam_dist_in=50.91 odo_target_deg=-2.49 odo_turn_deg=-23.49 x_in=4.04 y_in=-0.18 heading_deg=33
+3.7626,AIM,0,AIM_DONE n=2 source=CAMERA result=done turned_right_deg=11.26 seconds=1.57 camera_updates=35 target_left_in=-2.0 first_camera_bearing_deg=11.48 camera_residual_deg=0.62 odo_target_deg=-2.49 odo_residu
+8.0692,STOP,0,

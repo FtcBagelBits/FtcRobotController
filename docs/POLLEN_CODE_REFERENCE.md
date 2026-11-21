@@ -41,7 +41,7 @@ robots' code (DECODE 2025-26). They share some hardware names but nothing else w
 them alone unless asked. `TeamCode/.../teamcode/readme.md` is the student-facing list of what's live.
 
 Every Pollen and Odo mode shows a build id on the INIT screen (`PollenConfig.BUILD`, currently
-`pollen-hive-v32` on this branch). **Bump it whenever behavior changes**, so the drive team can confirm which code is installed.
+`pollen-hive-v34` on this branch). **Bump it whenever behavior changes**, so the drive team can confirm which code is installed.
 
 **Which way the robot faces (since `pollen-odo-v11`).** The launcher shoots out of the robot's back,
 so every autonomous starts with the robot's front against the end wall and its back to the hive.
@@ -62,6 +62,9 @@ Calibration Odometry and Calibration Pedro Pathing are unaffected.
 | Calibration Garden + Return | Isolated collection route and return |
 | Primary Shooter + Garden / Secondary Shooter + Flower | Hive-aware autonomous modes; use the testing guide before running |
 | Beta Primary Shooter - Hero | Primary garden route with independent INIT settings |
+| Beta Primary Shooter - Angled Left | Primary garden route from an angled shot spot, own settings file `primary-angled`, rows `shotLeftIn`/`shotAwayIn`, aim from `PollenFieldGeometry.aimDegrees` (`PollenHiveRoute.angled`) |
+| Calibration Hive Aim | PollenBot TeleOp started at the primary start; Circle aims by camera (D-pad left) or odometry (D-pad right); AIM rows compare both (`PollenAimCalibration`, `PollenHiveAim`). Its screen also shows the **Camera sideways correction** that would center the cell: with the robot carefully centered at the primary start, put that number in the camera row (default 0 since v38; 2.62 before the camera was straightened) |
+| Beta Primary Shooter - Fast | Primary garden route, own settings file `primary-fast`, closer garden entry, 2.5 s feeds, one return nudge (`PollenHiveRoute.fast`) |
 | Beta Secondary Shooter - Out of the Way | Shoot, wait in the scoring-end/side-wall corner (phases ROOM, WAIT), then park with the configured margin |
 
 These use `PollenHiveAuto`. A volley starts from a settled shooting pose once measured launcher

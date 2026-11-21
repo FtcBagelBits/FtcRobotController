@@ -1,0 +1,3 @@
+t_s,kind,phase,execution,x_in,y_in,heading_deg,requested_forward,requested_strafe,requested_turn,requested_launcher_tps,measured_launcher_tps,applied_intake,applied_agitator,feed_requested,hive_state,hive_reason,cell,battery_v,launcher_current_a,clear_out
+0.12,FAULT,BLOCKED,LIVE,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,false,UNKNOWN,,-1,12.89,0.00,false
+11.88,STOP,BLOCKED,LIVE,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,false,UNKNOWN,,-1,12.88,0.00,false

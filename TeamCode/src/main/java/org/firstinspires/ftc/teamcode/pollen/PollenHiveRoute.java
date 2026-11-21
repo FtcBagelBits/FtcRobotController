@@ -25,18 +25,49 @@ public final class PollenHiveRoute {
     private static final int MATCH_FEED_INTAKE=39;
     private static final int MATCH_PARK_SECONDS=40;
     private static final int PARK_MARGIN=41;
+    private static final int CLEAR_OUT=42, FEED_PAUSE_PCT=43;
+    /** Beta Primary Shooter - Fast: its own defaults (FAST_DEFAULTS) and one return nudge. */
+    public final boolean fast;
+    /** Fast mode defaults, from the 2026-11-18 traces (docs/research/cycle-time.md): enter the
+     * garden 8 in off the end wall and about 3 in short of the side wall instead of 13.4 in and 6.5 in,
+     * so the slow contact passes are short; feeds of 2.5 s, since the last launcher dip came by
+     * 2.2 s in every 3 s volley and the clear-out catches stragglers. */
+    private static final String[][] FAST_DEFAULTS={
+        {"collectionEntryForward","20.32"},{"collectionEntryLeft","116"},
+        {"matchFirstFeed","2.5"},{"matchSecondFeed","2.5"}};
     private static final String COLLECTION_PREFIX="collection.";
+    /** Beta Primary Shooter - Angled Left: shoot both volleys from a spot left of the cell (toward
+     * the garden) and off the wall, turned to aim at the cell. Its own rows, after the garden rows. */
+    public final boolean angled;
+    static final String SHOT_LEFT="shotLeftIn", SHOT_AWAY="shotAwayIn", AIM_LEFT="aimTargetLeftIn";
+    private static final PollenHiveSettings.Row[] ANGLED_ROWS={
+        new PollenHiveSettings.Row(SHOT_LEFT,"Angled shot spot left in",8,8,.5,0,24),
+        new PollenHiveSettings.Row(SHOT_AWAY,"Angled shot spot away from wall in",8,8,.5,3,24),
+        // v37: aim this far LEFT of our cell's middle (negative = right); default 2 in right.
+        new PollenHiveSettings.Row(AIM_LEFT,"Aim target in left of center",PollenConfig.AIM_TARGET_LEFT_IN,
+                PollenConfig.AIM_TARGET_LEFT_IN,PollenConfig.AIM_TARGET_STEP_IN,-PollenConfig.AIM_TARGET_MAX_IN,PollenConfig.AIM_TARGET_MAX_IN)};
+    private double shotX,shotY,shotH;
     public PollenHiveRoute(boolean secondary) { this(secondary,false); }
-    public PollenHiveRoute(boolean secondary,boolean makeRoom) {
+    public PollenHiveRoute(boolean secondary,boolean makeRoom) { this(secondary,makeRoom,false); }
+    public PollenHiveRoute(boolean secondary,boolean makeRoom,boolean fast) { this(secondary,makeRoom,fast,false); }
+    public PollenHiveRoute(boolean secondary,boolean makeRoom,boolean fast,boolean angled) {
         if(makeRoom&&!secondary) throw new IllegalArgumentException("Make room is a secondary mode");
-        this.secondary=secondary; this.makeRoom=makeRoom;
+        if(fast&&secondary) throw new IllegalArgumentException("Fast mode is a primary mode");
+        if(angled&&(secondary||fast)) throw new IllegalArgumentException("Angled is its own primary mode");
+        this.secondary=secondary; this.makeRoom=makeRoom; this.fast=fast; this.angled=angled;
         List<PollenHiveSettings.Row> rows=new ArrayList<>(Arrays.asList(PollenHiveSettings.ROUTE));
+        if(fast) for(String[] d:FAST_DEFAULTS) for(int i=0;i<rows.size();i++) {
+            PollenHiveSettings.Row r=rows.get(i);
+            if(r.key.equals(d[0])) rows.set(i,new PollenHiveSettings.Row(r.key,r.label,
+                    Double.parseDouble(d[1]),r.secondary,r.step,r.min,r.max));
+        }
         for(PollenHiveSettings.Row row:PollenCollectionSequence.rows(collectionKind())) {
             // Existing beta cycle rows already tune these counts and preserve saved settings.
             if(row.key.equals("repeats")||row.key.equals("shakes")) continue;
             rows.add(new PollenHiveSettings.Row(COLLECTION_PREFIX+row.key,row.label,
                     row.primary,row.secondary,row.step,row.min,row.max));
         }
+        if(angled) rows.addAll(Arrays.asList(ANGLED_ROWS));
         values=new PollenHiveSettings.Values(rows.toArray(new PollenHiveSettings.Row[0]),secondary); v=values.v;
     }
     // Calibration uses the saved side row. Each match starts with a fresh driver choice.
@@ -50,9 +81,15 @@ public final class PollenHiveRoute {
         public final String name;
         public final double x,y,h,power,seconds;
         public final boolean turn,collect;
+        /** Short flower swing: brakes later and ramps faster (PollenHiveMotion.SWING_*), so the swing
+         * power setting is actually reached on a 1-3 in leg. */
+        public final boolean swing;
         Node(String name,double x,double y,double h,double power,boolean turn,boolean collect,double seconds) {
+            this(name,x,y,h,power,turn,collect,seconds,false);
+        }
+        Node(String name,double x,double y,double h,double power,boolean turn,boolean collect,double seconds,boolean swing) {
             this.name=name; this.x=x; this.y=y; this.h=Math.toRadians(h); this.power=power;
-            this.turn=turn; this.collect=collect; this.seconds=seconds;
+            this.turn=turn; this.collect=collect; this.seconds=seconds; this.swing=swing;
         }
     }
     private Node move(String name,double xCm,double yCm,double h,boolean collect) {
@@ -74,10 +111,31 @@ public final class PollenHiveRoute {
             move("RETURN ACROSS",f,0,0,false),
             move("RETURN SHOOT POSITION",0,0,0,false)};
     }
+    /** Where both volleys are shot from, inches from START (x forward, y left), and the heading
+     * (radians, +left) that aims there. The start itself (0, 0, 0) except in angled mode. */
+    double shotX() { shot(); return shotX; }
+    double shotY() { shot(); return shotY; }
+    double shotHeading() { shot(); return shotH; }
+    private void shot() {
+        if(!angled) { shotX=shotY=shotH=0; return; }
+        shotX=values.get(SHOT_AWAY); shotY=values.get(SHOT_LEFT);
+        shotH=Math.toRadians(PollenFieldGeometry.aimDegrees(shotX,shotY,values.get(AIM_LEFT)));
+    }
+    /** Angled mode: one straight leg from the start to the shot spot (no turn; the aim turn
+     * happens there, clear of the wall). */
+    public Node[] toShot() {
+        return new Node[]{transit("TO SHOT SPOT",shotX()*2.54,shotY()*2.54,v[MATCH_TRAVEL_POWER])};
+    }
+    /** Seconds to turn between the shot heading and straight (0 when not angled). */
+    double aimTurnSeconds() {
+        return angled?PollenOdometryDrive.turnPlannedSeconds(Math.toDegrees(shotHeading()),v[8]):0;
+    }
     /** Back clear of the end wall, then line up with the correct collection entry. */
     public Node[] collectionOutbound() {
         double clear=v[COLLECTION_ENTRY_FORWARD], left=v[COLLECTION_ENTRY_LEFT];
         double power=v[MATCH_TRAVEL_POWER];
+        // Angled: already off the wall at the shot spot; one straight leg to the garden entry.
+        if(angled) return new Node[]{transit("ALIGN WITH GARDEN",clear,left,power)};
         return new Node[]{transit("CLEAR END WALL",clear,0,power),
                 transit(secondary?"ALIGN WITH FLOWER":"ALIGN WITH GARDEN",clear,left,power)};
     }
@@ -85,6 +143,8 @@ public final class PollenHiveRoute {
     public Node[] collectionReturn(double x,double y) {
         double clear=Math.max(x*2.54,v[COLLECTION_ENTRY_FORWARD]);
         double power=v[MATCH_TRAVEL_POWER];
+        if(angled) return new Node[]{transit("CLEAR COLLECTION SITE",clear,y*2.54,power),
+                transit("RETURN SHOOT POSITION",shotX()*2.54,shotY()*2.54,power)};
         return new Node[]{transit("CLEAR COLLECTION SITE",clear,y*2.54,power),
                 transit("RETURN ACROSS",clear,0,power),transit("RETURN SHOOT POSITION",0,0,power)};
     }
@@ -96,7 +156,8 @@ public final class PollenHiveRoute {
         double exitX=secondary?(v[COLLECTION_ENTRY_FORWARD]-tuning.get("gap")+tuning.get("back"))/2.54:0;
         double exitY=secondary?v[COLLECTION_ENTRY_LEFT]/2.54:
                 PollenFieldGeometry.END_WALL_INCHES-PollenFieldGeometry.ROBOT_HALF_INCHES+PollenFieldGeometry.RED_HIVE_X_INCHES;
-        return planned(collectionOutbound())+process+planned(collectionReturn(exitX,exitY),exitX,exitY)+.5;
+        return planned(collectionOutbound(),shotX(),shotY())+process+planned(collectionReturn(exitX,exitY),exitX,exitY)
+                +2*aimTurnSeconds()+.5;
     }
     PollenCollectionSequence.Kind collectionKind() {
         return secondary?PollenCollectionSequence.Kind.FLOWER:PollenCollectionSequence.Kind.GARDEN;
@@ -104,6 +165,7 @@ public final class PollenHiveRoute {
     PollenHiveSettings.Values collectionSettings() {
         PollenHiveSettings.Values settings=PollenCollectionSequence.settings(collectionKind());
         for(int i=PollenHiveSettings.ROUTE.length;i<v.length;i++) {
+            if(!values.rows[i].key.startsWith(COLLECTION_PREFIX)) continue;
             String key=values.rows[i].key.substring(COLLECTION_PREFIX.length());
             settings.v[settings.index(key)]=v[i];
         }
@@ -116,6 +178,12 @@ public final class PollenHiveRoute {
         return settings;
     }
     double feedIntake(boolean collectionMatch) { return v[collectionMatch?MATCH_FEED_INTAKE:11]; }
+    /** Seconds the agitator and launcher keep running together after a match volley ends, to empty the robot. */
+    double clearOutSeconds() { return v[CLEAR_OUT]; }
+    /** Paced feed: pause the agitator below this fraction of the launcher target; 0 = never pause. */
+    double feedPauseFraction() { return v[FEED_PAUSE_PCT]/100; }
+    /** Fast mode: one short leg back onto the shot spot when the return stopped just off it. */
+    Node returnNudge() { return transit("RETURN NUDGE",shotX()*2.54,shotY()*2.54,v[MATCH_TRAVEL_POWER]); }
     double feedDuration(boolean second, boolean collectionMatch) {
         if(collectionMatch) return v[second?MATCH_SECOND_FEED:MATCH_FIRST_FEED];
         return v[second?4:3];
@@ -129,9 +197,17 @@ public final class PollenHiveRoute {
         for(int i:new int[]{MATCH_FIRST_FEED,MATCH_SECOND_FEED})
             if(v[i]<0||v[i]>20) throw new IllegalArgumentException("Invalid beta feed duration");
         if(v[MATCH_FEED_INTAKE]<0||v[MATCH_FEED_INTAKE]>1) throw new IllegalArgumentException("Invalid beta shooting intake power");
+        if(v[CLEAR_OUT]<0||v[CLEAR_OUT]>6) throw new IllegalArgumentException("Invalid clear-out time");
         if(v[MATCH_PARK_SECONDS]<.5||v[MATCH_PARK_SECONDS]>20) throw new IllegalArgumentException("Invalid beta measured parking time");
         PollenCollectionSequence.validate(collectionKind(),collectionSettings());
-        checkPark(collectionOutbound(),0,0);
+        if(angled) {
+            checkPark(toShot(),0,0);
+            // The aim turn happens at the spot: the turned footprint must clear the wall.
+            for(int d=0;d<=Math.ceil(Math.abs(Math.toDegrees(shotHeading())));d++)
+                checkFootprint(shotX(),shotY(),Math.copySign(Math.min(Math.toRadians(d),Math.abs(shotHeading())),shotHeading()),"AIM TURN");
+            checkPark(collectionPark(),shotX(),shotY());
+        }
+        checkPark(collectionOutbound(),shotX(),shotY());
     }
     public Node[] park() { return park(v[7]); }
     boolean parkEnabled() { return v[21]!=0; }
@@ -147,7 +223,11 @@ public final class PollenHiveRoute {
         // The base estimate understates braking and settling at the corner waypoints in simulation.
         return planned(approach)+approach.length*CORNER_SETTLE_PER_LEG+cornerParkReserve(end.x,end.y);
     }
-    public Node[] collectionPark() { return park(v[MATCH_TRAVEL_POWER]); }
+    /** Angled: parks from the shot spot, already off the wall, so it skips PARK CLEAR. */
+    public Node[] collectionPark() {
+        Node[] park=park(v[MATCH_TRAVEL_POWER]);
+        return angled&&park.length>1?Arrays.copyOfRange(park,1,park.length):park;
+    }
     private Node[] park(double power) {
         if(v[21]==0) return new Node[0];
         return new Node[]{transit("PARK CLEAR",v[22],v[23],power),

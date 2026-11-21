@@ -1,6 +1,6 @@
 # Hive match setup and practice
 
-**Build pollen-hive-v32 - experimental.** Print front/back. Full steps: `docs/POLLEN_HIVE_TESTING.md`.
+**Build pollen-hive-v38 - experimental.** Print front/back. Full steps: `docs/POLLEN_HIVE_TESTING.md`.
 Keep existing match autos available. Rear camera/launcher face hive; **front intake faces end wall**.
 
 <img src="img/hive-height.svg" style="width:4.3in">
@@ -48,18 +48,20 @@ false UP _____ / 20. Capture reports save automatically. The screen tests the **
 | Calibration Garden + Return | **DRIVE**. No launcher/agitator. LIVE adds collection intake. Returns to S and stops, no park. |
 | Primary Shooter + Garden | **LIVE**. Shoot, one garden approach, return to S, shoot if UP, park. 30 s cutoff. |
 | Secondary Shooter + Flower | **LIVE**. Wait for UP, shoot, drain with two swings and one cleanup cycle, return to S, shoot if UP, park. 30 s cutoff. |
-| Beta Primary Shooter - Hero | **LIVE**. Primary garden plan with separate saved settings for beta testing. |
+| Beta Primary Shooter - Hero | **LIVE**. Primary garden plan, own saved settings. |
+| Beta Primary Shooter - Fast | **LIVE**. Like Hero: closer garden entry, 2.5 s feeds, return nudge. |
+| Beta Primary Shooter - Angled Left | **LIVE**. Same start as Primary. Drives straight to a spot 8 in off the wall and 8 in left (toward the garden), turns about 12 deg right to aim at our cell, shoots, drains the garden, comes back to the same spot, aims, shoots, parks. INIT rows **Angled shot spot left in** / **away from wall in** move the spot; the aim angle follows. **Aim target in left of center** (default -2.0 = 2 in right, 0.5 in steps) shifts where it aims: about 14.8 deg right at the defaults. |
 | Beta Secondary Shooter - Out of the Way | **LIVE**. Wait for UP, shoot, wait in the far corner, park on its deadline. |
 
 Validate the camera, then test shot-only in DRY and LIVE and garden in DRIVE and LIVE before
 running full autos. Keep someone on STOP and check Pinpoint READY. Match autos and Hero pre-spin on
-return. The **Park margin s** row defaults to **1.0 s** and adjusts in **0.5 s** steps. Park can interrupt feed.
-LIVE feeds from a settled pose at measured launcher speed for up to **3 s**. The return shot and
-secondary preload also require more than **1 s** of confirmed UP.
+return. **Park margin s** defaults to **1.0 s** (0.5 s steps). Park can interrupt feed.
+LIVE feeds from a settled pose at measured launcher speed for up to **3 s**. The return shot and secondary
+preload need over **1 s** of confirmed UP. Match volleys add **3 s** of agitator + launcher (**Clear-out s**).
 
 ## Motor-mode INIT menu
 
-**Match and Beta:** On the first INIT row press **left for RED** or **right for BLUE**. Check the tag IDs before START.
+**Match and Beta:** On the first INIT row press **left for RED** or **right for BLUE**. Check tag IDs before START.
 
 D-pad row/value; LB/RB jump five. **Triangle** resets one row. **Circle** resets route values only,
 keeping camera and Execution. **Square** saves. Execution is never saved and resets each INIT to
@@ -67,7 +69,10 @@ the mode's default above. The Match autos and Hero show their garden or flower s
 Alliance and Execution. Collection and shooting intake default to 1.00.
 Check BUILD, run type, Execution, CHANGED values, camera profile, cell/alliance and Pinpoint READY.
 
-<img src="../POLLEN_HIVE_GARDEN.svg" style="width:4.4in;max-height:2.3in">
+<div class="side" markdown="1">
+<img src="../POLLEN_HIVE_GARDEN.svg">
+
+<div markdown="1">
 
 The diagram shows **Calibration Garden + Return** from **S**. **Calibration Garden Pickup** starts at
 the garden entry and finds the right wall, then the wall behind the balls. Four ball centers need
@@ -76,3 +81,6 @@ about **17.45 in** of centered intake width. Measure actual reach.
 Before departure, a shift over 2 in or 10° stops the run. Check drive wiring and retry DRY if this trips.
 After STOP, download the reports with `bash tools/ftc.sh logs NEW_FOLDER`. Record pickup count,
 return error, cycle time, and false UPs. See the full guide for promoting saved settings.
+
+</div>
+</div>

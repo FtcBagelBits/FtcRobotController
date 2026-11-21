@@ -1,0 +1,15 @@
+{
+ "build": "pollen-hive-v10",
+ "fault": "",
+ "first_seen_session": "teleop-final-20261116-170640",
+ "hub_start": "2026-11-16T15:21:44-08:00",
+ "kind": "camera_check",
+ "opmode": "Calibration Hive Camera",
+ "result": "STOP version=0 UP=false DOWN/blocked=false",
+ "run_id": "camera-1794871304392-727103330",
+ "source_bytes": 169,
+ "sources": [
+  "reports/camera-1794871304392-727103330.txt 04e0407df77414b633d42eeb9114b4e5"
+ ],
+ "tool_version": 1
+}

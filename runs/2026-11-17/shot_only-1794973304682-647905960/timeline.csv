@@ -1,0 +1,38 @@
+t_s,phase,hive_state,feed,reason,x_in,y_in,heading_deg
+0.097,FIRST,UNKNOWN,false,,0.00,0.00,0.00
+0.873,FIRST,UP,false,Waiting for measured launcher speed,-0.00,-0.00,0.01
+1.099,FIRST,UNKNOWN,false,Waiting for measured launcher speed,-0.01,-0.00,0.01
+6.687,FIRST,UP,true,"Stable UP, 51.2 in",-0.03,-0.00,0.05
+6.771,FIRST,UNKNOWN,false,Tags disagree/outside bands: 51.4-52.8 in (mean 52.1),-0.03,-0.00,0.05
+7.038,FIRST,UP,true,"Stable UP, 51.8 in",-0.03,-0.00,0.03
+7.148,FIRST,UP,false,Waiting for measured launcher speed,-0.03,-0.00,0.03
+7.232,FIRST,UP,true,"Stable UP, 52.0 in",-0.03,-0.00,0.03
+7.321,FIRST,UNKNOWN,false,Tags disagree/outside bands: 52.5-52.7 in (mean 52.6),-0.03,-0.00,0.05
+7.573,FIRST,UP,false,Waiting for measured launcher speed,-0.03,-0.00,0.04
+7.655,FIRST,UP,true,"Stable UP, 52.4 in",-0.03,-0.00,0.06
+7.729,FIRST,UNKNOWN,false,Tags disagree/outside bands: 52.7-52.8 in (mean 52.7),-0.03,-0.00,0.05
+8.005,FIRST,UP,true,"Stable UP, 52.2 in",-0.03,-0.00,0.02
+8.113,FIRST,UP,false,Waiting for measured launcher speed,-0.03,-0.00,0.05
+8.188,FIRST,UP,true,"Stable UP, 51.7 in",-0.04,-0.00,0.04
+8.263,FIRST,UP,false,Waiting for measured launcher speed,-0.04,-0.00,0.07
+8.654,FIRST,UNKNOWN,false,Waiting for measured launcher speed,-0.04,-0.01,0.08
+9.156,FIRST,UP,true,"Stable UP, 52.1 in",-0.04,-0.01,0.08
+9.281,FIRST,UNKNOWN,false,Tags disagree/outside bands: 52.0-52.9 in (mean 52.5),-0.05,-0.01,0.08
+11.011,FIRST,UP,true,"Stable UP, 52.6 in",-0.05,-0.01,0.07
+11.084,FIRST,UNKNOWN,false,Tags disagree/outside bands: 52.4-52.8 in (mean 52.6),-0.05,-0.01,0.08
+11.360,FIRST,UP,true,"Stable UP, 52.7 in",-0.05,-0.01,0.09
+11.480,FIRST,UP,false,Waiting for measured launcher speed,-0.05,-0.01,0.09
+11.564,FIRST,UP,true,"Stable UP, 52.5 in",-0.05,-0.01,0.08
+11.644,FIRST,UP,false,Waiting for measured launcher speed,-0.05,-0.01,0.10
+11.716,FIRST,UP,true,"Stable UP, 52.4 in",-0.05,-0.01,0.09
+11.808,FIRST,UP,false,Waiting for measured launcher speed,-0.06,-0.01,0.12
+11.932,FIRST,UP,true,"Stable UP, 52.4 in",-0.05,-0.01,0.11
+12.143,FIRST,UP,false,Waiting for measured launcher speed,-0.05,-0.01,0.10
+12.298,FIRST,UP,true,"Stable UP, 52.2 in",-0.06,-0.01,0.11
+12.396,FIRST,UP,false,Waiting for measured launcher speed,-0.06,-0.01,0.12
+12.463,FIRST,UNKNOWN,false,Tags disagree/outside bands: 52.4-52.7 in (mean 52.6),-0.06,-0.01,0.09
+12.978,FIRST,UP,true,"Stable UP, 52.0 in",-0.06,-0.01,0.12
+13.065,FIRST,UP,false,Waiting for measured launcher speed,-0.06,-0.01,0.12
+13.148,FIRST,UP,true,"Stable UP, 52.2 in",-0.06,-0.01,0.11
+13.236,DONE,UP,false,Stationary shot complete,-0.06,-0.01,0.13
+13.437,DONE,UNKNOWN,false,Stationary shot complete,-0.06,-0.01,0.14

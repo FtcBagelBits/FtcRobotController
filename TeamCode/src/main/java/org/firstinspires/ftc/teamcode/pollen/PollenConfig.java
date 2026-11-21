@@ -6,7 +6,11 @@ public final class PollenConfig {
 
     /** Shown in INIT by every Pollen and Odo autonomous mode and by PollenBot TeleOp, and written to
      * the robot log at START. Change it whenever the Pollen code changes. */
-    public static final String BUILD = "pollen-hive-v32";
+    public static final String BUILD = "pollen-hive-v38";
+    /** Where Circle (TeleOp) and Beta Primary Shooter - Angled Left aim: this many inches LEFT of
+     * the middle of our hive cell (negative = right). The robot shoots a little left and a miss
+     * left of center costs more (drive team, 2026-11-19), so the default aims 2 in right. */
+    public static final double AIM_TARGET_LEFT_IN = -2.0, AIM_TARGET_STEP_IN = .5, AIM_TARGET_MAX_IN = 12;
 
     // Hive camera and hive-auto numbers (with their defaults): PollenHiveSettings.
 

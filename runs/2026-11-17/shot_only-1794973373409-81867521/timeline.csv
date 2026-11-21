@@ -1,0 +1,32 @@
+t_s,phase,hive_state,feed,reason,x_in,y_in,heading_deg
+0.116,FIRST,UNKNOWN,false,,0.00,0.00,0.00
+0.722,FIRST,UP,false,Waiting for measured launcher speed,0.00,0.00,360.00
+1.463,FIRST,UP,true,"Stable UP, 50.9 in",-0.00,0.00,359.98
+1.538,FIRST,UP,false,Waiting for measured launcher speed,-0.00,0.00,359.98
+1.732,FIRST,UP,true,"Stable UP, 51.6 in",-0.01,0.00,359.95
+1.810,FIRST,UP,false,Waiting for measured launcher speed,-0.01,0.00,359.96
+1.884,FIRST,UP,true,"Stable UP, 51.1 in",-0.01,0.00,359.95
+1.972,FIRST,UP,false,Waiting for measured launcher speed,-0.01,0.00,359.96
+2.047,FIRST,UP,true,"Stable UP, 50.9 in",-0.01,0.00,359.96
+2.257,FIRST,UP,false,Waiting for measured launcher speed,-0.01,0.00,359.96
+2.331,FIRST,UP,true,"Stable UP, 51.8 in",-0.01,0.00,359.96
+2.430,FIRST,UP,false,Waiting for measured launcher speed,-0.01,0.00,359.98
+2.544,FIRST,UP,true,"Stable UP, 51.1 in",-0.01,0.00,359.95
+2.629,FIRST,UP,false,Waiting for measured launcher speed,-0.01,0.00,359.96
+2.812,FIRST,UP,true,"Stable UP, 51.3 in",-0.01,0.00,359.95
+2.890,FIRST,UP,false,Waiting for measured launcher speed,-0.01,0.00,359.96
+2.961,FIRST,UP,true,"Stable UP, 51.6 in",-0.01,0.00,359.96
+3.078,FIRST,UP,false,Waiting for measured launcher speed,-0.01,0.00,359.97
+3.823,FIRST,UP,true,"Stable UP, 51.7 in",-0.02,0.01,359.92
+3.916,FIRST,UP,false,Waiting for measured launcher speed,-0.02,0.01,359.93
+4.013,FIRST,UP,true,"Stable UP, 51.7 in",-0.02,0.01,359.94
+4.095,FIRST,UP,false,Waiting for measured launcher speed,-0.02,0.00,359.95
+4.190,FIRST,UP,true,Waiting for new camera frame,-0.02,0.00,359.94
+4.362,FIRST,UP,false,Waiting for measured launcher speed,-0.02,0.00,359.93
+4.437,FIRST,UP,true,"Stable UP, 50.7 in",-0.02,0.00,359.95
+4.533,FIRST,UP,false,Waiting for measured launcher speed,-0.02,0.00,359.96
+4.606,FIRST,UP,true,"Stable UP, 51.4 in",-0.02,0.00,359.93
+4.706,FIRST,UP,false,Waiting for measured launcher speed,-0.02,0.00,359.94
+4.883,FIRST,UP,true,"Stable UP, 51.7 in",-0.02,0.00,359.93
+5.044,DONE,UP,false,Stationary shot complete,-0.02,0.00,359.95
+5.256,DONE,UNKNOWN,false,Stationary shot complete,-0.02,0.00,359.95

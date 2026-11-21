@@ -1,0 +1,24 @@
+t_s,phase,hive_state,feed,reason,x_in,y_in,heading_deg
+0.108,FIRST,UNKNOWN,false,,-0.00,-0.00,0.00
+1.076,FIRST,UNKNOWN,true,Feeding primary preload,-0.00,-0.00,360.00
+5.084,OUTBOUND:,UNKNOWN,false,First feed duration complete; collection cycle budget passed,0.00,0.00,359.92
+5.148,OUTBOUND: CLEAR END WALL,UNKNOWN,false,First feed duration complete; collection cycle budget passed,0.00,0.00,359.91
+6.222,OUTBOUND: ALIGN WITH GARDEN,UNKNOWN,false,First feed duration complete; collection cycle budget passed,13.19,-0.12,359.35
+8.571,GARDEN:,UNKNOWN,false,First feed duration complete; collection cycle budget passed,13.40,42.08,359.98
+8.656,GARDEN: Find right wall,UNKNOWN,false,First feed duration complete; collection cycle budget passed,13.38,42.08,359.92
+11.050,GARDEN: GARDEN_IN,UNKNOWN,false,First feed duration complete; collection cycle budget passed,13.52,49.50,1.24
+11.122,GARDEN: Inward pass 1,UNKNOWN,false,First feed duration complete; collection cycle budget passed,13.53,49.48,1.36
+13.909,GARDEN: GARDEN_OUT,UNKNOWN,false,First feed duration complete; collection cycle budget passed,1.59,48.70,356.88
+13.977,GARDEN: Back off 1,UNKNOWN,false,First feed duration complete; collection cycle budget passed,1.65,48.68,356.93
+14.537,GARDEN: GARDEN_IN,UNKNOWN,false,First feed duration complete; collection cycle budget passed,4.31,48.61,0.45
+14.630,GARDEN: Inward pass 2,UNKNOWN,false,First feed duration complete; collection cycle budget passed,4.30,48.61,0.44
+16.042,RETURN:,UNKNOWN,false,Collection complete; returning to shooting position,1.61,48.66,357.02
+16.118,RETURN: CLEAR COLLECTION SITE,UNKNOWN,false,Collection complete; returning to shooting position,1.65,48.64,357.03
+17.110,RETURN: RETURN ACROSS,UNKNOWN,false,Collection complete; returning to shooting position,13.70,48.61,358.90
+19.704,RETURN: RETURN SHOOT POSITION,UNKNOWN,false,Collection complete; returning to shooting position,13.40,0.45,0.26
+20.742,SETTLE,UNKNOWN,false,Collection complete; returning to shooting position,-0.30,0.32,359.50
+21.136,SECOND,UNKNOWN,false,Collection complete; returning to shooting position,-0.25,0.33,359.45
+21.377,SECOND,UP,false,Waiting for measured launcher speed,-0.26,0.33,359.45
+22.450,SECOND,UP,true,Feeding: hive UP latched,-0.26,0.33,359.45
+26.486,DONE,UP,false,Shot complete; finished at shooting position,-0.26,0.33,359.50
+26.663,DONE,UNKNOWN,false,Shot complete; finished at shooting position,-0.26,0.33,359.51

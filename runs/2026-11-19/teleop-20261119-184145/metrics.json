@@ -1,0 +1,22 @@
+{
+ "battery_min_v": 11.073,
+ "battery_start_v": 12.825,
+ "build": "pollen-hive-v37",
+ "duration_s": 44.32,
+ "first_seen_session": "hive-session-20261119-184240",
+ "hub_start": "2026-11-19T18:41:45-08:00",
+ "installed": "2026-11-19T18:36:38",
+ "kind": "teleop",
+ "opmode": "PollenAimCalibration",
+ "r1_presses": 4,
+ "rehearsals": 0,
+ "run_id": "teleop-20261119-184145",
+ "settings": "CHANGED",
+ "slowest_loop_ms": 68.7986,
+ "source_bytes": 178512,
+ "sources": [
+  "teleop/teleop-20261119-184145.csv fd947920dab59fb4983d7bd3424c525d"
+ ],
+ "stopped_early": null,
+ "tool_version": 1
+}

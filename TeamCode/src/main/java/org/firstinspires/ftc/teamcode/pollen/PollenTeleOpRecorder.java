@@ -12,11 +12,12 @@ import java.util.Locale;
  * speed, the battery, and (if the robot has its Pinpoint odometry) where the robot is.
  *
  * REHEARSALS: the driver marks the part of the run that should become autonomous.
- *   Circle = this is where the sequence STARTS (like a record button).
+ *   L1 = this is where the sequence STARTS (like a record button). (Circle was this button
+ *   before v36; Circle now aims at the hive, and each aim is an AIM row: see event()).
  *   Triangle = the sequence is OVER (like a stop button).
- * Put the robot where the autonomous would begin that move, press Circle, drive the move, press
+ * Put the robot where the autonomous would begin that move, press L1, drive the move, press
  * Triangle. On the laptop, tools/teleop-rehearsal.py turns each marked part into waypoints measured
- * from the spot where Circle was pressed. Marking changes nothing about how the robot drives.
+ * from the spot where L1 was pressed. Marking changes nothing about how the robot drives.
  *
  * Pure Java (no SDK), so it is tested on a computer. Recording must never stop the robot: every
  * method catches its own errors and simply stops recording.
@@ -76,7 +77,7 @@ public final class PollenTeleOpRecorder {
 
     /**
      * Every loop after START.
-     * @param markStart Circle is down right now; @param markEnd Triangle is down right now.
+     * @param markStart L1 is down right now; @param markEnd Triangle is down right now.
      * @return what the buttons just did (only on the loop where the button goes down).
      */
     public Mark loop(double now, long wallMillis, boolean markStart, boolean markEnd, Sample s) {
@@ -84,10 +85,10 @@ public final class PollenTeleOpRecorder {
         try {
             if (!Double.isNaN(lastLoopAt)) slowestLoop = Math.max(slowestLoop, now - lastLoopAt);
             lastLoopAt = now;
-            // Buttons act once, when they go down. Circle while already rehearsing ends that
+            // Buttons act once, when they go down. L1 while already rehearsing ends that
             // rehearsal and starts the next one at the same spot.
             if (markStart && !startWasDown) {
-                if (rehearsal != 0) row(now, wallMillis, "MARK_END", "ended by the next Circle", s, true);
+                if (rehearsal != 0) row(now, wallMillis, "MARK_END", "ended by the next L1", s, true);
                 rehearsal = ++rehearsals;
                 rehearsalStartedAt = now;
                 row(now, wallMillis, "MARK_START", "", s, true);
@@ -123,7 +124,12 @@ public final class PollenTeleOpRecorder {
                 ? String.format(Locale.US, "recording (%d kB)", file.bytes() / 1024) : "STOPPED: " + file.status;
         if (rehearsal != 0) return String.format(Locale.US, "REHEARSAL %d: %.1f s (Triangle = end) | %s",
                 rehearsal, now - rehearsalStartedAt, recording);
-        return recording + " | Circle = start a rehearsal" + (rehearsals == 0 ? "" : " (" + rehearsals + " so far)");
+        return recording + " | L1 = start a rehearsal" + (rehearsals == 0 ? "" : " (" + rehearsals + " so far)");
+    }
+
+    /** One event row (kind AIM, note = what happened) written right away, e.g. a Circle aim turn. */
+    public void event(double now, long wallMillis, String note, Sample s) {
+        try { if (!stopped) row(now, wallMillis, "AIM", note, s, true); } catch (RuntimeException ignored) { }
     }
 
     /** The rehearsal being recorded right now (1, 2, 3...), or 0. */

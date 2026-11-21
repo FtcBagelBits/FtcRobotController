@@ -1,0 +1,12 @@
+# teleop-20261119-185536
+- Event or practice: Practice 2026-11-19 (PollenBot TeleOp, v38)
+- Field surface:
+- Partner and what they did:
+- Balls loaded at start:
+- Balls scored, first volley / second volley: 14 balls in over the whole TeleOp (drive team)
+- Balls left in the robot after the first volley (counted at the garden or flower):
+- Balls collected:
+- Jam or overload seen:
+- Parked:
+- Video:
+- Anything odd: Drive team called it a great TeleOp. Circle (aim) was not used.

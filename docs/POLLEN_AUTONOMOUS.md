@@ -2,7 +2,7 @@
 
 Primary Shooter + Garden and Secondary Shooter + Flower are the Match autos. The Hive guide covers these modes, the Beta alternatives, and the isolated calibration routines. The Odo and Timed shoot-and-park modes described below are Emergency options. [Hive guide](POLLEN_HIVE_TESTING.md)
 
-All autonomous modes and PollenBot TeleOp show build **`pollen-hive-v32`**.
+All autonomous modes and PollenBot TeleOp show build **`pollen-hive-v34`**.
 Keep these instructions with the installed code. The new mat calibration and field routes are **experimental**.
 **Drive team:** use the [drive-team guides](drive-team/README.md); this manual is the full reference.
 Since `pollen-odo-v5`, B's default (and Triangle) is the full shoot-and-park route.

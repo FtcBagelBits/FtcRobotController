@@ -1,0 +1,9 @@
+t_s,phase,hive_state,feed,reason,x_in,y_in,heading_deg
+0.111,FIRST,UNKNOWN,false,,0.00,0.00,0.00
+0.761,FIRST,UP,false,Waiting for measured launcher speed,0.00,0.00,359.99
+1.770,FIRST,UP,true,Feeding: hive UP latched,0.00,0.00,359.98
+6.773,ROOM:,UP,false,Shot complete; making room in the corner,-0.01,-0.00,0.09
+6.859,ROOM: ROOM CLEAR FLOWER,UNKNOWN,false,Shot complete; making room in the corner,-0.01,-0.00,0.10
+8.098,ROOM: ROOM TO SIDE WALL,UNKNOWN,false,Shot complete; making room in the corner,7.54,-0.04,0.86
+10.685,ROOM: ROOM CORNER,UNKNOWN,false,Shot complete; making room in the corner,8.49,-50.57,0.83
+11.873,WAIT,UNKNOWN,false,In the corner; park with 2.0 s left,1.27,-50.63,0.52

@@ -1,0 +1,17 @@
+t_s,phase,hive_state,feed,reason,x_in,y_in,heading_deg
+0.101,FIRST,UNKNOWN,false,,0.00,0.00,0.00
+0.175,GARDEN:,UNKNOWN,false,Drive-only skips shot; garden cycle budget passed,0.00,0.00,360.00
+0.249,GARDEN: CLEAR END WALL,UNKNOWN,false,Drive-only skips shot; garden cycle budget passed,-0.00,0.00,0.00
+1.121,GARDEN: STRAFE TO GARDEN,UNKNOWN,false,Drive-only skips shot; garden cycle budget passed,6.21,-0.01,359.93
+3.761,GARDEN: COLLECT TOWARD WALL,UNKNOWN,false,Drive-only skips shot; garden cycle budget passed,5.88,48.05,359.16
+4.536,GARDEN: COLLECT HOLD,UNKNOWN,false,Drive-only skips shot; garden cycle budget passed,1.41,47.89,359.72
+5.075,GARDEN: BACK AWAY FROM WALL,UNKNOWN,false,Drive-only skips shot; garden cycle budget passed,1.44,47.90,359.61
+5.843,GARDEN: RETURN ACROSS,UNKNOWN,false,Drive-only skips shot; garden cycle budget passed,6.25,47.81,0.30
+8.461,GARDEN: RETURN SHOOT POSITION,UNKNOWN,false,Drive-only skips shot; garden cycle budget passed,5.78,0.12,0.07
+9.311,SETTLE,UNKNOWN,false,Drive-only skips shot; garden cycle budget passed,-0.14,-0.13,359.69
+9.720,SECOND,UNKNOWN,false,Drive-only skips shot; garden cycle budget passed,-0.13,-0.12,359.68
+9.784,PARK:,UNKNOWN,false,Drive-only departure,-0.13,-0.12,359.68
+9.867,PARK: PARK CLEAR,UNKNOWN,false,Drive-only departure,-0.13,-0.12,359.68
+10.560,PARK: PARK CORNER,UNKNOWN,false,Drive-only departure,4.01,-0.07,0.88
+12.260,PARK: PARK,UNKNOWN,false,Drive-only departure,3.90,25.08,0.12
+15.861,DONE,UNKNOWN,false,Finished departure,87.54,43.58,359.07

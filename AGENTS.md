@@ -13,8 +13,12 @@ only for web/cloud sessions that cannot reach this laptop, or when the user asks
 ## Start with the actual checkout
 
 - Inspect `pwd`, `git status --short`, `git branch --show-current`, and `git log -1 --oneline`.
-  This work targets `pollen-hive-ready`; stay on the user's requested branch. Do not
-  create or switch a branch merely because older instructions used `main` or `pollen-auto-prep`.
+  There is no fixed target branch: the branch checked out on the laptop is the one being
+  worked on, and it changes from task to task. Stay on it. Do not create or switch a branch
+  unless the user asks.
+- **Desktop agents edit the laptop checkout itself** (`~/FTC/FtcRobotController`, whatever
+  branch is checked out), so every other agent on the laptop sees the change. Do not move the
+  work into a separate worktree, workstream, sandbox copy or new branch.
 - Run `bash tools/ftc.sh doctor` for environment trouble. A cloud checkout is not the
   user's Mac, robot, installed APK, or uncommitted local changes. Say where checks ran.
 - Read [Desktop tools](docs/DESKTOP_TOOLS.md) before connection, build, installation,
@@ -24,6 +28,8 @@ only for web/cloud sessions that cannot reach this laptop, or when the user asks
   before editing robot code. [Docs index](docs/README.md) points to operator instructions.
 - [Recordings and storage](docs/POLLEN_LOGGING.md) says what each mode records, the folder
   budgets on the hub and the download-then-prune lifecycle. Read it before changing logging.
+- [Run history](docs/RUN_HISTORY.md) is the policy for downloaded data: raw downloads never enter
+  Git; `tools/run-history.py` derives the small files in `runs/`. Follow its procedure after a download.
 - On this branch read [hive testing](docs/POLLEN_HIVE_TESTING.md),
   [benchmark](docs/POLLEN_HIVE_BENCHMARK.md) and
   [diagnostics](docs/POLLEN_HIVE_DIAGNOSTICS.md) for hive work. Source code owns current
@@ -43,6 +49,7 @@ From the repository root (the scripts also resolve their own root):
 | Build and install | `bash tools/ftc.sh deploy` |
 | Install an already built APK after switching to hub Wi-Fi | `bash tools/ftc.sh install` |
 | Download and analyze a stopped session | `bash tools/ftc.sh logs "$HOME/Desktop/hive-session-$(date +%Y%m%d-%H%M%S)"` |
+| Add downloaded sessions to the run history in `runs/` ([policy](docs/RUN_HISTORY.md)) | `python3 tools/run-history.py "$HOME/Desktop"` |
 | Hub free space and recording folder sizes (read-only) | `bash tools/ftc.sh storage` |
 | List hub recordings that match a download | `bash tools/ftc.sh prune DOWNLOADED_FOLDER` |
 | Apply a mail-format patch on a clean branch | `bash tools/ftc.sh patch "$HOME/Downloads/change.patch"` |
@@ -88,7 +95,8 @@ never let an emulator or another robot become the implicit deployment target. Ex
 - Run `bash tools/ftc.sh test` for Pollen changes and `git diff --check HEAD` before
   delivery. Add new plain Java tests to `PollenTests` and `test-pollen-sequence.sh`.
   For desktop-tool changes run `python3 tools/test-ftc-tools.py` and
-  `python3 tools/test-hive-download.py`; these use fakes, not a connected robot.
+  `python3 tools/test-hive-download.py` (and `python3 tools/test-run-history.py` for the run
+  history); these use fakes, not a connected robot.
 - Use Gradle unit tests/build to check Android integration where the SDK is available.
   Report computer tests, Android build, install and physical tests separately. A passing
   simulated route or shell test is not field validation.
@@ -118,5 +126,13 @@ never let an emulator or another robot become the implicit deployment target. Ex
   state the base SHA, and verify `git am` in a disposable checkout. On the laptop,
   `tools/ftc.sh patch` applies one with a backup branch via `git am`; it does not run
   tests, install or push. Run the tests yourself after applying.
-- If two desktop agents are active, use separate worktrees for code edits, or one writer
-  at a time in this checkout. Only one session should control deployment/robot testing.
+- **Several agents are used on purpose** (for example Claude, Codex and Astra on the laptop,
+  plus cloud sessions). On the laptop they normally run one after another in this same
+  checkout, so each can see and build on the previous agent's work, committed or not.
+  Uncommitted or untracked changes at the start of a session are usually that earlier,
+  finished work: read them, build on them, and mention them in your report. Do not treat
+  them as a reason to stop. Stop and ask only if another agent appears to be working right
+  now (files changing while you watch, or the user says so) or the changes conflict with
+  your task. Never overwrite, revert, stash or discard another agent's changes.
+- When agents do run at the same time: one writer at a time per file, check `git status`
+  before editing. Only one session should control deployment/robot testing.

@@ -217,7 +217,8 @@ if __name__ == '__main__':
         'LSTICK': 'Left stick: drive and strafe', 'RSTICK': 'Right stick: turn',
         'R1': 'R1 (hold): shoot', 'SQUARE': 'Square (hold): unjam,\ndrainer up',
         'RT': 'Right trigger: intake in', 'LT': 'Left trigger: intake out',
-        'DPAD': 'D-pad up/down:\nnudge drainer', 'TRIANGLE': 'Triangle: INIT menu defaults',
+        'DPAD': 'D-pad up/down:\nnudge drainer', 'TRIANGLE': 'Triangle: practice end',
+        'L1': 'L1: practice start', 'CIRCLE': 'Circle: aim at hive',
         'CROSS': 'Cross: lower / raise drainer',
     })
     init_buttons_picture('shoot-and-park-buttons.svg', 'Buttons during INIT (before START)',
