@@ -1,0 +1,6 @@
+t_s,phase,hive_state,feed,reason,x_in,y_in,heading_deg
+0.116,FIRST,UNKNOWN,false,,-0.00,-0.00,0.00
+25.599,PARK: PARK CLEAR,UNKNOWN,false,"Park deadline during FIRST, 4.44 s left",0.01,0.00,359.93
+26.461,PARK: PARK CORNER,UNKNOWN,false,"Park deadline during FIRST, 4.44 s left",8.29,-0.04,0.63
+26.539,PARK: PARK,UNKNOWN,false,"Park deadline during FIRST, 4.44 s left",8.26,-0.04,0.58
+28.528,DONE,UNKNOWN,false,Finished departure,14.64,-45.61,1.15

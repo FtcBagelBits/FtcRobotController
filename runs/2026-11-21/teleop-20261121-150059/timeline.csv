@@ -1,0 +1,6 @@
+t_s,kind,rehearsal,note
+0.0000,START,0,build=pollen-hive-v50 installed=2026-11-21T13:12:05 opmode=PollenBot launcher=1180.0 spinup=3.0 agitator=1.0 drive=1.0 settings=DEFAULTS reverse=140 feedBoost=0.5 facing=back-to-hive pinpoint=READY ba
+43.2644,AIM,0,AIM_REFUSED source=CAMERA reason=no_tags target_left_in=-2.0 camera_bearing_deg=none cell=none tags=0 cam_dist_in=none odo_target_deg=unknown odo_turn_deg=unknown x_in=5.01 y_in=120.32 heading_deg=99.
+48.3845,AIM,0,AIM_START n=1 source=CAMERA target_deg=258.20 target_left_in=-2.0 camera_bearing_deg=3.81 cell=34 tags=4 cam_dist_in=38.63 odo_target_deg=unknown odo_turn_deg=unknown x_in=4.36 y_in=122.24 heading_deg
+49.1588,AIM,0,AIM_DONE n=1 source=CAMERA result=done turned_right_deg=3.65 seconds=0.77 camera_updates=19 target_left_in=-2.0 first_camera_bearing_deg=3.81 camera_residual_deg=0.15 odo_target_deg=unknown odo_residu
+57.5807,STOP,0,

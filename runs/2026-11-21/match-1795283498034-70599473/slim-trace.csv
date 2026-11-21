@@ -1,0 +1,13 @@
+t_s,kind,phase,execution,x_in,y_in,heading_deg,requested_forward,requested_strafe,requested_turn,requested_launcher_tps,measured_launcher_tps,applied_intake,applied_agitator,feed_requested,hive_state,hive_reason,cell,battery_v,launcher_current_a,clear_out
+0.09,TRANSITION,FIRST,LIVE,-0.02,-0.01,0.22,0.00,0.00,0.00,0.00,0.00,0.00,0.00,false,UNKNOWN,No observation,38,12.88,0.00,false
+0.21,SAMPLE,FIRST,LIVE,-0.02,-0.01,0.22,0.00,0.00,0.00,1180.00,20.00,0.00,0.00,false,UNKNOWN,No observation,38,10.87,4.47,false
+0.31,SAMPLE,FIRST,LIVE,-0.02,-0.01,0.22,0.00,0.00,0.00,1180.00,280.00,0.00,0.00,false,UNKNOWN,No observation,38,11.08,8.66,false
+0.43,SAMPLE,FIRST,LIVE,-0.02,-0.01,0.21,0.00,0.00,0.00,1180.00,580.00,0.00,0.00,false,UNKNOWN,No observation,38,11.20,7.61,false
+0.53,SAMPLE,FIRST,LIVE,-0.02,-0.01,0.21,0.00,0.00,0.00,1180.00,840.00,0.00,0.00,false,UNKNOWN,"Confirming UP, 53.1 in",38,11.45,6.03,false
+0.68,SAMPLE,FIRST,LIVE,-0.02,-0.01,0.20,0.00,0.00,0.00,1180.00,1020.00,0.00,0.00,false,UNKNOWN,"Confirming UP, 53.1 in",38,12.33,3.23,false
+0.79,SAMPLE,FIRST,LIVE,-0.02,-0.01,0.20,0.00,0.00,0.00,1180.00,1080.00,0.00,0.00,false,UNKNOWN,"Confirming UP, 52.3 in",38,12.55,1.87,false
+0.87,TRANSITION,FIRST,LIVE,-0.02,-0.01,0.20,0.00,0.00,0.00,1180.00,1140.00,0.00,0.00,false,UP,"Stable UP, 50.4 in",38,12.72,1.07,false
+0.98,TRANSITION,FIRST,LIVE,-0.02,-0.01,0.21,0.00,0.00,0.00,1180.00,1160.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 46.5-47.2 in (mean 46.9),38,12.75,0.69,false
+1.10,SAMPLE,FIRST,LIVE,-0.02,-0.01,0.20,0.00,0.00,0.00,1180.00,1160.00,0.00,0.00,false,UNKNOWN,Holding UNKNOWN: our tags missed for 0.04 s,38,12.76,0.65,false
+1.21,SAMPLE,FIRST,LIVE,-0.02,-0.01,0.20,0.00,0.00,0.00,1180.00,1160.00,0.00,0.00,false,UNKNOWN,Holding UNKNOWN: our tags missed for 0.15 s,38,12.79,0.56,false
+1.36,STOP,DONE,LIVE,-0.02,-0.01,0.20,0.00,0.00,0.00,0.00,1160.00,0.00,0.00,false,UNKNOWN,Our cell's tags not in view,38,12.85,0.06,false

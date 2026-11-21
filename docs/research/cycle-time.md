@@ -146,3 +146,26 @@ power. The 0.9 s spin-up is too short to hide a 30 in move behind.
 - [gm0: holonomic drivetrains](https://game-manual-0.readthedocs.io/en/stable/docs/drivetrains/holonomic.html)
 - [gm0: mecanum programming](https://game-manual-0.readthedocs.io/en/latest/docs/software/mecanum-drive.html)
 - [WPILib: tuning a flywheel velocity controller](https://docs.wpilib.org/en/latest/docs/software/advanced-controls/introduction/tuning-flywheel.html)
+
+## Can the flywheel identify the fourth ball?
+
+2026-11-21, Codex local session on `match_2_mods` at `9ede19b`. Replayed the November 19
+LIVE Hive traces on the laptop and cross-checked two examples against the desktop download.
+
+- [repo] The run-history dip counter requires a drop below 90% of target followed by recovery
+  above 95%. It reports four dips in 2 of the 13 recorded opening volleys with feed that day.
+  See `tools/run-history.py` and `runs/index.csv`.
+- [tested] On the laptop, a replay of those 13 opening volleys flagged four candidate events in
+  10 volleys. During active feed, the replay flagged a drop of at least 60 ticks/s from a running
+  high, tracked the low, and rearmed after a rise of 40 ticks/s. The fourth candidate appeared
+  1.50–2.36 s after feed started in those ten volleys. In the v36 Primary run
+  `match-1795141993215-1788558765`, the four candidate times were about 0.12, 0.44, 0.97 and 1.63 s
+  into a 3 s feed. The v36 angled run `match-1795141682566-1515457612` dipped from 1180 to
+  1060, partially recovered to 1120, then dropped again to 1000 ticks/s. That sequence stays
+  below the run-history recovery threshold between the two drops.
+- [repo] The November 19 run notes lack observed ball exit counts per Hive volley. The 13-volley
+  replay used the existing Hive trace samples, roughly 0.11 s apart during these feeds.
+- [inferred] Try a telemetry-only estimate in Calibration Primary Shot Only. Record timestamped
+  loop speed during operator-observed trials with 0, 1, 2, 3 and 4 balls. Ground truth is the
+  number and time of exits, ideally from video. Use the timed feed and park deadline while
+  measuring missed and extra counts, especially when balls enter close together or jam.

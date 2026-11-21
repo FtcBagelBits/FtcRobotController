@@ -1,0 +1,4 @@
+t_s,phase,hive_state,feed,reason,x_in,y_in,heading_deg
+0.126,FIRST,UNKNOWN,false,,-0.02,-0.01,0.22
+0.895,FIRST,UP,false,Waiting for measured launcher speed,-0.02,-0.01,0.20
+1.009,FIRST,UNKNOWN,false,Tags disagree/outside bands: 46.5-47.2 in (mean 46.9),-0.02,-0.01,0.21
