@@ -53,7 +53,7 @@ of our lane, and park in the OUTER slot. Show them the pit sheet.
 </div>
 </div>
 
-**3. On the Driver Hub**, pick **Emergency Odo Shoot + Park**. It's in the autonomous list, group *1 Match*.
+**3. On the Driver Hub**, pick **Emergency Odo Shoot + Park**. It's in the autonomous list, group *3 Emergency*.
 
 **4. Press INIT.** Don't touch the robot for 1 second: the odometry sensor is getting ready.
 
@@ -67,7 +67,7 @@ changes the coach asks for (usually none).
 | Line | Should say |
 | --- | --- |
 | **ROUTE** (the first line) | `FULL PARK: shoot, then 3 legs to the parking slot` |
-| Build | `pollen-hive-v34` |
+| Build | `pollen-hive-v39` |
 | Mode | `ODOMETRY Shoot + Park` |
 | Odometry x fwd / y left / heading | numbers near 0 (not `NOT VALID`) |
 | Status | `READY - no movement until START` |

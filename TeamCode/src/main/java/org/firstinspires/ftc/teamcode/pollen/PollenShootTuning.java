@@ -121,9 +121,15 @@ public final class PollenShootTuning {
         this.supporting = supporting;
         this.odometry = odometry;
         this.angled = angled;
-        // The AIM_ANGLE row only exists in angled mode. It is the last Field, so in every other
-        // mode the rows are simply all the Fields before it.
-        rows = angled ? Field.values() : java.util.Arrays.copyOf(Field.values(), Field.AIM_ANGLE.ordinal());
+        // Match 2 (v39): rows a driver checks or might change first (the supporting shooter's
+        // 12 s start delay is checked at INIT), never-changed tuning and route legs last.
+        // The AIM_ANGLE row only exists in angled mode.
+        java.util.List<Field> order = new java.util.ArrayList<>(java.util.Arrays.asList(Field.START_DELAY,
+                Field.FLYWHEEL, Field.FEED_SECONDS, Field.DRIVE_POWER, Field.PARK_MARGIN));
+        if (angled) order.add(Field.AIM_ANGLE);
+        order.addAll(java.util.Arrays.asList(Field.SPINUP, Field.FEED_POWER, Field.AGITATOR_POWER, Field.CALIBRATION,
+                Field.LEG1_CM, Field.LEG1_ANGLE, Field.LEG2_CM, Field.LEG2_ANGLE, Field.LEG3_CM, Field.LEG3_ANGLE));
+        rows = order.toArray(new Field[0]);
         reset();
         if (remembered != null) {
             values = remembered.values.clone();

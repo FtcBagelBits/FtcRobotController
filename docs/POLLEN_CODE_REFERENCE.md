@@ -28,7 +28,7 @@ the *FIRST* Tech Challenge SDK (`FtcRobotController` **12.0**). The build produc
 | --- | --- | --- |
 | **Emergency Odo Shoot + Park** | Shoots the preloads, drives to the inner parking slot using odometry | Drive team, primary fallback |
 | **Emergency Odo Supporting Shooter** | Waits 12 s for the partner, shoots, parks in the outer slot | Drive team, supporting fallback |
-| **PollenBot** (TeleOp) | Driving, intake, R1 shoots, Square reverses the launcher | Drive team |
+| **PollenBot** (TeleOp) | Driving, intake, R1 shoots, L1 reverses the launcher | Drive team |
 | Emergency Odo Park | Drive straight only (no shot), measured with odometry | Testing, or the launcher is broken |
 | Calibration Angled Primary | **Experimental.** Emergency Odo Shoot + Park with an angled shot: two legs to a spot off the wall and to the side, turn the launcher toward the hive, shoot, turn back, park (on hold since v11: the robot now shoots straight from the wall; it still runs, back to the hive like every auto) | Programmers, until it has been tried on a field |
 | Emergency Timed Shoot + Park / Emergency Timed Supporting Shooter / Emergency Timed Park | The same three jobs with timed driving (no odometry) | **Emergency only:** a match where the Pinpoint is not working |
@@ -158,7 +158,7 @@ and Drainer step (0.01). D-pad Up/Down selects a row; Left/Right edits up/down b
 and step by 0.002 per tap. Positions stay within 0–1; step stays within 0.002–1.
 Triangle restores defaults, settings are remembered until app restart, and START locks
 settings and commands the selected up position. The servo does not move during INIT. INIT tuning and
-Circle/Triangle recording markers retain main's behavior (Square ended a rehearsal before it became the unjam button).
+Since v39 PollenBot has no rehearsal markers: L1 is the unjam button (Square before v39); Square and Triangle do nothing after START.
 
 The separate `Calibration Drainer Servo` OpMode moves only the servo for calibration. It uses the same hardware name
 and controls, with the same three INIT settings, defaults and increments as PollenBot. Its INIT

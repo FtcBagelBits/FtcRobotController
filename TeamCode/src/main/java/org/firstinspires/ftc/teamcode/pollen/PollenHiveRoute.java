@@ -70,6 +70,54 @@ public final class PollenHiveRoute {
         if(angled) rows.addAll(Arrays.asList(ANGLED_ROWS));
         values=new PollenHiveSettings.Values(rows.toArray(new PollenHiveSettings.Row[0]),secondary); v=values.v;
     }
+    /** Match 2 (v39) INIT order, after Alliance/side: the rows a driver checks or might change. Keys a
+     * mode doesn't have are skipped. Everything else follows, never-changed rows last. Execution is
+     * never shown: every hive mode runs LIVE. */
+    private static final String[] PRIMARY_FIRST={"startDelay","launcher","matchTravelPower","matchFirstFeed",
+        "matchSecondFeed","matchGardenPasses","parkMargin","clearOut",SHOT_LEFT,SHOT_AWAY,AIM_LEFT};
+    private static final String[] SECONDARY_FIRST={"launcher","matchFlowerShakes","matchFlowerCleanup",
+        "collectionEntryLeft","matchTravelPower","matchFirstFeed","matchSecondFeed","parkMargin","clearOut","startDelay"};
+    private static final String[] MAKE_ROOM_FIRST={"launcher","firstFeed","parkMargin","startDelay"};
+    private static final String[] SHOT_FIRST={"launcher","firstFeed","firstWindow","feedIntake","feedAgitator",
+        "feedPausePct","startDelay"};
+    private static final String[] GARDEN_FIRST={"travelPower","pickupPower","collectPower","collectHold",
+        "clearForward","pickupLeft","pickupForward"};
+    /** Rows a Match/Beta mode never uses: listed after the collection tuning, at the very end. */
+    private static final String[] MATCH_UNUSED={"firstFeed","secondFeed","firstWindow","travelPower","collectPower",
+        "collectHold","feedIntake","clearForward","firstTurnLeft","gardenTurnLeft","pickupLeft","pickupForward",
+        "transitHeading","pickupHeading","pickupPower","roomCornerForward","roomCornerLeft","roomParkSecondsLeft"};
+    /** Rows the calibration (shot only, garden + return) modes never use, at the very end. */
+    private static final String[] PRACTICE_UNUSED={"roomCornerForward","roomCornerLeft","roomParkSecondsLeft",
+        "collectionEntryForward","collectionEntryLeft","matchTravelPower","matchFirstFeed","matchSecondFeed",
+        "matchGardenPasses","matchFlowerShakes","matchFlowerCleanup","matchFeedIntake","matchParkSeconds","clearOut",
+        "park","park1Forward","park1Left","park2Forward","park2Left","park3Forward","park3Left","parkMargin"};
+    /** Screen order of the route rows, as indexes into values: side (Alliance in a match), then the
+     * FIRST rows for this run type, then the rest, unused rows last. Execution is left out. */
+    public int[] menuOrder(PollenHiveAuto.Run run) {
+        boolean match=run==PollenHiveAuto.Run.MATCH;
+        int n=values.rows.length;
+        List<Integer> o=new ArrayList<>();
+        o.add(values.index("side"));
+        String[] first=!match?(run==PollenHiveAuto.Run.SHOT_ONLY?SHOT_FIRST:GARDEN_FIRST)
+                :makeRoom?MAKE_ROOM_FIRST:secondary?SECONDARY_FIRST:PRIMARY_FIRST;
+        for(String k:first) addKey(o,k);
+        List<String> unused=new ArrayList<>(Arrays.asList(match?MATCH_UNUSED:PRACTICE_UNUSED));
+        if(match&&makeRoom) unused.clear();
+        // The other collection mode's cycle counts do nothing in this mode.
+        if(match&&!makeRoom)
+            unused.addAll(secondary?Arrays.asList("matchGardenPasses"):Arrays.asList("matchFlowerShakes","matchFlowerCleanup"));
+        if(match&&!makeRoom) for(int i=0;i<n;i++)
+            if(values.rows[i].key.startsWith(COLLECTION_PREFIX)&&!o.contains(i)) o.add(i);
+        for(int i=0;i<n;i++) {
+            String k=values.rows[i].key;
+            if(!o.contains(i)&&!k.equals("execution")&&!unused.contains(k)) o.add(i);
+        }
+        for(int i=0;i<n;i++) if(!o.contains(i)&&!values.rows[i].key.equals("execution")) o.add(i);
+        int[] a=new int[o.size()]; for(int i=0;i<a.length;i++) a[i]=o.get(i); return a;
+    }
+    private void addKey(List<Integer> o,String key) {
+        for(int i=0;i<values.rows.length;i++) if(values.rows[i].key.equals(key)&&!o.contains(i)) { o.add(i); return; }
+    }
     // Calibration uses the saved side row. Each match starts with a fresh driver choice.
     private static final int USE_PROFILE = -1;
     private int matchAlliance = USE_PROFILE;

@@ -10,6 +10,22 @@ flower_x = -20.058
 # Red nominal presets (inches, field center origin). Blue is the same picture rotated 180 degrees.
 P = [(hx, W - R), (hx, W - R - 10 / IN), (hx - 25, W - R - 10 / IN), (-56, -26)]       # B: shoot first
 S = [(flower_x / 2, -W + R), (flower_x / 2, -W + R + 8), (-56, -47)]                   # C: shoot second
+
+# Match autos (red, inches), from the pollen-hive-v39 defaults (same as v38) in PollenHiveSettings / PollenHiveRoute.
+# Primary: field X = hx - left, Z = W - R - forward. Secondary: X = flower_x / 2 + left, Z = -W + R + forward.
+# Primary Shooter + Garden: start, clear the wall (collection entry forward 34 cm), align with the
+# garden (left 108 cm), side-wall then garden-wall contact (the garden corner), back the same way.
+HIVE_P_OUT = [(hx, W - R), (hx, W - R - 34 / IN), (hx - 108 / IN, W - R - 34 / IN),
+              (-W + R, W - R - 34 / IN), (-W + R, W - R)]
+# Park from the start: Park1 (10 cm, 0), Park2 (10 cm, 63.5 cm left), Park3 (222.47 cm, 109.88 cm left).
+HIVE_P_PARK = [(hx, W - R), (hx, W - R - 10 / IN), (hx - 63.5 / IN, W - R - 10 / IN), (-56, -26)]
+# Secondary Shooter + Flower: start, clear the wall (36.58 cm), align with the flower (-34.06 cm left),
+# drive in until the drainer is seated (24 cm short of the entry), back out the same way.
+HIVE_S_OUT = [(flower_x / 2, -W + R), (flower_x / 2, -W + R + 36.58 / IN),
+              (flower_x / 2 - 34.06 / IN, -W + R + 36.58 / IN), (flower_x / 2 - 34.06 / IN, -W + R + 12.58 / IN)]
+# Park from the start: Park1/2 (20.32 cm, 0), Park3 (37.05 cm, -116.77 cm left).
+HIVE_S_PARK = [(flower_x / 2, -W + R), (flower_x / 2, -W + R + 20.32 / IN), (-56, -47)]
+GARDEN_BALLS = [(-69.31, 69.3), (-66.42, 69.3), (-63.53, 69.3), (-60.64, 69.3)]
 FLOWERS = [(-71.794, -65.630, 20.058, 26.727), (65.630, 71.794, -26.727, -20.058),
            (20.058, 26.727, 65.630, 71.794), (-26.727, flower_x, -71.794, -65.630)]
 RED, BLUE, P_COL, S_COL = '#c0392b', '#1f5fa8', '#1f6fb2', '#2e8b57'

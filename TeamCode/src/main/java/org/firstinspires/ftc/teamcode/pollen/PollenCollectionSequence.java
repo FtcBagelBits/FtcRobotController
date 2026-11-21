@@ -23,21 +23,22 @@ public final class PollenCollectionSequence {
         row("intake", "Intake power", 1, .05, .05, 1),
     };
     private static final PollenHiveSettings.Row[] FLOWER = {
+        // Match 2 (v39): cycle counts and the start stand-off first (changed most), seldom-changed tuning after.
+        row("shakes", "Left-right cycles", 3, 1, 0, 8),
+        row("repeats", "Cleanup forward/back cycles", 2, 1, 0, 8),
         row("gap", "Start to fully inserted mark cm", 24, 1, 4, 100),
+        row("amplitude", "Travel each side of center cm", 3.5, .5, 2, 12),
+        // Own key since v35, so the old saved 0.40-0.50 "sidePower" no longer slows the swings:
+        // the drive team asked for at least 50 % more swing speed to empty the flower (0.50 -> 0.75).
+        row("shakePower", "Swing sideways power", .75, .05, .10, .90),
         row("creep", "Switch to seating power this many cm short", 3, .5, 0, 10),
         // 2026-11-19 secondary trace: the flower took 8.7 s. Faster approach and withdrawal (v35).
         row("inPower", "Approach power", .30, .05, .10, .60),
         row("lower", "Let drainer lower s", .4, .1, .1, 2),
         row("down", "Drainer down position", PollenTeleOpTuning.DEFAULT_DRAINER_DOWN, .01, 0, 1),
         row("seatPower", "Final wall approach power", .15, .01, .05, .35),
-        row("shakes", "Left-right cycles", 3, 1, 0, 8),
-        row("amplitude", "Travel each side of center cm", 3.5, .5, 2, 12),
-        // Own key since v35, so the old saved 0.40-0.50 "sidePower" no longer slows the swings:
-        // the drive team asked for at least 50 % more swing speed to empty the flower (0.50 -> 0.75).
-        row("shakePower", "Swing sideways power", .75, .05, .10, .90),
         row("back", "Full withdrawal cm", 18, 1, 4, 60),
         row("stroke", "Cleanup forward stroke cm", 7, 1, 2, 40),
-        row("repeats", "Cleanup forward/back cycles", 2, 1, 0, 8),
         row("outPower", "Withdrawal / cleanup power", .40, .05, .10, .60),
         row("hold", "Final intake dwell s", 1, .1, 0, 3),
         row("intake", "Intake power", 1, .05, .05, 1),

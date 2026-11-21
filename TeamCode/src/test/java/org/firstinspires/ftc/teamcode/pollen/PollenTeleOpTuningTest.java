@@ -121,13 +121,20 @@ public final class PollenTeleOpTuningTest {
         near(savedDrainer.drainerDownPosition(), 1, "down remembered");
         near(savedDrainer.drainerStep(), 1, "step remembered");
         drainer.update(false, true, false, false, false); release(drainer);
-        check(drainer.selected() == PollenTeleOpTuning.Row.AIM_LEFT, "Circle aim target follows drainer step");
+        check(drainer.selected() == LAUNCHER, "v39: the PollenBot menu wraps after drainer step");
+        drainer.update(false, true, false, false, false); release(drainer);
+        check(drainer.selected() == DRIVE, "v39: drive power is the second PollenBot row");
+        drainer.update(false, true, false, false, false); release(drainer);
+        check(drainer.selected() == PollenTeleOpTuning.Row.AIM_LEFT, "v39: Circle aim target is the third row");
+        check(java.util.Arrays.equals(drainer.rows(), new PollenTeleOpTuning.Row[]{LAUNCHER, DRIVE,
+                PollenTeleOpTuning.Row.AIM_LEFT, SPINUP, AGITATOR, DRAINER_UP, DRAINER_DOWN, DRAINER_STEP}),
+                "v39: PollenBot rows to check first, never-changed rows last");
         near(drainer.aimTargetLeftIn(), -2, "aim target defaults to 2 in right");
         tap(drainer, -1, 1); near(drainer.aimTargetLeftIn(), -2.5, "aim target -0.5 in");
         tap(drainer, 1, 5); near(drainer.aimTargetLeftIn(), 0, "aim target +0.5 in steps, through zero");
         near(new PollenTeleOpTuning(1250, 3, 1, drainer.snapshot(), true).aimTargetLeftIn(), 0, "aim target remembered");
         drainer.update(false, true, false, false, false); release(drainer);
-        check(drainer.selected() == LAUNCHER, "extended menu wraps after the aim target");
+        check(drainer.selected() == SPINUP, "v39: spin-up follows the aim target");
         drainer.update(false, false, false, false, true); release(drainer);
         check(drainer.isDefault(), "Triangle also resets drainer settings");
         near(drainer.drainerUpPosition(), .45, "reset up");

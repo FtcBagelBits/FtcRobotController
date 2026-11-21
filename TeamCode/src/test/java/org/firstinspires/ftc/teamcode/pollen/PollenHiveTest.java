@@ -972,7 +972,41 @@ public final class PollenHiveTest {
         }
     }
 
+    /** Match 2 (v39): INIT order for every hive mode. Side/Alliance first, checks next, Execution
+     * hidden, every other row reachable exactly once, never-used rows at the end. */
+    private static void menuOrder() {
+        PollenHiveAuto.Run M=PollenHiveAuto.Run.MATCH, S=PollenHiveAuto.Run.SHOT_ONLY, G=PollenHiveAuto.Run.GARDEN_RETURN;
+        Object[][] modes={{false,false,false,false,M},{true,false,false,false,M},{false,false,true,false,M},
+            {false,false,false,true,M},{true,true,false,false,M},{false,false,false,false,S},{true,false,false,false,S},
+            {false,false,false,false,G}};
+        for(Object[] m:modes) {
+            boolean sec=(Boolean)m[0], room=(Boolean)m[1];
+            PollenHiveAuto.Run run=(PollenHiveAuto.Run)m[4];
+            PollenHiveRoute r=new PollenHiveRoute(sec,room,(Boolean)m[2],(Boolean)m[3]);
+            int[] o=r.menuOrder(run);
+            String mode=run+(sec?" secondary":" primary")+(room?" make-room":"")+(m[2].equals(true)?" fast":"")+(m[3].equals(true)?" angled":"");
+            check(o.length==r.values.rows.length-1,mode+": every row but Execution");
+            java.util.Set<Integer> seen=new java.util.HashSet<>();
+            for(int i:o) check(seen.add(i),mode+": row listed once");
+            check(!seen.contains(r.values.index("execution")),mode+": Execution hidden");
+            check(r.values.rows[o[0]].key.equals("side"),mode+": side / Alliance first");
+            String second=r.values.rows[o[1]].key;
+            String want=run==G?"travelPower":run==S||sec||room?"launcher":"startDelay";
+            check(second.equals(want),mode+": first check row is "+second);
+            int legacy=r.values.index("roomParkSecondsLeft");
+            int at=-1; for(int i=0;i<o.length;i++) if(o[i]==legacy) at=i;
+            check(room||at>o.length-25,mode+": unused rows at the end");
+        }
+        PollenHiveRoute primary=new PollenHiveRoute(false);
+        int[] o=primary.menuOrder(M);
+        String[] want={"side","startDelay","launcher","matchTravelPower","matchFirstFeed","matchSecondFeed",
+            "matchGardenPasses","parkMargin","clearOut"};
+        for(int i=0;i<want.length;i++) check(primary.values.rows[o[i]].key.equals(want[i]),"primary row "+(i+1)+" is "+want[i]);
+        check(primary.values.rows[o[want.length]].key.startsWith("collection."),"garden tuning follows the checks");
+    }
+
     public static void main(String[] args) {
+        menuOrder();
         matchAllianceSetup();
         classifier(); missesVsContradictions(); unsettledReturnParks(); returnHeadingCorrection(2.07); returnHeadingCorrection(-2.07);
         calibration(); sides(); settings(); routes(); collectionTuning(); secondaryGates(); clearOutAfterVolley(); fastCycle(); returnNudge(); pacedFeed();

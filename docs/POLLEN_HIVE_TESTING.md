@@ -5,7 +5,12 @@ For the v8 motion investigation and exact retest order, see [Hive auto diagnosti
 Intermittent tags? Start with the [automatic pipeline benchmark](POLLEN_HIVE_BENCHMARK.md).
 It records raw detections before calibration passes; the current confirmation rule is unchanged.
 
-Build **pollen-hive-v34**. The two tested Hive shooters are in Match. Hero, Fast and Out of the Way are in Beta Test.
+Build **pollen-hive-v39**. The two tested Hive shooters are in Match. Hero, Fast and Out of the Way are in Beta Test.
+
+**v39 (match 2):** there is no Execution row any more. Every hive mode, calibration included, runs
+LIVE. Where this guide says DRY or DRIVE, that option is gone from the INIT menu (the controller
+still supports it in code). The INIT menus list the rows to check or change first, never-changed
+rows last (`PollenHiveRoute.menuOrder`).
 Print [the two-page practice sheet](drive-team/print/4-hive-practice.pdf). This guide explains the
 controls and checks in full; the patch kit README covers applying, building, installing and pushing.
 

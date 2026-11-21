@@ -67,6 +67,40 @@ def route_picture(tag, name, title):
     save(fig, name)
 
 
+def hive_route_picture(tag, name):
+    """Whole field, both alliances: one Match auto's trip (solid) and park (dashed)."""
+    out, park, color = (HIVE_P_OUT, HIVE_P_PARK, P_COL) if tag == 'P' else (HIVE_S_OUT, HIVE_S_PARK, S_COL)
+    fig = plt.figure(figsize=(6.4, 6.6))
+    ax = fig.add_axes([.01, .01, .98, .98])
+    draw_field(ax, hive_label='HIVE')
+    for blue in (False, True):
+        for pts, dashed in ((out, False), (park, True)):
+            xs, zs = zip(*[rot(p, blue) for p in pts])
+            ax.plot(xs, zs, color=color, lw=3, ls='--' if dashed else '-', marker='o', ms=4, zorder=7)
+        if tag == 'P':
+            for b in GARDEN_BALLS:
+                bx, bz = rot(b, blue)
+                ax.add_patch(Circle((bx, bz), 1.6, fc='#f5d76e', ec='#8a5a00', lw=.8, zorder=6))
+        robot(ax, out[0], color, .4, blue)
+        robot(ax, park[-1], color, .8, blue)
+        for p, word in ((out[0], 'START'), (park[-1], 'PARK')):
+            px, pz = rot(p, blue)
+            ax.text(px, pz, word, ha='center', va='center', fontsize=13, weight='bold', color='white', zorder=9)
+    # Label the red side only (blue is the same, turned around).
+    labels = ({'garden\nand back': (-38, 38), 'park\n(dashed)': (-30, 6)} if tag == 'P'
+              else {'flower and back': (-14, -37), 'park (dashed)': (-42, -61)})
+    for text, (lx, lz) in labels.items():
+        ax.text(lx, lz, text, fontsize=14, weight='bold', color='#111', ha='center', va='center', zorder=11,
+                bbox=dict(boxstyle='round,pad=.2', fc='white', ec=color, lw=1))
+    ax.text(-W + 2, -W - 2.5, 'RED', color=RED, fontsize=18, weight='bold', va='bottom')
+    ax.text(W - 2, -W - 2.5, 'BLUE', color=BLUE, fontsize=18, weight='bold', va='bottom', ha='right')
+    ax.text(0, W + 2.5, 'AUDIENCE', fontsize=14, weight='bold', ha='center', va='top')
+    ax.text(0, -W - 2.5, 'SCORING END', fontsize=14, weight='bold', ha='center', va='bottom')
+    ax.set_xlim(-W - 3, W + 3); ax.set_ylim(-W - 9, W + 9); ax.set_aspect('equal'); ax.axis('off')
+    ax.invert_yaxis()  # team view: red left, audience at the bottom
+    save(fig, name)
+
+
 def gap(ax, x0, x1, z, text, label_xy, align):
     """A small red gap marker between x0 and x1 at depth z, with its label off to the side."""
     ax.annotate('', xy=(x0, z), xytext=(x1, z), arrowprops=dict(arrowstyle='<->', lw=1.6, color='#c0392b'), zorder=9)
@@ -213,12 +247,14 @@ if __name__ == '__main__':
     placement_picture('P', 'shoot-and-park-placement.svg', 'Where to put the robot (red: audience wall)')
     route_picture('S', 'supporting-shooter-route.svg', 'Odo Supporting Shooter: wait, shoot, park in the OUTER slot')
     placement_picture('S', 'supporting-shooter-placement.svg', 'Where to put the robot (red: scoring-end wall)')
+    hive_route_picture('P', 'primary-garden-route.svg')
+    hive_route_picture('S', 'secondary-flower-route.svg')
     controller_picture('teleop-controller.svg', 'PollenBot TeleOp: during the match', {
         'LSTICK': 'Left stick: drive and strafe', 'RSTICK': 'Right stick: turn',
-        'R1': 'R1 (hold): shoot', 'SQUARE': 'Square (hold): unjam,\ndrainer up',
+        'R1': 'R1 (hold): shoot', 'SQUARE': '',
         'RT': 'Right trigger: intake in', 'LT': 'Left trigger: intake out',
-        'DPAD': 'D-pad up/down:\nnudge drainer', 'TRIANGLE': 'Triangle: practice end',
-        'L1': 'L1: practice start', 'CIRCLE': 'Circle: aim at hive',
+        'DPAD': 'D-pad up/down:\nnudge drainer', 'TRIANGLE': '',
+        'L1': 'L1 (hold): unjam,\ndrainer up', 'CIRCLE': 'Circle: aim at hive',
         'CROSS': 'Cross: lower / raise drainer',
     })
     init_buttons_picture('shoot-and-park-buttons.svg', 'Buttons during INIT (before START)',

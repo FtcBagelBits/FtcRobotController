@@ -280,8 +280,11 @@ public final class PollenOdometryTest {
         PollenShootTuning b = new PollenShootTuning(null, false, true);
         check(angled.angled() && angled.route() == PollenShootTuning.Route.ANGLED_PARK && angled.route().label.startsWith("ANGLED SHOT"),
                 "angled mode shows ANGLED SHOT on the route line");
-        check(angled.rows().length == b.rows().length + 1 && angled.rows()[angled.rows().length - 1] == AIM_ANGLE,
+        check(angled.rows().length == b.rows().length + 1 && java.util.Arrays.asList(angled.rows()).contains(AIM_ANGLE),
                 "the aim angle row exists only in angled mode");
+        check(b.rows()[0] == START_DELAY && b.rows()[1] == FLYWHEEL && b.rows()[b.rows().length - 1] == LEG3_ANGLE,
+                "v39: start delay and launcher first, route legs last");
+        check(angled.rows()[5] == AIM_ANGLE, "v39: angled aim angle is with the rows to check");
         for (PollenShootTuning.Field f : b.rows()) check(f != AIM_ANGLE, "no aim angle row in Odo Shoot + Park");
         check(!b.settingsLine().contains("AIM_ANGLE") && angled.settingsLine().contains(" AIM_ANGLE=-36"),
                 "the log line has the aim angle only in angled mode: " + angled.settingsLine());

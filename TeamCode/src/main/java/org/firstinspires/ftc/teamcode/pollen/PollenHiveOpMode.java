@@ -25,7 +25,9 @@ public abstract class PollenHiveOpMode extends OpMode {
     /** Beta Primary Shooter - Angled Left: both volleys from an angled spot (own saved file). */
     protected boolean angled() { return false; }
     protected PollenHiveAuto.Run run() { return PollenHiveAuto.Run.MATCH; }
-    private int defaultExecution() { return run()==PollenHiveAuto.Run.MATCH?2:run()==PollenHiveAuto.Run.GARDEN_RETURN?1:0; }
+    /** Match 2 (v39): every hive mode, calibration included, always runs LIVE. The Execution row is
+     * no longer on the INIT menu (PollenHiveRoute.menuOrder); DRY/DRIVE stay in the controller code. */
+    private int defaultExecution() { return 2; }
     private File reportFile;
     private String reportError = "";
     private PollenHiveTrace trace;
@@ -57,17 +59,18 @@ public abstract class PollenHiveOpMode extends OpMode {
     private double displayAt = -1, hiveLogAt = -1, hiveLogStamp = Double.NaN;
 
     private String fileName() { return fast() ? "primary-fast" : angled() ? "primary-angled" : hero() ? "primary-hero" : secondary() ? PollenHiveStore.SECONDARY : PollenHiveStore.PRIMARY; }
-    private int routeRows() { return matchCollection() ? settings.v.length : PollenHiveSettings.ROUTE.length; }
+    /** Screen order of the route rows (PollenHiveRoute.menuOrder): checks first, Execution hidden in matches. */
+    private int[] order;
+    private int routeRows() { return order.length; }
     private int rows() { return routeRows() + cameraSettings.v.length; }
     private PollenHiveSettings.Values table(int r) { return r < routeRows() ? settings.values : cameraSettings; }
     private boolean matchSetup() { return run() == PollenHiveAuto.Run.MATCH; }
     private boolean matchCollection() { return matchSetup() && !makeRoom(); }
-    private int index(int r) {
-        // Keep alliance and execution first, then show collection tuning before the rest of the route.
-        if (matchSetup() && r < 2) return 1 - r;
-        if (r >= routeRows()) return r - routeRows();
-        int collectionRows = routeRows() - PollenHiveSettings.ROUTE.length;
-        return r >= 2 && r < 2 + collectionRows ? PollenHiveSettings.ROUTE.length + r - 2 : r - collectionRows;
+    private int index(int r) { return r >= routeRows() ? r - routeRows() : order[r]; }
+    /** Screen row of the first collection tuning row (marked [garden] or [flower]), or -1. */
+    private int firstCollectionRow() {
+        for (int r = 0; r < routeRows(); r++) if (settings.values.rows[order[r]].key.startsWith("collection.")) return r;
+        return -1;
     }
 
     private String allianceLine() {
@@ -82,6 +85,7 @@ public abstract class PollenHiveOpMode extends OpMode {
         loadMessage = "Auto: " + PollenHiveStore.load(fileName(), settings.values)
                 + ". Camera: " + PollenHiveStore.load(PollenHiveStore.CAMERA, cameraSettings) + ".";
         settings.v[0] = defaultExecution();
+        order = settings.menuOrder(run());
         row = 0;
         if (matchSetup()) {
             settings.beginMatchSetup();
@@ -134,7 +138,7 @@ public abstract class PollenHiveOpMode extends OpMode {
         telemetry.addData("Status", fault == null ? validation : fault);
         for (int r = Math.max(0, Math.min(row - 3, rows() - 7)); r <= Math.min(rows() - 1, Math.max(row + 3, 6)); r++)
             telemetry.addLine((r == row ? "> " : "   ") + (r + 1) + "/" + rows() + "  "
-                    + (r == routeRows() ? "[camera] " : matchCollection() && r == 2 ? secondary() ? "[flower] " : "[garden] " : "")
+                    + (r == routeRows() ? "[camera] " : matchCollection() && r == firstCollectionRow() ? secondary() ? "[flower] " : "[garden] " : "")
                     + (matchSetup() && r == 0 ? "Alliance: " + allianceLine() : table(r).line(index(r))));
         telemetry.addLine("D-pad row/value, LB/RB jump 5. Triangle: row to default. Circle: ROUTE defaults (keeps execution/camera). Square: save.");
         telemetry.addLine(message.isEmpty() ? loadMessage : message);
