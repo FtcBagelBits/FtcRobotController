@@ -5,7 +5,7 @@ For the v8 motion investigation and exact retest order, see [Hive auto diagnosti
 Intermittent tags? Start with the [automatic pipeline benchmark](POLLEN_HIVE_BENCHMARK.md).
 It records raw detections before calibration passes; the current confirmation rule is unchanged.
 
-Build **pollen-hive-v43**.
+Build **pollen-hive-v44**.
 
 **v43 (match 2): primary start 1 in from the center seam.** That puts the launcher (2.74 in left of the
 robot's center, under the Limelight) on the hive center. Every primary hive mode has an INIT row

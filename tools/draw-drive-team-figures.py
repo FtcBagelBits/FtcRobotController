@@ -266,10 +266,10 @@ if __name__ == '__main__':
     hive_route_picture('SA', 'secondary-angled-route.svg')
     controller_picture('teleop-controller.svg', 'PollenBot TeleOp: during the match', {
         'LSTICK': 'Left stick: drive and strafe', 'RSTICK': 'Right stick: turn',
-        'R1': 'R1 (hold): shoot', 'SQUARE': '',
+        'R1': 'R1 (hold): shoot', 'SQUARE': 'Square: drainer up',
         'RT': 'Right trigger: intake in', 'LT': 'Left trigger: intake out',
         'DPAD': 'D-pad up/down:\nnudge drainer', 'TRIANGLE': '',
-        'L1': 'L1 (hold): unjam,\ndrainer up', 'CIRCLE': 'Circle: aim at hive',
+        'L1': 'L1 (hold): unjam\n(drainer up first)', 'CIRCLE': 'Circle: aim at hive\n(relatively untested)',
         'CROSS': 'Cross: lower / raise drainer',
     })
     init_buttons_picture('shoot-and-park-buttons.svg', 'Buttons during INIT (before START)',

@@ -47,7 +47,7 @@ of our lane, and park in the OUTER slot. Show them the pit sheet.
 
 - **Red:** at the **audience** wall. **Blue:** at the **scoring-end** wall.
 - **Front** of the robot **flat against the wall**. The **back (the launcher) faces the hive**.
-- **1 in (2.5 cm) from the center seam** (spacer gauge, then take it off the field). That puts the launcher on the hive's center (v43).
+- **1 in (2.5 cm) from the center seam** (spacer gauge, then take it off the field). That puts the launcher on the hive's center.
 - Exactly **4 pollen** loaded. Not touching a flower. Not in the loading zone.
 
 </div>
@@ -67,7 +67,7 @@ changes the coach asks for (usually none).
 | Line | Should say |
 | --- | --- |
 | **ROUTE** (the first line) | `FULL PARK: shoot, then 3 legs to the parking slot` |
-| Build | `pollen-hive-v43` |
+| Build | `pollen-hive-v44` |
 | Mode | `ODOMETRY Shoot + Park` |
 | Odometry x fwd / y left / heading | numbers near 0 (not `NOT VALID`) |
 | Status | `READY - no movement until START` |

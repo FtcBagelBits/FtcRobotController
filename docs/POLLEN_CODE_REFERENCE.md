@@ -150,7 +150,7 @@ PollenBot now requires a servo named `pollenDrainer`. During a run, D-pad Up/Dow
 its commanded position by the selected step per press; A toggles between the selected up and down positions.
 Lowering the drainer commands full inward intake. Small position adjustments keep the last
 state until a nudge reaches or passes the opposite preset. The driver strafes with the left stick.
-Raising the drainer returns intake control to the triggers and enables Square launcher reversal.
+Raising the drainer (Cross, or Square since v44) returns intake control to the triggers and enables L1 launcher reversal.
 Manual inward agitation follows the trigger up to 0.50. R1 shooting uses the configured feed power.
 
 The INIT menu adds Drainer up position (default 0.45), Drainer down position (0.02),
@@ -158,7 +158,7 @@ and Drainer step (0.01). D-pad Up/Down selects a row; Left/Right edits up/down b
 and step by 0.002 per tap. Positions stay within 0–1; step stays within 0.002–1.
 Triangle restores defaults, settings are remembered until app restart, and START locks
 settings and commands the selected up position. The servo does not move during INIT. INIT tuning and
-Since v39 PollenBot has no rehearsal markers: L1 is the unjam button (Square before v39); Square and Triangle do nothing after START.
+Since v39 PollenBot has no rehearsal markers: L1 is the unjam button (Square before v39); Square raises the drainer (v44); Triangle does nothing after START.
 
 The separate `Calibration Drainer Servo` OpMode moves only the servo for calibration. It uses the same hardware name
 and controls, with the same three INIT settings, defaults and increments as PollenBot. Its INIT

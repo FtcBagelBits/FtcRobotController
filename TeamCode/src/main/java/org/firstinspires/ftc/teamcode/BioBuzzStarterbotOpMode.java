@@ -150,6 +150,7 @@ public class BioBuzzStarterbotOpMode extends OpMode {
 
     // Used so holding a button only acts once, not every loop
     private boolean aWasPressed = false;
+    private boolean squareWasPressed = false;
     private boolean upWasPressed = false;
     private boolean downWasPressed = false;
 
@@ -363,6 +364,7 @@ public class BioBuzzStarterbotOpMode extends OpMode {
         armPosition = tuning.drainerUpPosition();
         drainerDown = false;
         aWasPressed = gamepad1.a;
+        squareWasPressed = gamepad1.square;
         upWasPressed = gamepad1.dpad_up;
         downWasPressed = gamepad1.dpad_down;
         armServo.setPosition(armPosition);
@@ -417,6 +419,15 @@ public class BioBuzzStarterbotOpMode extends OpMode {
         }
         aWasPressed = aIsPressed;
 
+        // Square (v44): drainer UP, only on the moment it is first pressed. Cross still toggles. Raising
+        // the drainer hands the intake back to the triggers and lets L1 unjam (L1 needs the drainer up).
+        boolean squareIsPressed = gamepad1.square;
+        if (squareIsPressed && !squareWasPressed) {
+            drainerDown = false;
+            armPosition = tuning.drainerUpPosition();
+        }
+        squareWasPressed = squareIsPressed;
+
         // Keep the position inside the servo's 0.0 - 1.0 range
         armPosition = Math.max(0.0, Math.min(1.0, armPosition));
 
@@ -448,7 +459,7 @@ public class BioBuzzStarterbotOpMode extends OpMode {
                 tuning.launcherVelocity(), launcherMeasuredVelocity,
                 launching && launcherMeasuredVelocity < 50 ? "  (measured ~0: check launcher encoder cable)" : "");
         telemetry.addData("Feed", reversing ? "REVERSING launcher (L1) - no feed"
-                : gamepad1.left_bumper ? "Raise drainer to unjam (L1)"
+                : gamepad1.left_bumper ? "Raise drainer (Square) to unjam with L1"
                 : !launching ? "off (hold R1; L1 = reverse to clear a jam)"
                 : feeding ? String.format("FEEDING (started at %.1f s: %s)", feedStartedAt, feedStartedBy)
                 : "spinning up");

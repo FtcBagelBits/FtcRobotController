@@ -14,7 +14,7 @@ spot off the wall and to the left (toward the garden), turned to aim at our cell
 </div>
 <div markdown="1">
 
-One practice run (Nov 19, v36); later builds untested on the field.
+One practice run (Nov 19), with the robot centered on the hive; not yet run from the 1 in start.
 
 | Time | What happens |
 | --- | --- |
@@ -70,7 +70,7 @@ the garden lane. Our robot also uses the space 8 in off the wall in front of the
 | Status | `READY` |
 | Row 1 Alliance | `RED audience-side cell (tags 34-37)` or `BLUE scoring-side cell (tags 42-45)` |
 | Row 2 Start gap to center seam in | `1` (matches where the robot really is) |
-| BUILD / RUN | `pollen-hive-v43` / `MATCH / LIVE` |
+| BUILD / RUN | `pollen-hive-v44` / `MATCH / LIVE` |
 | Plan | `PRIMARY ANGLED: drive to 8.0 in away / 10.5 in left, turn -18.5 deg, ...` |
 | SETTINGS | `all defaults` (or only the change the coach asked for) |
 | Odometry | `READY` |

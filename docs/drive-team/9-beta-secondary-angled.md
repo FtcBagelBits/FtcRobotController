@@ -14,7 +14,7 @@ a spot off the wall and to the right (toward the flower side), turned to aim at 
 </div>
 <div markdown="1">
 
-**New in v41: not yet run on the robot.** Times are estimates.
+**Not yet run on the robot.** Times are estimates.
 
 | Time | What happens |
 | --- | --- |
@@ -66,7 +66,7 @@ then park INNER. Our robot also uses the space 8 in off the wall in front of the
 | --- | --- |
 | Status | `READY` |
 | Row 1 Alliance | `RED scoring-side cell (tags 30-33)` or `BLUE audience-side cell (tags 38-41)` |
-| BUILD / RUN | `pollen-hive-v43` / `MATCH / LIVE` |
+| BUILD / RUN | `pollen-hive-v44` / `MATCH / LIVE` |
 | Plan | `SECONDARY ANGLED: drive to 8.0 in away / -10.5 in left, turn 4.6 deg, ...` |
 | SETTINGS | `all defaults` (or only the change the coach asked for) |
 | Hive cell behind robot | Our cell's name and **DOWN** (it starts down). Not `NO CAMERA`. |

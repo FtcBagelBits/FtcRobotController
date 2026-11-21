@@ -111,5 +111,4 @@ what wins the match (a win is 3 RP).
 **"TIME 30 / 20 / 10"** - **"OURS: _ TO TIP"** - **"THEIRS: _ TO TIP"** - **"SHOOT"** - **"DEFEND"** -
 **"HELP"** (partner) - **"PARK NOW"** - **"SWARM DONE"** / **"SWARM NEEDS 1 / 2"**
 
-Robot reminders for the driver: **R1** hold = shoot. **Circle** = auto-aim at our hive cell (keep it
-in view; right stick cancels). **L1** hold (drainer up) = unjam. **Cross** = drainer down/up.
+Robot reminders for the driver: **R1** hold = shoot. **Circle** = auto-aim at our hive cell (relatively untested; right stick cancels). **Square** = drainer up, then **L1** hold = unjam. **Cross** = drainer down/up.

@@ -16,16 +16,17 @@ After autonomous it is already selected for you: just press INIT, then START.
 | **Right trigger** | Intake in (squeeze harder = faster). Manual agitator power tops out at 0.50. |
 | **Left trigger** | Intake out (spits pollen back out) |
 | **R1, hold** | Shoot. The launcher spins up, then feeds by itself and keeps feeding until you let go. |
-| **L1, hold** | **Unjam with drainer up** (Square before v39): runs the launcher slowly backwards to push a stuck ball out. While you hold L1 nothing feeds, even if R1 is held too. |
-| **Circle, tap** | **Aim at the hive** (v36): the robot turns in place until the launcher points at the middle of the nearest hive cell the Limelight sees (v38; within 0.4 deg). One buzz = aiming, one short blip = done, three blips = no hive tags in view (nothing happens). Keep the hive cell in view. The left stick still drives; touching the right stick cancels it, and Circle again aims again from where the robot is. It aims **2 in right of the cell's middle** by default (the robot shoots a little left): INIT row **Circle aim target in left of center**, 0.5 in steps, negative = right. Since v37 it is one smooth turn. Every aim is saved in the recording. |
-| **Square**, **Triangle** | Do nothing during the match (v39). |
+| **L1, hold** | **Unjam, drainer up first** (Square raises it): runs the launcher slowly backwards to push a stuck ball out. While you hold L1 nothing feeds, even if R1 is held too. |
+| **Circle, tap** | **Aim at the hive. Relatively untested: use with care, and don't count on it in a match.** Turns in place until the launcher points at the nearest hive cell the Limelight sees. One buzz = aiming, one blip = done, three blips = no hive tags in view (nothing happens). The left stick still drives; the right stick cancels it. Aims 2 in right of the cell's middle by default (INIT row **Circle aim target in left of center**). |
+| **Square, tap** | **Drainer up** and intake back to the triggers. Cross still toggles up/down. |
+| **Triangle** | Does nothing during the match. |
 
 **Drain a flower:** Lower the drainer, guide it into the flower, then rock the left stick gently left and right. Tap Cross to raise the drainer when finished.
 
 **Shooting:** hold R1 the whole time you want to shoot. Feeding starts as soon as the launcher
 is up to speed, or after 3 seconds at most. Let go of R1 to stop.
 
-**Jammed?** Let go of R1 and raise the drainer. Hold L1 for a second or two. You can also squeeze the left trigger to push
+**Jammed?** Let go of R1 and tap Square (drainer up). Hold L1 for a second or two. You can also squeeze the left trigger to push
 balls out of the intake. Let go of L1, then hold R1 to shoot again.
 
 ## The INIT menu (before START)
@@ -46,7 +47,7 @@ In screen order. The first three are the ones to check (and maybe change); leave
 - **D-pad UP/DOWN:** pick a row (marked `>`). **D-pad LEFT/RIGHT:** change it. Tap and let go.
 - **Triangle:** all back to the defaults. The screen says `Settings: DEFAULTS` or `CHANGED - check before START`.
 - Settings stay until the robot app restarts, so **check the INIT screen before every match**.
-- The screen should show **Build `pollen-hive-v43`**.
+- The screen should show **Build `pollen-hive-v44`**.
 - **Keep the robot still during INIT.** The robot records every TeleOp run for the programmers.
   If the screen shows `STORAGE WARNING`, tell a mentor after the match; the robot still drives.
 
@@ -58,7 +59,7 @@ In screen order. The first three are the ones to check (and maybe change); leave
 | `spinning up` | R1 held, launcher getting up to speed |
 | `FEEDING (started at 1.2 s: up to speed)` | Shooting |
 | `FEEDING (... spin-up timer)` every time | Launcher never gets fully up to speed. Tell a programmer: check the battery and launcher cable. |
-| `Raise drainer to unjam (L1)` | Drainer is down. Raise it to enable launcher reverse. |
+| `Raise drainer (Square) to unjam with L1` | Drainer is down. Tap Square, then hold L1. |
 | `REVERSING launcher (L1) - no feed` | Unjamming |
 
 `(measured ~0: check launcher encoder cable)` next to the launcher speed means the launcher's
