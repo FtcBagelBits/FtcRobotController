@@ -9,7 +9,7 @@ public final class PollenSequenceTest {
     }
     private static void zero(PollenSequence.Output out) {
         check(out.forward == 0 && out.strafe == 0 && out.turn == 0
-                && out.launcherVelocity == 0 && out.feederPower == 0, "Nonzero stopped output");
+                && out.launcherVelocity == 0 && out.feederPower == 0 && out.intakePower() == 0, "Nonzero stopped output");
     }
     private static PollenSequence sequence(PollenSequence.Step[] route) {
         return new PollenSequence(route, 1250, 3, 27, 0); // 3 s spin-up, then feed
@@ -69,10 +69,10 @@ public final class PollenSequenceTest {
         PollenSequence early = shot();
         early.start(0);
         PollenSequence.Output out = runShot(early, 0, 1.2, t -> 1250 * t / 1.2 * 0.9, phases);
-        check(out.phase.equals("SPINUP - launcher only") && out.feederPower == 0 && out.launcherVelocity == 1250,
+        check(out.phase.equals("SPINUP - launcher only") && out.feederPower == 0 && out.launcherVelocity == 1250 && out.intakePower() == 0,
                 "below 96%: launcher only");
         out = runShot(early, 1.2, 1.22, t -> 1210, phases);
-        check(out.phase.equals("FEED") && out.feederPower == 1 && out.feedStartedBy.equals("up to speed"),
+        check(out.phase.equals("FEED") && out.feederPower == 1 && out.feedStartedBy.equals("up to speed") && out.intakePower() == 1,
                 "at 96%: feeding starts, and says why: " + out.phase + " / " + out.feedStartedBy);
         // 2. Each ball slows the wheel: a dip below 96% (even to 0) must not stop the feed.
         out = runShot(early, 1.22, 3.18, t -> t < 2 ? 900 : 0, phases);
@@ -81,6 +81,7 @@ public final class PollenSequenceTest {
         check(Math.abs(out.activeFeedSeconds - 1.96) < 0.021, "feed time counts from when feeding started: " + out.activeFeedSeconds);
         out = runShot(early, 3.18, 3.26, t -> 1250, phases);
         check(out.phase.equals("PARK") || out.phase.equals("NEXT: PARK"), "2 s of feed, then the next step, at 3.2 s not 5 s: " + out.phase);
+        check(run(early, 3.26, 3.28).intakePower() == 1, "Parking drive keeps full intake");
         check(Math.abs(count(phases, "FEED") * 0.02 - 2.0) < 0.05, "fed for the full 2 s: " + count(phases, "FEED") * 0.02);
 
         // 3. Encoder unplugged (reads 0): the spin-up timer starts the feed at 3 s, as before.

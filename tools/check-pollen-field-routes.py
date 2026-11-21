@@ -5,8 +5,10 @@ With --presets (written by TeamCode/src/test/.../pollen/PollenPresetExport.java;
 does this), the routes checked are rebuilt from the Java presets and must match this file's plan."""
 import json, math, sys
 R=9; W=70.585; hx=-12.74164098
-# Primary (B Square): forward 10 cm off the wall, left 25 in, then diagonal to park.
-start=(-12.74164098, W-R); off_wall=(start[0],start[1]-10/2.54); corner=(off_wall[0]-25,off_wall[1]); primary=(-56,-26); support=(-56,-47)
+# Primary (B Square): forward 10 cm off the wall, left to 25 in past the hive center, then diagonal to park.
+# v43: the start is 1 in from the center seam (launcher on the hive center), not centered on the hive.
+start=(-1-R, W-R); off_wall=(start[0],start[1]-10/2.54); corner=(hx-25,off_wall[1]); primary=(-56,-26); support=(-56,-47)
+launcher_left=start[0]-hx  # the launcher is this far left of the robot's center (on the hive center at the start)
 # Support (C): flush and square, centered between the flower's inboard edge and the midline.
 flower_x=-20.058; midline=0
 ss=((flower_x+midline)/2,-W+R); sc=(ss[0],ss[1]+8); yaw=0
@@ -48,8 +50,10 @@ assert intersects(hull(robot(start)+robot(primary)),foot), 'direct primary diago
 assert intersects(robot((hx,-W+R)),obstacles['scoring flower']), 'centered support start should overlap the flower'
 # Angled Primary Shooter (EXPERIMENTAL): 5 in off the wall, 30 in left, turn in place to face the
 # hive opening, shoot, turn back, then straight to the primary's parking spot.
-angled_spot=(start[0]-30,start[1]-5); opening=(hx,15.7)
-angled_aim=math.degrees(math.atan2(angled_spot[0]-opening[0],angled_spot[1]-opening[1])) # negative = to the robot's right
+angled_spot=(hx-30,start[1]-5); opening=(hx,15.7)
+# Heading (+left) that puts the LAUNCHER's line through the opening; the robot turns about its center.
+_fwd=angled_spot[1]-opening[1]; _left=angled_spot[0]-opening[0]  # facing -Z: robot left is -X
+angled_aim=math.degrees(math.atan2(_left,_fwd)-math.asin(launcher_left/math.hypot(_fwd,_left)))
 routes={'primary':[start,off_wall,corner,primary],'support':[ss,sc,support],
         'angled':[start,(start[0],angled_spot[1]),angled_spot,primary]}
 

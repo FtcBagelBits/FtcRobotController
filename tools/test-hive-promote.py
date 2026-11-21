@@ -15,7 +15,7 @@ with tempfile.TemporaryDirectory() as d:
     shown = run(); assert copy.read_text() == java.read_text(), 'show-only must not write'
     run('--write'); src = copy.read_text()
     for want in ['row("tilt", "Camera tilt up deg", 41.8, 41.8,', 'row("sideways", "Camera sideways correction in", -0.6, -0.6,',
-                 'row("launcher", "Launcher ticks/s", 1200, 1180,', 'row("park3Left", "Park3 left cm", 109.8762319108, -110.5,',
+                 'row("launcher", "Launcher ticks/s", 1200, 1140,', 'row("park3Left", "Park3 left cm", 109.8762319108, -110.5,',
                  'row("execution", "Execution", 2, 2,']:
         assert want in src, want
     assert 'SKIP primary.noSuchRow' in shown, shown

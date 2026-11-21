@@ -12,7 +12,7 @@ import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
  *   python3 tools/hive-promote-defaults.py ~/Desktop/pollen-hive */
 public final class PollenHiveStore {
     private PollenHiveStore() { }
-    public static final String CAMERA = "camera", PRIMARY = "primary", SECONDARY = "secondary";
+    public static final String CAMERA = "camera", PRIMARY = "primary", SECONDARY = "secondary", ALLIANCE = "alliance";
     public static File folder() { return new File(AppUtil.FIRST_FOLDER, "pollen-hive"); }
     private static File file(String name) { return new File(folder(), name + ".properties"); }
 
@@ -42,6 +42,28 @@ public final class PollenHiveStore {
         try (Writer out = new OutputStreamWriter(new FileOutputStream(report, true), "UTF-8")) {
             out.write(String.format(java.util.Locale.US, "%.3fs %s%n", seconds, text));
         }
+    }
+
+    /** Remember the alliance an auto chose (1 RED, 2 BLUE) for TeleOp Circle; newest write wins. */
+    public static void saveAlliance(int side, String source) throws IOException {
+        java.util.Properties p = PollenAlliance.toProperties(side, System.currentTimeMillis(), source);
+        File dir = folder();
+        if (!dir.isDirectory() && !dir.mkdirs()) throw new IOException("Cannot create " + dir);
+        File dest = file(ALLIANCE), temp = new File(dest.getPath() + ".tmp");
+        try (FileOutputStream out = new FileOutputStream(temp)) {
+            p.store(out, "Pollen alliance chosen in autonomous; TeleOp Circle aims at its hive cells");
+            out.getFD().sync();
+        }
+        if (!temp.renameTo(dest)) throw new IOException("Cannot replace " + dest);
+    }
+    /** The last alliance an auto chose, or null if none was saved (or the file is unreadable). */
+    public static PollenAlliance.Saved loadAlliance() {
+        File f = file(ALLIANCE);
+        if (!f.isFile()) return null;
+        Properties p = new Properties();
+        try (InputStream in = new FileInputStream(f)) { p.load(in); }
+        catch (IOException ex) { return null; }
+        return PollenAlliance.parse(p);
     }
 
     /** Defaults plus saved changes. Returns a message for telemetry. */

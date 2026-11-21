@@ -147,6 +147,9 @@ public final class PollenSequence {
         public double inchesToGo = Double.NaN;
         /** Turn: degrees still to go to the target heading (NaN otherwise). */
         public double degreesToGo = Double.NaN;
+        double intakePower() {
+            return PollenConfig.autoIntakePower(forward, strafe, turn, feederPower != 0);
+        }
         private Output(String phase) { this.phase = phase; }
     }
 

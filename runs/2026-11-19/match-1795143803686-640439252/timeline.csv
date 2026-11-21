@@ -1,0 +1,4 @@
+t_s,phase,hive_state,feed,reason,x_in,y_in,heading_deg
+0.148,TO_SHOT:,UNKNOWN,false,"Driving to the angled shot spot (8.0 in away, 8.0 in left, aim -14.8 deg)",-0.00,-0.00,0.04
+0.222,TO_SHOT: TO SHOT SPOT,UNKNOWN,false,"Driving to the angled shot spot (8.0 in away, 8.0 in left, aim -14.8 deg)",-0.00,-0.00,0.04
+1.747,DONE,UNKNOWN,false,TO SHOT SPOT no odometry progress,1.29,4.27,0.15

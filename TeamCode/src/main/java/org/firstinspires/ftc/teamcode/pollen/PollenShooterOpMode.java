@@ -95,6 +95,7 @@ public abstract class PollenShooterOpMode extends OpMode {
                 pinpoint = PollenOdometryHardware.device(hardwareMap);
             }
             try {
+                intake = PollenHiveHardware.configureAutoIntake(hardwareMap);
                 mapShooter();
             } catch (RuntimeException ex) {
                 if (!zeroShooter()) throw new IllegalStateException("Cannot confirm shooter stop", ex);
@@ -130,11 +131,7 @@ public abstract class PollenShooterOpMode extends OpMode {
         launcher.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         launcher.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER,
                 new PIDFCoefficients(40, 0, 0, 12.5));
-        intake = hardwareMap.get(DcMotor.class, "intake");
-        intake.setPower(0);
-        intake.setDirection(DcMotorSimple.Direction.FORWARD);
-        intake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        if (intake == null) throw new IllegalStateException("No intake motor configured");
         agitator = hardwareMap.get(DcMotor.class, "agitator");
         agitator.setPower(0);
         agitator.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -319,17 +316,16 @@ public abstract class PollenShooterOpMode extends OpMode {
             PollenSequence.Output out = sequence.tick(now, x, y, heading, launcherMeasured);
             // frontLeft, frontRight, backLeft, backRight, in the robot's own directions (PollenFacing)
             double[] wheels = PollenFacing.wheelPowers(out);
-            double intakePower = out.feederPower * tuning.value(FEED_POWER);
+            double intakePower = intake == null ? 0 : out.intakePower();
             double agitatorPower = out.feederPower * tuning.value(AGITATOR_POWER);
 
-            // 3. ACT: write each output once. The shooter comes before the wheels, so the
-            // shooting mechanisms stop BEFORE the first parking drive command.
+            // 3. ACT: stop the launcher and agitator before commanding parking drive.
             if (out.zeroOdometry && localizer != null) localizer.setPose(Pose.zero());
             if (shooterAvailable) {
                 launcher.setVelocity(out.launcherVelocity);
-                intake.setPower(intakePower);
                 agitator.setPower(agitatorPower);
             }
+            if (intake != null) intake.setPower(intakePower);
             for (int i = 0; i < drive.length; i++) drive[i].setPower(wheels[i]);
 
             // 4. REPORT to the Driver Hub screen and the robot log.

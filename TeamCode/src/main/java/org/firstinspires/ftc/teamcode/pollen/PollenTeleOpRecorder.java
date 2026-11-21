@@ -118,10 +118,15 @@ public final class PollenTeleOpRecorder {
         } catch (RuntimeException ignored) { }
     }
 
-    /** One line for the Driver Hub screen. */
-    public String screen(double now) {
-        String recording = file == null ? "NOT RECORDING" : "open".equals(file.status)
+    /** "recording (12 kB)", "NOT RECORDING" or "STOPPED: why": the file only, no rehearsal hint. */
+    public String recordingStatus() {
+        return file == null ? "NOT RECORDING" : "open".equals(file.status)
                 ? String.format(Locale.US, "recording (%d kB)", file.bytes() / 1024) : "STOPPED: " + file.status;
+    }
+
+    /** One line for the Driver Hub screen, for a mode that uses the rehearsal marks. */
+    public String screen(double now) {
+        String recording = recordingStatus();
         if (rehearsal != 0) return String.format(Locale.US, "REHEARSAL %d: %.1f s (Triangle = end) | %s",
                 rehearsal, now - rehearsalStartedAt, recording);
         return recording + " | L1 = start a rehearsal" + (rehearsals == 0 ? "" : " (" + rehearsals + " so far)");

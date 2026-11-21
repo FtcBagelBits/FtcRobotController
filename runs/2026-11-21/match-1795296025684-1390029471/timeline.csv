@@ -1,0 +1,24 @@
+t_s,phase,hive_state,feed,reason,x_in,y_in,heading_deg
+0.140,TO_SHOT:,UNKNOWN,false,"Driving to the angled shot spot (8.0 in away, 10.5 in left, aim -18.5 deg)",-0.04,-0.02,0.40
+0.220,TO_SHOT: TO SHOT SPOT,UNKNOWN,false,"Driving to the angled shot spot (8.0 in away, 10.5 in left, aim -18.5 deg)",-0.04,-0.02,0.41
+1.348,ALIGN_SHOT,UNKNOWN,false,Correcting heading to -18.5 degrees,8.18,10.76,0.19
+2.095,SETTLE,UNKNOWN,false,Heading corrected; settling for return shot,7.58,10.87,341.69
+3.606,OUTBOUND:,UNKNOWN,false,Shot spot did not settle; first shot skipped; starting collection trip,7.57,10.86,342.21
+3.687,OUTBOUND: ALIGN WITH GARDEN,UNKNOWN,false,Shot spot did not settle; first shot skipped; starting collection trip,7.57,10.86,342.20
+5.407,GARDEN:,UNKNOWN,false,Shot spot did not settle; first shot skipped; starting collection trip,13.35,44.94,359.67
+5.483,GARDEN: Find right wall,UNKNOWN,false,Shot spot did not settle; first shot skipped; starting collection trip,13.40,44.93,359.78
+7.064,GARDEN: GARDEN_IN,UNKNOWN,false,Shot spot did not settle; first shot skipped; starting collection trip,14.22,51.57,3.19
+7.132,GARDEN: Inward pass 1,UNKNOWN,false,Shot spot did not settle; first shot skipped; starting collection trip,14.21,51.53,3.21
+9.788,RETURN:,UNKNOWN,false,Collection complete; returning to shooting position,-0.31,49.80,352.04
+9.879,RETURN: CLEAR COLLECTION SITE,UNKNOWN,false,Collection complete; returning to shooting position,-0.27,49.80,351.91
+11.090,RETURN: RETURN SHOOT POSITION,UNKNOWN,false,Collection complete; returning to shooting position,13.43,49.88,0.06
+12.736,ALIGN_SHOT,UNKNOWN,false,Correcting heading to -18.5 degrees,7.70,10.51,1.31
+13.317,SETTLE,UNKNOWN,false,Heading corrected; settling for return shot,7.59,10.61,342.27
+13.694,SECOND,UNKNOWN,false,Heading corrected; settling for return shot,7.53,10.62,342.52
+14.012,SECOND,UP,false,Timing confirmed hive UP,7.52,10.63,342.53
+14.209,SECOND,UNKNOWN,false,Our cell's tags not in view,7.52,10.63,342.53
+14.702,SECOND,UP,false,Timing confirmed hive UP,7.52,10.63,342.55
+15.354,SECOND,UNKNOWN,false,Our cell's tags not in view,7.52,10.62,342.60
+23.000,PARK: PARK CORNER,UNKNOWN,false,"Park deadline during SECOND, 7.03 s left",7.47,10.61,343.00
+24.468,PARK: PARK,UNKNOWN,false,"Park deadline during SECOND, 7.03 s left",3.94,27.48,359.61
+27.120,DONE,UNKNOWN,false,Finished departure,87.73,45.77,358.66

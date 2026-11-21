@@ -243,7 +243,8 @@ public final class PollenOdometryTest {
         SimRobot stuck = new SimRobot();
         stuck.stuck = true;
         Run run = simulateTurns(stuck, aim, 0);
-        check(run.result.equals("TURN TO -36 NOT TURNING - STOPPED"), "robot that cannot turn stops the route: " + run.result);
+        check(run.result.equals(String.format(java.util.Locale.US, "TURN TO %.0f NOT TURNING - STOPPED", aim)),
+                "robot that cannot turn stops the route: " + run.result);
         check(run.finishedAt < 1.2 && run.warning.contains("short"), "within about a second, and says how far short: " + run.finishedAt + " " + run.warning);
 
         // Scripted headings, for the two ways a turn runs out of time.
@@ -280,21 +281,29 @@ public final class PollenOdometryTest {
         PollenShootTuning b = new PollenShootTuning(null, false, true);
         check(angled.angled() && angled.route() == PollenShootTuning.Route.ANGLED_PARK && angled.route().label.startsWith("ANGLED SHOT"),
                 "angled mode shows ANGLED SHOT on the route line");
-        check(angled.rows().length == b.rows().length + 1 && angled.rows()[angled.rows().length - 1] == AIM_ANGLE,
+        check(angled.rows().length == b.rows().length + 1 && java.util.Arrays.asList(angled.rows()).contains(AIM_ANGLE),
                 "the aim angle row exists only in angled mode");
+        check(b.rows()[0] == START_DELAY && b.rows()[1] == FLYWHEEL && b.rows()[b.rows().length - 1] == LEG3_ANGLE,
+                "v39: start delay and launcher first, route legs last");
+        check(angled.rows()[5] == AIM_ANGLE, "v39: angled aim angle is with the rows to check");
         for (PollenShootTuning.Field f : b.rows()) check(f != AIM_ANGLE, "no aim angle row in Odo Shoot + Park");
-        check(!b.settingsLine().contains("AIM_ANGLE") && angled.settingsLine().contains(" AIM_ANGLE=-36"),
+        check(!b.settingsLine().contains("AIM_ANGLE") && angled.settingsLine().contains(" AIM_ANGLE=-39"),
                 "the log line has the aim angle only in angled mode: " + angled.settingsLine());
 
-        // The geometry. The shooting spot is 5 in off the wall and 30 in to the left; from there
-        // the hive opening (45.9 in straight ahead of the start) is about 36 deg to the right.
+        // The geometry (v43). The shooting spot is 5 in off the wall and 30 in left of the hive
+        // center (32.74 in left of the start, which is 1 in from the seam). The heading puts the
+        // LAUNCHER's line (2.74 in left of the robot's center) through the opening: about -39 deg.
         double[] spot = angled.legEndInches(2);
-        check(Math.abs(spot[0] - 5) < 0.01 && Math.abs(spot[1] - 30) < 0.01, "legs 1 and 2 end at the shooting spot: " + spot[0] + ", " + spot[1]);
+        double cellLeft = PollenFieldGeometry.HIVE_LEFT_OF_PRIMARY_START_INCHES;
+        check(Math.abs(spot[0] - 5) < 0.01 && Math.abs(spot[1] - 30 - cellLeft) < 0.01, "legs 1 and 2 end at the shooting spot: " + spot[0] + ", " + spot[1]);
         double aim = Math.toRadians(angled.aimDegrees()), range = PollenFieldGeometry.angledShotDistanceInches();
-        check(Math.abs(angled.aimDegrees() + 36.26) < 0.1 && Math.abs(range - 50.7) < 0.1,
-                "aim about -36 deg, about 51 in from the opening: " + angled.aimDegrees() + ", " + range);
-        check(Math.abs(spot[0] + range * Math.cos(aim) - 45.9) < 0.05 && Math.abs(spot[1] + range * Math.sin(aim)) < 0.05,
-                "the aim line from the spot ends at the hive opening, 45.9 in straight ahead of the start");
+        check(Math.abs(angled.aimDegrees() + 39.37) < 0.1 && Math.abs(range - 50.7) < 0.1,
+                "aim about -39 deg, about 51 in from the opening: " + angled.aimDegrees() + ", " + range);
+        double L = PollenFieldGeometry.LAUNCHER_LEFT_OF_CENTER_INCHES;
+        double lf = spot[0] - L * Math.sin(aim), ll = spot[1] + L * Math.cos(aim);   // launcher position
+        double cf = PollenFieldGeometry.hiveOpeningForwardInches() - lf, cl = cellLeft - ll; // to the cell
+        check(Math.abs(cf * Math.sin(aim) - cl * Math.cos(aim)) < 0.05 && cf > 0,
+                "the launcher's line from the spot passes through the hive opening");
         double[] park = angled.legEndInches(3), parkB = b.legEndInches(3);
         check(Math.abs(park[0] - parkB[0]) < 0.05 && Math.abs(park[1] - parkB[1]) < 0.05,
                 "leg 3 ends at the same parking spot as Odo Shoot + Park: " + park[0] + ", " + park[1]);
@@ -342,7 +351,7 @@ public final class PollenOdometryTest {
         PollenShootTuning next = new PollenShootTuning(tight.snapshot(), false, true, true);
         check(next.aimDegrees() == -30 && next.route() == PollenShootTuning.Route.EDITED, "the aim angle is remembered");
         next.update(false, false, false, false, true);
-        check(next.route() == PollenShootTuning.Route.ANGLED_PARK && Math.abs(next.aimDegrees() + 36) < 0.5,
+        check(next.route() == PollenShootTuning.Route.ANGLED_PARK && Math.abs(next.aimDegrees() + 39.4) < 0.5,
                 "Triangle restores the angled defaults: " + next.aimDegrees());
         try {
             new PollenShootTuning(null, true, true, true);
@@ -462,7 +471,7 @@ public final class PollenOdometryTest {
                 && new PollenShootTuning(null, true, true).route() == PollenShootTuning.Route.SUPPORT_PARK,
                 "default route lines: B full park, C support park");
         PollenShootTuning edited = new PollenShootTuning(null, false, true);
-        setRow(edited, LEG2_CM, edited.value(LEG2_CM) + 5);
+        setRow(edited, LEG2_CM, Math.round((edited.value(LEG2_CM) + 5) * 100) / 100.0); // edits round to 0.01 cm
         check(edited.route() == PollenShootTuning.Route.EDITED, "editing a leg row shows EDITED LEGS");
         check(new PollenShootTuning(edited.snapshot(), false, true).route() == PollenShootTuning.Route.EDITED,
                 "edited legs are remembered and still flagged");

@@ -68,7 +68,7 @@ public final class PollenCollectionTest {
                 }
                 if (o.phase.startsWith("Left ") || o.phase.startsWith("Right "))
                     maxSwingStrafe = Math.max(maxSwingStrafe, Math.abs(o.strafe));
-                check(o.intake == (kind == FLOWER ? 1 : s.get("intake")), "Intake dropped in " + o.phase);
+                check(o.intake == 1, "Intake dropped in " + o.phase);
                 check(o.drainerDown == (kind == FLOWER), "Drainer state in " + o.phase);
                 double[] w = PollenFacing.wheelPowers(o.forward,o.strafe,o.turn);
                 forward += (w[0]+w[1]+w[2]+w[3])/4 * 95*dt;
@@ -95,9 +95,9 @@ public final class PollenCollectionTest {
         PollenHiveSettings.Values g = PollenCollectionSequence.settings(GARDEN);
         Properties oldProfile = new Properties();
         oldProfile.setProperty("sideLimit", "2.54");
-        oldProfile.setProperty("intake", "1.0");
-        check(g.load(oldProfile).contains("sideLimit") && g.get("intake") == 1,
-                "Ignore the old signed direction while retaining intake power");
+        oldProfile.setProperty("intake", "0.5");
+        check(g.load(oldProfile).contains("sideLimit") && g.get("intake") == .5,
+                "Old intake power remains readable for profile compatibility");
         Trial garden = new Trial(GARDEN,g,.7,38,false,-24);
         check(garden.fault == null && garden.limited.equals(java.util.Arrays.asList(
                 "Find right wall", "Inward pass 1", "Inward pass 2")), "Garden wall order and repeats");

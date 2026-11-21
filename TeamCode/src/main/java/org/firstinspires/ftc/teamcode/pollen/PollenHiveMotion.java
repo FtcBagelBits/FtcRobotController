@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.pollen;
 
 /** Nonblocking measured moves/turns. Strict arrival by default. */
 public final class PollenHiveMotion {
+    private static final double NORMAL_MOVE_TIMEOUT_S = 12;
     private static final double CONTACT_PROGRESS_IN = .15;
     private static final double MAX_TRANSLATION_HEADING_ERROR = Math.toRadians(12);
     /** Flower swings (2026-11-19 traces): the normal slow-down (0.20 x sqrt in) held 1.9-3.5 in
@@ -23,6 +24,7 @@ public final class PollenHiveMotion {
     private final Contact contact;
     private int index;
     private double began,previous=Double.NaN,px,py,ph,progressAt,progressX,progressY,progressH,progressDistance;
+    private double moveTimeoutSeconds;
     private boolean newNode=true;
     private double squareAt=Double.NaN,squareBest,squareBestAt,squareBoost;
     private String fault,detail="";
@@ -46,6 +48,12 @@ public final class PollenHiveMotion {
         double travel=wallDrive&&!newNode?(x-progressX)*n.x+(y-progressY)*n.y:0;
         double remaining=wallDrive?-travel:distance;
         if(newNode) {
+            moveTimeoutSeconds=NORMAL_MOVE_TIMEOUT_S;
+            if(contact==Contact.STRICT && !n.turn && n.seconds==0) {
+                // A long park leg at low power can take over 12 s even while making progress.
+                moveTimeoutSeconds=Math.max(NORMAL_MOVE_TIMEOUT_S,
+                        PollenOdometryDrive.timeoutSeconds(distance*PollenFieldGeometry.INCH_TO_CM,n.power));
+            }
             began=progressAt=now; progressX=x; progressY=y; progressH=h;
             progressDistance=remaining; newNode=false; squareAt=Double.NaN; squareBoost=0;
         }
@@ -81,7 +89,7 @@ public final class PollenHiveMotion {
             o.forward=power*(cos*n.x+sin*n.y);
             o.strafe=power*(sin*n.x-cos*n.y);
         } else {
-            if(elapsed>12) return fail(n.name+" move timeout");
+            if(elapsed>moveTimeoutSeconds) return fail(n.name+" move timeout");
             PollenOdometryDrive.Command c=n.swing
                     ?PollenOdometryDrive.command(n.x,n.y,PollenOdometryDrive.rampedPower(elapsed,n.power,SWING_RAMP_PER_SECOND),
                             x,y,h,vx,vy,SWING_SLOWDOWN_PER_SQRT_INCH)

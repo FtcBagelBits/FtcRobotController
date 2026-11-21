@@ -40,6 +40,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.teamcode.pollen.IsHiveReadyForShot;
+import org.firstinspires.ftc.teamcode.pollen.PollenAlliance;
 import org.firstinspires.ftc.teamcode.pollen.PollenConfig;
 import org.firstinspires.ftc.teamcode.pollen.PollenHiveAim;
 import org.firstinspires.ftc.teamcode.pollen.PollenHiveCamera;
@@ -96,7 +97,7 @@ public class BioBuzzStarterbotOpMode extends OpMode {
      * That feed rule is written once, in pollen/PollenFeedRule.java, and autonomous and
      * LauncherTest use the same one. The default speed is shared too (pollen/PollenConfig.java).
      */
-    public final int LAUNCHER_TARGET_VELOCITY = PollenConfig.LAUNCHER_TARGET_VELOCITY; //1180 = 2529 RPM (was 1250)
+    public final int LAUNCHER_TARGET_VELOCITY = PollenConfig.TELEOP_LAUNCHER_TARGET_VELOCITY; //1160 = 2486 RPM (was 1250, then 1180)
     public final double LAUNCHER_SPINUP_SECONDS = PollenConfig.LAUNCHER_SPINUP_SECONDS; // 3 s
     // Hold Square to run the launcher BACKWARDS slowly and push a jammed ball back out.
     // 300 RPM = 300 x 28 / 60 = 140 ticks per second.
@@ -150,6 +151,7 @@ public class BioBuzzStarterbotOpMode extends OpMode {
 
     // Used so holding a button only acts once, not every loop
     private boolean aWasPressed = false;
+    private boolean squareWasPressed = false;
     private boolean upWasPressed = false;
     private boolean downWasPressed = false;
 
@@ -157,8 +159,9 @@ public class BioBuzzStarterbotOpMode extends OpMode {
      * RECORDING. Every TeleOp run is written to a file on the Control Hub (see
      * pollen/PollenTeleOpRecorder.java and docs/POLLEN_LOGGING.md): what the driver did, what
      * every motor was told to do, the launcher speed, the battery and, if the robot has its
-     * Pinpoint odometry, where the robot was. Circle marks the start of a "rehearsal" (a move we
-     * may want to turn into autonomous) and Triangle marks its end. (Square is the unjam button.)
+     * Pinpoint odometry, where the robot was. Match 2 (v39): no rehearsal marks from the gamepad;
+     * L1 is the unjam button and Triangle does nothing after START. The recorder's mark support stays
+     * (PollenTeleOpRecorder) for a practice mode that wants it.
      *
      * Recording never changes how the robot drives. If anything about it fails (no room on the
      * Hub, no Pinpoint, a write error), TeleOp carries on and the screen says what is missing.
@@ -175,6 +178,7 @@ public class BioBuzzStarterbotOpMode extends OpMode {
     private String cameraProblem = "";
     private IsHiveReadyForShot.Mount mount;
     private final PollenHiveAim aim = new PollenHiveAim();
+    private PollenAlliance.Saved alliance;
     private PollenHiveAim.Source aimSource = PollenHiveAim.Source.CAMERA;
     private IsHiveReadyForShot.Frame lastFrame;
     private double lastFrameStamp = Double.NaN, lastFrameAt = Double.NEGATIVE_INFINITY;
@@ -296,6 +300,10 @@ public class BioBuzzStarterbotOpMode extends OpMode {
             camera = null;
             cameraProblem = ex.toString();
         }
+        // Circle aims only at the alliance the last autonomous chose (alliance.properties, newest
+        // write wins). No saved choice, or the aim calibration: any hive cell, as before v52.
+        alliance = aimCalibration() ? null : PollenHiveStore.loadAlliance();
+        aim.setCells(PollenAlliance.cells(alliance == null ? 0 : alliance.side));
         // How much room the Control Hub has for recordings. Read once: it looks through folders.
         try {
             PollenRunLog.Storage storage = PollenHiveStore.storage();
@@ -321,22 +329,25 @@ public class BioBuzzStarterbotOpMode extends OpMode {
                 gamepad1.triangle);
         remembered = tuning.snapshot();
         telemetry.addData("Build", PollenConfig.BUILD);
+        // Same order as the menu: rows to check or maybe change first, never-changed rows last.
         telemetry.addData(marker(PollenTeleOpTuning.Row.LAUNCHER) + "Launcher ticks/s", "%.0f (default %d)",
                 tuning.launcherVelocity(), LAUNCHER_TARGET_VELOCITY);
+        telemetry.addData(marker(PollenTeleOpTuning.Row.DRIVE) + "Drive power", "%.0f%% (default 100%%)",
+                tuning.driveScale() * 100);
+        telemetry.addData(marker(PollenTeleOpTuning.Row.AIM_LEFT) + "Circle aim target in left of center", "%.1f (default %.1f; - = right)",
+                tuning.aimTargetLeftIn(), PollenConfig.AIM_TARGET_LEFT_IN);
         telemetry.addData(marker(PollenTeleOpTuning.Row.SPINUP) + "Spin-up before feed", "%.1f s (default %.1f s)",
                 tuning.spinupSeconds(), LAUNCHER_SPINUP_SECONDS);
         telemetry.addData(marker(PollenTeleOpTuning.Row.AGITATOR) + "Agitator power while feeding", "%.2f (default %.2f)",
                 tuning.agitatorPower(), PollenConfig.AGITATOR_FEED_POWER);
-        telemetry.addData(marker(PollenTeleOpTuning.Row.DRIVE) + "Drive power", "%.0f%% (default 100%%)",
-                tuning.driveScale() * 100);
         telemetry.addData(marker(PollenTeleOpTuning.Row.DRAINER_UP) + "Drainer up position", "%.2f (+/- 0.01)", tuning.drainerUpPosition());
         telemetry.addData(marker(PollenTeleOpTuning.Row.DRAINER_DOWN) + "Drainer down position", "%.2f (+/- 0.01)", tuning.drainerDownPosition());
         telemetry.addData(marker(PollenTeleOpTuning.Row.DRAINER_STEP) + "Drainer step", "%.3f (+/- 0.002)", tuning.drainerStep());
-        telemetry.addData(marker(PollenTeleOpTuning.Row.AIM_LEFT) + "Circle aim target in left of center", "%.1f (default %.1f; - = right)",
-                tuning.aimTargetLeftIn(), PollenConfig.AIM_TARGET_LEFT_IN);
         telemetry.addData("Controls", "D-pad UP/DOWN selects; LEFT/RIGHT edits; Triangle = defaults");
         telemetry.addData("Settings", tuning.isDefault() ? "DEFAULTS" : "CHANGED - check before START");
-        telemetry.addData("Recording", "this run is saved on the Hub. L1 = start a rehearsal, Triangle = end it");
+        telemetry.addData("Recording", "this run is saved on the Hub");
+        telemetry.addData("Circle aims at", alliance == null ? "ANY hive cell (no alliance saved by an auto)"
+                : alliance.describe(System.currentTimeMillis()) + " cells");
         telemetry.addData("Circle = aim at the hive", camera == null ? "NO CAMERA (" + cameraProblem + ")" : "Limelight " + camera.status
                 + (aimCalibration() ? ". CALIBRATION: start at the PRIMARY shooter start; D-pad LEFT camera / RIGHT odometry" : ""));
         telemetry.addData("Recorded position", odometry == null ? "none (" + odometryProblem + "); the run is still recorded"
@@ -361,6 +372,7 @@ public class BioBuzzStarterbotOpMode extends OpMode {
         armPosition = tuning.drainerUpPosition();
         drainerDown = false;
         aWasPressed = gamepad1.a;
+        squareWasPressed = gamepad1.square;
         upWasPressed = gamepad1.dpad_up;
         downWasPressed = gamepad1.dpad_down;
         armServo.setPosition(armPosition);
@@ -415,6 +427,15 @@ public class BioBuzzStarterbotOpMode extends OpMode {
         }
         aWasPressed = aIsPressed;
 
+        // Square (v44): drainer UP, only on the moment it is first pressed. Cross still toggles. Raising
+        // the drainer hands the intake back to the triggers and lets L1 unjam (L1 needs the drainer up).
+        boolean squareIsPressed = gamepad1.square;
+        if (squareIsPressed && !squareWasPressed) {
+            drainerDown = false;
+            armPosition = tuning.drainerUpPosition();
+        }
+        squareWasPressed = squareIsPressed;
+
         // Keep the position inside the servo's 0.0 - 1.0 range
         armPosition = Math.max(0.0, Math.min(1.0, armPosition));
 
@@ -426,8 +447,8 @@ public class BioBuzzStarterbotOpMode extends OpMode {
         launch();
 
         double triggerPower = gamepad1.right_trigger - gamepad1.left_trigger;
-        // Square (unjam): the triggers may only push balls OUT, never feed toward the launcher.
-        if (gamepad1.square) triggerPower = Math.min(triggerPower, 0);
+        // L1 (unjam): the triggers may only push balls OUT, never feed toward the launcher.
+        if (gamepad1.left_bumper) triggerPower = Math.min(triggerPower, 0);
         agitatorPower = feeding ? tuning.agitatorPower() : triggerPower;
         if (!feeding && agitatorPower > 0) agitatorPower *= 0.5;
         // Draining runs the intake roller at full inward power. The agitator still needs driver input.
@@ -445,9 +466,9 @@ public class BioBuzzStarterbotOpMode extends OpMode {
         telemetry.addData("Launcher target / measured", "%.0f / %.0f ticks/s%s",
                 tuning.launcherVelocity(), launcherMeasuredVelocity,
                 launching && launcherMeasuredVelocity < 50 ? "  (measured ~0: check launcher encoder cable)" : "");
-        telemetry.addData("Feed", reversing ? "REVERSING launcher (Square) - no feed"
-                : gamepad1.square ? "Raise drainer to unjam (Square)"
-                : !launching ? "off (hold R1; Square = reverse to clear a jam)"
+        telemetry.addData("Feed", reversing ? "REVERSING launcher (L1) - no feed"
+                : gamepad1.left_bumper ? "Raise drainer (Square) to unjam with L1"
+                : !launching ? "off (hold R1; L1 = reverse to clear a jam)"
                 : feeding ? String.format("FEEDING (started at %.1f s: %s)", feedStartedAt, feedStartedBy)
                 : "spinning up");
         telemetry.addData("Drainer", "%s (%.3f)", drainerDown ? "DOWN - intake ON" : "UP", armPosition);
@@ -513,6 +534,7 @@ public class BioBuzzStarterbotOpMode extends OpMode {
                     + " battery=" + batteryVolts + " storage=[" + storageLine + "]"
                     + " camera=" + (camera == null ? "none" : "open") + " aim_tolerance_deg=" + PollenHiveAim.TOLERANCE_DEG
                     + " aim_target_left_in=" + tuning.aimTargetLeftIn()
+                    + " aim_alliance=" + (alliance == null ? "ANY" : PollenAlliance.name(alliance.side) + "@" + alliance.wallMs + "_from_" + alliance.source)
                     + " lensHeight=" + (mount == null ? "NaN" : mount.lensHeightIn) + " tilt=" + (mount == null ? "NaN" : mount.tiltUpDeg)
                     + " sideways=" + (mount == null ? "NaN" : mount.sidewaysCorrectionIn);
             recorder.start(System.currentTimeMillis(), settings, sample);
@@ -585,17 +607,13 @@ public class BioBuzzStarterbotOpMode extends OpMode {
         }
     }
 
-    /* Every loop: write a row if it is time, and handle the rehearsal buttons. */
+    /* Every loop: write a row if it is time. No rehearsal marks in this TeleOp (match 2). */
     private void record() {
         if (recorder == null) return;
         try {
             fillSample();
-            PollenTeleOpRecorder.Mark mark = recorder.loop(runTimer.seconds(), System.currentTimeMillis(),
-                    gamepad1.left_bumper, gamepad1.triangle, sample);
-            // The gamepad buzzes so the driver knows the button counted: once = started, twice = ended.
-            if (mark == PollenTeleOpRecorder.Mark.STARTED) gamepad1.rumble(200);
-            if (mark == PollenTeleOpRecorder.Mark.ENDED) gamepad1.rumbleBlips(2);
-            telemetry.addData("Recording", recorder.screen(runTimer.seconds())
+            recorder.loop(runTimer.seconds(), System.currentTimeMillis(), false, false, sample);
+            telemetry.addData("Recording", recorder.recordingStatus()
                     + (recordingProblem.isEmpty() ? "" : " (" + recordingProblem + ")"));
         } catch (RuntimeException ex) {
             // Never let recording stop the robot. Show the problem and stop recording.
@@ -725,16 +743,16 @@ public class BioBuzzStarterbotOpMode extends OpMode {
          * Otherwise, we start spinning the launcher down.
          */
         /*
-         * Square clears a jam: the launcher runs backwards at 300 RPM while Square is held. Square
-         * wins over R1, and nothing feeds while reversing, so no ball is pushed into a wheel turning
-         * the wrong way. Let go of Square and R1 works as normal (with a fresh spin-up).
+         * L1 clears a jam (Square before v39): the launcher runs backwards at 300 RPM while L1 is
+         * held. L1 wins over R1, and nothing feeds while reversing, so no ball is pushed into a wheel
+         * turning the wrong way. Let go of L1 and R1 works as normal (with a fresh spin-up).
          */
         // Raise the drainer before reversing: the intake must pull inward while draining.
-        reversing = gamepad1.square && !drainerDown;
+        reversing = gamepad1.left_bumper && !drainerDown;
         if (reversing) {
             launching = false;
             launcher.setVelocity(-LAUNCHER_REVERSE_VELOCITY);
-        } else if (gamepad1.right_bumper && !gamepad1.square) {
+        } else if (gamepad1.right_bumper && !gamepad1.left_bumper) {
             if (!launching) launchTimer.reset(); // R1 just pressed: start the spin-up clock
             launching = true;
             launcher.setVelocity(tuning.launcherVelocity());

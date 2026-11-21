@@ -112,7 +112,8 @@ public final class PollenHiveAimTest {
         h = run(PollenHiveAim.Source.ODOMETRY, 0, 0, .12, 8, 8, true, ev);
         check(Math.abs(Math.toDegrees(h) - PollenFieldGeometry.aimDegrees(8, 8)) <= PollenHiveAim.TOLERANCE_DEG + .1,
                 "Odometry aim from 8/8 turns to the computed angle: " + Math.toDegrees(h));
-        check(ev.get(0).contains("odo_target_deg=-11.92"), "Odometry target recorded: " + ev.get(0));
+        check(ev.get(0).contains(String.format(java.util.Locale.US, "odo_target_deg=%.2f", PollenFieldGeometry.aimDegrees(8, 8))),
+                "Odometry target recorded: " + ev.get(0));
 
         // Aim 2 in right of the middle (the default): the middle ends up 2 in left, about 2.9 deg at 40 in.
         ev.clear();
@@ -122,8 +123,13 @@ public final class PollenHiveAimTest {
                 "Default aims 2 in right of the cell's middle: " + middle);
         check(ev.get(0).contains("target_left_in=-2.0"), "Offset recorded: " + ev.get(0));
         check(PollenConfig.AIM_TARGET_LEFT_IN == -2 && new PollenHiveAim().targetLeftIn() == -2, "Default target is 2 in right");
-        check(Math.abs(PollenFieldGeometry.aimDegrees(8, 8, -2) + Math.toDegrees(Math.atan2(10, PollenFieldGeometry.hiveOpeningForwardInches() - 8))) < 1e-9,
-                "Auto aim at 2 in right of the middle from 8/8");
+        {   // v43: aims put the LAUNCHER's line (2.74 in left of the robot's center) through the target.
+            double t = Math.toRadians(PollenFieldGeometry.aimDegrees(8, 8, -2)), L = PollenFieldGeometry.LAUNCHER_LEFT_OF_CENTER_INCHES;
+            double cf = PollenFieldGeometry.hiveOpeningForwardInches() - (8 - L * Math.sin(t));
+            double cl = PollenFieldGeometry.HIVE_LEFT_OF_PRIMARY_START_INCHES - 2 - (8 + L * Math.cos(t));
+            check(Math.abs(cf * Math.sin(t) - cl * Math.cos(t)) < 1e-9 && Math.abs(PollenFieldGeometry.aimDegrees(0, 0)) < 1e-9,
+                    "Auto aim: the launcher's line passes 2 in right of the middle from 8/8; straight from the start");
+        }
 
         // Refusals say why, and do nothing.
         PollenHiveAim aim = new PollenHiveAim();

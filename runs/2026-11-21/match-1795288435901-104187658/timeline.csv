@@ -1,0 +1,22 @@
+t_s,phase,hive_state,feed,reason,x_in,y_in,heading_deg
+0.148,TO_SHOT:,UNKNOWN,false,"Driving to the angled shot spot (8.0 in away, 10.5 in left, aim -18.5 deg)",0.00,0.00,360.00
+0.241,TO_SHOT: TO SHOT SPOT,UNKNOWN,false,"Driving to the angled shot spot (8.0 in away, 10.5 in left, aim -18.5 deg)",0.00,-0.00,0.00
+1.432,ALIGN_SHOT,UNKNOWN,false,Correcting heading to -18.5 degrees,8.25,10.39,0.16
+2.181,SETTLE,UNKNOWN,false,Heading corrected; settling for return shot,8.03,10.40,341.98
+2.565,FIRST,UNKNOWN,false,Heading corrected; settling for return shot,8.01,10.40,342.30
+2.663,FIRST,UNKNOWN,true,Feeding primary preload,8.01,10.40,342.30
+5.653,OUTBOUND:,UNKNOWN,false,First feed duration complete; starting collection trip,8.01,10.40,342.28
+5.731,OUTBOUND: ALIGN WITH GARDEN,UNKNOWN,false,First feed duration complete; starting collection trip,8.01,10.40,342.29
+7.627,GARDEN:,UNKNOWN,false,First feed duration complete; starting collection trip,13.56,45.06,359.55
+7.701,GARDEN: Find right wall,UNKNOWN,false,First feed duration complete; starting collection trip,13.60,45.05,359.44
+9.364,GARDEN: GARDEN_IN,UNKNOWN,false,First feed duration complete; starting collection trip,13.81,51.91,0.17
+9.438,GARDEN: Inward pass 1,UNKNOWN,false,First feed duration complete; starting collection trip,13.81,51.85,0.11
+12.243,RETURN:,UNKNOWN,false,Collection complete; returning to shooting position,2.36,51.26,353.04
+12.323,RETURN: CLEAR COLLECTION SITE,UNKNOWN,false,Collection complete; returning to shooting position,2.41,51.23,352.99
+13.303,RETURN: RETURN SHOOT POSITION,UNKNOWN,false,Collection complete; returning to shooting position,13.30,51.50,0.84
+15.068,ALIGN_SHOT,UNKNOWN,false,Correcting heading to -18.5 degrees,7.63,10.78,1.64
+15.862,SETTLE,UNKNOWN,false,Heading corrected; settling for return shot,7.62,10.65,342.05
+16.274,SECOND,UNKNOWN,false,Heading corrected; settling for return shot,7.64,10.64,342.39
+22.963,PARK: PARK CORNER,UNKNOWN,false,"Park deadline during SECOND, 7.06 s left",7.68,10.65,342.10
+24.480,PARK: PARK,UNKNOWN,false,"Park deadline during SECOND, 7.06 s left",3.82,27.39,359.79
+27.419,DONE,UNKNOWN,false,Finished departure,87.67,46.00,358.83

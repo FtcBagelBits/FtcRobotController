@@ -40,7 +40,7 @@ public final class PollenHiveDiagnosticsTest {
         PollenHiveAuto a=auto(new PollenHiveRoute(true));
         a.tick(.02,null,0,0,0,0,true);
         PollenHiveAuto.Output o=a.tick(.04,null,0,0,0,0,true);
-        check(o.phase.equals("FIRST")&&o.launcher==1180&&!o.feed,"Healthy Secondary starts spinning before Hive UP");
+        check(o.phase.equals("FIRST")&&o.launcher==PollenConfig.LAUNCHER_TARGET_VELOCITY&&!o.feed,"Healthy Secondary starts spinning before Hive UP");
         o=a.tick(.06,null,0,0,0,0,false);
         check(o.finished&&o.launcher==0&&!o.feed,"A real Pinpoint fault still stops the auto");
     }

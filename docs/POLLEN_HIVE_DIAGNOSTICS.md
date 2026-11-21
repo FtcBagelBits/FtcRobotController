@@ -1,3 +1,6 @@
+**Current hardware tests run LIVE.** The DRY and DRIVE procedures below describe older builds.
+For the current motor permissions and test order, use the [hive testing guide](POLLEN_HIVE_TESTING.md#fast-motor-testing-loop).
+
 # v33 clear-out after each volley
 
 Balls were left in the robot after the first volley, and collecting more then overloaded it. In the

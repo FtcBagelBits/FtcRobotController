@@ -4,6 +4,12 @@ package org.firstinspires.ftc.teamcode.pollen;
  * hardware calls. Defaults come from the TeleOp's own constants and PollenConfig. */
 public final class PollenTeleOpTuning {
     public enum Row { LAUNCHER, SPINUP, AGITATOR, DRIVE, DRAINER_UP, DRAINER_DOWN, DRAINER_STEP, AIM_LEFT }
+    /** PollenBot menu order (match 2): the rows a driver checks or might change first, then the rows
+     * nobody changes at an event. The INIT screen lists them in this order too (rows()). */
+    private static final Row[] POLLENBOT_MENU = { Row.LAUNCHER, Row.DRIVE, Row.AIM_LEFT, Row.SPINUP, Row.AGITATOR,
+            Row.DRAINER_UP, Row.DRAINER_DOWN, Row.DRAINER_STEP };
+    private static final Row[] LAUNCHER_MENU = { Row.LAUNCHER, Row.SPINUP, Row.AGITATOR, Row.DRIVE };
+    private static final Row[] DRAINER_MENU = { Row.DRAINER_UP, Row.DRAINER_DOWN, Row.DRAINER_STEP };
     public static final double MIN_LAUNCHER = 500, MAX_LAUNCHER = 2500, LAUNCHER_STEP = 20;
     public static final double MIN_SPINUP = 0, MAX_SPINUP = 6, SPINUP_STEP = .5;
     public static final double MIN_AGITATOR = .10, MAX_AGITATOR = 1.0, AGITATOR_STEP = .05;
@@ -33,10 +39,9 @@ public final class PollenTeleOpTuning {
     private double launcher, spinup, agitator, drive;
     private double drainerUp, drainerDown, drainerStep, aimLeft;
     private final boolean drainerEnabled;
-    /** One past the last row this menu shows (PollenBot: through AIM_LEFT; drainer test: drainer rows). */
-    private int rowEnd;
+    /** The rows this menu shows, in screen order. */
+    private Row[] menu;
     private Row selected = Row.LAUNCHER;
-    private int firstRow;
     private boolean locked;
     private final boolean[] previous = new boolean[5];
 
@@ -67,16 +72,15 @@ public final class PollenTeleOpTuning {
         drainerDown = remembered == null ? DEFAULT_DRAINER_DOWN : remembered.drainerDown;
         drainerStep = remembered == null ? DEFAULT_DRAINER_STEP : remembered.drainerStep;
         aimLeft = remembered == null ? PollenConfig.AIM_TARGET_LEFT_IN : remembered.aimLeft;
-        rowEnd = drainerEnabled ? Row.values().length : Row.DRIVE.ordinal() + 1;
+        menu = drainerEnabled ? POLLENBOT_MENU : LAUNCHER_MENU;
     }
 
     /** Servo-only menu for PollenDrainerTest; shares the TeleOp defaults and edit rules. */
     public static PollenTeleOpTuning drainerOnly(Snapshot remembered) {
-        PollenTeleOpTuning tuning = new PollenTeleOpTuning(PollenConfig.LAUNCHER_TARGET_VELOCITY,
+        PollenTeleOpTuning tuning = new PollenTeleOpTuning(PollenConfig.TELEOP_LAUNCHER_TARGET_VELOCITY,
                 PollenConfig.LAUNCHER_SPINUP_SECONDS, PollenConfig.AGITATOR_FEED_POWER, remembered, true);
-        tuning.firstRow = Row.DRAINER_UP.ordinal();
+        tuning.menu = DRAINER_MENU;
         tuning.selected = Row.DRAINER_UP;
-        tuning.rowEnd = Row.DRAINER_STEP.ordinal() + 1;
         return tuning;
     }
 
@@ -90,10 +94,9 @@ public final class PollenTeleOpTuning {
                 aimLeft = PollenConfig.AIM_TARGET_LEFT_IN;
             }
         } else {
-            Row[] rows = Row.values();
-            int rowCount = rowEnd - firstRow;
-            if (up && !down && !previous[0]) selected = rows[firstRow + (selected.ordinal() - firstRow + rowCount - 1) % rowCount];
-            if (down && !up && !previous[1]) selected = rows[firstRow + (selected.ordinal() - firstRow + 1) % rowCount];
+            int n = menu.length, at = position(selected);
+            if (up && !down && !previous[0]) selected = menu[(at + n - 1) % n];
+            if (down && !up && !previous[1]) selected = menu[(at + 1) % n];
             int sign = right && !left && !previous[3] ? 1 : left && !right && !previous[2] ? -1 : 0;
             if (sign != 0 && selected == Row.LAUNCHER) launcher = step(launcher, sign * LAUNCHER_STEP, MIN_LAUNCHER, MAX_LAUNCHER);
             if (sign != 0 && selected == Row.SPINUP) spinup = step(spinup, sign * SPINUP_STEP, MIN_SPINUP, MAX_SPINUP);
@@ -107,6 +110,14 @@ public final class PollenTeleOpTuning {
         }
         System.arraycopy(keys, 0, previous, 0, keys.length);
     }
+
+    private int position(Row row) {
+        for (int i = 0; i < menu.length; i++) if (menu[i] == row) return i;
+        return 0;
+    }
+
+    /** The rows this menu shows, in screen order. */
+    public Row[] rows() { return menu.clone(); }
 
     private static double step(double value, double amount, double min, double max) {
         return Math.max(min, Math.min(max, Math.round((value + amount) * 1000.0) / 1000.0));
@@ -132,7 +143,7 @@ public final class PollenTeleOpTuning {
     public double agitatorPower() { return agitator; }
     /** Multiplies all four wheel powers after the normal mecanum normalization. */
     public double driveScale() { return drive; }
-    /** "Up to speed" means 96% of the target: about 1133 ticks/s for the default 1180. */
+    /** "Up to speed" means 96% of the target: about 1114 ticks/s for the TeleOp default 1160. */
     public double launcherReadyVelocity() { return launcher * PollenConfig.LAUNCHER_READY_FRACTION; }
 
     /** Feeding rule 1: the launcher's encoder says it is up to speed (PollenFeedRule). */

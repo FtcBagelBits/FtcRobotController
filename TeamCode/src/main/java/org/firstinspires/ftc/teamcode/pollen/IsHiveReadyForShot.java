@@ -4,7 +4,7 @@ import java.util.Locale;
 
 /** Is OUR hive cell (the one straight behind the robot) UP, so a shot can score?
  *
- * How it works, in three steps:
+ * How calibrated camera diagnostics work:
  * 1. WHICH CELL. Every hive cell carries four AprilTags with its own IDs (game manual 9.6):
  *    30-33 red scoring-side, 34-37 red audience-side, 38-41 blue audience-side, 42-45 blue
  *    scoring-side. From the PRIMARY start our cell is 34 (red) or 42 (blue); from the SECONDARY
@@ -30,7 +30,17 @@ import java.util.Locale;
  *    Without this, one missed frame cancelled permission and the next four frames had to
  *    re-confirm, so 90% per-frame detection fed only about 40-60% of the time.
  *
- * Call update every loop and ask isHiveReadyForShot with the current time; never cache the answer.
+ * Autonomous uses updateForAutonomous (v48): a frame is UP when the MEDIAN height of the locked
+ * cell's tags is inside the autonomous UP window, upHeight - band up to upHeight + band +
+ * AUTO_UP_EXTRA_HIGH_IN. Field traces (2026-11-14..19) show a real UP cell reading 54-56 in for
+ * seconds before balls land, and single tags jumping to about 56 in for one frame; the median
+ * ignores one odd tag, and the higher top edge accepts the high readings. Up to AUTO_FORGIVE_FRAMES
+ * out-of-window frames in a row are forgiven (they neither confirm nor revoke); one more revokes.
+ * A false "not UP" costs a volley, so the gate leans toward keeping UP. A tag never
+ * qualifies at a DOWN or tipping height, however steady (the v47 steady-height rule latched UP on
+ * a real DOWN cell reading 30.5 in). Calibration still measures physical UP/DOWN strictly.
+ *
+ * Call the appropriate update every loop and ask isHiveReadyForShot with the current time; never cache the answer.
  */
 public final class IsHiveReadyForShot {
     public enum State { UP, DOWN, UNKNOWN }
@@ -43,6 +53,12 @@ public final class IsHiveReadyForShot {
      * in between and no gap longer than MISS_HOLD, over at least this long. */
     public static final int CONFIRM_FRAMES = 4;
     public static final double CONFIRM_SECONDS = 0.15;
+    /** Autonomous only: the UP window reaches this far above the calibration UP band. Highest UP
+     * reading in the 2026-11-14..19 traces: 56.4 in; highest tipping/DOWN reading: 47.6 in. */
+    public static final double AUTO_UP_EXTRA_HIGH_IN = 3.0;
+    /** Autonomous only: this many out-of-window frames in a row are ignored (about 0.2 s at the
+     * measured 9 frames/s). Replaying the field traces: no false UP latch with 1, 2 or 3. */
+    public static final int AUTO_FORGIVE_FRAMES = 2;
     public static final double METRES_TO_INCHES = 1 / 0.0254;
 
     /** One AprilTag as the camera saw it: ID and position from the lens in metres. */
@@ -153,6 +169,15 @@ public final class IsHiveReadyForShot {
         return bestSide <= m.oursMaxSidewaysIn ? best : -1;
     }
 
+    /** Middle value (mean of the two middle values for an even count) of the first n entries. */
+    static double median(double[] v, int n) {
+        double[] a = java.util.Arrays.copyOf(v, n);
+        java.util.Arrays.sort(a);
+        return n % 2 == 1 ? a[n / 2] : (a[n / 2 - 1] + a[n / 2]) / 2;
+    }
+
+    /** Autonomous: out-of-window frames forgiven in a row since the last in-window frame. */
+    private int forgiven;
     private final Mount mount;
     private final int[] allowed;
     private int cluster = -1, candidateCluster = -1, clusterCount;
@@ -175,10 +200,15 @@ public final class IsHiveReadyForShot {
     /** Forgets UP/DOWN (e.g. while driving), keeps which cell is ours. */
     public void reset() {
         state = candidate = State.UNKNOWN; count = 0; lastFresh = lastSeen = Double.NEGATIVE_INFINITY;
+        forgiven = 0;
         if (cluster < 0) { candidateCluster = -1; clusterCount = 0; }
     }
 
-    public void update(Frame f, double now) {
+    public void update(Frame f, double now) { update(f, now, false); }
+
+    public void updateForAutonomous(Frame f, double now) { update(f, now, true); }
+
+    private void update(Frame f, double now, boolean autonomous) {
         if (!Double.isFinite(now)) { reset(); reason = "Invalid clock"; return; }
         if (now - lastFresh > MAX_AGE || now < lastFresh) reset();
         if (f == null || !f.usable()) { reset(); clearLast(); reason = "No usable camera frame"; return; }
@@ -190,9 +220,10 @@ public final class IsHiveReadyForShot {
         State observed = null;
         double sum = 0, low = Double.POSITIVE_INFINITY, high = Double.NEGATIVE_INFINITY;
         String problem = mount.problem();
+        double[] heights = new double[f.tags.length];
         for (Tag t : f.tags) {
-            // Our cell's tags are straight behind; one far to the side means we're not where we think.
-            if (clusterOf(t.id) != cluster || Math.abs(mount.sidewaysIn(t)) > mount.oursMaxSidewaysIn) continue;
+            if (clusterOf(t.id) != cluster) continue;
+            if (!autonomous && Math.abs(mount.sidewaysIn(t)) > mount.oursMaxSidewaysIn) continue;
             lastTagCount++;
             double side = mount.sidewaysIn(t);
             if (!(Math.abs(side) >= Math.abs(lastSidewaysIn))) lastSidewaysIn = side; // most central tag
@@ -200,29 +231,53 @@ public final class IsHiveReadyForShot {
             double h = mount.heightIn(t);
             sum += h; low=Math.min(low,h); high=Math.max(high,h);
             State s = mount.classify(h);
-            observed = observed == null || observed == s ? s : State.UNKNOWN; // tags must agree
+            if (autonomous) {
+                heights[lastTagCount - 1] = h;
+            } else {
+                observed = observed == null || observed == s ? s : State.UNKNOWN; // strict calibration
+            }
         }
         if (lastTagCount > 0 && problem.isEmpty()) lastHeightIn = sum / lastTagCount;
         if (!problem.isEmpty()) { state = State.UNKNOWN; candidate = State.UNKNOWN; count = 0; reason = problem; return; }
         if (lastTagCount == 0) { miss(now); return; }
         lastSeen = now;
+        double median = Double.NaN;
+        if (autonomous) {
+            median = median(heights, lastTagCount);
+            boolean inWindow = median >= mount.upIn - mount.bandIn
+                    && median <= mount.upIn + mount.bandIn + AUTO_UP_EXTRA_HIGH_IN;
+            observed = inWindow ? State.UP : State.UNKNOWN;
+            if (inWindow) forgiven = 0;
+            else if (forgiven < AUTO_FORGIVE_FRAMES && (state == State.UP || candidate == State.UP)) {
+                // An odd frame neither confirms nor revokes; a longer run of them revokes.
+                forgiven++;
+                reason = String.format(Locale.US, "Ignoring out-of-window frame %d of %d: median %.1f in",
+                        forgiven, AUTO_FORGIVE_FRAMES, median);
+                return;
+            } else forgiven = 0;
+        }
         // A frame that is not the current state takes permission away at once.
         if (observed != state) state = State.UNKNOWN;
         if (observed == State.UNKNOWN) {
             candidate = State.UNKNOWN; count = 0;
-            reason = String.format(Locale.US, "Tags disagree/outside bands: %.1f-%.1f in (mean %.1f)", low, high, lastHeightIn);
+            reason = String.format(Locale.US, autonomous
+                    ? "Median outside UP window: %.1f-%.1f in (median %.1f)"
+                    : "Tags disagree/outside bands: %.1f-%.1f in (mean %.1f)", low, high,
+                    autonomous ? median : lastHeightIn);
             return;
         }
         if (observed != candidate) { candidate = observed; count = 1; since = now; } else count++;
         if (count >= CONFIRM_FRAMES && now - since >= CONFIRM_SECONDS) state = observed;
         reason = String.format(Locale.US, "%s %s, %.1f in", state == State.UNKNOWN ? "Confirming" : "Stable",
                 observed, lastHeightIn);
+        if (autonomous) reason += String.format(Locale.US, " (median %.1f in)", median);
     }
 
     /** A new frame without our cell's tags: hold, unless the last sighting is too old. */
     private void miss(double now) {
         if (now - lastSeen > MISS_HOLD) {
             state = candidate = State.UNKNOWN; count = 0;
+            forgiven = 0;
             reason = "Our cell's tags not in view";
         } else reason = String.format(Locale.US, "Holding %s: our tags missed for %.2f s",
                 state != State.UNKNOWN ? state : candidate == State.UNKNOWN ? "UNKNOWN" : "confirming " + candidate,

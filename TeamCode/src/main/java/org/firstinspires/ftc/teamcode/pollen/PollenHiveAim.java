@@ -64,10 +64,14 @@ public final class PollenHiveAim {
     }
     /** Bearing to a point targetLeftIn left of the cell's middle (negative = right of it). */
     public static Bearing bearing(IsHiveReadyForShot.Frame f, IsHiveReadyForShot.Mount m, double targetLeftIn) {
+        return bearing(f, m, targetLeftIn, IsHiveReadyForShot.ALL_CELLS);
+    }
+    /** Same, but only these cells (first tag IDs) can be the target, e.g. PollenAlliance.cells. */
+    public static Bearing bearing(IsHiveReadyForShot.Frame f, IsHiveReadyForShot.Mount m, double targetLeftIn, int[] cells) {
         if (f == null || m == null) return null;
         double tilt = Double.isFinite(m.tiltUpDeg) ? Math.toRadians(m.tiltUpDeg) : 0;
         Bearing best = null;
-        for (int cluster : IsHiveReadyForShot.ALL_CELLS) {
+        for (int cluster : cells) {
             double side = 0, forward = 0; int n = 0;
             for (IsHiveReadyForShot.Tag t : f.tags) {
                 if (IsHiveReadyForShot.clusterOf(t.id) != cluster) continue;
@@ -112,6 +116,9 @@ public final class PollenHiveAim {
     /** Inches left of the cell's middle to aim at (PollenConfig.AIM_TARGET_LEFT_IN by default). */
     private double targetLeftIn = PollenConfig.AIM_TARGET_LEFT_IN;
     public void setTargetLeftIn(double inches) { targetLeftIn = inches; }
+    /** Cells Circle may aim at: the alliance saved by the last auto (PollenAlliance), else all. */
+    private int[] cells = IsHiveReadyForShot.ALL_CELLS.clone();
+    public void setCells(int[] cells) { this.cells = cells == null || cells.length == 0 ? IsHiveReadyForShot.ALL_CELLS.clone() : cells.clone(); }
     public double targetLeftIn() { return targetLeftIn; }
 
     public static final class Output {
@@ -139,7 +146,7 @@ public final class PollenHiveAim {
      */
     public String start(double now, Source src, double h, double x, double y, boolean odometryKnown,
                         IsHiveReadyForShot.Frame frame, double frameAgeS, IsHiveReadyForShot.Mount mount) {
-        Bearing b = frameAgeS <= MAX_FRAME_AGE_S ? bearing(frame, mount, targetLeftIn) : null;
+        Bearing b = frameAgeS <= MAX_FRAME_AGE_S ? bearing(frame, mount, targetLeftIn, cells) : null;
         boolean odoOk = odometryKnown && Double.isFinite(x) && Double.isFinite(y) && Double.isFinite(h);
         odoTarget = odoOk ? Math.toRadians(odometryAimDegrees(x, y, targetLeftIn)) : Double.NaN;
         String both = String.format(Locale.US, "target_left_in=%.1f camera_bearing_deg=%s cell=%s tags=%d cam_dist_in=%s odo_target_deg=%s odo_turn_deg=%s x_in=%s y_in=%s heading_deg=%.2f",
@@ -149,7 +156,8 @@ public final class PollenHiveAim {
                 fmt(x), fmt(y), Math.toDegrees(h));
         if (!Double.isFinite(h)) { last = "NO AIM: no Pinpoint heading"; return "AIM_REFUSED source=" + src + " reason=no_heading " + both; }
         if (src == Source.CAMERA && b == null) {
-            last = "NO AIM: no hive tags in a fresh camera frame";
+            last = cells.length == IsHiveReadyForShot.ALL_CELLS.length ? "NO AIM: no hive tags in a fresh camera frame"
+                    : "NO AIM: no tags of our alliance's hive cells in a fresh camera frame";
             return "AIM_REFUSED source=CAMERA reason=no_tags " + both;
         }
         if (src == Source.ODOMETRY && !odoOk) {
@@ -183,7 +191,7 @@ public final class PollenHiveAim {
         if (source == Source.CAMERA && frame != null && frameAgeS <= MAX_FRAME_AGE_S && frame.stamp != lastStamp
                 && Math.abs(rateDeg) <= UPDATE_MAX_DEG_S) {
             lastStamp = frame.stamp;
-            Bearing b = bearing(frame, mount, targetLeftIn);
+            Bearing b = bearing(frame, mount, targetLeftIn, cells);
             if (b != null) {
                 double seen = h - Math.toRadians(b.degrees);
                 target += UPDATE_GAIN * PollenOdometryDrive.wrap(seen - target);
@@ -212,7 +220,7 @@ public final class PollenHiveAim {
                           IsHiveReadyForShot.Mount mount, String why) {
         running = false;
         o.turn = 0; o.active = false;
-        Bearing after = frameAgeS <= MAX_FRAME_AGE_S ? bearing(frame, mount, targetLeftIn) : null;
+        Bearing after = frameAgeS <= MAX_FRAME_AGE_S ? bearing(frame, mount, targetLeftIn, cells) : null;
         double turned = -Math.toDegrees(PollenOdometryDrive.wrap(h - startHeading));
         double odoAfter = Double.isFinite(odoTarget) ? Math.toDegrees(PollenOdometryDrive.wrap(h - odoTarget)) : Double.NaN;
         last = String.format(Locale.US, "AIM %d %s: turned %.1f deg right in %.2f s; camera now %s deg off",

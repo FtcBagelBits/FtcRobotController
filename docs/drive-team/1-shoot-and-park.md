@@ -40,20 +40,20 @@ of our lane, and park in the OUTER slot. Show them the pit sheet.
 <div class="side" markdown="1">
 <div markdown="1">
 
-![Placement: front flat on the wall, back (launcher) to the hive, centered on the hive, 3.7 in from the center seam](img/shoot-and-park-placement.svg)
+![Placement: front flat on the wall, back (launcher) to the hive, robot edge 1 in from the center seam so the launcher is on the hive center](img/shoot-and-park-placement.svg)
 
 </div>
 <div markdown="1">
 
 - **Red:** at the **audience** wall. **Blue:** at the **scoring-end** wall.
 - **Front** of the robot **flat against the wall**. The **back (the launcher) faces the hive**.
-- **Center the robot on the hive.** Its edge is 3.7 in (9.5 cm) from the center seam.
+- **1 in (2.5 cm) from the center seam** (spacer gauge, then take it off the field). That puts the launcher on the hive's center.
 - Exactly **4 pollen** loaded. Not touching a flower. Not in the loading zone.
 
 </div>
 </div>
 
-**3. On the Driver Hub**, pick **Emergency Odo Shoot + Park**. It's in the autonomous list, group *1 Match*.
+**3. On the Driver Hub**, pick **Emergency Odo Shoot + Park**. It's in the autonomous list, group *3 Emergency*.
 
 **4. Press INIT.** Don't touch the robot for 1 second: the odometry sensor is getting ready.
 
@@ -67,7 +67,7 @@ changes the coach asks for (usually none).
 | Line | Should say |
 | --- | --- |
 | **ROUTE** (the first line) | `FULL PARK: shoot, then 3 legs to the parking slot` |
-| Build | `pollen-hive-v34` |
+| Build | `pollen-hive-v46` |
 | Mode | `ODOMETRY Shoot + Park` |
 | Odometry x fwd / y left / heading | numbers near 0 (not `NOT VALID`) |
 | Status | `READY - no movement until START` |

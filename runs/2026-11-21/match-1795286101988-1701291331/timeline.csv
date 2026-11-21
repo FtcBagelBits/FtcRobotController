@@ -1,0 +1,24 @@
+t_s,phase,hive_state,feed,reason,x_in,y_in,heading_deg
+0.131,TO_SHOT:,UNKNOWN,false,"Driving to the angled shot spot (8.0 in away, 10.5 in left, aim -18.5 deg)",-0.00,-0.00,0.03
+0.227,TO_SHOT: TO SHOT SPOT,UNKNOWN,false,"Driving to the angled shot spot (8.0 in away, 10.5 in left, aim -18.5 deg)",-0.00,-0.00,0.03
+1.329,ALIGN_SHOT,UNKNOWN,false,Correcting heading to -18.5 degrees,8.40,10.65,359.98
+1.952,SETTLE,UNKNOWN,false,Heading corrected; settling for return shot,7.87,10.65,342.19
+2.347,FIRST,UNKNOWN,false,Heading corrected; settling for return shot,7.82,10.65,341.58
+2.417,FIRST,UNKNOWN,true,Feeding primary preload,7.82,10.65,341.58
+5.422,OUTBOUND:,UNKNOWN,false,First feed duration complete; starting collection trip,7.82,10.65,341.64
+5.506,OUTBOUND: ALIGN WITH GARDEN,UNKNOWN,false,First feed duration complete; starting collection trip,7.82,10.65,341.64
+7.274,GARDEN:,UNKNOWN,false,First feed duration complete; starting collection trip,13.44,44.87,359.01
+7.359,GARDEN: Find right wall,UNKNOWN,false,First feed duration complete; starting collection trip,13.47,44.87,358.93
+8.899,GARDEN: GARDEN_IN,UNKNOWN,false,First feed duration complete; starting collection trip,13.99,51.71,0.32
+8.988,GARDEN: Inward pass 1,UNKNOWN,false,First feed duration complete; starting collection trip,13.99,51.66,0.24
+11.670,RETURN:,UNKNOWN,false,Collection complete; returning to shooting position,1.73,51.12,354.05
+11.748,RETURN: CLEAR COLLECTION SITE,UNKNOWN,false,Collection complete; returning to shooting position,1.82,51.09,353.88
+12.722,RETURN: RETURN SHOOT POSITION,UNKNOWN,false,Collection complete; returning to shooting position,13.62,51.29,358.78
+14.394,ALIGN_SHOT,UNKNOWN,false,Correcting heading to -18.5 degrees,7.57,10.68,1.64
+15.110,SETTLE,UNKNOWN,false,Heading corrected; settling for return shot,7.56,10.69,342.20
+15.516,SECOND,UNKNOWN,false,Heading corrected; settling for return shot,7.57,10.67,342.47
+19.740,SECOND,UP,false,Timing confirmed hive UP,7.57,10.67,342.55
+20.761,SECOND,UP,true,Feeding: hive UP latched,7.56,10.67,342.58
+23.015,PARK: PARK CORNER,UNKNOWN,false,"Park deadline during SECOND, 7.02 s left",7.56,10.67,342.59
+24.345,PARK: PARK,UNKNOWN,false,"Park deadline during SECOND, 7.02 s left",3.81,27.36,359.92
+27.213,DONE,UNKNOWN,false,Finished departure,87.47,46.25,0.27

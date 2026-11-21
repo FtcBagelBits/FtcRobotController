@@ -66,7 +66,7 @@ public abstract class PollenCollectionPractice extends OpMode {
     }
 
     @Override public void init_loop() {
-        int n = settings.rows.length;
+        int n = settings.index("intake"); // The final row is retained only for old saved profiles.
         if (gamepad1.dpadUpWasPressed()) row = (row + n - 1) % n;
         if (gamepad1.dpadDownWasPressed()) row = (row + 1) % n;
         if (gamepad1.dpadLeftWasPressed()) settings.edit(row, -1);

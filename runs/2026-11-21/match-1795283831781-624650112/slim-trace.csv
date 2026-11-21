@@ -1,0 +1,7 @@
+t_s,kind,phase,execution,x_in,y_in,heading_deg,requested_forward,requested_strafe,requested_turn,requested_launcher_tps,measured_launcher_tps,applied_intake,applied_agitator,feed_requested,hive_state,hive_reason,cell,battery_v,launcher_current_a,clear_out
+0.08,TRANSITION,FIRST,LIVE,0.00,0.00,0.01,0.00,0.00,0.00,0.00,0.00,0.00,0.00,false,UNKNOWN,No observation,38,12.78,0.00,false
+0.20,SAMPLE,FIRST,LIVE,0.00,0.00,0.01,0.00,0.00,0.00,1180.00,20.00,0.00,0.00,false,UNKNOWN,No observation,38,12.78,4.09,false
+0.32,SAMPLE,FIRST,LIVE,0.00,0.00,0.00,0.00,0.00,0.00,1180.00,320.00,0.00,0.00,false,UNKNOWN,No observation,38,11.02,8.35,false
+0.45,SAMPLE,FIRST,LIVE,0.00,0.00,360.00,0.00,0.00,0.00,1180.00,620.00,0.00,0.00,false,UNKNOWN,No observation,38,11.16,7.30,false
+0.55,SAMPLE,FIRST,LIVE,0.01,0.00,359.99,0.00,0.00,0.00,1180.00,840.00,0.00,0.00,false,UNKNOWN,Our cell's tags not in view,38,11.60,5.87,false
+0.69,STOP,DONE,LIVE,0.01,0.00,359.99,0.00,0.00,0.00,0.00,1000.00,0.00,0.00,false,UNKNOWN,Our cell's tags not in view,38,12.69,0.90,false

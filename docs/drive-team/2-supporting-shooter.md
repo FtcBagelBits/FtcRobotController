@@ -53,7 +53,7 @@ INNER slot. We start shooting at **15 s**. Show them the pit sheet.
 </div>
 </div>
 
-**3. On the Driver Hub**, pick **Emergency Odo Supporting Shooter**. It's in the autonomous list, group *1 Match*.
+**3. On the Driver Hub**, pick **Emergency Odo Supporting Shooter**. It's in the autonomous list, group *3 Emergency*.
 
 **4. Press INIT.** Don't touch the robot for 1 second: the odometry sensor is getting ready.
 
@@ -67,7 +67,7 @@ Then make only the changes the coach asks for. A different wait is a *Start dela
 | Line | Should say |
 | --- | --- |
 | **ROUTE** (the first line) | `SUPPORT PARK: wait, shoot, then park in the outer slot` |
-| Build | `pollen-hive-v34` |
+| Build | `pollen-hive-v46` |
 | Mode | `ODOMETRY Supporting Shooter` |
 | Odometry x fwd / y left / heading | numbers near 0 (not `NOT VALID`) |
 | Start delay seconds | `12.00` |

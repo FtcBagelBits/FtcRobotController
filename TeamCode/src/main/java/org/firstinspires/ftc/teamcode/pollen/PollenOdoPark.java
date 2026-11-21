@@ -16,6 +16,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 public final class PollenOdoPark extends OpMode {
     private static PollenOdoParkTuning.Snapshot remembered;
     private final DcMotor[] drive = new DcMotor[4];
+    private DcMotor intake;
     private final ElapsedTime clock = new ElapsedTime();
     private PinpointLocalizer odometry;
     private PollenOdoParkTuning tuning;
@@ -28,6 +29,7 @@ public final class PollenOdoPark extends OpMode {
         tuning = null;
         sequence = null;
         try {
+            intake = PollenHiveHardware.configureAutoIntake(hardwareMap);
             for (int i = 0; i < drive.length; i++) {
                 drive[i] = hardwareMap.get(DcMotor.class, PollenConfig.DRIVE_NAMES[i]);
                 drive[i].setPower(0);
@@ -101,6 +103,7 @@ public final class PollenOdoPark extends OpMode {
             PollenSequence.Output out = sequence.tick(now, route[0], route[1], route[2]);
             if (out.zeroOdometry) odometry.setPose(Pose.zero());
             double[] powers = PollenFacing.wheelPowers(out);
+            if (intake != null) intake.setPower(out.intakePower());
             for (int i = 0; i < drive.length; i++) drive[i].setPower(powers[i]);
             showSettings();
             telemetry.addData("Phase", out.phase);
@@ -129,10 +132,13 @@ public final class PollenOdoPark extends OpMode {
     }
 
     private void zeroHardware() {
-        for (DcMotor motor : drive) {
-            if (motor == null) continue;
-            try { motor.setPower(0); }
-            catch (RuntimeException ex) { telemetry.addData("Stop motor error", ex.toString()); }
-        }
+        zeroMotor(intake);
+        for (DcMotor motor : drive) zeroMotor(motor);
+    }
+
+    private void zeroMotor(DcMotor motor) {
+        if (motor == null) return;
+        try { motor.setPower(0); }
+        catch (RuntimeException ex) { telemetry.addData("Stop motor error", ex.toString()); }
     }
 }

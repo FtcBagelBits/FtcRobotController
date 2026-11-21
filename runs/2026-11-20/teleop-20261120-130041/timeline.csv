@@ -1,0 +1,12 @@
+t_s,kind,rehearsal,note
+0.0000,START,0,build=pollen-hive-v38 installed=2026-11-19T18:53:38 opmode=PollenBot launcher=1180.0 spinup=3.0 agitator=1.0 drive=1.0 settings=DEFAULTS reverse=140 feedBoost=0.5 facing=back-to-hive pinpoint=READY ba
+61.2473,AIM,0,AIM_REFUSED source=CAMERA reason=no_tags target_left_in=-2.0 camera_bearing_deg=none cell=none tags=0 cam_dist_in=none odo_target_deg=unknown odo_turn_deg=unknown x_in=0.40 y_in=1.03 heading_deg=177.8
+68.4637,AIM,0,AIM_REFUSED source=CAMERA reason=no_tags target_left_in=-2.0 camera_bearing_deg=none cell=none tags=0 cam_dist_in=none odo_target_deg=unknown odo_turn_deg=unknown x_in=0.24 y_in=1.08 heading_deg=175.9
+159.4629,MARK_START,1,
+161.6500,AIM,1,AIM_REFUSED source=CAMERA reason=no_tags target_left_in=-2.0 camera_bearing_deg=none cell=none tags=0 cam_dist_in=none odo_target_deg=unknown odo_turn_deg=unknown x_in=0.24 y_in=1.08 heading_deg=176.0
+161.9027,MARK_END,1,ended by the next L1
+161.9027,MARK_START,2,
+164.4598,AIM,2,AIM_REFUSED source=CAMERA reason=no_tags target_left_in=-2.0 camera_bearing_deg=none cell=none tags=0 cam_dist_in=none odo_target_deg=unknown odo_turn_deg=unknown x_in=0.24 y_in=1.08 heading_deg=176.0
+165.2479,AIM,2,AIM_REFUSED source=CAMERA reason=no_tags target_left_in=-2.0 camera_bearing_deg=none cell=none tags=0 cam_dist_in=none odo_target_deg=unknown odo_turn_deg=unknown x_in=0.24 y_in=1.08 heading_deg=176.0
+194.7397,MARK_END,2,ended by STOP
+194.7397,STOP,0,

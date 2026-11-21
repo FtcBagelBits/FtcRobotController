@@ -29,7 +29,6 @@ public final class PollenShootTuning {
         FLYWHEEL("Launcher ticks/s", 500, 2500, 20, PollenConfig.LAUNCHER_TARGET_VELOCITY),
         SPINUP("Longest spin-up before feed (s)", 0, 6, .5, PollenConfig.LAUNCHER_SPINUP_SECONDS),
         FEED_SECONDS("Feed seconds (0 = skip shot)", 0, 20, .5, 10),
-        FEED_POWER("Intake power while feeding", .10, 1, .05, .50),
         AGITATOR_POWER("Agitator power while feeding", .10, 1, .05, PollenConfig.AGITATOR_FEED_POWER),
         START_DELAY("Start delay seconds", 0, 20, .5, 0),
         CALIBRATION("Calibration (0=baseline, 1=mat TRIAL)", 0, 1, 1, 0),
@@ -121,9 +120,15 @@ public final class PollenShootTuning {
         this.supporting = supporting;
         this.odometry = odometry;
         this.angled = angled;
-        // The AIM_ANGLE row only exists in angled mode. It is the last Field, so in every other
-        // mode the rows are simply all the Fields before it.
-        rows = angled ? Field.values() : java.util.Arrays.copyOf(Field.values(), Field.AIM_ANGLE.ordinal());
+        // Match 2 (v39): rows a driver checks or might change first (the supporting shooter's
+        // 12 s start delay is checked at INIT), never-changed tuning and route legs last.
+        // The AIM_ANGLE row only exists in angled mode.
+        java.util.List<Field> order = new java.util.ArrayList<>(java.util.Arrays.asList(Field.START_DELAY,
+                Field.FLYWHEEL, Field.FEED_SECONDS, Field.DRIVE_POWER, Field.PARK_MARGIN));
+        if (angled) order.add(Field.AIM_ANGLE);
+        order.addAll(java.util.Arrays.asList(Field.SPINUP, Field.AGITATOR_POWER, Field.CALIBRATION,
+                Field.LEG1_CM, Field.LEG1_ANGLE, Field.LEG2_CM, Field.LEG2_ANGLE, Field.LEG3_CM, Field.LEG3_ANGLE));
+        rows = order.toArray(new Field[0]);
         reset();
         if (remembered != null) {
             values = remembered.values.clone();
@@ -176,7 +181,7 @@ public final class PollenShootTuning {
      * parking spot as fullRoute(). The spot is the team's ASSUMED one; it is not field-tested. */
     private void angledRoute() {
         set(1, PollenFieldGeometry.ANGLED_OFF_WALL_INCHES * PollenFieldGeometry.INCH_TO_CM, 0);
-        set(2, PollenFieldGeometry.ANGLED_SIDE_INCHES * PollenFieldGeometry.INCH_TO_CM, 90);
+        set(2, PollenFieldGeometry.angledSideLegInches() * PollenFieldGeometry.INCH_TO_CM, 90);
         set(3, PollenFieldGeometry.angledDistanceCm(), PollenFieldGeometry.angledAngleDegrees());
         values[Field.AIM_ANGLE.ordinal()] = PollenFieldGeometry.angledAimDegrees();
     }
@@ -184,7 +189,8 @@ public final class PollenShootTuning {
     /** B's full route: off the wall, left past the frame, then to the inner parking slot. */
     private void fullRoute() {
         set(1, PollenFieldGeometry.PRIMARY_WALL_CLEARANCE_CM, 0);
-        set(2, PollenFieldGeometry.PRIMARY_SIDE_CLEARANCE_INCHES * PollenFieldGeometry.INCH_TO_CM, 90);
+        // v43: from the start (1 in from the seam) to the same field point, hive - 25 in.
+        set(2, PollenFieldGeometry.primarySideLegInches() * PollenFieldGeometry.INCH_TO_CM, 90);
         set(3, B_FIELD_LEG3_CM, B_FIELD_LEG3_DEGREES);
         values[Field.DRIVE_POWER.ordinal()] = .25;
         values[Field.CALIBRATION.ordinal()] = 1;

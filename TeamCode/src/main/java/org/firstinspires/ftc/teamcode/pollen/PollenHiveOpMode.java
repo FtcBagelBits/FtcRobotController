@@ -22,10 +22,13 @@ public abstract class PollenHiveOpMode extends OpMode {
     protected boolean hero() { return false; }
     /** Beta Primary Shooter - Fast: own saved file and defaults (see PollenHiveRoute.FAST_DEFAULTS). */
     protected boolean fast() { return false; }
-    /** Beta Primary Shooter - Angled Left: both volleys from an angled spot (own saved file). */
+    /** Beta Primary Shooter - Angled Left / Beta Secondary Shooter - Angled: both volleys from an
+     * angled spot (own saved files, primary-angled and secondary-angled). */
     protected boolean angled() { return false; }
     protected PollenHiveAuto.Run run() { return PollenHiveAuto.Run.MATCH; }
-    private int defaultExecution() { return run()==PollenHiveAuto.Run.MATCH?2:run()==PollenHiveAuto.Run.GARDEN_RETURN?1:0; }
+    /** Match 2 (v39): every hive mode, calibration included, always runs LIVE. The Execution row is
+     * no longer on the INIT menu (PollenHiveRoute.menuOrder); DRY/DRIVE stay in the controller code. */
+    private int defaultExecution() { return 2; }
     private File reportFile;
     private String reportError = "";
     private PollenHiveTrace trace;
@@ -54,20 +57,23 @@ public abstract class PollenHiveOpMode extends OpMode {
     private String fault, logged = "";
     private int row;
     private boolean up, down, left, right, lb, rb, square, triangle, circle;
+    /** Alliance last written to alliance.properties by this OpMode (0 = not yet). */
+    private int savedAlliance;
     private double displayAt = -1, hiveLogAt = -1, hiveLogStamp = Double.NaN;
 
-    private String fileName() { return fast() ? "primary-fast" : angled() ? "primary-angled" : hero() ? "primary-hero" : secondary() ? PollenHiveStore.SECONDARY : PollenHiveStore.PRIMARY; }
-    private int routeRows() { return matchCollection() ? settings.v.length : PollenHiveSettings.ROUTE.length; }
+    private String fileName() { return fast() ? "primary-fast" : angled() ? (secondary() ? "secondary-angled" : "primary-angled") : hero() ? "primary-hero" : secondary() ? PollenHiveStore.SECONDARY : PollenHiveStore.PRIMARY; }
+    /** Screen order of the route rows (PollenHiveRoute.menuOrder): checks first, Execution hidden in matches. */
+    private int[] order;
+    private int routeRows() { return order.length; }
     private int rows() { return routeRows() + cameraSettings.v.length; }
     private PollenHiveSettings.Values table(int r) { return r < routeRows() ? settings.values : cameraSettings; }
     private boolean matchSetup() { return run() == PollenHiveAuto.Run.MATCH; }
     private boolean matchCollection() { return matchSetup() && !makeRoom(); }
-    private int index(int r) {
-        // Keep alliance and execution first, then show collection tuning before the rest of the route.
-        if (matchSetup() && r < 2) return 1 - r;
-        if (r >= routeRows()) return r - routeRows();
-        int collectionRows = routeRows() - PollenHiveSettings.ROUTE.length;
-        return r >= 2 && r < 2 + collectionRows ? PollenHiveSettings.ROUTE.length + r - 2 : r - collectionRows;
+    private int index(int r) { return r >= routeRows() ? r - routeRows() : order[r]; }
+    /** Screen row of the first collection tuning row (marked [garden] or [flower]), or -1. */
+    private int firstCollectionRow() {
+        for (int r = 0; r < routeRows(); r++) if (settings.values.rows[order[r]].key.startsWith("collection.")) return r;
+        return -1;
     }
 
     private String allianceLine() {
@@ -82,6 +88,7 @@ public abstract class PollenHiveOpMode extends OpMode {
         loadMessage = "Auto: " + PollenHiveStore.load(fileName(), settings.values)
                 + ". Camera: " + PollenHiveStore.load(PollenHiveStore.CAMERA, cameraSettings) + ".";
         settings.v[0] = defaultExecution();
+        order = settings.menuOrder(run());
         row = 0;
         if (matchSetup()) {
             settings.beginMatchSetup();
@@ -134,7 +141,7 @@ public abstract class PollenHiveOpMode extends OpMode {
         telemetry.addData("Status", fault == null ? validation : fault);
         for (int r = Math.max(0, Math.min(row - 3, rows() - 7)); r <= Math.min(rows() - 1, Math.max(row + 3, 6)); r++)
             telemetry.addLine((r == row ? "> " : "   ") + (r + 1) + "/" + rows() + "  "
-                    + (r == routeRows() ? "[camera] " : matchCollection() && r == 2 ? secondary() ? "[flower] " : "[garden] " : "")
+                    + (r == routeRows() ? "[camera] " : matchCollection() && r == firstCollectionRow() ? secondary() ? "[flower] " : "[garden] " : "")
                     + (matchSetup() && r == 0 ? "Alliance: " + allianceLine() : table(r).line(index(r))));
         telemetry.addLine("D-pad row/value, LB/RB jump 5. Triangle: row to default. Circle: ROUTE defaults (keeps execution/camera). Square: save.");
         telemetry.addLine(message.isEmpty() ? loadMessage : message);
@@ -144,11 +151,14 @@ public abstract class PollenHiveOpMode extends OpMode {
         telemetry.addData("Plan", run()==PollenHiveAuto.Run.SHOT_ONLY ? "Stationary volley, then DONE; no departure"
                 : run()==PollenHiveAuto.Run.GARDEN_RETURN ? "Garden, return to S, settle, DONE; no shots or park"
                 : makeRoom() ? "SECONDARY OUT OF THE WAY: wait for UP, shoot, wait in corner, park at deadline"
-                : secondary() ? "SECONDARY: wait for UP, shoot, drain flower, return, shoot if UP"
-                : angled() ? String.format(Locale.US, "PRIMARY ANGLED: drive to %.1f in away / %.1f in left, turn %.1f deg, shoot, garden, return there, shoot, park",
+                : angled() ? String.format(Locale.US, secondary()
+                        ? "SECONDARY ANGLED: drive to %.1f in away / %.1f in left, turn %.1f deg, wait for UP, shoot, flower, return there, shoot, park"
+                        : "PRIMARY ANGLED: drive to %.1f in away / %.1f in left, turn %.1f deg, shoot, garden, return there, shoot, park",
                         settings.values.get("shotAwayIn"), settings.values.get("shotLeftIn"),
-                        PollenFieldGeometry.aimDegrees(settings.values.get("shotAwayIn"), settings.values.get("shotLeftIn"),
-                                settings.values.get("aimTargetLeftIn")))
+                        Math.toDegrees(settings.shotHeading()))
+                : secondary() ? (settings.flowerDrainOff()
+                        ? "SECONDARY: wait for UP, shoot, FLOWER DRAIN OFF: stay here, park"
+                        : "SECONDARY: wait for UP, shoot, drain flower, return, shoot again (no camera wait)")
                 : "PRIMARY: shoot, garden (front intake), return, wait/shoot, park");
         telemetry.addData("SETTINGS", changed == 0 ? "all defaults" : "*** " + changed + " CHANGED FROM DEFAULT: "
                 + join(settings.values.changedSummary(), cameraSettings.changedSummary()) + " ***");
@@ -162,7 +172,7 @@ public abstract class PollenHiveOpMode extends OpMode {
             telemetry.addData("Estimated to corner / corner to park s", "%.1f / %.1f",
                     PollenHiveRoute.planned(corner), PollenHiveRoute.planned(settings.cornerPark(), c.x, c.y));
         } else if (matchCollection()) telemetry.addData("Estimated collection trip / park s", "%.1f / %.1f",
-                settings.collectionEstimate(), PollenHiveRoute.planned(settings.collectionPark()));
+                settings.collectionEstimate(), settings.collectionParkSeconds());
         else telemetry.addData("Estimated garden / park s", "%.1f / %.1f",
                 PollenHiveRoute.planned(settings.garden()), PollenHiveRoute.planned(settings.park()));
         telemetry.addData("Odometry", PollenOdometryHardware.status(pinpoint));
@@ -178,6 +188,17 @@ public abstract class PollenHiveOpMode extends OpMode {
             throw new IllegalStateException("LIVE flower drain requires servo " + PollenDrainerHold.SERVO_NAME);
     }
 
+    /** RED or BLUE chosen: write it for TeleOp Circle (PollenAlliance). AUTO (detect) writes nothing. */
+    private void rememberAlliance() {
+        int side = settings.side();
+        if ((side != PollenAlliance.RED && side != PollenAlliance.BLUE) || side == savedAlliance) return;
+        try {
+            PollenHiveStore.saveAlliance(side, getClass().getSimpleName());
+            savedAlliance = side;
+            record("ALLIANCE saved for TeleOp Circle: " + PollenAlliance.name(side));
+        } catch (Exception ex) { message = "Alliance NOT saved for TeleOp: " + ex.getMessage(); }
+    }
+
     private void menu() {
         int n = rows();
         if (gamepad1.dpad_up && !up) row = (row + n - 1) % n;
@@ -189,6 +210,7 @@ public abstract class PollenHiveOpMode extends OpMode {
         if (delta != 0) {
             if (allianceRow) settings.selectMatchAlliance(delta > 0);
             else table(row).edit(index(row), delta);
+            rememberAlliance();
         }
         if (gamepad1.triangle && !triangle) {
             if (allianceRow) settings.beginMatchSetup();
@@ -234,7 +256,7 @@ public abstract class PollenHiveOpMode extends OpMode {
             initProfile = profile; initHive = new IsHiveReadyForShot(mount, allowed);
         }
         double now = clock.seconds();
-        initHive.update(camera.read(), now);
+        initHive.updateForAutonomous(camera.read(), now);
         return prefix + IsHiveReadyForShot.clusterName(initHive.cluster()) + ": " + initHive.state(now)
                 + " / " + initHive.reason;
     }
@@ -277,6 +299,7 @@ public abstract class PollenHiveOpMode extends OpMode {
             IsHiveReadyForShot.Mount mount = IsHiveReadyForShot.Mount.from(cameraSettings);
             hive = new IsHiveReadyForShot(mount, IsHiveReadyForShot.allowedCells(secondary(), settings.side()));
             auto = new PollenHiveAuto(settings, hive, run());
+            savedAlliance = 0; rememberAlliance(); // START always refreshes the time, so the newest run wins
             if (drainer != null) drainerDownPosition = settings.collectionSettings().get("down");
             RobotLog.ii("PollenHive", "START build=%s secondary=%s camera=%s changed=[%s] settings=%s | camera %s",
                     PollenConfig.BUILD, secondary(), camera == null ? cameraProblem : "open",
@@ -303,13 +326,13 @@ public abstract class PollenHiveOpMode extends OpMode {
             last = auto.tick(now, frame, pose[0], pose[1], pose[2], velocity, ready);
             if (settings.v[0] == 0) zero(); else {
                 double[] wheels = PollenFacing.wheelPowers(last.forward, last.strafe, last.turn);
-                for (int i = 0; i < 4; i++) { appliedWheels[i]=run()==PollenHiveAuto.Run.SHOT_ONLY?0:wheels[i]; drive[i].setPower(appliedWheels[i]); }
                 appliedLauncher=settings.v[0] == 2 && run()!=PollenHiveAuto.Run.GARDEN_RETURN ? last.launcher : 0;
                 appliedIntake=settings.v[0] == 2 ? last.intake : 0;
                 appliedAgitator=settings.v[0] == 2 && run()!=PollenHiveAuto.Run.GARDEN_RETURN ? last.agitator : 0;
                 launcher.setVelocity(appliedLauncher); intake.setPower(appliedIntake); agitator.setPower(appliedAgitator);
                 if (drainer != null) drainer.setPosition(settings.v[0] == 2 && last.drainerDown
                         ? drainerDownPosition : PollenTeleOpTuning.DEFAULT_DRAINER_UP);
+                for (int i = 0; i < 4; i++) { appliedWheels[i]=run()==PollenHiveAuto.Run.SHOT_ONLY?0:wheels[i]; drive[i].setPower(appliedWheels[i]); }
             }
             String event = last.phase + " / " + hive.state(now) + " / feed=" + last.feed;
             boolean transition=!event.equals(logged);

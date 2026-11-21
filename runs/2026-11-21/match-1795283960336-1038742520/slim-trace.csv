@@ -1,0 +1,274 @@
+t_s,kind,phase,execution,x_in,y_in,heading_deg,requested_forward,requested_strafe,requested_turn,requested_launcher_tps,measured_launcher_tps,applied_intake,applied_agitator,feed_requested,hive_state,hive_reason,cell,battery_v,launcher_current_a,clear_out
+0.07,TRANSITION,FIRST,LIVE,0.01,0.00,0.01,0.00,0.00,0.00,0.00,0.00,0.00,0.00,false,UNKNOWN,No observation,38,12.74,0.00,false
+0.19,SAMPLE,FIRST,LIVE,0.01,0.00,0.01,0.00,0.00,0.00,1180.00,0.00,0.00,0.00,false,UNKNOWN,No observation,38,10.77,4.04,false
+0.29,SAMPLE,FIRST,LIVE,0.01,0.00,0.01,0.00,0.00,0.00,1180.00,280.00,0.00,0.00,false,UNKNOWN,No observation,38,10.88,8.49,false
+0.41,SAMPLE,FIRST,LIVE,0.01,0.00,0.01,0.00,0.00,0.00,1180.00,560.00,0.00,0.00,false,UNKNOWN,No observation,38,11.07,7.41,false
+0.52,SAMPLE,FIRST,LIVE,0.01,0.00,0.01,0.00,0.00,0.00,1180.00,800.00,0.00,0.00,false,UNKNOWN,Our cell's tags not in view,38,11.24,6.34,false
+0.64,SAMPLE,FIRST,LIVE,0.01,0.00,0.01,0.00,0.00,0.00,1180.00,1000.00,0.00,0.00,false,UNKNOWN,Our cell's tags not in view,38,12.19,3.67,false
+0.77,SAMPLE,FIRST,LIVE,0.01,0.00,0.01,0.00,0.00,0.00,1180.00,1100.00,0.00,0.00,false,UNKNOWN,Our cell's tags not in view,38,12.45,1.87,false
+0.89,SAMPLE,FIRST,LIVE,0.01,0.00,0.02,0.00,0.00,0.00,1180.00,1140.00,0.00,0.00,false,UNKNOWN,Our cell's tags not in view,38,12.58,1.14,false
+1.01,SAMPLE,FIRST,LIVE,0.01,0.00,0.02,0.00,0.00,0.00,1180.00,1140.00,0.00,0.00,false,UNKNOWN,Our cell's tags not in view,38,12.62,0.62,false
+1.16,SAMPLE,FIRST,LIVE,0.01,0.00,0.01,0.00,0.00,0.00,1180.00,1160.00,0.00,0.00,false,UNKNOWN,Our cell's tags not in view,38,12.63,0.60,false
+1.27,SAMPLE,FIRST,LIVE,0.01,0.00,0.00,0.00,0.00,0.00,1180.00,1160.00,0.00,0.00,false,UNKNOWN,Our cell's tags not in view,38,12.65,0.58,false
+1.40,SAMPLE,FIRST,LIVE,0.01,0.00,359.99,0.00,0.00,0.00,1180.00,1180.00,0.00,0.00,false,UNKNOWN,Our cell's tags not in view,38,12.65,0.54,false
+1.52,SAMPLE,FIRST,LIVE,0.01,0.00,359.99,0.00,0.00,0.00,1180.00,1180.00,0.00,0.00,false,UNKNOWN,Our cell's tags not in view,38,12.67,0.43,false
+1.63,SAMPLE,FIRST,LIVE,0.01,0.00,359.98,0.00,0.00,0.00,1180.00,1180.00,0.00,0.00,false,UNKNOWN,Our cell's tags not in view,38,12.67,0.43,false
+1.75,SAMPLE,FIRST,LIVE,0.01,0.00,359.98,0.00,0.00,0.00,1180.00,1180.00,0.00,0.00,false,UNKNOWN,Our cell's tags not in view,38,12.66,0.42,false
+1.87,SAMPLE,FIRST,LIVE,0.01,0.00,359.97,0.00,0.00,0.00,1180.00,1180.00,0.00,0.00,false,UNKNOWN,Our cell's tags not in view,38,12.66,0.42,false
+1.98,SAMPLE,FIRST,LIVE,0.01,0.00,359.97,0.00,0.00,0.00,1180.00,1180.00,0.00,0.00,false,UNKNOWN,Our cell's tags not in view,38,12.67,0.43,false
+2.10,SAMPLE,FIRST,LIVE,0.01,0.00,359.96,0.00,0.00,0.00,1180.00,1180.00,0.00,0.00,false,UNKNOWN,Our cell's tags not in view,38,12.67,0.41,false
+2.23,SAMPLE,FIRST,LIVE,0.01,0.01,359.95,0.00,0.00,0.00,1180.00,1180.00,0.00,0.00,false,UNKNOWN,Our cell's tags not in view,38,12.68,0.41,false
+2.35,SAMPLE,FIRST,LIVE,0.01,0.01,359.94,0.00,0.00,0.00,1180.00,1180.00,0.00,0.00,false,UNKNOWN,Our cell's tags not in view,38,12.67,0.41,false
+2.46,SAMPLE,FIRST,LIVE,0.01,0.01,359.93,0.00,0.00,0.00,1180.00,1160.00,0.00,0.00,false,UNKNOWN,Our cell's tags not in view,38,12.66,0.48,false
+2.56,SAMPLE,FIRST,LIVE,0.02,0.01,359.93,0.00,0.00,0.00,1180.00,1180.00,0.00,0.00,false,UNKNOWN,Our cell's tags not in view,38,12.67,0.43,false
+2.66,SAMPLE,FIRST,LIVE,0.02,0.01,359.92,0.00,0.00,0.00,1180.00,1180.00,0.00,0.00,false,UNKNOWN,Our cell's tags not in view,38,12.67,0.41,false
+2.78,SAMPLE,FIRST,LIVE,0.02,0.01,359.91,0.00,0.00,0.00,1180.00,1180.00,0.00,0.00,false,UNKNOWN,Our cell's tags not in view,38,12.68,0.33,false
+2.90,SAMPLE,FIRST,LIVE,0.02,0.01,359.91,0.00,0.00,0.00,1180.00,1180.00,0.00,0.00,false,UNKNOWN,Our cell's tags not in view,38,12.67,0.42,false
+3.03,SAMPLE,FIRST,LIVE,0.02,0.01,359.90,0.00,0.00,0.00,1180.00,1180.00,0.00,0.00,false,UNKNOWN,Our cell's tags not in view,38,12.67,0.43,false
+3.13,SAMPLE,FIRST,LIVE,0.02,0.01,359.89,0.00,0.00,0.00,1180.00,1160.00,0.00,0.00,false,UNKNOWN,Our cell's tags not in view,38,12.68,0.42,false
+3.25,SAMPLE,FIRST,LIVE,0.02,0.01,359.88,0.00,0.00,0.00,1180.00,1180.00,0.00,0.00,false,UNKNOWN,Our cell's tags not in view,38,12.66,0.41,false
+3.36,SAMPLE,FIRST,LIVE,0.02,0.01,359.88,0.00,0.00,0.00,1180.00,1180.00,0.00,0.00,false,UNKNOWN,Our cell's tags not in view,38,12.68,0.43,false
+3.48,SAMPLE,FIRST,LIVE,0.02,0.01,359.87,0.00,0.00,0.00,1180.00,1180.00,0.00,0.00,false,UNKNOWN,Our cell's tags not in view,38,12.68,0.42,false
+3.60,SAMPLE,FIRST,LIVE,0.02,0.01,359.86,0.00,0.00,0.00,1180.00,1180.00,0.00,0.00,false,UNKNOWN,Our cell's tags not in view,38,12.68,0.41,false
+3.71,SAMPLE,FIRST,LIVE,0.02,0.01,359.87,0.00,0.00,0.00,1180.00,1180.00,0.00,0.00,false,UNKNOWN,Our cell's tags not in view,38,12.68,0.42,false
+3.84,SAMPLE,FIRST,LIVE,0.02,0.01,359.86,0.00,0.00,0.00,1180.00,1180.00,0.00,0.00,false,UNKNOWN,Our cell's tags not in view,38,12.65,0.48,false
+3.96,SAMPLE,FIRST,LIVE,0.02,0.01,359.86,0.00,0.00,0.00,1180.00,1180.00,0.00,0.00,false,UNKNOWN,Our cell's tags not in view,38,12.68,0.42,false
+4.06,SAMPLE,FIRST,LIVE,0.02,0.01,359.85,0.00,0.00,0.00,1180.00,1200.00,0.00,0.00,false,UNKNOWN,Holding UNKNOWN: our tags missed for 0.03 s,38,12.68,0.42,false
+4.18,SAMPLE,FIRST,LIVE,0.02,0.01,359.85,0.00,0.00,0.00,1180.00,1180.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 44.0-44.3 in (mean 44.1),38,12.66,0.41,false
+4.29,SAMPLE,FIRST,LIVE,0.03,0.01,359.84,0.00,0.00,0.00,1180.00,1180.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 45.1-45.9 in (mean 45.5),38,12.68,0.42,false
+4.42,SAMPLE,FIRST,LIVE,0.03,0.01,359.84,0.00,0.00,0.00,1180.00,1180.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 46.8-47.7 in (mean 47.2),38,12.67,0.54,false
+4.53,SAMPLE,FIRST,LIVE,0.03,0.01,359.83,0.00,0.00,0.00,1180.00,1180.00,0.00,0.00,false,UNKNOWN,"Confirming UP, 48.9 in",38,12.68,0.41,false
+4.65,SAMPLE,FIRST,LIVE,0.03,0.01,359.83,0.00,0.00,0.00,1180.00,1160.00,0.00,0.00,false,UNKNOWN,"Confirming UP, 51.1 in",38,12.67,0.41,false
+4.73,TRANSITION,FIRST,LIVE,0.03,0.01,359.82,0.00,0.00,0.00,1180.00,1160.00,0.00,0.00,false,UP,"Stable UP, 52.4 in",38,12.68,0.42,false
+4.85,SAMPLE,FIRST,LIVE,0.03,0.01,359.81,0.00,0.00,0.00,1180.00,1180.00,0.00,0.00,false,UP,"Stable UP, 52.8 in",38,12.68,0.41,false
+4.98,SAMPLE,FIRST,LIVE,0.03,0.01,359.81,0.00,0.00,0.00,1180.00,1180.00,0.00,0.00,false,UP,"Stable UP, 53.0 in",38,12.68,0.41,false
+5.10,SAMPLE,FIRST,LIVE,0.03,0.01,359.81,0.00,0.00,0.00,1180.00,1180.00,0.00,0.00,false,UP,"Stable UP, 52.9 in",38,12.67,0.42,false
+5.22,SAMPLE,FIRST,LIVE,0.03,0.01,359.80,0.00,0.00,0.00,1180.00,1180.00,0.00,0.00,false,UP,"Stable UP, 52.9 in",38,12.67,0.40,false
+5.33,SAMPLE,FIRST,LIVE,0.03,0.01,359.80,0.00,0.00,0.00,1180.00,1180.00,0.00,0.00,false,UP,"Stable UP, 52.9 in",38,12.65,0.51,false
+5.43,SAMPLE,FIRST,LIVE,0.03,0.01,359.79,0.00,0.00,0.00,1180.00,1180.00,0.00,0.00,false,UP,"Stable UP, 53.0 in",38,12.67,0.41,false
+5.56,SAMPLE,FIRST,LIVE,0.03,0.01,359.78,0.00,0.00,0.00,1180.00,1200.00,0.00,0.00,false,UP,"Stable UP, 53.1 in",38,12.68,0.40,false
+5.67,SAMPLE,FIRST,LIVE,0.03,0.01,359.77,0.00,0.00,0.00,1180.00,1180.00,0.00,0.00,false,UP,"Stable UP, 53.0 in",38,12.68,0.42,false
+5.74,TRANSITION,FIRST,LIVE,0.03,0.01,359.77,0.00,0.00,0.00,1180.00,1180.00,1.00,1.00,true,UP,"Stable UP, 53.0 in",38,12.28,0.28,false
+5.87,SAMPLE,FIRST,LIVE,0.03,0.02,359.76,0.00,0.00,0.00,1180.00,1180.00,1.00,1.00,true,UP,"Stable UP, 53.1 in",38,12.35,0.34,false
+5.97,SAMPLE,FIRST,LIVE,0.03,0.02,359.76,0.00,0.00,0.00,1180.00,1160.00,1.00,1.00,true,UP,"Stable UP, 52.8 in",38,12.38,0.38,false
+6.08,SAMPLE,FIRST,LIVE,0.04,0.02,359.76,0.00,0.00,0.00,1180.00,1060.00,1.00,1.00,true,UP,"Stable UP, 53.1 in",38,12.16,1.96,false
+6.19,SAMPLE,FIRST,LIVE,0.04,0.02,359.76,0.00,0.00,0.00,1180.00,1120.00,1.00,1.00,true,UP,"Stable UP, 53.0 in",38,12.27,1.34,false
+6.27,TRANSITION,FIRST,LIVE,0.03,0.01,359.77,0.00,0.00,0.00,1180.00,1000.00,1.00,1.00,true,UNKNOWN,Tags disagree/outside bands: 52.5-56.5 in (mean 53.8),38,12.07,2.43,false
+6.39,SAMPLE,FIRST,LIVE,0.03,0.02,359.78,0.00,0.00,0.00,1180.00,1080.00,1.00,1.00,true,UNKNOWN,"Confirming UP, 53.0 in",38,12.19,1.93,false
+6.50,SAMPLE,FIRST,LIVE,0.03,0.02,359.79,0.00,0.00,0.00,1180.00,1100.00,1.00,1.00,true,UNKNOWN,"Confirming UP, 53.1 in",38,12.25,1.23,false
+6.57,TRANSITION,FIRST,LIVE,0.03,0.02,359.78,0.00,0.00,0.00,1180.00,1120.00,1.00,1.00,true,UP,"Stable UP, 53.2 in",38,12.34,0.83,false
+6.67,SAMPLE,FIRST,LIVE,0.03,0.02,359.80,0.00,0.00,0.00,1180.00,1040.00,1.00,1.00,true,UP,"Stable UP, 53.1 in",38,12.25,1.92,false
+6.76,TRANSITION,FIRST,LIVE,0.04,0.02,359.78,0.00,0.00,0.00,1180.00,1080.00,1.00,1.00,true,UNKNOWN,Tags disagree/outside bands: 52.8-53.9 in (mean 53.3),38,12.20,1.86,false
+6.90,SAMPLE,FIRST,LIVE,0.03,0.02,359.78,0.00,0.00,0.00,1180.00,1120.00,1.00,1.00,true,UNKNOWN,"Confirming UP, 53.2 in",38,12.31,1.09,false
+7.01,SAMPLE,FIRST,LIVE,0.03,0.02,359.78,0.00,0.00,0.00,1180.00,1140.00,1.00,1.00,true,UNKNOWN,"Confirming UP, 53.1 in",38,12.33,1.01,false
+7.09,TRANSITION,FIRST,LIVE,0.03,0.02,359.79,0.00,0.00,0.00,1180.00,1160.00,1.00,1.00,true,UP,"Stable UP, 53.1 in",38,12.35,0.66,false
+7.21,TRANSITION,FIRST,LIVE,0.03,0.02,359.78,0.00,0.00,0.00,1180.00,1160.00,1.00,1.00,true,UNKNOWN,Tags disagree/outside bands: 52.6-53.8 in (mean 53.2),38,12.35,0.65,false
+7.33,SAMPLE,FIRST,LIVE,0.03,0.02,359.78,0.00,0.00,0.00,1180.00,1100.00,1.00,1.00,true,UNKNOWN,Tags disagree/outside bands: 53.0-53.7 in (mean 53.2),38,12.35,0.94,false
+7.45,SAMPLE,FIRST,LIVE,0.03,0.02,359.79,0.00,0.00,0.00,1180.00,1060.00,1.00,1.00,true,UNKNOWN,Tags disagree/outside bands: 52.8-56.7 in (mean 54.0),38,12.21,1.98,false
+7.55,SAMPLE,FIRST,LIVE,0.03,0.02,359.78,0.00,0.00,0.00,1180.00,1100.00,1.00,1.00,true,UNKNOWN,Tags disagree/outside bands: 52.2-53.8 in (mean 52.9),38,12.31,1.30,false
+7.67,SAMPLE,FIRST,LIVE,0.03,0.02,359.78,0.00,0.00,0.00,1180.00,1140.00,1.00,1.00,true,UNKNOWN,Tags disagree/outside bands: 51.7-53.8 in (mean 52.8),38,12.35,1.04,false
+7.77,SAMPLE,FIRST,LIVE,0.03,0.02,359.77,0.00,0.00,0.00,1180.00,1140.00,1.00,1.00,true,UNKNOWN,Waiting for new camera frame,38,12.40,0.55,false
+7.90,SAMPLE,FIRST,LIVE,0.03,0.02,359.78,0.00,0.00,0.00,1180.00,1160.00,1.00,1.00,true,UNKNOWN,Tags disagree/outside bands: 52.4-53.7 in (mean 53.1),38,12.41,0.54,false
+8.02,SAMPLE,FIRST,LIVE,0.03,0.02,359.77,0.00,0.00,0.00,1180.00,1180.00,1.00,1.00,true,UNKNOWN,Tags disagree/outside bands: 51.8-53.9 in (mean 52.9),38,12.42,0.52,false
+8.12,SAMPLE,FIRST,LIVE,0.03,0.02,359.78,0.00,0.00,0.00,1180.00,1160.00,1.00,1.00,true,UNKNOWN,Tags disagree/outside bands: 51.8-53.9 in (mean 52.9),38,12.42,0.50,false
+8.24,SAMPLE,FIRST,LIVE,0.03,0.02,359.77,0.00,0.00,0.00,1180.00,1160.00,1.00,1.00,true,UNKNOWN,Tags disagree/outside bands: 51.8-53.8 in (mean 52.9),38,12.43,0.40,false
+8.36,SAMPLE,FIRST,LIVE,0.03,0.02,359.77,0.00,0.00,0.00,1180.00,1180.00,1.00,1.00,true,UNKNOWN,Tags disagree/outside bands: 52.0-53.8 in (mean 52.9),38,12.41,0.49,false
+8.49,SAMPLE,FIRST,LIVE,0.03,0.02,359.76,0.00,0.00,0.00,1180.00,1160.00,1.00,1.00,true,UNKNOWN,Tags disagree/outside bands: 51.9-53.8 in (mean 52.9),38,12.44,0.40,false
+8.59,SAMPLE,FIRST,LIVE,0.03,0.02,359.76,0.00,0.00,0.00,1180.00,1180.00,1.00,1.00,true,UNKNOWN,Tags disagree/outside bands: 52.4-53.8 in (mean 53.1),38,12.44,0.40,false
+8.69,SAMPLE,FIRST,LIVE,0.03,0.02,359.76,0.00,0.00,0.00,1180.00,1180.00,1.00,1.00,true,UNKNOWN,Tags disagree/outside bands: 52.5-53.8 in (mean 53.1),38,12.41,0.47,false
+8.77,TRANSITION,OUTBOUND: ,LIVE,0.03,0.02,359.75,0.00,0.00,0.00,1180.00,1160.00,0.00,1.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.45,0.47,true
+8.87,TRANSITION,OUTBOUND: CLEAR END WALL,LIVE,0.03,0.02,359.76,0.08,0.00,0.00,1180.00,1180.00,0.00,1.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.45,0.44,true
+8.98,SAMPLE,OUTBOUND: CLEAR END WALL,LIVE,0.04,0.02,359.70,0.29,0.00,-0.01,1180.00,1180.00,0.00,1.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.12,0.33,true
+9.08,SAMPLE,OUTBOUND: CLEAR END WALL,LIVE,0.59,0.01,359.99,0.50,0.00,0.00,1180.00,1180.00,0.00,1.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,11.70,0.30,true
+9.19,SAMPLE,OUTBOUND: CLEAR END WALL,LIVE,2.35,0.02,0.46,0.60,0.01,0.01,1180.00,1160.00,0.00,1.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,11.68,0.30,true
+9.29,SAMPLE,OUTBOUND: CLEAR END WALL,LIVE,4.99,0.04,0.58,0.45,0.01,0.01,1180.00,1160.00,0.00,1.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.26,0.47,true
+9.42,SAMPLE,OUTBOUND: CLEAR END WALL,LIVE,8.71,0.05,0.44,0.25,0.00,0.01,1180.00,1160.00,0.00,1.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.44,0.43,true
+9.54,SAMPLE,OUTBOUND: CLEAR END WALL,LIVE,11.69,0.06,0.38,0.00,0.00,0.01,1180.00,1160.00,0.00,1.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.47,0.40,true
+9.64,SAMPLE,OUTBOUND: CLEAR END WALL,LIVE,13.35,0.05,356.91,0.00,0.00,-0.05,1180.00,1180.00,0.00,1.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.42,0.49,true
+9.74,SAMPLE,OUTBOUND: CLEAR END WALL,LIVE,14.09,0.04,357.66,0.00,0.00,0.00,1180.00,1160.00,0.00,1.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.47,0.51,true
+9.84,TRANSITION,OUTBOUND: ALIGN WITH FLOWER,LIVE,14.25,0.02,358.30,0.00,0.08,-0.03,1180.00,1180.00,0.00,1.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.48,0.39,true
+9.95,SAMPLE,OUTBOUND: ALIGN WITH FLOWER,LIVE,14.18,-0.02,358.59,0.01,0.30,-0.02,1180.00,1180.00,0.00,1.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.16,0.40,true
+10.07,SAMPLE,OUTBOUND: ALIGN WITH FLOWER,LIVE,14.17,-0.75,359.52,0.01,0.54,-0.01,1180.00,1160.00,0.00,1.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,11.71,0.30,true
+10.17,SAMPLE,OUTBOUND: ALIGN WITH FLOWER,LIVE,14.19,-2.27,0.16,0.01,0.58,0.00,1180.00,1160.00,0.00,1.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,11.75,0.29,true
+10.28,SAMPLE,OUTBOUND: ALIGN WITH FLOWER,LIVE,14.20,-4.45,0.40,0.01,0.47,0.01,1180.00,1160.00,0.00,1.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.08,0.43,true
+10.38,SAMPLE,OUTBOUND: ALIGN WITH FLOWER,LIVE,14.19,-6.87,0.28,0.01,0.35,0.00,1180.00,1160.00,0.00,1.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.32,0.50,true
+10.49,SAMPLE,OUTBOUND: ALIGN WITH FLOWER,LIVE,14.20,-9.18,0.13,0.01,0.24,0.00,1180.00,1160.00,0.00,1.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.41,0.52,true
+10.60,SAMPLE,OUTBOUND: ALIGN WITH FLOWER,LIVE,14.20,-10.74,359.97,0.01,0.16,0.00,1180.00,1180.00,0.00,1.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.44,0.52,true
+10.70,SAMPLE,OUTBOUND: ALIGN WITH FLOWER,LIVE,14.20,-11.84,359.85,0.02,0.13,0.00,1180.00,1160.00,0.00,1.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.47,0.38,true
+10.82,SAMPLE,OUTBOUND: ALIGN WITH FLOWER,LIVE,14.24,-12.45,359.73,0.02,0.13,0.00,1180.00,1160.00,0.00,1.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.42,0.39,true
+10.93,SAMPLE,OUTBOUND: ALIGN WITH FLOWER,LIVE,14.33,-12.74,359.85,0.01,0.11,0.00,1180.00,1160.00,0.00,1.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.42,0.39,true
+11.03,SAMPLE,OUTBOUND: ALIGN WITH FLOWER,LIVE,14.40,-12.91,359.96,0.00,0.00,0.00,1180.00,1160.00,0.00,1.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.41,0.49,true
+11.10,TRANSITION,FLOWER: ,LIVE,14.43,-12.93,359.85,0.00,0.00,0.00,1180.00,1160.00,0.00,1.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.50,0.39,true
+11.16,TRANSITION,FLOWER: Lower drainer,LIVE,14.43,-12.92,359.88,0.00,0.00,0.00,1180.00,1160.00,1.00,1.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,11.11,0.30,true
+11.27,SAMPLE,FLOWER: Lower drainer,LIVE,14.43,-12.92,359.88,0.00,0.00,0.00,1180.00,1160.00,1.00,1.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.26,0.39,true
+11.38,SAMPLE,FLOWER: Lower drainer,LIVE,14.43,-12.92,359.87,0.00,0.00,0.00,1180.00,1160.00,1.00,1.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.36,0.43,true
+11.49,SAMPLE,FLOWER: Lower drainer,LIVE,14.43,-12.92,359.87,0.00,0.00,0.00,1180.00,1160.00,1.00,1.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.41,0.48,true
+11.60,TRANSITION,FLOWER: Approach flower,LIVE,14.41,-12.91,359.78,-0.08,0.00,0.00,1180.00,1180.00,1.00,1.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.38,0.48,true
+11.72,SAMPLE,FLOWER: Approach flower,LIVE,14.33,-12.90,359.74,-0.30,0.00,0.00,1180.00,1180.00,1.00,1.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.03,0.36,true
+11.83,SAMPLE,FLOWER: Approach flower,LIVE,13.50,-12.89,359.78,-0.30,0.00,0.00,0.00,1180.00,1.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.27,0.04,false
+11.94,SAMPLE,FLOWER: Approach flower,LIVE,12.12,-12.90,359.95,-0.30,0.00,0.00,0.00,1140.00,1.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.38,0.00,false
+12.04,SAMPLE,FLOWER: Approach flower,LIVE,10.49,-12.90,359.97,-0.28,0.00,0.00,0.00,1140.00,1.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.45,0.00,false
+12.15,SAMPLE,FLOWER: Approach flower,LIVE,8.98,-12.92,360.00,-0.19,0.00,0.00,0.00,1120.00,1.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.50,0.01,false
+12.26,SAMPLE,FLOWER: Approach flower,LIVE,7.66,-12.91,359.94,0.00,0.00,0.00,0.00,1100.00,1.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.55,0.00,false
+12.38,SAMPLE,FLOWER: Approach flower,LIVE,7.53,-12.88,0.22,-0.23,0.01,0.00,0.00,1100.00,1.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.26,0.00,false
+12.48,SAMPLE,FLOWER: Approach flower,LIVE,7.46,-12.89,0.27,-0.23,0.01,0.00,0.00,1080.00,1.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.28,0.00,false
+12.58,SAMPLE,FLOWER: Approach flower,LIVE,7.45,-12.89,0.29,-0.23,0.01,0.01,0.00,1040.00,1.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.28,0.00,false
+12.70,SAMPLE,FLOWER: Approach flower,LIVE,7.45,-12.89,0.28,-0.22,0.01,0.00,0.00,1020.00,1.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.26,0.00,false
+12.81,SAMPLE,FLOWER: Approach flower,LIVE,7.45,-12.89,0.27,-0.23,0.01,0.00,0.00,1020.00,1.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.25,0.00,false
+12.91,SAMPLE,FLOWER: Approach flower,LIVE,7.46,-12.89,0.30,-0.23,0.01,0.01,0.00,1000.00,1.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.26,0.00,false
+13.03,SAMPLE,FLOWER: Approach flower,LIVE,7.46,-12.89,0.27,-0.23,0.01,0.00,0.00,1000.00,1.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.26,0.00,false
+13.12,TRANSITION,FLOWER: Left 1,LIVE,7.46,-12.89,0.28,0.00,0.08,0.00,0.00,980.00,1.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.51,0.00,false
+13.24,SAMPLE,FLOWER: Left 1,LIVE,7.51,-12.96,0.22,-0.02,0.53,0.00,0.00,960.00,1.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,11.49,0.00,false
+13.34,SAMPLE,FLOWER: Left 1,LIVE,7.57,-13.84,359.85,0.00,0.00,0.00,0.00,940.00,1.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.48,0.00,false
+13.45,SAMPLE,FLOWER: Left 1,LIVE,7.60,-14.63,0.49,0.00,0.00,0.01,0.00,940.00,1.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.55,0.00,false
+13.54,TRANSITION,FLOWER: Right 1,LIVE,7.61,-14.64,0.59,0.00,-0.08,0.01,0.00,920.00,1.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.52,0.00,false
+13.64,SAMPLE,FLOWER: Right 1,LIVE,7.61,-14.58,0.46,-0.02,-0.49,0.01,0.00,920.00,1.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,11.97,0.00,false
+13.75,SAMPLE,FLOWER: Right 1,LIVE,7.59,-13.64,359.97,-0.02,-0.35,0.00,0.00,900.00,1.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,11.82,0.00,false
+13.86,SAMPLE,FLOWER: Right 1,LIVE,7.61,-11.99,0.16,0.00,0.00,0.00,0.00,880.00,1.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.51,0.00,false
+13.96,SAMPLE,FLOWER: Right 1,LIVE,7.67,-11.07,359.05,0.00,0.00,-0.02,0.00,860.00,1.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.54,0.00,false
+14.05,TRANSITION,FLOWER: Left 2,LIVE,7.72,-11.01,359.45,-0.01,0.08,-0.01,0.00,860.00,1.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.52,0.00,false
+14.16,SAMPLE,FLOWER: Left 2,LIVE,7.68,-11.10,359.50,-0.03,0.51,-0.01,0.00,840.00,1.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,11.69,0.00,false
+14.28,SAMPLE,FLOWER: Left 2,LIVE,7.63,-12.24,0.29,-0.02,0.22,0.01,0.00,820.00,1.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.22,0.00,false
+14.39,SAMPLE,FLOWER: Left 2,LIVE,7.59,-13.94,0.17,0.00,0.00,0.00,0.00,800.00,1.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.53,0.00,false
+14.50,SAMPLE,FLOWER: Left 2,LIVE,7.62,-14.68,357.94,0.00,0.00,-0.15,0.00,800.00,1.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.52,0.00,false
+14.58,TRANSITION,FLOWER: Right 2,LIVE,7.68,-14.73,358.56,-0.01,-0.08,-0.03,0.00,780.00,1.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.30,0.00,false
+14.69,SAMPLE,FLOWER: Right 2,LIVE,7.67,-14.62,359.28,-0.04,-0.52,-0.01,0.00,760.00,1.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,10.93,0.00,false
+14.79,SAMPLE,FLOWER: Right 2,LIVE,7.64,-13.66,359.56,-0.03,-0.40,-0.01,0.00,740.00,1.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,11.13,0.00,false
+14.89,SAMPLE,FLOWER: Right 2,LIVE,7.61,-11.99,0.12,0.00,0.00,0.00,0.00,740.00,1.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.50,0.00,false
+15.00,SAMPLE,FLOWER: Right 2,LIVE,7.70,-10.94,1.07,0.00,0.00,0.02,0.00,720.00,1.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.13,0.00,false
+15.10,TRANSITION,FLOWER: Center drainer,LIVE,7.70,-10.81,0.17,-0.01,0.08,0.00,0.00,700.00,1.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,11.89,0.00,false
+15.21,SAMPLE,FLOWER: Center drainer,LIVE,7.70,-10.88,0.33,-0.06,0.48,0.01,0.00,700.00,1.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,11.25,0.00,false
+15.32,SAMPLE,FLOWER: Center drainer,LIVE,7.62,-11.69,0.66,0.00,0.00,0.01,0.00,700.00,1.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.23,0.00,false
+15.43,SAMPLE,FLOWER: Center drainer,LIVE,7.64,-12.57,358.97,0.00,0.00,-0.02,0.00,680.00,1.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.50,0.00,false
+15.52,TRANSITION,FLOWER: WITHDRAW,LIVE,7.69,-12.59,359.18,0.00,0.00,0.00,0.00,680.00,1.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.53,0.00,false
+15.58,TRANSITION,FLOWER: Withdraw drainer,LIVE,7.70,-12.57,359.22,0.08,0.00,-0.01,0.00,660.00,1.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.51,0.00,false
+15.68,SAMPLE,FLOWER: Withdraw drainer,LIVE,7.75,-12.57,359.31,0.29,0.00,-0.01,0.00,640.00,1.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.14,0.00,false
+15.80,SAMPLE,FLOWER: Withdraw drainer,LIVE,8.71,-12.54,359.84,0.40,0.00,0.00,0.00,640.00,1.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.04,0.00,false
+15.92,SAMPLE,FLOWER: Withdraw drainer,LIVE,10.58,-12.53,0.00,0.25,0.00,0.00,0.00,620.00,1.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.46,0.00,false
+16.03,SAMPLE,FLOWER: Withdraw drainer,LIVE,12.46,-12.53,359.97,0.00,0.00,0.00,0.00,600.00,1.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.52,0.00,false
+16.13,SAMPLE,FLOWER: Withdraw drainer,LIVE,13.74,-12.53,0.97,0.00,0.00,0.02,0.00,600.00,1.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.52,0.00,false
+16.24,SAMPLE,FLOWER: Withdraw drainer,LIVE,14.28,-12.53,359.90,0.00,0.00,0.00,0.00,580.00,1.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.54,0.00,false
+16.36,TRANSITION,FLOWER: CLEANUP,LIVE,14.45,-12.53,0.06,0.00,0.00,0.00,0.00,580.00,1.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.56,0.00,false
+16.42,TRANSITION,FLOWER: Ingest forward 1,LIVE,14.43,-12.53,0.07,-0.08,0.00,0.00,0.00,560.00,1.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.53,0.00,false
+16.52,SAMPLE,FLOWER: Ingest forward 1,LIVE,14.36,-12.53,0.07,-0.29,0.01,0.00,0.00,540.00,1.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.20,0.00,false
+16.63,SAMPLE,FLOWER: Ingest forward 1,LIVE,13.75,-12.52,0.02,-0.12,0.00,0.00,0.00,540.00,1.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.33,0.00,false
+16.75,SAMPLE,FLOWER: Ingest forward 1,LIVE,12.82,-12.51,0.09,0.00,0.00,0.00,0.00,520.00,1.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.19,0.00,false
+16.86,SAMPLE,FLOWER: Ingest forward 1,LIVE,12.46,-12.49,359.80,0.00,0.00,0.00,0.00,520.00,1.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,11.57,0.00,false
+16.93,TRANSITION,FLOWER: Back out 1,LIVE,12.42,-12.50,359.74,0.08,0.00,0.00,0.00,500.00,1.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.03,0.00,false
+17.04,SAMPLE,FLOWER: Back out 1,LIVE,12.51,-12.50,359.91,0.28,0.01,0.00,0.00,500.00,1.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.09,0.00,false
+17.15,SAMPLE,FLOWER: Back out 1,LIVE,13.22,-12.52,0.12,0.08,0.00,0.00,0.00,480.00,1.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.50,0.00,false
+17.26,SAMPLE,FLOWER: Back out 1,LIVE,14.15,-12.52,0.12,0.00,0.00,0.00,0.00,480.00,1.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.55,0.00,false
+17.36,SAMPLE,FLOWER: Back out 1,LIVE,14.50,-12.51,359.49,0.00,0.00,-0.01,0.00,460.00,1.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.55,0.00,false
+17.44,TRANSITION,FLOWER: Finish ingesting,LIVE,14.53,-12.52,359.75,0.00,0.00,0.00,0.00,460.00,1.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.56,0.00,false
+17.55,SAMPLE,FLOWER: Finish ingesting,LIVE,14.50,-12.52,359.79,0.00,0.00,0.00,0.00,440.00,1.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.56,0.00,false
+17.65,SAMPLE,FLOWER: Finish ingesting,LIVE,14.49,-12.52,359.80,0.00,0.00,0.00,0.00,440.00,1.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.56,0.00,false
+17.77,SAMPLE,FLOWER: Finish ingesting,LIVE,14.49,-12.51,359.81,0.00,0.00,0.00,0.00,440.00,1.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.57,0.00,false
+17.89,SAMPLE,FLOWER: Finish ingesting,LIVE,14.49,-12.51,359.81,0.00,0.00,0.00,0.00,420.00,1.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.56,0.00,false
+17.99,SAMPLE,FLOWER: Finish ingesting,LIVE,14.49,-12.51,359.81,0.00,0.00,0.00,0.00,400.00,1.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.56,0.00,false
+18.09,SAMPLE,FLOWER: Finish ingesting,LIVE,14.49,-12.51,359.81,0.00,0.00,0.00,0.00,400.00,1.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.55,0.00,false
+18.21,SAMPLE,FLOWER: Finish ingesting,LIVE,14.49,-12.51,359.81,0.00,0.00,0.00,0.00,400.00,1.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.57,0.00,false
+18.31,SAMPLE,FLOWER: Finish ingesting,LIVE,14.49,-12.51,359.81,0.00,0.00,0.00,0.00,380.00,1.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.57,0.00,false
+18.43,SAMPLE,FLOWER: Finish ingesting,LIVE,14.49,-12.51,359.81,0.00,0.00,0.00,0.00,360.00,1.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.57,0.00,false
+18.51,TRANSITION,RETURN: ,LIVE,14.49,-12.51,359.81,0.00,0.00,0.00,1180.00,360.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,11.48,3.33,false
+18.58,TRANSITION,RETURN: CLEAR COLLECTION SITE,LIVE,14.49,-12.51,359.82,0.00,0.00,0.00,1180.00,460.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,10.96,7.48,false
+18.66,TRANSITION,RETURN: RETURN ACROSS,LIVE,14.50,-12.52,359.84,0.00,-0.08,0.00,1180.00,680.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,10.98,6.89,false
+18.77,SAMPLE,RETURN: RETURN ACROSS,LIVE,14.48,-12.49,359.77,0.00,-0.30,0.00,1180.00,900.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,11.13,4.86,false
+18.88,SAMPLE,RETURN: RETURN ACROSS,LIVE,14.48,-12.02,0.12,0.00,-0.52,0.00,1180.00,1000.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,11.21,2.69,false
+18.99,SAMPLE,RETURN: RETURN ACROSS,LIVE,14.44,-10.57,0.02,0.00,-0.56,0.00,1180.00,1060.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,11.55,1.61,false
+19.11,SAMPLE,RETURN: RETURN ACROSS,LIVE,14.41,-8.17,359.96,0.00,-0.44,0.00,1180.00,1100.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.14,1.24,false
+19.23,SAMPLE,RETURN: RETURN ACROSS,LIVE,14.48,-5.52,0.10,0.00,-0.32,0.00,1180.00,1140.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.38,0.83,false
+19.34,SAMPLE,RETURN: RETURN ACROSS,LIVE,14.54,-3.58,0.26,0.00,-0.22,0.00,1180.00,1140.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.46,0.73,false
+19.45,SAMPLE,RETURN: RETURN ACROSS,LIVE,14.55,-2.22,0.47,0.00,-0.15,0.01,1180.00,1160.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.51,0.70,false
+19.56,SAMPLE,RETURN: RETURN ACROSS,LIVE,14.53,-1.31,0.47,0.00,-0.12,0.01,1180.00,1160.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.52,0.56,false
+19.67,SAMPLE,RETURN: RETURN ACROSS,LIVE,14.49,-0.87,0.29,0.00,-0.12,0.01,1180.00,1160.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.48,0.53,false
+19.77,SAMPLE,RETURN: RETURN ACROSS,LIVE,14.48,-0.63,0.11,0.00,-0.12,0.00,1180.00,1160.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.47,0.49,false
+19.89,TRANSITION,RETURN: RETURN SHOOT POSITION,LIVE,14.49,-0.47,0.00,-0.08,0.00,0.00,1180.00,1160.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.55,0.41,false
+19.99,SAMPLE,RETURN: RETURN SHOOT POSITION,LIVE,14.44,-0.46,359.95,-0.28,-0.01,0.00,1180.00,1180.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.26,0.35,false
+20.10,SAMPLE,RETURN: RETURN SHOOT POSITION,LIVE,13.63,-0.47,359.75,-0.51,-0.02,0.00,1180.00,1180.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,11.83,0.26,false
+20.21,SAMPLE,RETURN: RETURN SHOOT POSITION,LIVE,11.57,-0.42,359.83,-0.57,-0.02,0.00,1180.00,1160.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,11.82,0.35,false
+20.33,SAMPLE,RETURN: RETURN SHOOT POSITION,LIVE,8.29,-0.35,359.96,-0.40,-0.02,0.00,1180.00,1160.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.45,0.41,false
+20.45,SAMPLE,RETURN: RETURN SHOOT POSITION,LIVE,5.06,-0.32,0.02,-0.21,-0.01,0.00,1180.00,1180.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.51,0.48,false
+20.56,SAMPLE,RETURN: RETURN SHOOT POSITION,LIVE,2.25,-0.30,0.05,0.00,0.00,0.00,1180.00,1160.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.53,0.43,false
+20.68,SAMPLE,RETURN: RETURN SHOOT POSITION,LIVE,0.81,-0.18,1.75,-0.11,-0.03,0.03,1180.00,1180.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.48,0.41,false
+20.79,SAMPLE,RETURN: RETURN SHOOT POSITION,LIVE,0.90,-0.15,1.65,-0.18,-0.03,0.03,1180.00,1160.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.34,0.37,false
+20.89,SAMPLE,RETURN: RETURN SHOOT POSITION,LIVE,0.82,-0.11,2.06,-0.18,-0.03,0.04,1180.00,1180.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.34,0.47,false
+21.01,SAMPLE,RETURN: RETURN SHOOT POSITION,LIVE,0.83,-0.11,2.07,-0.18,-0.03,0.04,1180.00,1160.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.30,0.40,false
+21.12,SAMPLE,RETURN: RETURN SHOOT POSITION,LIVE,0.83,-0.10,2.06,-0.18,-0.03,0.04,1180.00,1180.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.28,0.41,false
+21.23,SAMPLE,RETURN: RETURN SHOOT POSITION,LIVE,0.83,-0.10,2.06,-0.18,-0.03,0.04,1180.00,1180.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.28,0.45,false
+21.33,SAMPLE,RETURN: RETURN SHOOT POSITION,LIVE,0.83,-0.10,2.06,-0.18,-0.03,0.04,1180.00,1160.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.28,0.46,false
+21.44,SAMPLE,RETURN: RETURN SHOOT POSITION,LIVE,0.83,-0.10,2.06,-0.18,-0.03,0.04,1180.00,1180.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.30,0.46,false
+21.54,SAMPLE,RETURN: RETURN SHOOT POSITION,LIVE,0.83,-0.10,2.06,-0.18,-0.03,0.04,1180.00,1180.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.30,0.35,false
+21.64,SAMPLE,RETURN: RETURN SHOOT POSITION,LIVE,0.83,-0.10,2.06,-0.18,-0.03,0.04,1180.00,1180.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.28,0.35,false
+21.75,SAMPLE,RETURN: RETURN SHOOT POSITION,LIVE,0.82,-0.10,2.06,-0.18,-0.03,0.04,1180.00,1160.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.24,0.46,false
+21.86,SAMPLE,RETURN: RETURN SHOOT POSITION,LIVE,0.82,-0.10,2.06,-0.18,-0.03,0.04,1180.00,1180.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.26,0.40,false
+21.96,SAMPLE,RETURN: RETURN SHOOT POSITION,LIVE,0.82,-0.10,2.05,-0.18,-0.03,0.04,1180.00,1160.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.25,0.46,false
+22.06,SAMPLE,RETURN: RETURN SHOOT POSITION,LIVE,0.82,-0.10,2.05,-0.18,-0.03,0.04,1180.00,1160.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.27,0.40,false
+22.17,SAMPLE,RETURN: RETURN SHOOT POSITION,LIVE,0.82,-0.10,2.06,-0.18,-0.03,0.04,1180.00,1160.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.27,0.37,false
+22.29,SAMPLE,RETURN: RETURN SHOOT POSITION,LIVE,0.82,-0.10,2.06,-0.18,-0.03,0.04,1180.00,1180.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.27,0.46,false
+22.39,SAMPLE,RETURN: RETURN SHOOT POSITION,LIVE,0.82,-0.10,2.05,-0.18,-0.03,0.04,1180.00,1160.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.25,0.46,false
+22.50,SAMPLE,RETURN: RETURN SHOOT POSITION,LIVE,0.83,-0.10,2.05,-0.18,-0.03,0.04,1180.00,1160.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.28,0.44,false
+22.62,SAMPLE,RETURN: RETURN SHOOT POSITION,LIVE,0.82,-0.10,2.05,-0.18,-0.03,0.04,1180.00,1160.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.26,0.40,false
+22.72,SAMPLE,RETURN: RETURN SHOOT POSITION,LIVE,0.82,-0.10,2.06,-0.18,-0.03,0.04,1180.00,1160.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.25,0.46,false
+22.83,SAMPLE,RETURN: RETURN SHOOT POSITION,LIVE,0.82,-0.10,2.07,-0.18,-0.03,0.04,1180.00,1160.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.25,0.44,false
+22.95,SAMPLE,RETURN: RETURN SHOOT POSITION,LIVE,0.82,-0.10,2.06,-0.18,-0.03,0.04,1180.00,1180.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.25,0.40,false
+23.07,SAMPLE,RETURN: RETURN SHOOT POSITION,LIVE,0.82,-0.10,2.06,-0.18,-0.03,0.04,1180.00,1160.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.25,0.46,false
+23.20,SAMPLE,RETURN: RETURN SHOOT POSITION,LIVE,0.82,-0.10,2.06,-0.18,-0.03,0.04,1180.00,1180.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.26,0.46,false
+23.30,SAMPLE,RETURN: RETURN SHOOT POSITION,LIVE,0.82,-0.10,2.06,-0.18,-0.03,0.04,1180.00,1180.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.24,0.47,false
+23.40,SAMPLE,RETURN: RETURN SHOOT POSITION,LIVE,0.82,-0.10,2.06,-0.18,-0.03,0.04,1180.00,1180.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.25,0.45,false
+23.51,SAMPLE,RETURN: RETURN SHOOT POSITION,LIVE,0.82,-0.10,2.05,-0.18,-0.03,0.04,1180.00,1160.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.25,0.46,false
+23.62,SAMPLE,RETURN: RETURN SHOOT POSITION,LIVE,0.83,-0.10,2.05,-0.18,-0.03,0.04,1180.00,1160.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.25,0.36,false
+23.73,SAMPLE,RETURN: RETURN SHOOT POSITION,LIVE,0.83,-0.10,2.05,-0.18,-0.03,0.04,1180.00,1160.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.27,0.36,false
+23.84,SAMPLE,RETURN: RETURN SHOOT POSITION,LIVE,0.83,-0.09,2.05,-0.18,-0.03,0.04,1180.00,1160.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.25,0.46,false
+23.94,SAMPLE,RETURN: RETURN SHOOT POSITION,LIVE,0.83,-0.09,2.04,-0.18,-0.03,0.04,1180.00,1160.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.27,0.46,false
+24.05,SAMPLE,RETURN: RETURN SHOOT POSITION,LIVE,0.83,-0.09,2.04,-0.18,-0.03,0.04,1180.00,1160.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.27,0.34,false
+24.16,SAMPLE,RETURN: RETURN SHOOT POSITION,LIVE,0.83,-0.09,2.04,-0.18,-0.03,0.04,1180.00,1180.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.25,0.44,false
+24.27,SAMPLE,RETURN: RETURN SHOOT POSITION,LIVE,0.83,-0.09,2.03,-0.18,-0.03,0.04,1180.00,1160.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.26,0.35,false
+24.38,SAMPLE,RETURN: RETURN SHOOT POSITION,LIVE,0.83,-0.09,2.03,-0.18,-0.03,0.04,1180.00,1160.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.25,0.46,false
+24.49,SAMPLE,RETURN: RETURN SHOOT POSITION,LIVE,0.83,-0.09,2.03,-0.18,-0.03,0.04,1180.00,1180.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.26,0.46,false
+24.61,SAMPLE,RETURN: RETURN SHOOT POSITION,LIVE,0.83,-0.09,2.02,-0.18,-0.03,0.04,1180.00,1160.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.27,0.35,false
+24.71,SAMPLE,RETURN: RETURN SHOOT POSITION,LIVE,0.83,-0.09,2.02,-0.18,-0.03,0.04,1180.00,1160.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.28,0.40,false
+24.82,SAMPLE,RETURN: RETURN SHOOT POSITION,LIVE,0.83,-0.09,2.03,-0.18,-0.03,0.04,1180.00,1160.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.26,0.36,false
+24.92,SAMPLE,RETURN: RETURN SHOOT POSITION,LIVE,0.83,-0.09,2.03,-0.18,-0.03,0.04,1180.00,1160.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.27,0.46,false
+25.04,SAMPLE,RETURN: RETURN SHOOT POSITION,LIVE,0.83,-0.09,2.02,-0.18,-0.03,0.04,1180.00,1160.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.27,0.34,false
+25.15,SAMPLE,RETURN: RETURN SHOOT POSITION,LIVE,0.83,-0.09,2.02,-0.18,-0.03,0.04,1180.00,1180.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.28,0.35,false
+25.26,SAMPLE,RETURN: RETURN SHOOT POSITION,LIVE,0.83,-0.09,2.02,-0.18,-0.03,0.04,1180.00,1160.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.27,0.41,false
+25.37,SAMPLE,RETURN: RETURN SHOOT POSITION,LIVE,0.83,-0.09,2.01,-0.18,-0.03,0.04,1180.00,1160.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.28,0.36,false
+25.49,SAMPLE,RETURN: RETURN SHOOT POSITION,LIVE,0.83,-0.09,2.01,-0.18,-0.03,0.04,1180.00,1160.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.26,0.45,false
+25.56,TRANSITION,PARK: PARK CLEAR,LIVE,0.83,-0.09,2.01,0.08,0.00,0.04,0.00,1180.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.48,0.49,false
+25.67,SAMPLE,PARK: PARK CLEAR,LIVE,1.01,-0.09,1.95,0.31,0.01,0.03,0.00,1160.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.25,0.01,false
+25.78,SAMPLE,PARK: PARK CLEAR,LIVE,1.86,-0.10,1.34,0.41,0.00,0.02,0.00,1160.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.11,0.00,false
+25.88,SAMPLE,PARK: PARK CLEAR,LIVE,3.63,-0.08,0.98,0.25,0.00,0.02,0.00,1120.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.52,0.00,false
+25.99,SAMPLE,PARK: PARK CLEAR,LIVE,5.63,-0.04,0.64,0.00,0.00,0.01,0.00,1100.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.58,0.00,false
+26.11,SAMPLE,PARK: PARK CLEAR,LIVE,7.05,0.03,358.65,0.00,0.00,-0.02,0.00,1080.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.58,0.00,false
+26.21,SAMPLE,PARK: PARK CLEAR,LIVE,7.49,0.03,359.27,0.08,0.00,-0.01,0.00,1080.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.59,0.00,false
+26.32,SAMPLE,PARK: PARK CLEAR,LIVE,7.67,0.03,359.50,0.00,0.00,-0.01,0.00,1060.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.61,0.00,false
+26.40,TRANSITION,PARK: PARK CORNER,LIVE,7.72,0.02,359.64,0.00,0.00,0.00,0.00,1060.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.62,0.00,false
+26.46,TRANSITION,PARK: PARK,LIVE,7.71,0.02,359.55,0.01,0.08,-0.01,0.00,1040.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.57,0.00,false
+26.58,SAMPLE,PARK: PARK,LIVE,7.68,-0.03,359.74,0.05,0.31,0.00,0.00,1040.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.15,0.00,false
+26.69,SAMPLE,PARK: PARK,LIVE,7.82,-0.67,0.09,0.08,0.53,0.00,0.00,1000.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,11.72,0.00,false
+26.79,SAMPLE,PARK: PARK,LIVE,8.08,-2.17,0.48,0.10,0.74,0.01,0.00,1000.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,11.39,0.00,false
+26.91,SAMPLE,PARK: PARK,LIVE,8.51,-5.03,0.86,0.13,0.98,0.02,0.00,980.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,11.34,0.00,false
+27.02,SAMPLE,PARK: PARK,LIVE,9.06,-8.31,1.08,0.13,0.99,0.02,0.00,960.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,11.61,0.00,false
+27.13,SAMPLE,PARK: PARK,LIVE,9.71,-12.46,1.02,0.13,0.99,0.02,0.00,940.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,11.74,0.00,false
+27.23,SAMPLE,PARK: PARK,LIVE,10.28,-16.54,0.90,0.13,0.96,0.02,0.00,940.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,11.79,0.00,false
+27.33,SAMPLE,PARK: PARK,LIVE,10.90,-20.95,0.65,0.12,0.86,0.01,0.00,920.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,11.87,0.00,false
+27.44,SAMPLE,PARK: PARK,LIVE,11.53,-25.61,0.39,0.11,0.74,0.01,0.00,920.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.21,0.00,false
+27.54,SAMPLE,PARK: PARK,LIVE,12.14,-29.89,0.05,0.10,0.63,0.00,0.00,880.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.38,0.00,false
+27.66,SAMPLE,PARK: PARK,LIVE,12.83,-34.39,359.91,0.08,0.49,0.00,0.00,880.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.48,0.00,false
+27.78,SAMPLE,PARK: PARK,LIVE,13.51,-38.33,359.85,0.05,0.35,0.00,0.00,860.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.52,0.00,false
+27.90,SAMPLE,PARK: PARK,LIVE,14.17,-41.52,359.91,0.02,0.17,0.00,0.00,840.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.58,0.00,false
+28.01,SAMPLE,PARK: PARK,LIVE,14.66,-43.64,359.99,0.00,0.00,0.00,0.00,840.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.59,0.00,false
+28.12,SAMPLE,PARK: PARK,LIVE,15.06,-44.74,1.64,-0.07,0.16,0.03,0.00,820.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.52,0.00,false
+28.23,SAMPLE,PARK: PARK,LIVE,15.08,-45.13,1.56,-0.07,0.11,0.03,0.00,800.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.50,0.00,false
+28.34,SAMPLE,PARK: PARK,LIVE,14.83,-45.38,0.90,-0.04,0.09,0.02,0.00,780.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.56,0.00,false
+28.46,SAMPLE,PARK: PARK,LIVE,14.63,-45.54,0.77,0.00,0.00,0.01,0.00,760.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.59,0.00,false
+28.56,TRANSITION,DONE,LIVE,14.60,-45.52,0.65,0.00,0.00,0.00,0.00,760.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.62,0.00,false
+28.66,SAMPLE,DONE,LIVE,14.63,-45.53,0.70,0.00,0.00,0.00,0.00,740.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.62,0.00,false
+28.78,SAMPLE,DONE,LIVE,14.62,-45.53,0.69,0.00,0.00,0.00,0.00,740.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.62,0.00,false
+28.89,SAMPLE,DONE,LIVE,14.62,-45.53,0.70,0.00,0.00,0.00,0.00,720.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.62,0.00,false
+29.01,SAMPLE,DONE,LIVE,14.62,-45.53,0.70,0.00,0.00,0.00,0.00,700.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.62,0.00,false
+29.12,SAMPLE,DONE,LIVE,14.62,-45.53,0.70,0.00,0.00,0.00,0.00,700.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.63,0.00,false
+29.22,SAMPLE,DONE,LIVE,14.62,-45.53,0.70,0.00,0.00,0.00,0.00,680.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.63,0.00,false
+29.33,SAMPLE,DONE,LIVE,14.62,-45.53,0.70,0.00,0.00,0.00,0.00,680.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.63,0.00,false
+29.43,SAMPLE,DONE,LIVE,14.62,-45.53,0.70,0.00,0.00,0.00,0.00,660.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.62,0.00,false
+29.55,SAMPLE,DONE,LIVE,14.62,-45.53,0.70,0.00,0.00,0.00,0.00,640.00,0.00,0.00,false,UNKNOWN,Tags disagree/outside bands: 52.3-53.9 in (mean 53.1),38,12.63,0.00,false
