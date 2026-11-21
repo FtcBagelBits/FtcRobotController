@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Draw the alliance-partner sheet (docs/POLLEN_PIT_SHEET.svg): our two Match autos. Optional: needs matplotlib.
 Usage: python3 tools/draw-pollen-pit-sheet.py [output.svg|.pdf|.png]
-Routes are the pollen-hive-v44 defaults (unchanged since v38) (tools/pollen_field_drawing.py HIVE_*); times are the
+Routes are the pollen-hive-v46 defaults (unchanged since v38) (tools/pollen_field_drawing.py HIVE_*); times are the
 2026-11-19 practice traces in runs/ (Primary v35-v38, 7 runs; Secondary v35, 2 runs).
 Print the PDF/SVG landscape on letter paper; the engineering plot is docs/POLLEN_FIELD_ROUTES.svg."""
 import os
@@ -92,7 +92,7 @@ lines = [
     ('4 preloads alone will not tip the other cell.', ''),
     ('', ''),
     ('Times measured in our Nov 19 practice (P 7 runs, S 2 runs), build v35-v38.', 's'),
-    ('Routes: pollen-hive-v44 defaults, field CAD v26-27.2, 18 in robot.', 's'),
+    ('Routes: pollen-hive-v46 defaults, field CAD v26-27.2, 18 in robot.', 's'),
 ]
 y = 1.0
 colors = {'hp': P_COL, 'hs': S_COL}

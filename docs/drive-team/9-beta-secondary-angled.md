@@ -66,7 +66,7 @@ then park INNER. Our robot also uses the space 8 in off the wall in front of the
 | --- | --- |
 | Status | `READY` |
 | Row 1 Alliance | `RED scoring-side cell (tags 30-33)` or `BLUE audience-side cell (tags 38-41)` |
-| BUILD / RUN | `pollen-hive-v44` / `MATCH / LIVE` |
+| BUILD / RUN | `pollen-hive-v46` / `MATCH / LIVE` |
 | Plan | `SECONDARY ANGLED: drive to 8.0 in away / -10.5 in left, turn 4.6 deg, ...` |
 | SETTINGS | `all defaults` (or only the change the coach asked for) |
 | Hive cell behind robot | Our cell's name and **DOWN** (it starts down). Not `NO CAMERA`. |
@@ -84,7 +84,7 @@ saved file, separate from the match Secondary). No Execution row: it always runs
 | --- | --- | --- |
 | 1 | Alliance (choose) | Which cell the camera watches. Every INIT. |
 | 2 | Launcher ticks/s (1180) | Flywheel speed, steps of 20. |
-| 3, 4 | Beta flower left-right / forward-back cycles (2, 1) | More gets more pollen out; about 1.4 / 1 s each. |
+| 3, 4 | Beta flower left-right / forward-back cycles (2, 1) | More gets more pollen out; about 1.4 / 1 s each. **Forward-back 0 = flower drain off:** after its shot the robot stays at its shooting spot until park time, then parks. |
 | 5 | Match collection entry left cm (-34.06) | Lines the drainer up with the flower. Only with a programmer, after a miss. |
 | 6 | Match travel and park power (1.00) | Driving speed. |
 | 7, 8 | Beta first / second agitator feed s (3, 3) | Length of each volley. |

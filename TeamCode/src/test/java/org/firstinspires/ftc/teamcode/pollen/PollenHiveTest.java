@@ -572,6 +572,45 @@ public final class PollenHiveTest {
         else { check(firstFeed&&collect,"Primary fires and collects"); check(secondFeed!=tipped,"Second shot respects current hive state"); }
         return finishedAt;
     }
+    /** v46: "Beta flower forward-back cycles" = 0 turns the flower trip off. The secondary waits
+     * for UP, shoots, then stays at its start (drainer up, wheels still) until the park deadline,
+     * then parks. With the default 1 the flower trip still runs. */
+    private static void secondaryFlowerOff() {
+        PollenHiveRoute on=new PollenHiveRoute(true);
+        check(on.values.get("matchFlowerCleanup")==1&&!on.flowerDrainOff(),"Default: flower drain on");
+        PollenHiveRoute primary=new PollenHiveRoute(false);
+        primary.v[primary.values.index("matchFlowerCleanup")]=0;
+        check(!primary.flowerDrainOff(),"The switch is secondary-only");
+        PollenHiveRoute c=new PollenHiveRoute(true);
+        c.v[c.values.index("matchFlowerCleanup")]=0;
+        check(c.flowerDrainOff(),"Forward-back cycles 0 = flower drain off");
+        c.validate(true);
+        double deadline=30-c.collectionParkSeconds()-c.parkMargin();
+        PollenHiveAuto a=new PollenHiveAuto(c,hive()); a.start(0);
+        PollenOdometryTest.SimRobot robot=new PollenOdometryTest.SimRobot();
+        Set<String> phases=new HashSet<>();
+        boolean fed=false; double parkAt=Double.NaN, maxMoveBeforePark=0;
+        PollenHiveAuto.Output o=null;
+        for(int i=1;i<=1501;i++) {
+            double t=i*.02;
+            o=a.tick(t,frame(i,t>=4),robot.x,robot.y,robot.h,1180,true);
+            String phase=o.phase.split(":")[0];
+            phases.add(phase);
+            if(phase.equals("FIRST")) fed|=o.feed;
+            if(phase.equals("PARK")&&Double.isNaN(parkAt)) parkAt=t;
+            if(Double.isNaN(parkAt)) {
+                maxMoveBeforePark=Math.max(maxMoveBeforePark,Math.hypot(robot.x,robot.y));
+                check(!o.drainerDown&&Math.abs(o.forward)+Math.abs(o.strafe)+Math.abs(o.turn)<1e-9,
+                        "Flower off: no drive and no drainer before park ("+o.phase+" at "+t+")");
+            }
+            robot.step(o.forward,o.strafe,o.turn,false,.02);
+            if(o.finished) break;
+        }
+        check(fed&&!phases.contains("OUTBOUND")&&!phases.contains("FLOWER")&&!phases.contains("RETURN")&&!phases.contains("SECOND"),
+                "Flower off: one volley, no flower trip, no return volley: "+phases);
+        check(maxMoveBeforePark<.01&&Math.abs(parkAt-deadline)<.05&&o.finished&&o.reason.equals("Finished departure"),
+                "Flower off: stays at the start until the park deadline ("+deadline+" s), then parks: "+parkAt+" "+o.reason);
+    }
     private static void secondaryFlower(boolean upAfterReturn) {
         PollenHiveRoute c=new PollenHiveRoute(true); c.v[21]=0; c.v[3]=5; // Hub's saved calibration duration
         c.v[c.values.index("collection.intake")]=.85;
@@ -1122,6 +1161,7 @@ public final class PollenHiveTest {
 
     public static void main(String[] args) {
         menuOrder();
+        secondaryFlowerOff();
         matchAllianceSetup();
         classifier(); missesVsContradictions(); unsettledReturnParks(); returnHeadingCorrection(2.07); returnHeadingCorrection(-2.07);
         calibration(); sides(); settings(); routes(); collectionTuning(); secondaryGates(); clearOutAfterVolley(); fastCycle(); returnNudge(); pacedFeed();

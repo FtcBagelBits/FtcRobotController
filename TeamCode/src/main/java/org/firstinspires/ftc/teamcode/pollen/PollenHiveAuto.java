@@ -162,7 +162,8 @@ public final class PollenHiveAuto {
                     // A finished volley may leave balls behind: keep clearing while the robot moves on.
                     if(collectionKind!=null&&feedSeconds>0) startClearOut(now);
                     if(phase==Phase.FIRST&&collectionKind!=null&&feedSeconds>0) {
-                        outbound(now,"First feed duration complete");
+                        if(config.flowerDrainOff()) waitForBetaPark(now,"First feed duration complete; flower drain off (forward-back cycles 0)");
+                        else outbound(now,"First feed duration complete");
                     }
                     else if(collectionKind!=null) waitForBetaPark(now,"Shot complete");
                     else park(now,firstWindow?"No first-shot feed before window ended":"Shot complete");

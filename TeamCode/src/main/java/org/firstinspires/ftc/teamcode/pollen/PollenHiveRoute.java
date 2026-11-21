@@ -293,6 +293,9 @@ public final class PollenHiveRoute {
         return Math.max(v[MATCH_PARK_SECONDS], planned(collectionPark(), shotX(), shotY()));
     }
     double parkMargin() { return v[PARK_MARGIN]; }
+    /** Secondary with "Beta flower forward-back cycles" = 0: no flower trip at all. After its first
+     * volley the robot stays at its shooting position until the park deadline, then parks. */
+    boolean flowerDrainOff() { return secondary&&values.get("matchFlowerCleanup")==0; }
     double cornerParkReserve(double x,double y) {
         Node[] park=cornerPark();
         return planned(park,x,y)+park.length*CORNER_SETTLE_PER_LEG+parkMargin();

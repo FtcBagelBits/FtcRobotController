@@ -5,7 +5,7 @@ For the v8 motion investigation and exact retest order, see [Hive auto diagnosti
 Intermittent tags? Start with the [automatic pipeline benchmark](POLLEN_HIVE_BENCHMARK.md).
 It records raw detections before calibration passes; the current confirmation rule is unchanged.
 
-Build **pollen-hive-v45**.
+Build **pollen-hive-v46**.
 
 If Beta Secondary Shooter - Angled cannot complete its first aim or settle at the
 shot spot, it keeps the four preloads, skips the flower and waits for its park deadline.

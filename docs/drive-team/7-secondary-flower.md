@@ -73,7 +73,7 @@ lane, and park in the **INNER** slot. Show them the partner sheet.
 | --- | --- |
 | Status | `READY` |
 | Row 1 Alliance | `RED scoring-side cell (tags 30-33)` or `BLUE audience-side cell (tags 38-41)` |
-| BUILD / RUN | `pollen-hive-v44` / `MATCH / LIVE` |
+| BUILD / RUN | `pollen-hive-v46` / `MATCH / LIVE` |
 | SETTINGS | `all defaults` (or only the change the coach asked for) |
 | Hive cell behind robot | Our cell's name and **DOWN** (it starts down). Not `NO CAMERA`, and not UNKNOWN for long. |
 | Camera calibration | tilt and lens numbers (not `NOT CALIBRATED`) |
@@ -91,7 +91,7 @@ only if the coach says.** There is no Execution row: every auto always runs LIVE
 | --- | --- | --- |
 | 1 | Alliance (choose) | Which cell the camera watches. Every INIT. |
 | 2 | Launcher ticks/s (1180) | Flywheel speed, steps of 20. |
-| 3, 4 | Beta flower left-right / forward-back cycles (2, 1) | More gets more pollen out; about 1.4 / 1 s each. |
+| 3, 4 | Beta flower left-right / forward-back cycles (2, 1) | More gets more pollen out; about 1.4 / 1 s each. **Forward-back 0 = flower drain off:** after its shot the robot stays at the start until park time (about 25.5 s), then parks. The INIT Plan line says FLOWER DRAIN OFF. |
 | 5 | Match collection entry left cm (-34.06) | Lines the drainer up with the flower. Only with a programmer, after a miss. |
 | 6 | Match travel and park power (1.00) | Driving speed. |
 | 7, 8 | Beta first / second agitator feed s (3, 3) | Length of each volley. These are the Match values. |

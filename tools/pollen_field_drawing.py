@@ -12,7 +12,7 @@ PX = -1 - R  # v43 primary start: robot edge 1 in from the center seam (launcher
 P = [(PX, W - R), (PX, W - R - 10 / IN), (hx - 25, W - R - 10 / IN), (-56, -26)]       # B: shoot first
 S = [(flower_x / 2, -W + R), (flower_x / 2, -W + R + 8), (-56, -47)]                   # C: shoot second
 
-# Match autos (red, inches), from the pollen-hive-v44 defaults (same as v38) in PollenHiveSettings / PollenHiveRoute.
+# Match autos (red, inches), from the pollen-hive-v46 defaults (same as v38) in PollenHiveSettings / PollenHiveRoute.
 # Primary (v43): field X = start - left - (hive-centered rows keep their field points), Z = W - R - forward. Secondary: X = flower_x / 2 + left, Z = -W + R + forward.
 # Primary Shooter + Garden: start, clear the wall (collection entry forward 34 cm), align with the
 # garden (left 108 cm), side-wall then garden-wall contact (the garden corner), back the same way.
