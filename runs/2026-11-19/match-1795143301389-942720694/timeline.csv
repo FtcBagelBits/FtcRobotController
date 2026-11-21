@@ -1,0 +1,21 @@
+t_s,phase,hive_state,feed,reason,x_in,y_in,heading_deg
+0.123,FIRST,UNKNOWN,false,,0.02,-0.00,0.06
+0.870,FIRST,UNKNOWN,true,Feeding primary preload,0.01,-0.00,0.06
+3.868,OUTBOUND:,UNKNOWN,false,First feed duration complete; starting collection trip,0.01,-0.00,0.03
+3.949,OUTBOUND: CLEAR END WALL,UNKNOWN,false,First feed duration complete; starting collection trip,0.01,-0.00,0.03
+4.896,OUTBOUND: ALIGN WITH GARDEN,UNKNOWN,false,First feed duration complete; starting collection trip,13.01,0.06,359.65
+6.793,GARDEN:,UNKNOWN,false,First feed duration complete; starting collection trip,13.57,42.13,0.68
+6.877,GARDEN: Find right wall,UNKNOWN,false,First feed duration complete; starting collection trip,13.53,42.12,0.71
+8.538,GARDEN: GARDEN_IN,UNKNOWN,false,First feed duration complete; starting collection trip,14.48,52.50,3.12
+8.610,GARDEN: Inward pass 1,UNKNOWN,false,First feed duration complete; starting collection trip,14.47,52.45,3.16
+10.981,RETURN:,UNKNOWN,false,Collection complete; returning to shooting position,-2.05,50.57,5.77
+11.048,RETURN: CLEAR COLLECTION SITE,UNKNOWN,false,Collection complete; returning to shooting position,-1.95,50.57,5.85
+12.024,RETURN: RETURN ACROSS,UNKNOWN,false,Collection complete; returning to shooting position,13.56,50.82,358.59
+14.009,RETURN: RETURN SHOOT POSITION,UNKNOWN,false,Collection complete; returning to shooting position,13.33,0.14,0.77
+14.748,ALIGN_SHOT,UNKNOWN,false,Correcting heading to 0.0 degrees,0.24,0.27,2.12
+15.020,SETTLE,UNKNOWN,false,Heading corrected; settling for return shot,-0.71,0.26,0.50
+16.572,PARK_WAIT,UNKNOWN,false,Return pose did not settle; second shot skipped; waiting for park deadline,-0.70,0.26,0.79
+23.618,PARK: PARK CLEAR,UNKNOWN,false,"Park deadline during PARK_WAIT, 6.40 s left",-0.71,0.26,0.88
+24.255,PARK: PARK CORNER,UNKNOWN,false,"Park deadline during PARK_WAIT, 6.40 s left",4.03,0.17,358.74
+25.760,PARK: PARK,UNKNOWN,false,"Park deadline during PARK_WAIT, 6.40 s left",3.92,24.56,0.01
+28.603,DONE,UNKNOWN,false,Finished departure,87.26,43.65,0.99

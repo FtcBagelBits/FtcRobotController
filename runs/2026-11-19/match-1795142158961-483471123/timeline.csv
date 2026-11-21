@@ -1,0 +1,32 @@
+t_s,phase,hive_state,feed,reason,x_in,y_in,heading_deg
+0.139,FIRST,UNKNOWN,false,,0.00,0.00,359.99
+0.947,FIRST,UNKNOWN,true,Feeding primary preload,0.01,0.00,359.93
+3.992,OUTBOUND:,UNKNOWN,false,First feed duration complete; starting collection trip,0.03,0.02,359.73
+4.079,OUTBOUND: CLEAR END WALL,UNKNOWN,false,First feed duration complete; starting collection trip,0.03,0.02,359.72
+5.283,OUTBOUND: ALIGN WITH GARDEN,UNKNOWN,false,First feed duration complete; starting collection trip,13.24,0.02,0.07
+7.054,GARDEN:,UNKNOWN,false,First feed duration complete; starting collection trip,13.38,42.20,359.08
+7.125,GARDEN: Find right wall,UNKNOWN,false,First feed duration complete; starting collection trip,13.39,42.20,358.98
+9.847,GARDEN: GARDEN_IN,UNKNOWN,false,First feed duration complete; starting collection trip,17.45,48.45,6.14
+9.930,GARDEN: Inward pass 1,UNKNOWN,false,First feed duration complete; starting collection trip,17.43,48.36,6.22
+12.426,RETURN:,UNKNOWN,false,Collection complete; returning to shooting position,-4.36,44.91,354.99
+12.506,RETURN: CLEAR COLLECTION SITE,UNKNOWN,false,Collection complete; returning to shooting position,-4.27,44.88,354.84
+13.601,RETURN: RETURN ACROSS,UNKNOWN,false,Collection complete; returning to shooting position,13.79,44.99,358.55
+15.435,RETURN: RETURN SHOOT POSITION,UNKNOWN,false,Collection complete; returning to shooting position,13.24,0.30,0.06
+16.418,SETTLE,UNKNOWN,false,Collection complete; returning to shooting position,-0.18,0.25,359.56
+16.795,SECOND,UNKNOWN,false,Collection complete; returning to shooting position,-0.14,0.26,359.67
+17.260,SECOND,UP,false,Timing confirmed hive UP,-0.13,0.26,359.65
+17.482,SECOND,UNKNOWN,false,Tags disagree/outside bands: 52.1-55.2 in (mean 53.3),-0.13,0.26,359.63
+17.776,SECOND,UP,false,Timing confirmed hive UP,-0.12,0.26,359.61
+18.015,SECOND,UNKNOWN,false,Tags disagree/outside bands: 52.3-55.2 in (mean 53.4),-0.12,0.26,359.59
+18.296,SECOND,UP,false,Timing confirmed hive UP,-0.12,0.26,359.57
+19.309,SECOND,UP,true,Feeding: hive UP latched,-0.11,0.27,359.48
+20.307,SECOND,UNKNOWN,true,Feeding: hive UP latched,-0.10,0.27,359.36
+20.610,SECOND,UP,true,Feeding: hive UP latched,-0.10,0.27,359.42
+21.045,SECOND,UNKNOWN,true,Feeding: hive UP latched,-0.10,0.27,359.40
+21.337,SECOND,UP,true,Feeding: hive UP latched,-0.10,0.27,359.39
+22.333,PARK_WAIT,UP,false,Shot complete; waiting for park deadline,-0.09,0.27,359.32
+22.413,PARK_WAIT,UNKNOWN,false,Shot complete; waiting for park deadline,-0.09,0.27,359.32
+23.572,PARK: PARK CLEAR,UNKNOWN,false,"Park deadline during PARK_WAIT, 6.45 s left",-0.08,0.28,359.20
+24.194,PARK: PARK CORNER,UNKNOWN,false,"Park deadline during PARK_WAIT, 6.45 s left",3.69,0.25,359.89
+25.693,PARK: PARK,UNKNOWN,false,"Park deadline during PARK_WAIT, 6.45 s left",3.95,24.54,359.94
+28.532,DONE,UNKNOWN,false,Finished departure,87.37,43.58,359.99
