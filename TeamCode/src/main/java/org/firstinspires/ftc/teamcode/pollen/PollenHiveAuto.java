@@ -7,6 +7,10 @@ import java.util.Locale;
 public final class PollenHiveAuto {
     private static final double HIVE_UP_BEFORE_VOLLEY_S = 1.0;
     private static final double RETURN_ALIGNMENT_DEG = .75;
+    /** Beta/match return volley: how far from the shot spot still counts as there (inches).
+     * 2026-11-21 v48-v50 primary angled returns stopped 0.40-0.65 in off, and the two past 0.5 in
+     * skipped a loaded volley; 1 in keeps those shots. The first shot keeps 0.5 in. */
+    static final double RETURN_SHOT_TOLERANCE_IN = 1.0;
     private static final double MAX_LOOP_GAP_S = 0.25;
     public enum Run { MATCH, SHOT_ONLY, GARDEN_RETURN }
     /** ROOM = make room: driving to the corner; WAIT = parked in the corner until park time. */
@@ -78,7 +82,8 @@ public final class PollenHiveAuto {
         wasFeeding=false;
         double distanceFromShot=Math.hypot(x-shotX,y-shotY);
         double headingError=Math.toDegrees(PollenOdometryDrive.wrap(h-shotH));
-        boolean atShotPosition=distanceFromShot<=PollenOdometryDrive.POSITION_TOLERANCE_IN;
+        boolean atShotPosition=distanceFromShot<=(collectionKind!=null&&firstShotDone
+                ?RETURN_SHOT_TOLERANCE_IN:PollenOdometryDrive.POSITION_TOLERANCE_IN);
         boolean headingNeedsCorrection=Math.abs(headingError)>PollenOdometryDrive.HEADING_TOLERANCE_DEG;
         boolean atPose=atShotPosition&&!headingNeedsCorrection;
         double speed=dt>0?Math.hypot(x-px,y-py)/dt:Double.POSITIVE_INFINITY;

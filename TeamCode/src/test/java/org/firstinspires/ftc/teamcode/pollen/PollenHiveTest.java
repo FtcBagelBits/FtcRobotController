@@ -933,7 +933,8 @@ public final class PollenHiveTest {
             if(phase.equals("TO_SHOT")&&o.launcher==PollenConfig.LAUNCHER_TARGET_VELOCITY) spunUp=true;
             if(o.phase.startsWith("GARDEN")&&o.intake>0) collect=true;
             if(o.feed) {
-                check(Math.hypot(robot.x-8,robot.y-10.5)<=.5&&Math.abs(PollenOdometryDrive.wrap(robot.h-aim))<=Math.toRadians(2),
+                check(Math.hypot(robot.x-8,robot.y-10.5)<=(o.phase.equals("FIRST")?.5:PollenHiveAuto.RETURN_SHOT_TOLERANCE_IN)
+                        &&Math.abs(PollenOdometryDrive.wrap(robot.h-aim))<=Math.toRadians(2),
                         "Angled volleys only at the spot and aimed: "+robot.x+","+robot.y+","+Math.toDegrees(robot.h)+" at "+t);
                 if(o.phase.equals("FIRST")) firstFeed=true;
                 if(o.phase.equals("SECOND")) secondFeed=true;
@@ -946,6 +947,53 @@ public final class PollenHiveTest {
                 &&order.indexOf("FIRST")>order.indexOf("ALIGN_SHOT"),"Drive, turn, then shoot: "+order);
         check(firstFeed&&collect&&secondFeed&&o.reason.equals("Finished departure"),
                 "Angled primary shoots, drains the garden, shoots again from the spot and parks: "+order+" "+o.reason);
+    }
+    /** v52: the primary angled return stopped 0.58-0.65 in off the spot on the field and skipped a
+     * loaded volley. Within 1 in the return volley fires; further off it is still skipped. */
+    private static void angledPrimaryReturnOff(double offIn,boolean expectShot) {
+        PollenHiveRoute c=new PollenHiveRoute(false,false,false,true);
+        PollenHiveAuto a=new PollenHiveAuto(c,hive()); a.start(0);
+        PollenOdometryTest.SimRobot robot=new PollenOdometryTest.SimRobot();
+        robot.leftLimit=PollenFieldGeometry.END_WALL_INCHES-9+PollenFieldGeometry.PRIMARY_START_X_INCHES;
+        boolean returned=false,shifted=false,secondFeed=false; String skipped="";
+        PollenHiveAuto.Output o=null;
+        for(int i=1;i<=1501;i++) {
+            o=a.tick(i*.02,frame(i,true),robot.x,robot.y,robot.h,o==null?0:o.launcher,true);
+            if(o.phase.startsWith("RETURN")) returned=true;
+            if(returned&&!shifted&&o.phase.equals("SETTLE")) {
+                robot.x-=offIn; robot.vf=0; shifted=true; // stopped short of the spot, as on the field
+            }
+            if(o.phase.equals("SECOND")&&o.feed) secondFeed=true;
+            if(o.reason.startsWith("Return pose did not settle")) skipped=o.reason;
+            robot.step(o.forward,o.strafe,o.turn,false,.02);
+            if(o.finished) break;
+        }
+        check(shifted&&secondFeed==expectShot&&(expectShot||!skipped.isEmpty())&&o.reason.equals("Finished departure"),
+                "Return "+offIn+" in off the spot: second volley="+secondFeed+" (expected "+expectShot+") "+skipped+" "+o.reason);
+    }
+    /** v52: the alliance an auto saves for TeleOp, and Circle aiming only at that alliance. */
+    private static void allianceForTeleOp() {
+        java.util.Properties p=PollenAlliance.toProperties(PollenAlliance.BLUE,1000,"PollenHivePrimaryAngledAuto");
+        PollenAlliance.Saved s=PollenAlliance.parse(p);
+        check(s!=null&&s.side==PollenAlliance.BLUE&&s.wallMs==1000&&s.source.equals("PollenHivePrimaryAngledAuto"),"Alliance round trip");
+        check(s.describe(1000+12*60000).equals("BLUE, from PollenHivePrimaryAngledAuto 12 min ago"),"Alliance age: "+s.describe(1000+12*60000));
+        check(PollenAlliance.parse(new java.util.Properties())==null,"No file content = no alliance");
+        java.util.Properties bad=new java.util.Properties(); bad.setProperty("alliance","GREEN");
+        check(PollenAlliance.parse(bad)==null,"Unknown alliance is ignored");
+        boolean rejected=false; try { PollenAlliance.toProperties(0,1,"x"); } catch(IllegalArgumentException ex) { rejected=true; }
+        check(rejected,"AUTO (detect) is never saved");
+        check(java.util.Arrays.equals(PollenAlliance.cells(1),new int[]{30,34})&&java.util.Arrays.equals(PollenAlliance.cells(2),new int[]{38,42})
+                &&PollenAlliance.cells(0).length==4,"Alliance cells");
+        // A red cell straight ahead, a blue cell 30 in to the side.
+        IsHiveReadyForShot.Frame f=new IsHiveReadyForShot.Frame(1,tag(34,49.7,0,60,M),tag(35,49.7,4,60,M),
+                tag(42,49.7,30,60,M),tag(43,49.7,34,60,M));
+        check(PollenHiveAim.bearing(f,M,0).cluster==34,"Any alliance: nearest cell");
+        check(PollenHiveAim.bearing(f,M,0,PollenAlliance.cells(PollenAlliance.BLUE)).cluster==42,"Blue: aims at the blue cell even if red is nearer");
+        check(PollenHiveAim.bearing(new IsHiveReadyForShot.Frame(2,tag(34,49.7,0,60,M)),M,0,PollenAlliance.cells(PollenAlliance.BLUE))==null,
+                "Blue with only red tags in view: no aim");
+        PollenHiveAim aim=new PollenHiveAim(); aim.setCells(PollenAlliance.cells(PollenAlliance.BLUE));
+        String e=aim.start(0,PollenHiveAim.Source.CAMERA,0,Double.NaN,Double.NaN,false,new IsHiveReadyForShot.Frame(3,tag(34,49.7,0,60,M)),0,M);
+        check(e.startsWith("AIM_REFUSED")&&aim.lastResult().contains("alliance"),"Circle refuses when only the other alliance is in view: "+aim.lastResult());
     }
     /** v41: Beta Secondary Shooter - Angled. Drive to the spot, turn, wait for UP, shoot, flower,
      * back to the spot, shoot again with no camera wait, park straight from the spot. */
@@ -1244,7 +1292,7 @@ public final class PollenHiveTest {
         check(fullPower<priorPower,"Full-power transit improves simulated cycle time");
         primaryCycle(false,true,1); primaryCycle(true,false,1); secondaryFlower(true); secondaryFlower(false);
         slowMatchPark(false, .30); slowMatchPark(true, .20); slowMatchPark(false, .10);
-        lateCollectionAndPark(); parkFromCollectionLane(); parkFinishesReturnLegs(); squaresUpInPlace(); angledPrimary(); angledSecondary(true); angledSecondary(false); angledSecondaryMissesPreload(false); angledSecondaryMissesPreload(true); cameraHeightFromFieldTrace(); motionFaults(); practice(); noCoastGate(); makeRoom();
+        lateCollectionAndPark(); parkFromCollectionLane(); parkFinishesReturnLegs(); squaresUpInPlace(); angledPrimary(); angledPrimaryReturnOff(.65,true); angledPrimaryReturnOff(1.3,false); allianceForTeleOp(); angledSecondary(true); angledSecondary(false); angledSecondaryMissesPreload(false); angledSecondaryMissesPreload(true); cameraHeightFromFieldTrace(); motionFaults(); practice(); noCoastGate(); makeRoom();
         System.out.println("PASS PollenHiveTest: "+checks+" checks");
     }
 }

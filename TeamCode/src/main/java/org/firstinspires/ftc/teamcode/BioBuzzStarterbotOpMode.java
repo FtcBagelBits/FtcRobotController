@@ -40,6 +40,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.teamcode.pollen.IsHiveReadyForShot;
+import org.firstinspires.ftc.teamcode.pollen.PollenAlliance;
 import org.firstinspires.ftc.teamcode.pollen.PollenConfig;
 import org.firstinspires.ftc.teamcode.pollen.PollenHiveAim;
 import org.firstinspires.ftc.teamcode.pollen.PollenHiveCamera;
@@ -96,7 +97,7 @@ public class BioBuzzStarterbotOpMode extends OpMode {
      * That feed rule is written once, in pollen/PollenFeedRule.java, and autonomous and
      * LauncherTest use the same one. The default speed is shared too (pollen/PollenConfig.java).
      */
-    public final int LAUNCHER_TARGET_VELOCITY = PollenConfig.TELEOP_LAUNCHER_TARGET_VELOCITY; //1180 = 2529 RPM (was 1250)
+    public final int LAUNCHER_TARGET_VELOCITY = PollenConfig.TELEOP_LAUNCHER_TARGET_VELOCITY; //1160 = 2486 RPM (was 1250, then 1180)
     public final double LAUNCHER_SPINUP_SECONDS = PollenConfig.LAUNCHER_SPINUP_SECONDS; // 3 s
     // Hold Square to run the launcher BACKWARDS slowly and push a jammed ball back out.
     // 300 RPM = 300 x 28 / 60 = 140 ticks per second.
@@ -177,6 +178,7 @@ public class BioBuzzStarterbotOpMode extends OpMode {
     private String cameraProblem = "";
     private IsHiveReadyForShot.Mount mount;
     private final PollenHiveAim aim = new PollenHiveAim();
+    private PollenAlliance.Saved alliance;
     private PollenHiveAim.Source aimSource = PollenHiveAim.Source.CAMERA;
     private IsHiveReadyForShot.Frame lastFrame;
     private double lastFrameStamp = Double.NaN, lastFrameAt = Double.NEGATIVE_INFINITY;
@@ -298,6 +300,10 @@ public class BioBuzzStarterbotOpMode extends OpMode {
             camera = null;
             cameraProblem = ex.toString();
         }
+        // Circle aims only at the alliance the last autonomous chose (alliance.properties, newest
+        // write wins). No saved choice, or the aim calibration: any hive cell, as before v52.
+        alliance = aimCalibration() ? null : PollenHiveStore.loadAlliance();
+        aim.setCells(PollenAlliance.cells(alliance == null ? 0 : alliance.side));
         // How much room the Control Hub has for recordings. Read once: it looks through folders.
         try {
             PollenRunLog.Storage storage = PollenHiveStore.storage();
@@ -340,6 +346,8 @@ public class BioBuzzStarterbotOpMode extends OpMode {
         telemetry.addData("Controls", "D-pad UP/DOWN selects; LEFT/RIGHT edits; Triangle = defaults");
         telemetry.addData("Settings", tuning.isDefault() ? "DEFAULTS" : "CHANGED - check before START");
         telemetry.addData("Recording", "this run is saved on the Hub");
+        telemetry.addData("Circle aims at", alliance == null ? "ANY hive cell (no alliance saved by an auto)"
+                : alliance.describe(System.currentTimeMillis()) + " cells");
         telemetry.addData("Circle = aim at the hive", camera == null ? "NO CAMERA (" + cameraProblem + ")" : "Limelight " + camera.status
                 + (aimCalibration() ? ". CALIBRATION: start at the PRIMARY shooter start; D-pad LEFT camera / RIGHT odometry" : ""));
         telemetry.addData("Recorded position", odometry == null ? "none (" + odometryProblem + "); the run is still recorded"
@@ -526,6 +534,7 @@ public class BioBuzzStarterbotOpMode extends OpMode {
                     + " battery=" + batteryVolts + " storage=[" + storageLine + "]"
                     + " camera=" + (camera == null ? "none" : "open") + " aim_tolerance_deg=" + PollenHiveAim.TOLERANCE_DEG
                     + " aim_target_left_in=" + tuning.aimTargetLeftIn()
+                    + " aim_alliance=" + (alliance == null ? "ANY" : PollenAlliance.name(alliance.side) + "@" + alliance.wallMs + "_from_" + alliance.source)
                     + " lensHeight=" + (mount == null ? "NaN" : mount.lensHeightIn) + " tilt=" + (mount == null ? "NaN" : mount.tiltUpDeg)
                     + " sideways=" + (mount == null ? "NaN" : mount.sidewaysCorrectionIn);
             recorder.start(System.currentTimeMillis(), settings, sample);

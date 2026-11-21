@@ -57,6 +57,8 @@ public abstract class PollenHiveOpMode extends OpMode {
     private String fault, logged = "";
     private int row;
     private boolean up, down, left, right, lb, rb, square, triangle, circle;
+    /** Alliance last written to alliance.properties by this OpMode (0 = not yet). */
+    private int savedAlliance;
     private double displayAt = -1, hiveLogAt = -1, hiveLogStamp = Double.NaN;
 
     private String fileName() { return fast() ? "primary-fast" : angled() ? (secondary() ? "secondary-angled" : "primary-angled") : hero() ? "primary-hero" : secondary() ? PollenHiveStore.SECONDARY : PollenHiveStore.PRIMARY; }
@@ -186,6 +188,17 @@ public abstract class PollenHiveOpMode extends OpMode {
             throw new IllegalStateException("LIVE flower drain requires servo " + PollenDrainerHold.SERVO_NAME);
     }
 
+    /** RED or BLUE chosen: write it for TeleOp Circle (PollenAlliance). AUTO (detect) writes nothing. */
+    private void rememberAlliance() {
+        int side = settings.side();
+        if ((side != PollenAlliance.RED && side != PollenAlliance.BLUE) || side == savedAlliance) return;
+        try {
+            PollenHiveStore.saveAlliance(side, getClass().getSimpleName());
+            savedAlliance = side;
+            record("ALLIANCE saved for TeleOp Circle: " + PollenAlliance.name(side));
+        } catch (Exception ex) { message = "Alliance NOT saved for TeleOp: " + ex.getMessage(); }
+    }
+
     private void menu() {
         int n = rows();
         if (gamepad1.dpad_up && !up) row = (row + n - 1) % n;
@@ -197,6 +210,7 @@ public abstract class PollenHiveOpMode extends OpMode {
         if (delta != 0) {
             if (allianceRow) settings.selectMatchAlliance(delta > 0);
             else table(row).edit(index(row), delta);
+            rememberAlliance();
         }
         if (gamepad1.triangle && !triangle) {
             if (allianceRow) settings.beginMatchSetup();
@@ -285,6 +299,7 @@ public abstract class PollenHiveOpMode extends OpMode {
             IsHiveReadyForShot.Mount mount = IsHiveReadyForShot.Mount.from(cameraSettings);
             hive = new IsHiveReadyForShot(mount, IsHiveReadyForShot.allowedCells(secondary(), settings.side()));
             auto = new PollenHiveAuto(settings, hive, run());
+            savedAlliance = 0; rememberAlliance(); // START always refreshes the time, so the newest run wins
             if (drainer != null) drainerDownPosition = settings.collectionSettings().get("down");
             RobotLog.ii("PollenHive", "START build=%s secondary=%s camera=%s changed=[%s] settings=%s | camera %s",
                     PollenConfig.BUILD, secondary(), camera == null ? cameraProblem : "open",

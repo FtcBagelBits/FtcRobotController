@@ -143,7 +143,7 @@ public final class PollenTeleOpTuning {
     public double agitatorPower() { return agitator; }
     /** Multiplies all four wheel powers after the normal mecanum normalization. */
     public double driveScale() { return drive; }
-    /** "Up to speed" means 96% of the target: about 1133 ticks/s for the TeleOp default 1180. */
+    /** "Up to speed" means 96% of the target: about 1114 ticks/s for the TeleOp default 1160. */
     public double launcherReadyVelocity() { return launcher * PollenConfig.LAUNCHER_READY_FRACTION; }
 
     /** Feeding rule 1: the launcher's encoder says it is up to speed (PollenFeedRule). */

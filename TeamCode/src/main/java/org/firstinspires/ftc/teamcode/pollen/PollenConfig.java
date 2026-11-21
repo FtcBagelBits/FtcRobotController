@@ -6,7 +6,7 @@ public final class PollenConfig {
 
     /** Shown in INIT by every Pollen and Odo autonomous mode and by PollenBot TeleOp, and written to
      * the robot log at START. Change it whenever the Pollen code changes. */
-    public static final String BUILD = "pollen-hive-v50";
+    public static final String BUILD = "pollen-hive-v52";
     /** Where Circle (TeleOp) and Beta Primary Shooter - Angled Left aim: this many inches LEFT of
      * the middle of our hive cell (negative = right). The robot shoots a little left and a miss
      * left of center costs more (drive team, 2026-11-19), so the default aims 2 in right. */
@@ -18,9 +18,9 @@ public final class PollenConfig {
      * auto (the INIT menus can change it). The encoder counts 28 ticks per turn, so
      * 1140 ticks/s = 1140 / 28 x 60 = 2443 RPM. v49: 1140 (was 1180), drive team 2026-11-21. */
     public static final int LAUNCHER_TARGET_VELOCITY = 1140;
-    /** TeleOp launcher speed: the default in PollenBot TeleOp and Calibration Launcher. v50: kept
-     * at 1180 (2529 RPM) when the autos moved to 1140, drive team 2026-11-21. */
-    public static final int TELEOP_LAUNCHER_TARGET_VELOCITY = 1180;
+    /** TeleOp launcher speed: the default in PollenBot TeleOp and Calibration Launcher. v50 kept
+     * 1180 when the autos moved to 1140; v51: 1160 (2486 RPM), drive team 2026-11-21. */
+    public static final int TELEOP_LAUNCHER_TARGET_VELOCITY = 1160;
     /** The longest the launcher runs alone before feeding starts, in auto, TeleOp and
      * LauncherTest (team-measured). Feeding starts sooner if the launcher is already up to
      * speed: see PollenFeedRule. */
