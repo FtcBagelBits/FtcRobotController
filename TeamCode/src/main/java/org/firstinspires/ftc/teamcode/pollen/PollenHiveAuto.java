@@ -111,10 +111,13 @@ public final class PollenHiveAuto {
         else settledAt=Double.NaN;
         boolean settled=Double.isFinite(settledAt)&&now-settledAt>=.3;
         boolean checksHive=checksHive();
-        if(checksHive&&settled) hive.update(frame,now); else hive.reset();
+        if(checksHive&&settled) hive.updateForAutonomous(frame,now); else hive.reset();
         boolean hiveReady=checksHive&&hive.isHiveReadyForShot(now);
         if(checksHive) {
-            if(!hiveReady) hiveUpSince=Double.NaN;
+            if(!hiveReady) {
+                hiveUpSince=Double.NaN;
+                if(!volleyStarted) hiveUpLatched=false;
+            }
             else if(Double.isNaN(hiveUpSince)) hiveUpSince=now;
             if(now-hiveUpSince>HIVE_UP_BEFORE_VOLLEY_S) hiveUpLatched=true;
         }
@@ -181,7 +184,7 @@ public final class PollenHiveAuto {
                     double pause=config.feedPauseFraction();
                     if(pause<=0||readySpeed) feedPaused=false;
                     else if(velocity<config.v[6]*pause) feedPaused=true;
-                    o.intake=config.feedIntake(collectionKind!=null); o.agitator=feedPaused?0:config.v[12]; wasFeeding=true;
+                    o.agitator=feedPaused?0:config.v[12]; wasFeeding=true;
                     if(feedPaused) decision+=" feed_paused=true";
                 }
                 if(o.feed) reason=checksHive?"Feeding: hive UP latched"
@@ -195,15 +198,16 @@ public final class PollenHiveAuto {
                     PollenCollectionSequence.Output c=collection.tick(now,x,y,h,odometryReady);
                     motionPhase=c.phase;
                     if(c.contactLimit!=null) decision+=" CONTACT LIMIT: "+c.contactLimit;
-                    if(c.done||c.fault!=null) {
-                        returnToShot(now,config.collectionReturn(x,y),c.done?"Collection complete":c.fault);
-                    } else {
+                    if(!c.done&&c.fault==null) {
                         o.forward=c.forward; o.strafe=c.strafe; o.turn=c.turn;
                         if(config.v[0]!=1) { o.intake=c.intake; o.drainerDown=c.drainerDown; }
+                        break;
                     }
-                    break;
+                    returnToShot(now,config.collectionReturn(x,y),c.done?"Collection complete":c.fault);
+                    if(!config.angled||!config.secondary||c.fault!=null) break;
+                    // Angled secondary starts the return on the same tick as scoop up and spin-up.
                 }
-                // Calibration Garden + Return retains its standalone route.
+                // Garden + Return uses the same motion path for its standalone route.
             case TO_SHOT: case OUTBOUND: case RETURN: case ROOM: case PARK:
                 // The nudge is one short leg; if it cannot finish quickly, skip the volley and park as before.
                 if(phase==Phase.RETURN&&nudged&&now-phaseAt>1.5) {
@@ -233,7 +237,7 @@ public final class PollenHiveAuto {
                     else return stop("Finished departure");
                 } else {
                     o.forward=m.forward; o.strafe=m.strafe; o.turn=m.turn;
-                    if(m.collect&&config.v[0]!=1) o.intake=config.v[9];
+                    if(m.collect&&config.v[0]!=1) o.intake=1;
                 }
                 break;
             case WAIT:
@@ -280,7 +284,12 @@ public final class PollenHiveAuto {
         }
         if(collectionKind!=null&&config.v[0]!=1&&(phase==Phase.TO_SHOT||phase==Phase.RETURN||phase==Phase.SETTLE||phase==Phase.ALIGN_SHOT||phase==Phase.SECOND))
             o.launcher=config.v[6];
-        if(phase!=Phase.DONE) applyClearOut(o,now);
+        if(phase!=Phase.DONE) {
+            applyClearOut(o,now);
+            if(config.v[0]!=1)
+                o.intake=PollenConfig.autoIntakePower(o.forward,o.strafe,o.turn,
+                        o.feed||now<clearOutUntil||o.intake!=0);
+        }
         o.finished=phase==Phase.DONE;
         o.phase=phase+((phase==Phase.TO_SHOT||phase==Phase.OUTBOUND||phase==Phase.GARDEN||phase==Phase.FLOWER
                 ||phase==Phase.RETURN||phase==Phase.ROOM||phase==Phase.PARK)?": "+motionPhase:"");
@@ -290,7 +299,7 @@ public final class PollenHiveAuto {
     /** Clear-out: after a match volley, the agitator keeps delivering and the launcher keeps
      * shooting for the same set seconds, so the robot is empty before it collects again. Both stop
      * on the same tick, so the agitator never pushes a ball into a stopped launcher. Only the
-     * agitator and launcher; it never sets feed, never touches the intake or the wheels. */
+     * agitator and launcher are set here. The common intake rule treats clear-out as shooting. */
     private void startClearOut(double now) {
         if(config.v[0]==1) return;
         clearOutUntil=now+config.clearOutSeconds();

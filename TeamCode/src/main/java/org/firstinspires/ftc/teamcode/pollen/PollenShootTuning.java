@@ -29,7 +29,6 @@ public final class PollenShootTuning {
         FLYWHEEL("Launcher ticks/s", 500, 2500, 20, PollenConfig.LAUNCHER_TARGET_VELOCITY),
         SPINUP("Longest spin-up before feed (s)", 0, 6, .5, PollenConfig.LAUNCHER_SPINUP_SECONDS),
         FEED_SECONDS("Feed seconds (0 = skip shot)", 0, 20, .5, 10),
-        FEED_POWER("Intake power while feeding", .10, 1, .05, .50),
         AGITATOR_POWER("Agitator power while feeding", .10, 1, .05, PollenConfig.AGITATOR_FEED_POWER),
         START_DELAY("Start delay seconds", 0, 20, .5, 0),
         CALIBRATION("Calibration (0=baseline, 1=mat TRIAL)", 0, 1, 1, 0),
@@ -127,7 +126,7 @@ public final class PollenShootTuning {
         java.util.List<Field> order = new java.util.ArrayList<>(java.util.Arrays.asList(Field.START_DELAY,
                 Field.FLYWHEEL, Field.FEED_SECONDS, Field.DRIVE_POWER, Field.PARK_MARGIN));
         if (angled) order.add(Field.AIM_ANGLE);
-        order.addAll(java.util.Arrays.asList(Field.SPINUP, Field.FEED_POWER, Field.AGITATOR_POWER, Field.CALIBRATION,
+        order.addAll(java.util.Arrays.asList(Field.SPINUP, Field.AGITATOR_POWER, Field.CALIBRATION,
                 Field.LEG1_CM, Field.LEG1_ANGLE, Field.LEG2_CM, Field.LEG2_ANGLE, Field.LEG3_CM, Field.LEG3_ANGLE));
         rows = order.toArray(new Field[0]);
         reset();

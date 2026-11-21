@@ -2,10 +2,23 @@ package org.firstinspires.ftc.teamcode.pollen;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 
 /** Configuration evidence, not proof of which physical motor a cable reaches. */
 final class PollenHiveHardware {
+    static DcMotor configureAutoIntake(HardwareMap hardwareMap) {
+        DcMotor intake = hardwareMap.tryGet(DcMotor.class, "intake");
+        if (intake != null) {
+            intake.setPower(0);
+            intake.setDirection(DcMotorSimple.Direction.FORWARD);
+            intake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        }
+        return intake;
+    }
+
     static void requireDistinct(String[] names, DcMotor[] motors) {
         for (int i=0;i<motors.length;i++) for (int j=0;j<i;j++) {
             DcMotor a=motors[i], b=motors[j];

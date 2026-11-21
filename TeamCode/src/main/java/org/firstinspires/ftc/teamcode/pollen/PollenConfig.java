@@ -6,7 +6,7 @@ public final class PollenConfig {
 
     /** Shown in INIT by every Pollen and Odo autonomous mode and by PollenBot TeleOp, and written to
      * the robot log at START. Change it whenever the Pollen code changes. */
-    public static final String BUILD = "pollen-hive-v46";
+    public static final String BUILD = "pollen-hive-v47";
     /** Where Circle (TeleOp) and Beta Primary Shooter - Angled Left aim: this many inches LEFT of
      * the middle of our hive cell (negative = right). The robot shoots a little left and a miss
      * left of center costs more (drive team, 2026-11-19), so the default aims 2 in right. */
@@ -34,9 +34,13 @@ public final class PollenConfig {
      * jammed ball back out. 300 RPM = 300 x 28 / 60 = 140 ticks per second. */
     public static final int LAUNCHER_REVERSE_VELOCITY = 140;
     /** TeleOp and LauncherTest: while feeding, this much is added to the intake power from the
-     * triggers, so the intake keeps pushing balls toward the launcher. (Autonomous has its own
-     * "Intake power while feeding" row, which also defaults to 0.5.) */
+     * triggers, so the intake keeps pushing balls toward the launcher. */
     public static final double INTAKE_FEED_BOOST = 0.5;
+
+    /** Full inward intake while autonomous is driving, feeding, or actively collecting. */
+    static double autoIntakePower(double forward, double strafe, double turn, boolean handlingPollen) {
+        return forward != 0 || strafe != 0 || turn != 0 || handlingPollen ? 1 : 0;
+    }
 
     // Device names in the active PollenBot hardware configuration.
     public static final String[] DRIVE_NAMES = {"frontLeft", "frontRight", "backLeft", "backRight"};

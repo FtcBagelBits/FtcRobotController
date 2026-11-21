@@ -4,7 +4,7 @@ import java.util.Locale;
 
 /** Is OUR hive cell (the one straight behind the robot) UP, so a shot can score?
  *
- * How it works, in three steps:
+ * How calibrated camera diagnostics work:
  * 1. WHICH CELL. Every hive cell carries four AprilTags with its own IDs (game manual 9.6):
  *    30-33 red scoring-side, 34-37 red audience-side, 38-41 blue audience-side, 42-45 blue
  *    scoring-side. From the PRIMARY start our cell is 34 (red) or 42 (blue); from the SECONDARY
@@ -30,7 +30,10 @@ import java.util.Locale;
  *    Without this, one missed frame cancelled permission and the next four frames had to
  *    re-confirm, so 90% per-frame detection fed only about 40-60% of the time.
  *
- * Call update every loop and ask isHiveReadyForShot with the current time; never cache the answer.
+ * Autonomous uses updateForAutonomous: a tag from the locked cell qualifies if it is in the
+ * UP band or its own measured height has settled. Calibration still measures physical UP/DOWN.
+ *
+ * Call the appropriate update every loop and ask isHiveReadyForShot with the current time; never cache the answer.
  */
 public final class IsHiveReadyForShot {
     public enum State { UP, DOWN, UNKNOWN }
@@ -43,6 +46,7 @@ public final class IsHiveReadyForShot {
      * in between and no gap longer than MISS_HOLD, over at least this long. */
     public static final int CONFIRM_FRAMES = 4;
     public static final double CONFIRM_SECONDS = 0.15;
+    private static final double STABLE_HEIGHT_SPREAD_IN = 1.0;
     public static final double METRES_TO_INCHES = 1 / 0.0254;
 
     /** One AprilTag as the camera saw it: ID and position from the lens in metres. */
@@ -153,6 +157,26 @@ public final class IsHiveReadyForShot {
         return bestSide <= m.oursMaxSidewaysIn ? best : -1;
     }
 
+    private static final class TagHeight {
+        private double low, high, since;
+        private double lastSeen = Double.NEGATIVE_INFINITY;
+        private int count;
+
+        boolean steady(double height, double now) {
+            if (now - lastSeen > MISS_HOLD
+                    || Math.max(high, height) - Math.min(low, height) > STABLE_HEIGHT_SPREAD_IN) {
+                low = high = height;
+                since = now;
+                count = 0;
+            }
+            low = Math.min(low, height);
+            high = Math.max(high, height);
+            lastSeen = now;
+            return ++count >= CONFIRM_FRAMES && now - since >= CONFIRM_SECONDS;
+        }
+    }
+
+    private final TagHeight[] heights = {new TagHeight(), new TagHeight(), new TagHeight(), new TagHeight()};
     private final Mount mount;
     private final int[] allowed;
     private int cluster = -1, candidateCluster = -1, clusterCount;
@@ -175,10 +199,15 @@ public final class IsHiveReadyForShot {
     /** Forgets UP/DOWN (e.g. while driving), keeps which cell is ours. */
     public void reset() {
         state = candidate = State.UNKNOWN; count = 0; lastFresh = lastSeen = Double.NEGATIVE_INFINITY;
+        clearHeightHistory();
         if (cluster < 0) { candidateCluster = -1; clusterCount = 0; }
     }
 
-    public void update(Frame f, double now) {
+    public void update(Frame f, double now) { update(f, now, false); }
+
+    public void updateForAutonomous(Frame f, double now) { update(f, now, true); }
+
+    private void update(Frame f, double now, boolean autonomous) {
         if (!Double.isFinite(now)) { reset(); reason = "Invalid clock"; return; }
         if (now - lastFresh > MAX_AGE || now < lastFresh) reset();
         if (f == null || !f.usable()) { reset(); clearLast(); reason = "No usable camera frame"; return; }
@@ -190,9 +219,10 @@ public final class IsHiveReadyForShot {
         State observed = null;
         double sum = 0, low = Double.POSITIVE_INFINITY, high = Double.NEGATIVE_INFINITY;
         String problem = mount.problem();
+        boolean inUpBand = false, steadyHeight = false;
         for (Tag t : f.tags) {
-            // Our cell's tags are straight behind; one far to the side means we're not where we think.
-            if (clusterOf(t.id) != cluster || Math.abs(mount.sidewaysIn(t)) > mount.oursMaxSidewaysIn) continue;
+            if (clusterOf(t.id) != cluster) continue;
+            if (!autonomous && Math.abs(mount.sidewaysIn(t)) > mount.oursMaxSidewaysIn) continue;
             lastTagCount++;
             double side = mount.sidewaysIn(t);
             if (!(Math.abs(side) >= Math.abs(lastSidewaysIn))) lastSidewaysIn = side; // most central tag
@@ -200,29 +230,39 @@ public final class IsHiveReadyForShot {
             double h = mount.heightIn(t);
             sum += h; low=Math.min(low,h); high=Math.max(high,h);
             State s = mount.classify(h);
-            observed = observed == null || observed == s ? s : State.UNKNOWN; // tags must agree
+            if (autonomous) {
+                inUpBand |= s == State.UP;
+                steadyHeight |= heights[t.id - cluster].steady(h, now);
+            } else {
+                observed = observed == null || observed == s ? s : State.UNKNOWN; // strict calibration
+            }
         }
         if (lastTagCount > 0 && problem.isEmpty()) lastHeightIn = sum / lastTagCount;
         if (!problem.isEmpty()) { state = State.UNKNOWN; candidate = State.UNKNOWN; count = 0; reason = problem; return; }
         if (lastTagCount == 0) { miss(now); return; }
         lastSeen = now;
+        if (autonomous) observed = inUpBand || steadyHeight ? State.UP : State.UNKNOWN;
         // A frame that is not the current state takes permission away at once.
         if (observed != state) state = State.UNKNOWN;
         if (observed == State.UNKNOWN) {
             candidate = State.UNKNOWN; count = 0;
-            reason = String.format(Locale.US, "Tags disagree/outside bands: %.1f-%.1f in (mean %.1f)", low, high, lastHeightIn);
+            reason = String.format(Locale.US, autonomous
+                    ? "Waiting for an in-band or steady tag: %.1f-%.1f in (mean %.1f)"
+                    : "Tags disagree/outside bands: %.1f-%.1f in (mean %.1f)", low, high, lastHeightIn);
             return;
         }
         if (observed != candidate) { candidate = observed; count = 1; since = now; } else count++;
         if (count >= CONFIRM_FRAMES && now - since >= CONFIRM_SECONDS) state = observed;
         reason = String.format(Locale.US, "%s %s, %.1f in", state == State.UNKNOWN ? "Confirming" : "Stable",
                 observed, lastHeightIn);
+        if (autonomous) reason += inUpBand ? " (tag in UP band)" : " (steady tag outside UP band)";
     }
 
     /** A new frame without our cell's tags: hold, unless the last sighting is too old. */
     private void miss(double now) {
         if (now - lastSeen > MISS_HOLD) {
             state = candidate = State.UNKNOWN; count = 0;
+            clearHeightHistory();
             reason = "Our cell's tags not in view";
         } else reason = String.format(Locale.US, "Holding %s: our tags missed for %.2f s",
                 state != State.UNKNOWN ? state : candidate == State.UNKNOWN ? "UNKNOWN" : "confirming " + candidate,
@@ -243,6 +283,10 @@ public final class IsHiveReadyForShot {
         cluster = c;
         return true;
     }
+    private void clearHeightHistory() {
+        for (TagHeight height : heights) height.lastSeen = Double.NEGATIVE_INFINITY;
+    }
+
     private void clearLast() { lastHeightIn = Double.NaN; lastSidewaysIn = Double.NaN; lastTagCount = 0; }
 
     public State state(double now) {

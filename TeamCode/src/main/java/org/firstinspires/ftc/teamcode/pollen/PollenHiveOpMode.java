@@ -242,7 +242,7 @@ public abstract class PollenHiveOpMode extends OpMode {
             initProfile = profile; initHive = new IsHiveReadyForShot(mount, allowed);
         }
         double now = clock.seconds();
-        initHive.update(camera.read(), now);
+        initHive.updateForAutonomous(camera.read(), now);
         return prefix + IsHiveReadyForShot.clusterName(initHive.cluster()) + ": " + initHive.state(now)
                 + " / " + initHive.reason;
     }
@@ -311,13 +311,13 @@ public abstract class PollenHiveOpMode extends OpMode {
             last = auto.tick(now, frame, pose[0], pose[1], pose[2], velocity, ready);
             if (settings.v[0] == 0) zero(); else {
                 double[] wheels = PollenFacing.wheelPowers(last.forward, last.strafe, last.turn);
-                for (int i = 0; i < 4; i++) { appliedWheels[i]=run()==PollenHiveAuto.Run.SHOT_ONLY?0:wheels[i]; drive[i].setPower(appliedWheels[i]); }
                 appliedLauncher=settings.v[0] == 2 && run()!=PollenHiveAuto.Run.GARDEN_RETURN ? last.launcher : 0;
                 appliedIntake=settings.v[0] == 2 ? last.intake : 0;
                 appliedAgitator=settings.v[0] == 2 && run()!=PollenHiveAuto.Run.GARDEN_RETURN ? last.agitator : 0;
                 launcher.setVelocity(appliedLauncher); intake.setPower(appliedIntake); agitator.setPower(appliedAgitator);
                 if (drainer != null) drainer.setPosition(settings.v[0] == 2 && last.drainerDown
                         ? drainerDownPosition : PollenTeleOpTuning.DEFAULT_DRAINER_UP);
+                for (int i = 0; i < 4; i++) { appliedWheels[i]=run()==PollenHiveAuto.Run.SHOT_ONLY?0:wheels[i]; drive[i].setPower(appliedWheels[i]); }
             }
             String event = last.phase + " / " + hive.state(now) + " / feed=" + last.feed;
             boolean transition=!event.equals(logged);

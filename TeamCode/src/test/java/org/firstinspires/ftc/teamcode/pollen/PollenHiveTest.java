@@ -126,6 +126,45 @@ public final class PollenHiveTest {
         h.update(frame(5,true),.10);
         check(h.cluster()<0,"Another allowed cell in between restarts identification");
     }
+    private static void autonomousTagGate() {
+        IsHiveReadyForShot h=new IsHiveReadyForShot(M,38);
+        for(int i=1;i<=12;i++) {
+            h.updateForAutonomous(new IsHiveReadyForShot.Frame(i,
+                    tag(38,51.5+i*.09,14,60,M),tag(41,54+i*.3,10,60,M)),i*.02);
+        }
+        check(h.isHiveReadyForShot(.24),"One in-band tag qualifies in spite of another outlier or sideways offset");
+
+        h=new IsHiveReadyForShot(M,38);
+        for(int i=1;i<=70;i++) {
+            double now=i*.02;
+            h.updateForAutonomous(new IsHiveReadyForShot.Frame(i,tag(41,54+i*.16,10,60,M),
+                    tag(42,49.7,0,60,M)),now);
+            check(!h.isHiveReadyForShot(now),"A moving, off-band tag and an in-band wrong-cell tag cannot arm");
+        }
+        for(int i=71;i<=100;i++) {
+            h.updateForAutonomous(new IsHiveReadyForShot.Frame(i,tag(41,54.1+(i%2)*.2,14,60,M)),i*.02);
+        }
+        check(h.isHiveReadyForShot(2.0),"Steady out-of-band tag qualifies with normal height jitter");
+        h.updateForAutonomous(new IsHiveReadyForShot.Frame(101,tag(41,56,14,60,M)),2.02);
+        check(!h.isHiveReadyForShot(2.02),"Renewed out-of-band motion revokes permission immediately");
+
+        PollenHiveRoute c=new PollenHiveRoute(true); c.v[0]=2;
+        PollenHiveAuto a=new PollenHiveAuto(c,h,PollenHiveAuto.Run.SHOT_ONLY); a.start(0);
+        PollenHiveAuto.Output o=null;
+        for(int i=1;i<=100;i++) {
+            o=a.tick(i*.02,new IsHiveReadyForShot.Frame(i,tag(41,54.1,14,60,M)),0,0,0,1100,true);
+            check(!o.feed&&o.intake==0,"Wait for the launcher without feeding");
+        }
+        check(o.decision.contains("hive_up_latched=true"),"Steady out-of-band tag completes auto confirmation");
+        o=a.tick(2.02,new IsHiveReadyForShot.Frame(101,tag(41,56,14,60,M)),0,0,0,1180,true);
+        check(!o.feed,"A latch earned during spin-up cannot start feeding after permission is lost");
+        for(int i=102;i<=190;i++) {
+            o=a.tick(i*.02,new IsHiveReadyForShot.Frame(i,tag(41,56,14,60,M)),0,0,0,1180,true);
+            if(o.feed) break;
+        }
+        check(o.feed&&o.intake==1,"A re-confirmed steady tag starts the volley at full intake");
+    }
+
     private static void unsettledReturnParks() {
         PollenHiveRoute c=new PollenHiveRoute(false); c.v[0]=2;
         PollenHiveAuto a=new PollenHiveAuto(c,hive()); a.start(0);
@@ -156,7 +195,7 @@ public final class PollenHiveTest {
                 drifted=true;
             }
             if(o.phase.equals("ALIGN_SHOT")) {
-                check(!a.checksHive()&&o.launcher==1180&&!o.feed&&o.intake==0&&o.agitator==0
+                check(!a.checksHive()&&o.launcher==1180&&!o.feed&&o.intake==(o.turn==0?0:1)&&o.agitator==0
                         &&o.forward==0&&o.strafe==0,"Turn in place while pre-spinning and holding feed off");
                 if(!turned&&o.turn!=0) {
                     check(Math.signum(o.turn)==Math.signum(degrees),"Turn toward zero from either side");
@@ -195,7 +234,7 @@ public final class PollenHiveTest {
         for(int i=1;i<=60;i++) c.add(frame(i,49.7+(i%2==0?4:-4),M),i*.05);
         check(c.problem().contains("noisy"),"Moving hive rejected");
         check(capture(false,M,IsHiveReadyForShot.State.UP,49.7).problem().isEmpty(),"Physical UP verified with production detector");
-        check(capture(false,M,IsHiveReadyForShot.State.DOWN,35.6).problem().isEmpty(),"Physical DOWN verified with production detector");
+        check(capture(false,M,IsHiveReadyForShot.State.DOWN,35.6).problem().isEmpty(),"Physical DOWN verified by the calibration detector");
         check(!capture(false,M,IsHiveReadyForShot.State.DOWN,49.7).problem().isEmpty(),"Incorrect physical label cannot pass");
         c=new PollenHiveCalibration(false,M,IsHiveReadyForShot.State.DOWN,34);
         for(int i=1;i<=60;i++) c.add(new IsHiveReadyForShot.Frame(i,tag(34,30,-2,40,M),tag(35,41.2,2,40,M)),i*.05);
@@ -299,10 +338,6 @@ public final class PollenHiveTest {
     }
     private static void collectionTuning() {
         PollenHiveRoute primary=new PollenHiveRoute(false), secondary=new PollenHiveRoute(true);
-        for(PollenHiveRoute route:new PollenHiveRoute[]{primary,secondary}) {
-            check(route.collectionSettings().get("intake")==1&&route.feedIntake(true)==1&&route.feedIntake(false)==.5,
-                    "Full beta intake defaults for picking up and shooting");
-        }
         int sideways=secondary.values.index("collection.shakePower");
         secondary.values.edit(sideways,1);
         secondary.v[secondary.values.index("collection.down")]=.06;
@@ -325,7 +360,8 @@ public final class PollenHiveTest {
         PollenHiveAuto a=new PollenHiveAuto(c,hive(),PollenHiveAuto.Run.SHOT_ONLY); a.start(0);
         for(int i=1;i<=100;i++) {
             boolean up=i<=50||i>=65;
-            check(!a.tick(i*.02,frame(i,up),0,0,0,1180,true).feed,"DOWN resets the one-second UP timer");
+            check(!a.tick(i*.02,up?frame(i,true):new IsHiveReadyForShot.Frame(i),0,0,0,1180,true).feed,
+                    "Losing the cell resets the one-second UP timer");
         }
         PollenHiveAuto.Output o=null;
         for(int i=101;i<=140;i++) {
@@ -338,7 +374,7 @@ public final class PollenHiveTest {
         for(int i=142;i<=343;i++) {
             double now=i*.02;
             o=a.tick(now,i<180?frame(i,false):null,0,0,0,1050,true);
-            check(o.feed==!o.finished,"Active volley continues through confirmed DOWN, camera loss and low speed");
+            check(o.feed==!o.finished,"Active volley continues through off-band readings, camera loss and low speed");
             check(o.finished?now-2.82>=4:now-2.82<4.000001,"Volley ends on the first tick after four seconds");
             if(o.finished) break;
         }
@@ -354,7 +390,7 @@ public final class PollenHiveTest {
 
         a=new PollenHiveAuto(c,hive(),PollenHiveAuto.Run.SHOT_ONLY); a.start(0);
         for(int i=1;i<=1180;i++) {
-            o=a.tick(i*.02,frame(i,i>1100),0,0,0,1180,true);
+            o=a.tick(i*.02,i>1100?frame(i,true):new IsHiveReadyForShot.Frame(i),0,0,0,1180,true);
             check(!o.feed,"Skip a late volley that cannot finish");
             if(o.finished) break;
         }
@@ -391,7 +427,7 @@ public final class PollenHiveTest {
                     check(o.launcher==(since<3-1e-9?1180:0),"Launcher clears for 3 s after the volley ("+ph+" +"+since+")");
                     check(o.agitator==0||o.launcher>0,"Agitator never runs into a stopped launcher");
                     check(!o.feed,"Clear-out is not a feed");
-                    if(ph.equals("OUTBOUND")) check(o.intake==0,"Clear-out leaves the intake alone");
+                    if(since<3-1e-9) check(o.intake==1,"Clear-out runs full intake");
                     movedWhileClearing|=since<3&&(o.forward!=0||o.strafe!=0);
                 }
                 if(ph.equals("PARK")) check(o.launcher==0&&o.agitator==0,"No clear-out while parking");
@@ -533,7 +569,9 @@ public final class PollenHiveTest {
             double velocity=o==null?0:o.launcher;
             boolean up=!tipped;
             if(!phases.contains("RETURN")) check(!a.checksHive(),"Primary must skip Hive UP before returning");
-            o=a.tick(t,frame(i,up),robot.x,robot.y,robot.h,velocity,true);
+            o=a.tick(t,up?frame(i,true):new IsHiveReadyForShot.Frame(i),robot.x,robot.y,robot.h,velocity,true);
+            if(!driveOnly&&(o.forward!=0||o.strafe!=0||o.turn!=0||o.feed))
+                check(o.intake==1,"Full intake whenever live auto drives, turns or feeds");
             phases.add(o.phase.split(":")[0]);
             if(o.phase.startsWith("OUTBOUND")&&Double.isNaN(firstEnd)) firstEnd=t;
             if(o.phase.equals("PARK_WAIT")&&Double.isNaN(secondEnd)) secondEnd=t;
@@ -547,7 +585,7 @@ public final class PollenHiveTest {
             if(o.phase.equals("PARK_WAIT")) check(clearOutOnly(o,t,secondEnd,driveOnly),"Only the clear-out runs while waiting to park");
             if(o.phase.startsWith("OUTBOUND")||o.phase.startsWith("GARDEN")) check(clearOutOnly(o,t,firstEnd,driveOnly),
                     "Only the post-volley clear-out runs launcher/agitator on the trip, at "+t);
-            if(o.phase.startsWith("RETURN")) check(o.launcher==(driveOnly?0:1180)&&o.intake==0&&o.agitator==0&&!o.feed,
+            if(o.phase.startsWith("RETURN")) check(o.launcher==(driveOnly?0:1180)&&o.agitator==0&&!o.feed,
                     "Pre-spin all the way back, with feed off");
             if(o.phase.equals("FIRST")&&o.feed) {
                 check(!a.checksHive()&&h.lastTagCount==0,"Primary preload never classifies a camera frame");
@@ -593,7 +631,7 @@ public final class PollenHiveTest {
         PollenHiveAuto.Output o=null;
         for(int i=1;i<=1501;i++) {
             double t=i*.02;
-            o=a.tick(t,frame(i,t>=4),robot.x,robot.y,robot.h,1180,true);
+            o=a.tick(t,t>=4?frame(i,true):new IsHiveReadyForShot.Frame(i),robot.x,robot.y,robot.h,1180,true);
             String phase=o.phase.split(":")[0];
             phases.add(phase);
             if(phase.equals("FIRST")) fed|=o.feed;
@@ -626,13 +664,13 @@ public final class PollenHiveTest {
         PollenHiveAuto.Output o=null; double firstEnd=Double.NaN;
         for(int i=1;i<=1501;i++) {
             boolean up=phases.contains("RETURN")?upAfterReturn:i*.02>=6.1;
-            o=a.tick(i*.02,frame(i,up),robot.x,robot.y,robot.h,1180,true);
+            o=a.tick(i*.02,up?frame(i,true):new IsHiveReadyForShot.Frame(i),robot.x,robot.y,robot.h,1180,true);
             String phase=o.phase.split(":")[0];
             phases.add(phase);
             if(phase.equals("OUTBOUND")&&Double.isNaN(firstEnd)) firstEnd=i*.02;
             if(o.phase.startsWith("FLOWER: ")&&!o.phase.equals("FLOWER: ")) {
                 check(!a.checksHive()&&clearOutOnly(o,i*.02,firstEnd,false),"No aiming at the flower; only the clear-out shoots");
-                check(o.intake==.85&&o.drainerDown,"Tuned intake and drainer down during flower process");
+                check(o.intake==1&&o.drainerDown,"Full intake overrides saved power during the flower process");
                 if(o.phase.contains("Ingest forward")) cleanup.add(o.phase);
                 if(o.phase.startsWith("FLOWER: Left ")||o.phase.startsWith("FLOWER: Right ")) {
                     check(Math.abs(o.strafe)<=.150001,"Tuned sideways power limits swing motion");
@@ -651,7 +689,7 @@ public final class PollenHiveTest {
             if(o.finished) break;
         }
         // v39: the cell needs about 8 balls to tip, so it is still UP after our 4 preloads. The return
-        // volley fires whatever the camera sees after the return (upAfterReturn false = DOWN/hidden).
+        // volley fires whatever the camera sees after the return (upAfterReturn false = hidden).
         check(o.finished&&firstFeed&&seated&&cleanup.size()==1&&swings.size()==4&&phases.contains("SECOND")&&secondFeed,
                 "Secondary drains, returns and fires without a camera check (camera UP="+upAfterReturn+"): "
                 +phases+" "+cleanup+" "+swings+" "+o.reason);
@@ -694,7 +732,7 @@ public final class PollenHiveTest {
             if(!startedPark&&o.phase.startsWith("PARK:")) {
                 check(secondFeed&&o.reason.contains("deadline during SECOND")&&Math.abs(t-23.04)<.03,
                         "Measured primary park time plus the tuned margin interrupts second feed: "+t+" "+o.reason);
-                check(o.launcher==0&&o.intake==0&&o.agitator==0&&!o.feed&&(o.forward!=0||o.strafe!=0),
+                check(o.launcher==0&&o.intake==1&&o.agitator==0&&!o.feed&&(o.forward!=0||o.strafe!=0),
                         "First park tick stops shooting and starts driving");
                 startedPark=true;
             }
@@ -753,7 +791,7 @@ public final class PollenHiveTest {
             if(o.phase.startsWith("PARK:")) {
                 check(t<23.54&&o.phase.contains("CLEAR COLLECTION SITE")&&Math.hypot(robot.x,robot.y)>1.5,
                         "An away pose budgets the clearance route before parking: "+o.phase+" at "+t);
-                check(o.intake==0&&o.launcher==0&&!o.drainerDown,"Departure interrupts all collection outputs");
+                check(o.intake==1&&o.launcher==0&&!o.drainerDown,"Departure raises the drainer and keeps full intake while driving");
                 return;
             }
             robot.step(o.forward,o.strafe,o.turn,false,.02);
@@ -774,7 +812,7 @@ public final class PollenHiveTest {
             double parkX=Double.NaN, maxX=Double.NEGATIVE_INFINITY;
             boolean clear=false;
             for(int i=1;i<=1501;i++) {
-                PollenHiveAuto.Output o=a.tick(i*.02,frame(i,i*.02>=6.1),robot.x,robot.y,robot.h,1180,true);
+                PollenHiveAuto.Output o=a.tick(i*.02,i*.02>=6.1?frame(i,true):new IsHiveReadyForShot.Frame(i),robot.x,robot.y,robot.h,1180,true);
                 if(o.phase.startsWith("PARK:")) {
                     if(Double.isNaN(parkX)) {
                         if(!before.equals("RETURN: RETURN SHOOT POSITION")) break;
@@ -905,19 +943,26 @@ public final class PollenHiveTest {
         for(int i=0;i<14;i++) keys.add(c.values.rows[order[i]].key);
         check(keys.contains("shotLeftIn")&&keys.contains("shotAwayIn")&&keys.contains("aimTargetLeftIn")&&keys.get(1).equals("launcher"),
                 "Secondary angled: spot and aim rows with the rows to check: "+keys);
-        PollenHiveAuto a=new PollenHiveAuto(c,hive()); a.start(0);
+        PollenHiveAuto a=new PollenHiveAuto(c,new IsHiveReadyForShot(M,38)); a.start(0);
         PollenOdometryTest.SimRobot robot=new PollenOdometryTest.SimRobot();
         java.util.List<String> phases=new java.util.ArrayList<>();
-        boolean firstFeed=false,secondFeed=false,spunUp=false,drained=false;
+        boolean firstFeed=false,secondFeed=false,spunUp=false,drained=false,returning=false;
         double shotX=8,shotY=-10.5;
         PollenHiveAuto.Output o=null;
         for(int i=1;i<=1501;i++) {
             double t=i*.02;
             boolean up=phases.contains("RETURN")?upAfterReturn:t>=4;
-            o=a.tick(t,frame(i,up),robot.x,robot.y,robot.h,o==null?0:o.launcher,true);
+            IsHiveReadyForShot.Frame frame=up?new IsHiveReadyForShot.Frame(i,tag(41,54.1,10,60,M))
+                    :new IsHiveReadyForShot.Frame(i);
+            o=a.tick(t,frame,robot.x,robot.y,robot.h,o==null?0:o.launcher,true);
             String phase=o.phase.split(":")[0];
             if(phases.isEmpty()||!phases.get(phases.size()-1).equals(phase)) phases.add(phase);
-            if(phase.equals("TO_SHOT")&&o.launcher==1180) spunUp=true;
+            boolean moving=o.forward!=0||o.strafe!=0||o.turn!=0;
+            if(phase.equals("TO_SHOT")||phase.equals("RETURN")||phase.equals("ALIGN_SHOT"))
+                check(o.launcher==1180&&!o.drainerDown&&(!moving||o.intake==1),
+                        "Angled secondary pre-spins with scoop up and full intake on each moving approach");
+            if(phase.equals("TO_SHOT")&&moving) spunUp=true;
+            if(phase.equals("RETURN")&&moving) returning=true;
             if(o.phase.startsWith("FLOWER")&&o.drainerDown) drained=true;
             if(phase.equals("FIRST")&&t<4) check(!o.feed,"First volley waits for our cell UP");
             if(o.feed&&!o.phase.startsWith("OUTBOUND")&&!o.phase.startsWith("FLOWER")&&!phase.equals("PARK_WAIT")) {
@@ -931,7 +976,7 @@ public final class PollenHiveTest {
             if(o.finished) break;
         }
         check(spunUp&&phases.indexOf("TO_SHOT")==0&&phases.indexOf("FIRST")>phases.indexOf("ALIGN_SHOT"),"Drive, turn, then wait and shoot: "+phases);
-        check(firstFeed&&drained&&secondFeed&&o.reason.equals("Finished departure"),
+        check(firstFeed&&drained&&returning&&secondFeed&&o.reason.equals("Finished departure"),
                 "Secondary angled shoots, drains, shoots again (camera UP="+upAfterReturn+") and parks: "+phases+" "+o.reason);
     }
     /** A failed first aim must not send a still-loaded secondary to the flower. */
@@ -946,9 +991,9 @@ public final class PollenHiveTest {
         boolean injected = false, collected = false, fed = false, parked = false;
         PollenHiveAuto.Output o = null;
         for (int i = 1; i <= 1500; i++) {
-            // The red secondary cell stays visibly DOWN the entire time.
-            IsHiveReadyForShot.Frame down = new IsHiveReadyForShot.Frame(i, tag(31, M.downIn, 0, 40, M));
-            o = auto.tick(i * .02, down, robot.x, robot.y, robot.h, 1180, true);
+            // The red secondary cell's tags stay hidden while we simulate the failed aim.
+            IsHiveReadyForShot.Frame hidden = new IsHiveReadyForShot.Frame(i);
+            o = auto.tick(i * .02, hidden, robot.x, robot.y, robot.h, 1180, true);
             collected |= o.phase.startsWith("OUTBOUND") || o.drainerDown;
             fed |= o.feed || o.agitator != 0;
             parked |= o.phase.startsWith("PARK:");
@@ -985,7 +1030,7 @@ public final class PollenHiveTest {
             for(int i=1;i<=1351;i++) {
                 double t=i*.02;
                 double velocity=secondary||t>=.8?1180:1100;
-                o=a.tick(t,secondary?frame(i,t>1):null,0,0,0,velocity,true);
+                o=a.tick(t,secondary&&t>1?frame(i,true):null,0,0,0,velocity,true);
                 check(o.forward==0&&o.strafe==0&&o.turn==0,"Shot-only never drives");
                 check(!o.phase.startsWith("PARK")&&!o.phase.startsWith("GARDEN"),"Shot-only never enters route");
                 if(secondary&&t<=1) check(!o.feed,"Secondary shot-only waits for physical UP");
@@ -1037,8 +1082,8 @@ public final class PollenHiveTest {
             if(o.phase.startsWith("GARDEN")||o.phase.startsWith("OUTBOUND")) {
                 check(clearOutOnly(o,i*.02,firstEnd,false),"Garden powers launcher or agitator only for the post-volley clear-out");
                 collected|=o.intake>0;
-                if(previous.equals("FIRST")) check(o.forward==0&&o.strafe==0&&o.turn==0&&o.intake==0,
-                        "Shot exit has a zero-output tick before path motion");
+                if(previous.equals("FIRST")) check(o.forward==0&&o.strafe==0&&o.turn==0&&o.intake==1,
+                        "Shot exit starts the clear-out before path motion");
             }
             previous=o.phase;
             robot.step(o.forward,o.strafe,o.turn,false,.02);
@@ -1069,7 +1114,7 @@ public final class PollenHiveTest {
             double roomAt=Double.NaN,waitAt=Double.NaN,parkAt=Double.NaN,t=0; boolean fed=false;
             for(int i=1;i<=1400;i++) {
                 t=i*.02;
-                o=a.tick(t,frame(i,tips),robot.x,robot.y,robot.h,o==null?0:o.launcher,true);
+                o=a.tick(t,tips?frame(i,true):new IsHiveReadyForShot.Frame(i),robot.x,robot.y,robot.h,o==null?0:o.launcher,true);
                 String ph=o.phase.split(":")[0];
                 if(order.isEmpty()||!order.get(order.size()-1).equals(ph)) order.add(ph);
                 fed|=o.feed;
@@ -1077,7 +1122,7 @@ public final class PollenHiveTest {
                 if(ph.equals("WAIT")&&Double.isNaN(waitAt)) waitAt=t;
                 if(ph.equals("PARK")&&Double.isNaN(parkAt)) parkAt=t;
                 if(ph.equals("ROOM")||ph.equals("WAIT")||ph.equals("PARK")) check(o.launcher==0&&o.agitator==0&&!o.feed,"No shooting after leaving");
-                if(ph.equals("WAIT")) check(o.forward==0&&o.strafe==0&&o.turn==0,"Sits still in the corner");
+                if(ph.equals("WAIT")) check(o.forward==0&&o.strafe==0&&o.turn==0&&o.intake==0,"Sits still in the corner with intake off");
                 robot.step(o.forward,o.strafe,o.turn,false,.02);
                 if(ph.equals("WAIT")) check(Math.hypot(robot.x-k.x,robot.y-k.y)<=.75,"Waits at the corner");
                 if(o.finished) break;
@@ -1139,10 +1184,15 @@ public final class PollenHiveTest {
             PollenHiveRoute r=new PollenHiveRoute(sec,room,(Boolean)m[2],(Boolean)m[3]);
             int[] o=r.menuOrder(run);
             String mode=run+(sec?" secondary":" primary")+(room?" make-room":"")+(m[2].equals(true)?" fast":"")+(m[3].equals(true)?" angled":"");
-            check(o.length==r.values.rows.length-1,mode+": every row but Execution");
+            int[] hidden=java.util.stream.IntStream.range(0,r.values.rows.length).filter(i -> {
+                String key=r.values.rows[i].key;
+                return key.equals("execution")||key.equals("collectPower")||key.equals("feedIntake")
+                        ||key.equals("matchFeedIntake")||key.equals("collection.intake");
+            }).toArray();
+            check(o.length==r.values.rows.length-hidden.length,mode+": legacy rows hidden");
             java.util.Set<Integer> seen=new java.util.HashSet<>();
             for(int i:o) check(seen.add(i),mode+": row listed once");
-            check(!seen.contains(r.values.index("execution")),mode+": Execution hidden");
+            for(int i:hidden) check(!seen.contains(i),mode+": legacy row hidden: "+r.values.rows[i].key);
             check(r.values.rows[o[0]].key.equals("side"),mode+": side / Alliance first");
             String second=r.values.rows[o[1]].key;
             String want=!sec?"startGapIn":"launcher"; // v43: primary placement first
@@ -1163,7 +1213,7 @@ public final class PollenHiveTest {
         menuOrder();
         secondaryFlowerOff();
         matchAllianceSetup();
-        classifier(); missesVsContradictions(); unsettledReturnParks(); returnHeadingCorrection(2.07); returnHeadingCorrection(-2.07);
+        classifier(); missesVsContradictions(); autonomousTagGate(); unsettledReturnParks(); returnHeadingCorrection(2.07); returnHeadingCorrection(-2.07);
         calibration(); sides(); settings(); routes(); collectionTuning(); secondaryGates(); clearOutAfterVolley(); fastCycle(); returnNudge(); pacedFeed();
         double fullPower=primaryCycle(false,false,1);
         double priorPower=primaryCycle(false,false,.6);

@@ -238,7 +238,7 @@ public final class PollenCollectionSequence {
         o.done = stage == Stage.DONE;
         o.fault = fault;
         if (!o.done && fault == null) {
-            o.intake = s.get("intake");
+            o.intake = 1;
             o.drainerDown = kind == Kind.FLOWER;
         }
         return o;

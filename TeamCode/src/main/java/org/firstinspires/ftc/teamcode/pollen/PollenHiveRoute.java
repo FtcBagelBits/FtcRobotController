@@ -22,7 +22,6 @@ public final class PollenHiveRoute {
     private static final int MATCH_TRAVEL_POWER=33;
     private static final int MATCH_FIRST_FEED=34, MATCH_SECOND_FEED=35;
     private static final int MATCH_GARDEN_PASSES=36, MATCH_FLOWER_SHAKES=37, MATCH_FLOWER_CLEANUP=38;
-    private static final int MATCH_FEED_INTAKE=39;
     private static final int MATCH_PARK_SECONDS=40;
     private static final int PARK_MARGIN=41;
     private static final int CLEAR_OUT=42, FEED_PAUSE_PCT=43;
@@ -101,9 +100,9 @@ public final class PollenHiveRoute {
         "collectionEntryLeft","matchTravelPower","matchFirstFeed","matchSecondFeed","parkMargin","clearOut","startDelay",
         SHOT_LEFT,SHOT_AWAY,AIM_LEFT};
     private static final String[] MAKE_ROOM_FIRST={"launcher","firstFeed","parkMargin","startDelay"};
-    private static final String[] SHOT_FIRST={START_GAP,"launcher","firstFeed","firstWindow","feedIntake","feedAgitator",
+    private static final String[] SHOT_FIRST={START_GAP,"launcher","firstFeed","firstWindow","feedAgitator",
         "feedPausePct","startDelay"};
-    private static final String[] GARDEN_FIRST={START_GAP,"travelPower","pickupPower","collectPower","collectHold",
+    private static final String[] GARDEN_FIRST={START_GAP,"travelPower","pickupPower","collectHold",
         "clearForward","pickupLeft","pickupForward"};
     /** Rows a Match/Beta mode never uses: listed after the collection tuning, at the very end. */
     private static final String[] MATCH_UNUSED={"firstFeed","secondFeed","firstWindow","travelPower","collectPower",
@@ -136,6 +135,9 @@ public final class PollenHiveRoute {
             if(!o.contains(i)&&!k.equals("execution")&&!unused.contains(k)) o.add(i);
         }
         for(int i=0;i<n;i++) if(!o.contains(i)&&!values.rows[i].key.equals("execution")) o.add(i);
+        // Keep the old settings keys readable for saved profiles, but intake power is fixed in auto.
+        o.removeIf(i -> Arrays.asList("collectPower", "feedIntake", "matchFeedIntake", "collection.intake")
+                .contains(values.rows[i].key));
         int[] a=new int[o.size()]; for(int i=0;i<a.length;i++) a[i]=o.get(i); return a;
     }
     private void addKey(List<Integer> o,String key) {
@@ -254,7 +256,6 @@ public final class PollenHiveRoute {
         }
         return settings;
     }
-    double feedIntake(boolean collectionMatch) { return v[collectionMatch?MATCH_FEED_INTAKE:11]; }
     /** Seconds the agitator and launcher keep running together after a match volley ends, to empty the robot. */
     double clearOutSeconds() { return v[CLEAR_OUT]; }
     /** Paced feed: pause the agitator below this fraction of the launcher target; 0 = never pause. */
@@ -273,7 +274,6 @@ public final class PollenHiveRoute {
             throw new IllegalArgumentException("Invalid match travel power");
         for(int i:new int[]{MATCH_FIRST_FEED,MATCH_SECOND_FEED})
             if(v[i]<0||v[i]>20) throw new IllegalArgumentException("Invalid beta feed duration");
-        if(v[MATCH_FEED_INTAKE]<0||v[MATCH_FEED_INTAKE]>1) throw new IllegalArgumentException("Invalid beta shooting intake power");
         if(v[CLEAR_OUT]<0||v[CLEAR_OUT]>6) throw new IllegalArgumentException("Invalid clear-out time");
         if(v[MATCH_PARK_SECONDS]<.5||v[MATCH_PARK_SECONDS]>20) throw new IllegalArgumentException("Invalid beta measured parking time");
         PollenCollectionSequence.validate(collectionKind(),collectionSettings());
