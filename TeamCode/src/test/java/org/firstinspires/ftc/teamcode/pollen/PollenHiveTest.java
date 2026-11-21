@@ -672,6 +672,26 @@ public final class PollenHiveTest {
         double[] expected=PollenSequence.wheelPowers(-.3,-.1,.2);
         for(int i=0;i<4;i++) check(actual[i]==expected[i],"Rear-facing conversion matches legacy boundary");
     }
+    private static void slowMatchPark(boolean secondary, double power) {
+        PollenHiveRoute route = new PollenHiveRoute(secondary);
+        route.v[route.values.index("matchTravelPower")] = power;
+        PollenHiveAuto auto = new PollenHiveAuto(route, hive());
+        PollenOdometryTest.SimRobot robot = new PollenOdometryTest.SimRobot();
+        robot.leftLimit = secondary ? Double.POSITIVE_INFINITY
+                : PollenFieldGeometry.END_WALL_INCHES - 9 + route.startXInches();
+        auto.start(0);
+        PollenHiveAuto.Output output = null;
+        for (int i = 1; i <= 1500; i++) {
+            output = auto.tick(i * .02, null, robot.x, robot.y, robot.h, 1180, true);
+            if (output.finished) break;
+            robot.step(output.forward, output.strafe, output.turn, false, .02);
+        }
+        PollenHiveRoute.Node[] park = route.collectionPark();
+        PollenHiveRoute.Node slot = park[park.length - 1];
+        check(output.reason.equals("Finished departure") && Math.hypot(robot.x-slot.x, robot.y-slot.y)<=.5,
+                "Slow park must reach the slot before cutoff: secondary=" + secondary + " power=" + power
+                + " end=" + robot.x + "/" + robot.y + " " + output.reason);
+    }
     private static void motionFaults() {
         PollenHiveMotion m=new PollenHiveMotion(new PollenHiveRoute(false).garden());
         PollenHiveMotion.Output o=null;
@@ -875,6 +895,38 @@ public final class PollenHiveTest {
         check(firstFeed&&drained&&secondFeed&&o.reason.equals("Finished departure"),
                 "Secondary angled shoots, drains, shoots again (camera UP="+upAfterReturn+") and parks: "+phases+" "+o.reason);
     }
+    /** A failed first aim must not send a still-loaded secondary to the flower. */
+    private static void angledSecondaryMissesPreload(boolean failTurn) {
+        PollenHiveRoute c = new PollenHiveRoute(true, false, false, true);
+        c.beginMatchSetup();
+        c.selectMatchAlliance(false);
+        IsHiveReadyForShot detector = new IsHiveReadyForShot(M, IsHiveReadyForShot.allowedCells(true, c.side()));
+        PollenHiveAuto auto = new PollenHiveAuto(c, detector);
+        auto.start(0);
+        PollenOdometryTest.SimRobot robot = new PollenOdometryTest.SimRobot();
+        boolean injected = false, collected = false, fed = false, parked = false;
+        PollenHiveAuto.Output o = null;
+        for (int i = 1; i <= 1500; i++) {
+            // The red secondary cell stays visibly DOWN the entire time.
+            IsHiveReadyForShot.Frame down = new IsHiveReadyForShot.Frame(i, tag(31, M.downIn, 0, 40, M));
+            o = auto.tick(i * .02, down, robot.x, robot.y, robot.h, 1180, true);
+            collected |= o.phase.startsWith("OUTBOUND") || o.drainerDown;
+            fed |= o.feed || o.agitator != 0;
+            parked |= o.phase.startsWith("PARK:");
+            if (o.finished) break;
+            robot.cannotTurnInPlace = failTurn && o.phase.equals("ALIGN_SHOT") && !collected;
+            robot.step(o.forward, o.strafe, o.turn, false, .02);
+            if (robot.cannotTurnInPlace) injected = true;
+            if (!failTurn && !injected && o.phase.equals("SETTLE")) {
+                robot.x += .8;  // just outside shot tolerance, no longer settling at the spot
+                injected = true;
+            }
+            if (o.phase.startsWith("FLOWER") && robot.x < 5.1) { robot.x = 5.1; robot.vf = 0; }
+        }
+        check(injected && !collected && !fed && parked && o.reason.equals("Finished departure"),
+                "Skipped secondary preload must park with four balls: failTurn=" + failTurn
+                + " collected=" + collected + " fed=" + fed + " parked=" + parked + " " + o.reason);
+    }
     private static void cameraHeightFromFieldTrace() {
         PollenHiveSettings.Values defaults=new PollenHiveSettings.Values(PollenHiveSettings.CAMERA,false);
         IsHiveReadyForShot.Mount mount=IsHiveReadyForShot.Mount.from(defaults);
@@ -1077,7 +1129,8 @@ public final class PollenHiveTest {
         double priorPower=primaryCycle(false,false,.6);
         check(fullPower<priorPower,"Full-power transit improves simulated cycle time");
         primaryCycle(false,true,1); primaryCycle(true,false,1); secondaryFlower(true); secondaryFlower(false);
-        lateCollectionAndPark(); parkFromCollectionLane(); parkFinishesReturnLegs(); squaresUpInPlace(); angledPrimary(); angledSecondary(true); angledSecondary(false); cameraHeightFromFieldTrace(); motionFaults(); practice(); noCoastGate(); makeRoom();
+        slowMatchPark(false, .30); slowMatchPark(true, .20); slowMatchPark(false, .10);
+        lateCollectionAndPark(); parkFromCollectionLane(); parkFinishesReturnLegs(); squaresUpInPlace(); angledPrimary(); angledSecondary(true); angledSecondary(false); angledSecondaryMissesPreload(false); angledSecondaryMissesPreload(true); cameraHeightFromFieldTrace(); motionFaults(); practice(); noCoastGate(); makeRoom();
         System.out.println("PASS PollenHiveTest: "+checks+" checks");
     }
 }

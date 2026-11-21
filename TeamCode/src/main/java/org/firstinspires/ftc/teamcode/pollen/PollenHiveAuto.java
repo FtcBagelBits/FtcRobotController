@@ -20,7 +20,7 @@ public final class PollenHiveAuto {
     private final Run run;
     private final IsHiveReadyForShot hive;
     private final PollenCollectionSequence.Kind collectionKind;
-    private final double collectionEstimate;
+    private final double collectionEstimate, collectionParkReserve;
     private final int cutoffSeconds;
     /** Shooting pose: the start, or the angled mode's spot and aim heading (inches, radians). */
     private final double shotX,shotY,shotH;
@@ -44,6 +44,7 @@ public final class PollenHiveAuto {
         collectionKind=run==Run.MATCH&&!config.makeRoom?config.collectionKind():null;
         config.validateForStart(collectionKind!=null);
         collectionEstimate=collectionKind==null?0:config.collectionEstimate();
+        collectionParkReserve=collectionKind==null?0:config.collectionParkSeconds()+config.parkMargin()+config.aimTurnSeconds();
         cutoffSeconds=collectionKind==null?27:30;
         shotX=config.shotX(); shotY=config.shotY(); shotH=config.shotHeading();
     }
@@ -99,7 +100,7 @@ public final class PollenHiveAuto {
                     :phase==Phase.RETURN&&motion!=null?motion.remaining():config.collectionReturn(x,y);
             if(approach!=null&&approach.length==0) approach=null;
             // Angled: the park starts by turning back from the aim heading.
-            parkReserve=config.measuredParkSeconds()+config.parkMargin()+config.aimTurnSeconds();
+            parkReserve=collectionParkReserve;
             if(approach!=null) parkReserve+=PollenHiveRoute.planned(approach,x,y);
             if(remaining<=parkReserve) {
                 startBetaPark(now,String.format(Locale.US,"Park deadline during %s, %.2f s left",phase,remaining),approach);
@@ -247,7 +248,7 @@ public final class PollenHiveAuto {
                     enter(firstShotDone||!angledStart()?Phase.SECOND:Phase.FIRST,now);
                 }
                 else if(!firstShotDone&&angledStart()&&now-phaseAt>1.5)
-                    outbound(now,"Shot spot did not settle; first shot skipped");
+                    skipAngledPreload(now,"Shot spot did not settle; first shot skipped");
                 // Fast mode: stopped just off the spot (0.5-3 in). One short leg back instead of losing the volley.
                 else if(config.fast&&!nudged&&collectionKind!=null&&!atShotPosition&&distanceFromShot<=3
                         &&speed<=1.5&&now-phaseAt>=.3) {
@@ -264,7 +265,7 @@ public final class PollenHiveAuto {
                 break;
             case ALIGN_SHOT:
                 if(distanceFromShot>1||now>alignUntil) {
-                    if(!firstShotDone&&angledStart()) outbound(now,"Aim turn failed; first shot skipped");
+                    if(!firstShotDone&&angledStart()) skipAngledPreload(now,"Aim turn failed; first shot skipped");
                     else waitForBetaPark(now,"Return heading correction failed; second shot skipped");
                 } else if(Math.abs(headingError)<=RETURN_ALIGNMENT_DEG&&omega<=Math.toRadians(10)) {
                     settledAt=Double.NaN;
@@ -312,6 +313,12 @@ public final class PollenHiveAuto {
         if(27-(now-began)<need) { park(now,"Garden skipped: not enough estimated cycle time"); return; }
         reason=why+"; garden cycle budget passed";
         motion=new PollenHiveMotion(config.garden()); enter(Phase.GARDEN,now);
+    }
+    private void skipAngledPreload(double now,String why) {
+        // Secondary can skip the return camera check only after a confirmed first volley.
+        // Its four preloads are still onboard, so skip the flower and keep the scheduled park.
+        if(config.secondary) waitForBetaPark(now,why);
+        else outbound(now,why);
     }
     private void outbound(double now,String why) {
         firstShotDone=true;

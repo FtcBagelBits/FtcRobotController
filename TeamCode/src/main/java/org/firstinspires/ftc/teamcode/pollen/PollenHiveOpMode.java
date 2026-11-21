@@ -168,7 +168,7 @@ public abstract class PollenHiveOpMode extends OpMode {
             telemetry.addData("Estimated to corner / corner to park s", "%.1f / %.1f",
                     PollenHiveRoute.planned(corner), PollenHiveRoute.planned(settings.cornerPark(), c.x, c.y));
         } else if (matchCollection()) telemetry.addData("Estimated collection trip / park s", "%.1f / %.1f",
-                settings.collectionEstimate(), PollenHiveRoute.planned(settings.collectionPark()));
+                settings.collectionEstimate(), settings.collectionParkSeconds());
         else telemetry.addData("Estimated garden / park s", "%.1f / %.1f",
                 PollenHiveRoute.planned(settings.garden()), PollenHiveRoute.planned(settings.park()));
         telemetry.addData("Odometry", PollenOdometryHardware.status(pinpoint));

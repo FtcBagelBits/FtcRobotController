@@ -288,7 +288,10 @@ public final class PollenHiveRoute {
     }
     public Node[] park() { return park(v[7]); }
     boolean parkEnabled() { return v[21]!=0; }
-    double measuredParkSeconds() { return v[MATCH_PARK_SECONDS]; }
+    /** Use the field measurement as a floor. Slower settings may need more drive time. */
+    double collectionParkSeconds() {
+        return Math.max(v[MATCH_PARK_SECONDS], planned(collectionPark(), shotX(), shotY()));
+    }
     double parkMargin() { return v[PARK_MARGIN]; }
     double cornerParkReserve(double x,double y) {
         Node[] park=cornerPark();
