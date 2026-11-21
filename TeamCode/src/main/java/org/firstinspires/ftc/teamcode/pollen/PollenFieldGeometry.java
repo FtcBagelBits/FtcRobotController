@@ -44,6 +44,22 @@ public final class PollenFieldGeometry {
     public static double aimDegrees(double awayInches, double leftInches, double targetLeftInches) {
         return -Math.toDegrees(Math.atan2(leftInches - targetLeftInches, hiveOpeningForwardInches() - awayInches));
     }
+    /** Beta angled modes (v41): where our cell's middle is, inches LEFT of the robot's start
+     * (looking at the hive). Primary: the drive team centers the robot in its wall tile
+     * (center 11.75 in from the seam) while the hive center is 12.74 in from it (field CAD), so the
+     * cell is 0.99 in to the robot's left. Secondary: 1 in gaps to the flower and the seam
+     * (10.03 in from the seam), so the cell is 2.71 in to its right. Blue mirrors red. */
+    public static final double TILE_PITCH_INCHES = 23.502;
+    public static final double PRIMARY_TILE_START_X_INCHES = -TILE_PITCH_INCHES / 2;
+    public static double cellLeftOfStartInches(boolean secondary) {
+        return secondary ? RED_HIVE_X_INCHES - SUPPORT_START_X_INCHES      // robot left = +X
+                         : PRIMARY_TILE_START_X_INCHES - RED_HIVE_X_INCHES; // robot left = -X
+    }
+    /** aimDegrees for a start that is not centered on the cell: the cell's middle is cellLeftInches
+     * left of the start. Used only by the beta angled modes. */
+    public static double aimDegrees(double awayInches, double leftInches, double targetLeftInches, double cellLeftInches) {
+        return aimDegrees(awayInches, leftInches - cellLeftInches, targetLeftInches);
+    }
     public static double aimDistanceInches(double awayInches, double leftInches) {
         return Math.hypot(leftInches, hiveOpeningForwardInches() - awayInches);
     }

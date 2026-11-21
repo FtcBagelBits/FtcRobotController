@@ -15,7 +15,7 @@ BUILD = re.search(r'BUILD = "([^"]+)"', (ROOT / 'TeamCode/src/main/java/org/firs
                   .read_text()).group(1)
 PAGES = ROOT / 'docs' / 'drive-team'
 OUT = PAGES / 'print'
-SHEETS = ['6-primary-garden', '7-secondary-flower', 'coach-strategy',
+SHEETS = ['6-primary-garden', '7-secondary-flower', 'coach-strategy', '8-beta-primary-angled', '9-beta-secondary-angled',
           '1-shoot-and-park', '2-supporting-shooter', '3-teleop',
           'fallback-timed-autos', 'fallback-park-only', '4-hive-practice', '5-hive-benchmark']
 
@@ -55,10 +55,10 @@ def html_for(name):
         css += 'body { font-size: 10pt; line-height: 1.2; }'
     if name in ('3-teleop', '4-hive-practice'):
         css += 'table { font-size: 9.5pt; } th, td { padding: 1.5pt 4pt; }'
-    if name in ('6-primary-garden', '7-secondary-flower', 'coach-strategy'):
+    if name in ('6-primary-garden', '7-secondary-flower', 'coach-strategy', '8-beta-primary-angled', '9-beta-secondary-angled'):
         css += ('body { font-size: 9.6pt; line-height: 1.18; } table { font-size: 8.8pt; margin: 2pt 0 3pt; }'
                 ' th, td { padding: 1pt 3.5pt; } h2 { margin: 5pt 0 2pt; } p { margin: 3pt 0; }')
-    if name in ('6-primary-garden', '7-secondary-flower'):
+    if name in ('6-primary-garden', '7-secondary-flower', '8-beta-primary-angled', '9-beta-secondary-angled'):
         css += '.side { grid-template-columns: 2.75in 1fr; gap: 10pt; }'
     if name == '4-hive-practice':
         css += 'th:first-child { width: 1.55in; } .side { grid-template-columns: 2.7in 1fr; }'

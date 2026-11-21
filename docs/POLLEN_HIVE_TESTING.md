@@ -5,7 +5,7 @@ For the v8 motion investigation and exact retest order, see [Hive auto diagnosti
 Intermittent tags? Start with the [automatic pipeline benchmark](POLLEN_HIVE_BENCHMARK.md).
 It records raw detections before calibration passes; the current confirmation rule is unchanged.
 
-Build **pollen-hive-v40**. The two tested Hive shooters are in Match. Hero, Fast and Out of the Way are in Beta Test.
+Build **pollen-hive-v41**. The two tested Hive shooters are in Match. Hero, Fast and Out of the Way are in Beta Test.
 
 **v39 (match 2):** there is no Execution row any more. Every hive mode, calibration included, runs
 LIVE. Where this guide says DRY or DRIVE, that option is gone from the INIT menu (the controller
@@ -17,6 +17,12 @@ about 8 balls to tip, so after our 4 preloads it is still UP; the robot feeds as
 settled for 0.3 s, with the launcher (spun up during the return) at 96 % of target. In the
 2026-11-19 traces the UP re-confirmation took 1.23 and 1.27 s. The primary's return volley still
 waits for UP.
+
+**v41:** new **Beta Secondary Shooter - Angled** (Secondary + Flower from an angled spot: off the wall
+8 in, right 10.5 in; profile `secondary-angled`). Both angled modes aim by odometry from where the
+cell's middle really is relative to their start (`PollenFieldGeometry.cellLeftOfStartInches`: primary
+centered in its wall tile, 0.99 in right of the hive center; secondary start 2.71 in left of it, looking at the hive). The
+camera only gates volleys (primary's second; secondary's first).
 Print [the two-page practice sheet](drive-team/print/4-hive-practice.pdf). This guide explains the
 controls and checks in full; the patch kit README covers applying, building, installing and pushing.
 

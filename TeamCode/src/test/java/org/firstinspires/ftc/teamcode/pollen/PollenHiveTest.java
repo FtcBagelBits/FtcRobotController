@@ -768,8 +768,11 @@ public final class PollenHiveTest {
     private static void angledPrimary() {
         check(Math.abs(PollenFieldGeometry.aimDegrees(8,8)+11.93)<.05,"8 in / 8 in aims about 11.9 deg right: "+PollenFieldGeometry.aimDegrees(8,8));
         boolean rejected=false;
-        try { new PollenHiveRoute(true,false,false,true); } catch(IllegalArgumentException ex) { rejected=true; }
-        check(rejected,"Angled is a primary-only mode");
+        try { new PollenHiveRoute(true,true,false,true); } catch(IllegalArgumentException ex) { rejected=true; }
+        check(rejected,"Angled is not a make-room mode");
+        check(Math.abs(PollenFieldGeometry.cellLeftOfStartInches(false)-.991)<.001
+                &&Math.abs(PollenFieldGeometry.cellLeftOfStartInches(true)+2.713)<.001,
+                "v41: cell middle 0.99 in left of the tile-centered primary start, 2.71 in right of the secondary start");
         PollenHiveRoute c=new PollenHiveRoute(false,false,false,true);
         check(c.values.get("shotLeftIn")==8&&c.values.get("shotAwayIn")==8,"Angled spot defaults to 8 in left, 8 in away");
         int aimRow=c.values.index("aimTargetLeftIn"); c.values.edit(aimRow,-1);
@@ -785,9 +788,10 @@ public final class PollenHiveTest {
         bad.v[bad.values.index("shotAwayIn")]=3; bad.v[bad.values.index("shotLeftIn")]=24;
         rejected=false; try { bad.validate(true); } catch(IllegalArgumentException ex) { rejected=true; }
         check(rejected,"A spot too close to the wall for the aim turn fails INIT");
-        double aim=Math.toRadians(PollenFieldGeometry.aimDegrees(8,8,PollenConfig.AIM_TARGET_LEFT_IN));
-        check(c.values.get("aimTargetLeftIn")==-2&&Math.abs(Math.toDegrees(aim)+14.78)<.05,
-                "Angled auto aims 2 in right of the cell's middle by default: "+Math.toDegrees(aim));
+        double aim=Math.toRadians(PollenFieldGeometry.aimDegrees(8,8,PollenConfig.AIM_TARGET_LEFT_IN,
+                PollenFieldGeometry.cellLeftOfStartInches(false)));
+        check(c.values.get("aimTargetLeftIn")==-2&&Math.abs(Math.toDegrees(aim)+13.38)<.05&&Math.abs(c.shotHeading()-aim)<1e-12,
+                "v41: angled primary aims 2 in right of the cell's middle, from the tile-centered start: "+Math.toDegrees(aim));
         IsHiveReadyForShot h=hive(); PollenHiveAuto a=new PollenHiveAuto(c,h); a.start(0);
         PollenOdometryTest.SimRobot robot=new PollenOdometryTest.SimRobot();
         robot.leftLimit=48.84;
@@ -815,6 +819,55 @@ public final class PollenHiveTest {
                 &&order.indexOf("FIRST")>order.indexOf("ALIGN_SHOT"),"Drive, turn, then shoot: "+order);
         check(firstFeed&&collect&&secondFeed&&o.reason.equals("Finished departure"),
                 "Angled primary shoots, drains the garden, shoots again from the spot and parks: "+order+" "+o.reason);
+    }
+    /** v41: Beta Secondary Shooter - Angled. Drive to the spot, turn, wait for UP, shoot, flower,
+     * back to the spot, shoot again with no camera wait, park straight from the spot. */
+    private static void angledSecondary(boolean upAfterReturn) {
+        PollenHiveRoute c=new PollenHiveRoute(true,false,false,true);
+        check(c.values.get("shotLeftIn")==-10.5&&c.values.get("shotAwayIn")==8,"Secondary angled spot: 10.5 in right, 8 in away");
+        c.validate(true);
+        double aim=Math.toRadians(PollenFieldGeometry.aimDegrees(8,-10.5,-2,PollenFieldGeometry.cellLeftOfStartInches(true)));
+        check(Math.abs(c.shotHeading()-aim)<1e-12&&Math.toDegrees(aim)>8.5&&Math.toDegrees(aim)<9,
+                "Secondary angled turns left about 8.7 deg toward the cell: "+Math.toDegrees(aim));
+        check(c.collectionOutbound()[0].name.equals("ALIGN WITH FLOWER")&&c.collectionPark().length==1
+                &&c.collectionPark()[0].name.equals("PARK"),"One leg to the flower; park straight from the spot");
+        PollenHiveRoute bad=new PollenHiveRoute(true,false,false,true);
+        bad.v[bad.values.index("shotLeftIn")]=2; // toward the midline: the robot would cross it
+        boolean rejected=false; try { bad.validate(true); } catch(IllegalArgumentException ex) { rejected=true; }
+        check(rejected,"A secondary spot across the alliance midline fails INIT");
+        int[] order=c.menuOrder(PollenHiveAuto.Run.MATCH);
+        java.util.List<String> keys=new java.util.ArrayList<>();
+        for(int i=0;i<14;i++) keys.add(c.values.rows[order[i]].key);
+        check(keys.contains("shotLeftIn")&&keys.contains("shotAwayIn")&&keys.contains("aimTargetLeftIn")&&keys.get(1).equals("launcher"),
+                "Secondary angled: spot and aim rows with the rows to check: "+keys);
+        PollenHiveAuto a=new PollenHiveAuto(c,hive()); a.start(0);
+        PollenOdometryTest.SimRobot robot=new PollenOdometryTest.SimRobot();
+        java.util.List<String> phases=new java.util.ArrayList<>();
+        boolean firstFeed=false,secondFeed=false,spunUp=false,drained=false;
+        double shotX=8,shotY=-10.5;
+        PollenHiveAuto.Output o=null;
+        for(int i=1;i<=1501;i++) {
+            double t=i*.02;
+            boolean up=phases.contains("RETURN")?upAfterReturn:t>=4;
+            o=a.tick(t,frame(i,up),robot.x,robot.y,robot.h,o==null?0:o.launcher,true);
+            String phase=o.phase.split(":")[0];
+            if(phases.isEmpty()||!phases.get(phases.size()-1).equals(phase)) phases.add(phase);
+            if(phase.equals("TO_SHOT")&&o.launcher==1180) spunUp=true;
+            if(o.phase.startsWith("FLOWER")&&o.drainerDown) drained=true;
+            if(phase.equals("FIRST")&&t<4) check(!o.feed,"First volley waits for our cell UP");
+            if(o.feed&&!o.phase.startsWith("OUTBOUND")&&!o.phase.startsWith("FLOWER")&&!phase.equals("PARK_WAIT")) {
+                check(Math.hypot(robot.x-shotX,robot.y-shotY)<=.5&&Math.abs(PollenOdometryDrive.wrap(robot.h-aim))<=Math.toRadians(2),
+                        "Secondary angled volleys only at the spot and aimed: "+robot.x+","+robot.y+","+Math.toDegrees(robot.h)+" at "+t);
+                if(phase.equals("FIRST")) firstFeed=true;
+                if(phase.equals("SECOND")) secondFeed=true;
+            }
+            robot.step(o.forward,o.strafe,o.turn,false,.02);
+            if(phase.equals("FLOWER")&&robot.x<5.1) { robot.x=5.1; robot.vf=0; }
+            if(o.finished) break;
+        }
+        check(spunUp&&phases.indexOf("TO_SHOT")==0&&phases.indexOf("FIRST")>phases.indexOf("ALIGN_SHOT"),"Drive, turn, then wait and shoot: "+phases);
+        check(firstFeed&&drained&&secondFeed&&o.reason.equals("Finished departure"),
+                "Secondary angled shoots, drains, shoots again (camera UP="+upAfterReturn+") and parks: "+phases+" "+o.reason);
     }
     private static void cameraHeightFromFieldTrace() {
         PollenHiveSettings.Values defaults=new PollenHiveSettings.Values(PollenHiveSettings.CAMERA,false);
@@ -1018,7 +1071,7 @@ public final class PollenHiveTest {
         double priorPower=primaryCycle(false,false,.6);
         check(fullPower<priorPower,"Full-power transit improves simulated cycle time");
         primaryCycle(false,true,1); primaryCycle(true,false,1); secondaryFlower(true); secondaryFlower(false);
-        lateCollectionAndPark(); parkFromCollectionLane(); parkFinishesReturnLegs(); squaresUpInPlace(); angledPrimary(); cameraHeightFromFieldTrace(); motionFaults(); practice(); noCoastGate(); makeRoom();
+        lateCollectionAndPark(); parkFromCollectionLane(); parkFinishesReturnLegs(); squaresUpInPlace(); angledPrimary(); angledSecondary(true); angledSecondary(false); cameraHeightFromFieldTrace(); motionFaults(); practice(); noCoastGate(); makeRoom();
         System.out.println("PASS PollenHiveTest: "+checks+" checks");
     }
 }

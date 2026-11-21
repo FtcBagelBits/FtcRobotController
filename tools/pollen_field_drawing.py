@@ -11,7 +11,7 @@ flower_x = -20.058
 P = [(hx, W - R), (hx, W - R - 10 / IN), (hx - 25, W - R - 10 / IN), (-56, -26)]       # B: shoot first
 S = [(flower_x / 2, -W + R), (flower_x / 2, -W + R + 8), (-56, -47)]                   # C: shoot second
 
-# Match autos (red, inches), from the pollen-hive-v40 defaults (same as v38) in PollenHiveSettings / PollenHiveRoute.
+# Match autos (red, inches), from the pollen-hive-v41 defaults (same as v38) in PollenHiveSettings / PollenHiveRoute.
 # Primary: field X = hx - left, Z = W - R - forward. Secondary: X = flower_x / 2 + left, Z = -W + R + forward.
 # Primary Shooter + Garden: start, clear the wall (collection entry forward 34 cm), align with the
 # garden (left 108 cm), side-wall then garden-wall contact (the garden corner), back the same way.
@@ -25,6 +25,17 @@ HIVE_S_OUT = [(flower_x / 2, -W + R), (flower_x / 2, -W + R + 36.58 / IN),
               (flower_x / 2 - 34.06 / IN, -W + R + 36.58 / IN), (flower_x / 2 - 34.06 / IN, -W + R + 12.58 / IN)]
 # Park from the start: Park1/2 (20.32 cm, 0), Park3 (37.05 cm, -116.77 cm left).
 HIVE_S_PARK = [(flower_x / 2, -W + R), (flower_x / 2, -W + R + 20.32 / IN), (-56, -47)]
+# Beta angled modes (v41 defaults). Primary angled: one leg to the spot 8 in off the wall and 8 in
+# left of the start, then the same garden entry; it returns to the spot and parks from there
+# (park corner, then the slot). Secondary angled: straight off the wall 8 in, right 10.5 in to the
+# spot, then the flower entry; it returns to the spot and parks straight to the outer slot.
+HIVE_PA_SPOT = (hx - 8, W - R - 8)
+HIVE_PA_OUT = [HIVE_P_OUT[0], HIVE_PA_SPOT, HIVE_P_OUT[2], HIVE_P_OUT[3], HIVE_P_OUT[4]]
+HIVE_PA_PARK = [HIVE_PA_SPOT, HIVE_P_PARK[2], HIVE_P_PARK[3]]
+HIVE_SA_SPOT = (flower_x / 2 - 10.5, -W + R + 8)
+HIVE_SA_OUT = [HIVE_S_OUT[0], (flower_x / 2, -W + R + 8), HIVE_SA_SPOT, HIVE_S_OUT[2], HIVE_S_OUT[3]]
+HIVE_SA_PARK = [HIVE_SA_SPOT, HIVE_S_PARK[-1]]
+CELL_OPENING_Z = 15.7  # middle of an upright cell's opening, from the field center (docs/POLLEN_FIELD_LAYOUT.md)
 GARDEN_BALLS = [(-69.31, 69.3), (-66.42, 69.3), (-63.53, 69.3), (-60.64, 69.3)]
 FLOWERS = [(-71.794, -65.630, 20.058, 26.727), (65.630, 71.794, -26.727, -20.058),
            (20.058, 26.727, 65.630, 71.794), (-26.727, flower_x, -71.794, -65.630)]

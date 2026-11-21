@@ -676,7 +676,7 @@ z
     <text style="font-size: 9.2px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #111111" x="455.4" y="113.0749" transform="rotate(-0 455.4 113.0749)">Start: red at the audience wall, blue at the scoring wall, centered</text>
    </g>
    <g id="text_24">
-    <text style="font-size: 9.2px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #111111" x="455.4" y="130.71886" transform="rotate(-0 455.4 130.71886)">on the hive. Shoots 4 preloads at about 1-4 s into the cell that starts UP.</text>
+    <text style="font-size: 9.2px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #111111" x="455.4" y="130.71886" transform="rotate(-0 455.4 130.71886)">in its wall tile. Shoots 4 preloads at about 1-4 s into the cell that starts UP.</text>
    </g>
    <g id="text_25">
     <text style="font-size: 9.2px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #111111" x="455.4" y="148.36282" transform="rotate(-0 455.4 148.36282)">4-15 s: drives to the garden corner, intake first, and back.</text>
@@ -748,7 +748,7 @@ z
     <text style="font-size: 7.8px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #555555" x="455.4" y="571.59993" transform="rotate(-0 455.4 571.59993)">Times measured in our Nov 19 practice (P 7 runs, S 2 runs), build v35-v38.</text>
    </g>
    <g id="text_48">
-    <text style="font-size: 7.8px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #555555" x="455.4" y="589.24389" transform="rotate(-0 455.4 589.24389)">Routes: pollen-hive-v40 defaults, field CAD v26-27.2, 18 in robot.</text>
+    <text style="font-size: 7.8px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #555555" x="455.4" y="589.24389" transform="rotate(-0 455.4 589.24389)">Routes: pollen-hive-v41 defaults, field CAD v26-27.2, 18 in robot.</text>
    </g>
   </g>
  </g>

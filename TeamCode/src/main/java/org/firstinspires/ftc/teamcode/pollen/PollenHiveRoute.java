@@ -41,7 +41,9 @@ public final class PollenHiveRoute {
     public final boolean angled;
     static final String SHOT_LEFT="shotLeftIn", SHOT_AWAY="shotAwayIn", AIM_LEFT="aimTargetLeftIn";
     private static final PollenHiveSettings.Row[] ANGLED_ROWS={
-        new PollenHiveSettings.Row(SHOT_LEFT,"Angled shot spot left in",8,8,.5,0,24),
+        // Left of the START (negative = right). Primary 8 in toward the garden; secondary (v41) 10.5 in
+        // right, toward the flower side: about 8 in right of the cell's middle, mirroring the primary.
+        new PollenHiveSettings.Row(SHOT_LEFT,"Angled shot spot left in (- = right)",8,-10.5,.5,-24,24),
         new PollenHiveSettings.Row(SHOT_AWAY,"Angled shot spot away from wall in",8,8,.5,3,24),
         // v37: aim this far LEFT of our cell's middle (negative = right); default 2 in right.
         new PollenHiveSettings.Row(AIM_LEFT,"Aim target in left of center",PollenConfig.AIM_TARGET_LEFT_IN,
@@ -53,7 +55,7 @@ public final class PollenHiveRoute {
     public PollenHiveRoute(boolean secondary,boolean makeRoom,boolean fast,boolean angled) {
         if(makeRoom&&!secondary) throw new IllegalArgumentException("Make room is a secondary mode");
         if(fast&&secondary) throw new IllegalArgumentException("Fast mode is a primary mode");
-        if(angled&&(secondary||fast)) throw new IllegalArgumentException("Angled is its own primary mode");
+        if(angled&&(makeRoom||fast)) throw new IllegalArgumentException("Angled is its own mode (primary or secondary)");
         this.secondary=secondary; this.makeRoom=makeRoom; this.fast=fast; this.angled=angled;
         List<PollenHiveSettings.Row> rows=new ArrayList<>(Arrays.asList(PollenHiveSettings.ROUTE));
         if(fast) for(String[] d:FAST_DEFAULTS) for(int i=0;i<rows.size();i++) {
@@ -76,7 +78,8 @@ public final class PollenHiveRoute {
     private static final String[] PRIMARY_FIRST={"startDelay","launcher","matchTravelPower","matchFirstFeed",
         "matchSecondFeed","matchGardenPasses","parkMargin","clearOut",SHOT_LEFT,SHOT_AWAY,AIM_LEFT};
     private static final String[] SECONDARY_FIRST={"launcher","matchFlowerShakes","matchFlowerCleanup",
-        "collectionEntryLeft","matchTravelPower","matchFirstFeed","matchSecondFeed","parkMargin","clearOut","startDelay"};
+        "collectionEntryLeft","matchTravelPower","matchFirstFeed","matchSecondFeed","parkMargin","clearOut","startDelay",
+        SHOT_LEFT,SHOT_AWAY,AIM_LEFT};
     private static final String[] MAKE_ROOM_FIRST={"launcher","firstFeed","parkMargin","startDelay"};
     private static final String[] SHOT_FIRST={"launcher","firstFeed","firstWindow","feedIntake","feedAgitator",
         "feedPausePct","startDelay"};
@@ -167,11 +170,17 @@ public final class PollenHiveRoute {
     private void shot() {
         if(!angled) { shotX=shotY=shotH=0; return; }
         shotX=values.get(SHOT_AWAY); shotY=values.get(SHOT_LEFT);
-        shotH=Math.toRadians(PollenFieldGeometry.aimDegrees(shotX,shotY,values.get(AIM_LEFT)));
+        // v41: the aim allows for where the cell's middle really is relative to the start.
+        shotH=Math.toRadians(PollenFieldGeometry.aimDegrees(shotX,shotY,values.get(AIM_LEFT),
+                PollenFieldGeometry.cellLeftOfStartInches(secondary)));
     }
-    /** Angled mode: one straight leg from the start to the shot spot (no turn; the aim turn
+    /** Angled mode: the primary drives one straight leg from the start to the shot spot (no turn; the aim turn
      * happens there, clear of the wall). */
     public Node[] toShot() {
+        // Secondary (v41): its start is 1 in from the flower, so it backs straight off the wall
+        // first (clear of the flower at about 5 in), then slides to the spot.
+        if(secondary) return new Node[]{transit("CLEAR END WALL",shotX()*2.54,0,v[MATCH_TRAVEL_POWER]),
+                transit("TO SHOT SPOT",shotX()*2.54,shotY()*2.54,v[MATCH_TRAVEL_POWER])};
         return new Node[]{transit("TO SHOT SPOT",shotX()*2.54,shotY()*2.54,v[MATCH_TRAVEL_POWER])};
     }
     /** Seconds to turn between the shot heading and straight (0 when not angled). */
@@ -183,7 +192,7 @@ public final class PollenHiveRoute {
         double clear=v[COLLECTION_ENTRY_FORWARD], left=v[COLLECTION_ENTRY_LEFT];
         double power=v[MATCH_TRAVEL_POWER];
         // Angled: already off the wall at the shot spot; one straight leg to the garden entry.
-        if(angled) return new Node[]{transit("ALIGN WITH GARDEN",clear,left,power)};
+        if(angled) return new Node[]{transit(secondary?"ALIGN WITH FLOWER":"ALIGN WITH GARDEN",clear,left,power)};
         return new Node[]{transit("CLEAR END WALL",clear,0,power),
                 transit(secondary?"ALIGN WITH FLOWER":"ALIGN WITH GARDEN",clear,left,power)};
     }
@@ -274,6 +283,8 @@ public final class PollenHiveRoute {
     /** Angled: parks from the shot spot, already off the wall, so it skips PARK CLEAR. */
     public Node[] collectionPark() {
         Node[] park=park(v[MATCH_TRAVEL_POWER]);
+        // Secondary angled: straight from the spot to the slot (its PARK CORNER is back in the start lane).
+        if(angled&&secondary&&park.length>1) return Arrays.copyOfRange(park,park.length-1,park.length);
         return angled&&park.length>1?Arrays.copyOfRange(park,1,park.length):park;
     }
     private Node[] park(double power) {
@@ -367,9 +378,9 @@ public final class PollenHiveRoute {
             x=n.x; y=n.y;
         }
     }
-    private static void checkFootprint(double f,double l,double h,String label) {
-        double x=PollenFieldGeometry.RED_HIVE_X_INCHES-l;
-        double z=PollenFieldGeometry.END_WALL_INCHES-9-f;
+    private void checkFootprint(double f,double l,double h,String label) {
+        double x=secondary?PollenFieldGeometry.SUPPORT_START_X_INCHES+l:PollenFieldGeometry.RED_HIVE_X_INCHES-l;
+        double z=secondary?PollenFieldGeometry.supportStartZInches()+f:PollenFieldGeometry.END_WALL_INCHES-9-f;
         checkFieldFootprint(x,z,h,label);
     }
     private static void checkFieldFootprint(double x,double z,double h,String label) {

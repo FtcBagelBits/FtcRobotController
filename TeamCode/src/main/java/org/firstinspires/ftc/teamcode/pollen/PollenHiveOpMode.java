@@ -22,7 +22,8 @@ public abstract class PollenHiveOpMode extends OpMode {
     protected boolean hero() { return false; }
     /** Beta Primary Shooter - Fast: own saved file and defaults (see PollenHiveRoute.FAST_DEFAULTS). */
     protected boolean fast() { return false; }
-    /** Beta Primary Shooter - Angled Left: both volleys from an angled spot (own saved file). */
+    /** Beta Primary Shooter - Angled Left / Beta Secondary Shooter - Angled: both volleys from an
+     * angled spot (own saved files, primary-angled and secondary-angled). */
     protected boolean angled() { return false; }
     protected PollenHiveAuto.Run run() { return PollenHiveAuto.Run.MATCH; }
     /** Match 2 (v39): every hive mode, calibration included, always runs LIVE. The Execution row is
@@ -58,7 +59,7 @@ public abstract class PollenHiveOpMode extends OpMode {
     private boolean up, down, left, right, lb, rb, square, triangle, circle;
     private double displayAt = -1, hiveLogAt = -1, hiveLogStamp = Double.NaN;
 
-    private String fileName() { return fast() ? "primary-fast" : angled() ? "primary-angled" : hero() ? "primary-hero" : secondary() ? PollenHiveStore.SECONDARY : PollenHiveStore.PRIMARY; }
+    private String fileName() { return fast() ? "primary-fast" : angled() ? (secondary() ? "secondary-angled" : "primary-angled") : hero() ? "primary-hero" : secondary() ? PollenHiveStore.SECONDARY : PollenHiveStore.PRIMARY; }
     /** Screen order of the route rows (PollenHiveRoute.menuOrder): checks first, Execution hidden in matches. */
     private int[] order;
     private int routeRows() { return order.length; }
@@ -148,11 +149,13 @@ public abstract class PollenHiveOpMode extends OpMode {
         telemetry.addData("Plan", run()==PollenHiveAuto.Run.SHOT_ONLY ? "Stationary volley, then DONE; no departure"
                 : run()==PollenHiveAuto.Run.GARDEN_RETURN ? "Garden, return to S, settle, DONE; no shots or park"
                 : makeRoom() ? "SECONDARY OUT OF THE WAY: wait for UP, shoot, wait in corner, park at deadline"
-                : secondary() ? "SECONDARY: wait for UP, shoot, drain flower, return, shoot again (no camera wait)"
-                : angled() ? String.format(Locale.US, "PRIMARY ANGLED: drive to %.1f in away / %.1f in left, turn %.1f deg, shoot, garden, return there, shoot, park",
+                : angled() ? String.format(Locale.US, secondary()
+                        ? "SECONDARY ANGLED: drive to %.1f in away / %.1f in left, turn %.1f deg, wait for UP, shoot, flower, return there, shoot, park"
+                        : "PRIMARY ANGLED: drive to %.1f in away / %.1f in left, turn %.1f deg, shoot, garden, return there, shoot, park",
                         settings.values.get("shotAwayIn"), settings.values.get("shotLeftIn"),
                         PollenFieldGeometry.aimDegrees(settings.values.get("shotAwayIn"), settings.values.get("shotLeftIn"),
-                                settings.values.get("aimTargetLeftIn")))
+                                settings.values.get("aimTargetLeftIn"), PollenFieldGeometry.cellLeftOfStartInches(secondary())))
+                : secondary() ? "SECONDARY: wait for UP, shoot, drain flower, return, shoot again (no camera wait)"
                 : "PRIMARY: shoot, garden (front intake), return, wait/shoot, park");
         telemetry.addData("SETTINGS", changed == 0 ? "all defaults" : "*** " + changed + " CHANGED FROM DEFAULT: "
                 + join(settings.values.changedSummary(), cameraSettings.changedSummary()) + " ***");

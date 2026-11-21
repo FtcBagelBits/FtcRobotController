@@ -1,6 +1,6 @@
 # Hive match setup and practice
 
-**Build pollen-hive-v40 - experimental.** Print front/back. Full steps: `docs/POLLEN_HIVE_TESTING.md`.
+**Build pollen-hive-v41 - experimental.** Print front/back. Full steps: `docs/POLLEN_HIVE_TESTING.md`.
 Keep existing match autos available. Rear camera/launcher face hive; **front intake faces end wall**.
 
 <img src="img/hive-height.svg" style="width:4.3in">
@@ -15,7 +15,7 @@ Use **Calibration Hive Camera (No Motors)**, in the **TeleOp list**. It maps no 
 | Step | Do this |
 | --- | --- |
 | 1. Measure in INIT | Floor to lens center (default **11.75 in**); floor to UP/DOWN tag-row centers (**49.7 / 35.6 in** nominal). D-pad selects/edits camera rows. Triangle resets one row; Square saves. |
-| 2. Fit tilt | PRIMARY start, square to wall, centered. Near cell **physically UP**. START. Check correct IDs; see all four for sideways fit. Square, hands off for **3 s**. Display uses CANDIDATE. |
+| 2. Fit tilt | PRIMARY start, square to wall, **centered on the hive** (about 1 in toward the garden from the tile center used in matches). Near cell **physically UP**. START. Check correct IDs; see all four for sideways fit. Square, hands off for **3 s**. Display uses CANDIDATE. |
 | 3. Check UP | Still UP: D-pad **left**, then Circle. Hold still 3 s. Expect **PASS**. |
 | 4. Check DOWN | Tip same cell DOWN, let it settle. D-pad **right**, Circle. Expect PASS, or **BLOCKED ONLY** if tags hidden. Hidden is not a DOWN height measurement. |
 | 5. Save/reload | Cross saves after both checks. STOP / INIT / START verifies reload. Save before moving. Triangle forgets the cell/checks after changing starts. |
@@ -50,7 +50,8 @@ false UP _____ / 20. Capture reports save automatically. The screen tests the **
 | Secondary Shooter + Flower | **LIVE**. Wait for UP, shoot, drain with two swings and one cleanup cycle, return to S, shoot again with no camera wait (v40), park. 30 s cutoff. |
 | Beta Primary Shooter - Hero | **LIVE**. Primary garden plan, own saved settings. |
 | Beta Primary Shooter - Fast | **LIVE**. Like Hero: closer garden entry, 2.5 s feeds, return nudge. |
-| Beta Primary Shooter - Angled Left | **LIVE**. Same start as Primary. Drives straight to a spot 8 in off the wall and 8 in left (toward the garden), turns about 12 deg right to aim at our cell, shoots, drains the garden, comes back to the same spot, aims, shoots, parks. INIT rows **Angled shot spot left in** / **away from wall in** move the spot; the aim angle follows. **Aim target in left of center** (default -2.0 = 2 in right, 0.5 in steps) shifts where it aims: about 14.8 deg right at the defaults. |
+| Beta Primary Shooter - Angled Left | **LIVE**. Same start as Primary. Drives straight to a spot 8 in off the wall and 8 in left (toward the garden), turns about 12 deg right to aim at our cell, shoots, drains the garden, comes back to the same spot, aims, shoots, parks. INIT rows **Angled shot spot left in** / **away from wall in** move the spot; the aim angle follows. **Aim target in left of center** (default -2.0 = 2 in right, 0.5 in steps) shifts where it aims: about 13.4 deg right at the defaults (v41: aimed from the tile-centered start). |
+| Beta Secondary Shooter - Angled | **LIVE** (v41, not yet run). Secondary start. Straight off the wall 8 in, right 10.5 in, turns about 8.7 deg left to aim (odometry), waits for UP, shoots, drains the flower, back to the spot, shoots again with no camera wait, parks OUTER. Own saved profile `secondary-angled`. |
 | Beta Secondary Shooter - Out of the Way | **LIVE**. Wait for UP, shoot, wait in the far corner, park on its deadline. |
 
 Validate the camera, then test shot-only and garden (all LIVE since v39: no Execution row) before
