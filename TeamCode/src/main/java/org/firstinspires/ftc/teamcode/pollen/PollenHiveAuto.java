@@ -13,11 +13,9 @@ public final class PollenHiveAuto {
     static final double RETURN_SHOT_TOLERANCE_IN = 1.0;
     /** Beta/match modes always shoot once they reach the spot (v53): too many balls on board risks
      * a penalty. Within this distance the robot still turns to the aim first; further off it shoots
-     * from where it stopped. */
+     * from where it stopped. Camera rules are unchanged: the primary's first volley never checks
+     * (its cell starts UP); its return volley and every secondary volley need the cell UP. */
     static final double MUST_SHOOT_ALIGN_IN = 3.0;
-    /** Primary return volley: if the cell has not held UP by the time only the volley and the
-     * park are left (plus this margin, seconds), feed anyway. The secondary always waits for UP. */
-    static final double MUST_SHOOT_MARGIN_S = .5;
     private static final double MAX_LOOP_GAP_S = 0.25;
     public enum Run { MATCH, SHOT_ONLY, GARDEN_RETURN }
     /** ROOM = make room: driving to the corner; WAIT = parked in the corner until park time. */
@@ -207,10 +205,11 @@ public final class PollenHiveAuto {
                 o.launcher=config.v[6];
                 // After feed starts, finish the volley through camera changes and flywheel dips.
                 boolean poseForFeed=settled||(mustShoot()&&departed&&now-phaseAt>1.0);
-                // Primary only: its cell starts UP, so a missing camera UP never costs the return volley.
-                boolean deadlineShot=mustShoot()&&!config.secondary&&checksHive&&!volleyStarted&&!hiveUpLatched
-                        &&remaining<=parkReserve+requested+MUST_SHOOT_MARGIN_S;
-                o.feed=volleyStarted||(poseForFeed&&readySpeed&&(!checksHive||hiveUpLatched))||deadlineShot;
+                // Primary first volley (v54): its cell starts UP and nothing may stop it, so a launcher
+                // that never reads 96 % still feeds after the normal spin-up time.
+                boolean primaryFirst=mustShoot()&&!config.secondary&&phase==Phase.FIRST;
+                boolean speedOk=readySpeed||(primaryFirst&&now-phaseAt>=PollenConfig.LAUNCHER_SPINUP_SECONDS);
+                o.feed=volleyStarted||(poseForFeed&&speedOk&&(!checksHive||hiveUpLatched));
                 if(o.feed&&!volleyStarted) { volleyX=x; volleyY=y; volleyH=h; }
                 if(o.feed) {
                     // Paced feed (off at 0 %): hold the agitator while the launcher recovers from a ball.
@@ -220,9 +219,7 @@ public final class PollenHiveAuto {
                     o.agitator=feedPaused?0:config.v[12]; wasFeeding=true;
                     if(feedPaused) decision+=" feed_paused=true";
                 }
-                if(deadlineShot) reason="Feeding before the park deadline without hive UP (primary always shoots)";
-                else if(o.feed&&reason.startsWith("Feeding before the park deadline")) { /* keep it for the volley */ }
-                else if(o.feed) reason=checksHive?"Feeding: hive UP latched"
+                if(o.feed) reason=checksHive?"Feeding: hive UP latched"
                         :phase==Phase.SECOND?"Feeding return volley: cell already UP, no camera wait":"Feeding primary preload";
                 else if(!settled) reason="Not settled at shooting pose";
                 else if(!readySpeed) reason="Waiting for measured launcher speed";
@@ -257,7 +254,15 @@ public final class PollenHiveAuto {
                     break;
                 }
                 PollenHiveMotion.Output m=motion.tick(now,x,y,h); motionPhase=m.phase; decision+=" "+m.detail;
-                if(m.fault!=null) return stop(m.fault);
+                if(m.fault!=null) {
+                    // Primary (v54): never lose the first volley; shoot from wherever the drive stopped.
+                    if(phase==Phase.TO_SHOT&&mustShoot()&&!config.secondary) {
+                        reason="Drive to the shot spot failed ("+m.fault+"); shooting from here";
+                        aimGivenUp=true; settledAt=Double.NaN; enter(Phase.FIRST,now);
+                        break;
+                    }
+                    return stop(m.fault);
+                }
                 if(m.done) {
                     if(phase==Phase.OUTBOUND) {
                         collection=new PollenCollectionSequence(collectionKind,config.collectionSettings(),x,y,0);
