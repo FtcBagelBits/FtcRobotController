@@ -208,7 +208,8 @@ public final class PollenMatSupportTest {
         PollenShootTuning primary = new PollenShootTuning(null);
         near(primary.value(LEG1_CM), 10, "field preset first leaves the wall by 10 cm");
         near(primary.value(LEG1_ANGLE), 0, "wall clearance is straight forward");
-        near(primary.value(LEG2_CM), 63.5, "then clears the frame to the left");
+        near(primary.value(LEG2_CM), (25 + PollenFieldGeometry.HIVE_LEFT_OF_PRIMARY_START_INCHES) * 2.54,
+                "then clears the frame to the left: hive - 25 in, from the v43 start 1 in from the seam");
         near(primary.value(LEG2_ANGLE), 90, "hive clearance is pure left");
         near(primary.value(LEG3_CM), 172.47, "then the field-tuned last leg to the parking slot");
         near(primary.value(LEG3_ANGLE), 17, "field-tuned last-leg angle");
@@ -242,7 +243,7 @@ public final class PollenMatSupportTest {
         PollenShootTuning tune = new PollenShootTuning(null); // default: full route
         set(tune, LEG1_CM, 1, 3); near(tune.value(LEG1_CM), 13, "leg 1 cm in 1-cm steps");
         set(tune, LEG1_ANGLE, -1, 2); near(tune.value(LEG1_ANGLE), -2, "leg 1 angle editable");
-        set(tune, LEG2_CM, -1, 1); near(tune.value(LEG2_CM), 58.5, "leg 2 cm in 5-cm steps");
+        set(tune, LEG2_CM, -1, 1); near(tune.value(LEG2_CM), 65.46, "leg 2 cm in 5-cm steps (v43 default 70.46)");
         set(tune, LEG2_ANGLE, -1, 3); near(tune.value(LEG2_ANGLE), 87, "leg 2 angle editable");
         double fractional = tune.value(LEG3_ANGLE);
         set(tune, LEG3_ANGLE, 1, 1); near(tune.value(LEG3_ANGLE), Math.floor(fractional) + 1, "leg 3 angle snaps to whole degree");

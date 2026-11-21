@@ -19,7 +19,7 @@ a spot off the wall and to the right (toward the flower side), turned to aim at 
 | Time | What happens |
 | --- | --- |
 | 0 - about 2 s | Straight off the wall 8 in (clear of the flower), then 10.5 in right to the spot. Launcher spins up. |
-| next | Turns in place to the **calculated** aim, about 8.7 deg left. |
+| next | Turns in place to the **calculated** aim, about 4.6 deg left (it points the launcher, which is left of the robot's center). |
 | our cell UP for over 1 s | Shoots its 4 pollen (3 s). The camera only decides **when**, not where. |
 | next | Straight to the flower, drains it like the match Secondary. |
 | then | Back to the same spot, same aim. Shoots again **right away**: our cell needs 8 balls to tip, so it is still UP. |
@@ -66,8 +66,8 @@ then park INNER. Our robot also uses the space 8 in off the wall in front of the
 | --- | --- |
 | Status | `READY` |
 | Row 1 Alliance | `RED scoring-side cell (tags 30-33)` or `BLUE audience-side cell (tags 38-41)` |
-| BUILD / RUN | `pollen-hive-v42` / `MATCH / LIVE` |
-| Plan | `SECONDARY ANGLED: drive to 8.0 in away / -10.5 in left, turn 8.7 deg, ...` |
+| BUILD / RUN | `pollen-hive-v43` / `MATCH / LIVE` |
+| Plan | `SECONDARY ANGLED: drive to 8.0 in away / -10.5 in left, turn 4.6 deg, ...` |
 | SETTINGS | `all defaults` (or only the change the coach asked for) |
 | Hive cell behind robot | Our cell's name and **DOWN** (it starts down). Not `NO CAMERA`. |
 | Odometry | `READY` |

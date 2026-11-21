@@ -11,7 +11,7 @@ odometry the whole time.
 <div class="side" markdown="1">
 <div markdown="1">
 
-![Route: start centered on the hive, out to the garden corner and back, then park in the INNER slot](img/primary-garden-route.svg)
+![Route: start 1 in from the center seam, out to the garden corner and back, then park in the INNER slot](img/primary-garden-route.svg)
 
 </div>
 <div markdown="1">
@@ -43,14 +43,14 @@ the garden lane until about 16 s, and park in the **OUTER** slot. Show them the 
 <div class="side" markdown="1">
 <div markdown="1">
 
-![Placement: front flat on the wall, back (launcher) to the hive, centered on the hive, 3.7 in from the center seam](img/shoot-and-park-placement.svg)
+![Placement: front flat on the wall, back (launcher) to the hive, robot edge 1 in from the center seam so the launcher is on the hive center](img/shoot-and-park-placement.svg)
 
 </div>
 <div markdown="1">
 
 - **Red:** at the **audience** wall. **Blue:** at the **scoring-end** wall.
 - **Front** (intake) **flat on the wall**. The **back** (launcher and camera) **faces the hive**.
-- **Center the robot on the hive.** Its edge is 3.7 in (9.5 cm) from the center seam.
+- **1 in (2.5 cm) from the center seam** (spacer gauge, then take it off the field). That puts the launcher on the hive's center. INIT row 2 says 1.00; the routes follow that row.
 - Exactly **4 pollen** loaded. Not touching a flower. Not in the loading zone.
 - **Fresh battery.** Practice runs dropped to about 10 V during shooting.
 
@@ -73,7 +73,8 @@ Without it the Status says `BLOCKED` and the robot does nothing in auto.
 | --- | --- |
 | Status | `READY` |
 | Row 1 Alliance | `RED audience-side cell (tags 34-37)` or `BLUE scoring-side cell (tags 42-45)` |
-| BUILD / RUN | `pollen-hive-v42` / `MATCH / LIVE` |
+| Row 2 Start gap to center seam in | `1` (matches where the robot really is) |
+| BUILD / RUN | `pollen-hive-v43` / `MATCH / LIVE` |
 | SETTINGS | `all defaults` (or only the change the coach asked for) |
 | Hive cell behind robot | `Primary preload skips Hive UP` (not `NO CAMERA`) |
 | Camera calibration | tilt and lens numbers (not `NOT CALIBRATED`) |
@@ -90,15 +91,16 @@ only if the coach says.** There is no Execution row: every auto always runs LIVE
 | Row | Setting (default) | What it does |
 | --- | --- | --- |
 | 1 | Alliance (choose) | Which cell the camera watches. Every INIT. |
-| 2 | Start delay s (0) | Waits before anything. Park time doesn't move, so it cuts the garden trip and 2nd shot. |
-| 3 | Launcher ticks/s (1180) | Flywheel speed, steps of 20. Shots short: up. Long: down. |
-| 4 | Match travel and park power (1.00) | Driving speed. Lower is gentler but may not finish. |
-| 5, 6 | Beta first / second agitator feed s (3, 3) | Length of each volley. These are the Match values. |
-| 7 | Beta garden total inward passes (1) | 2 = back off and push into the garden again, about 2 s more. |
-| 8 | Park margin s (1.0) | Spare park time. More = safer park, less time for the 2nd shot. |
-| 9 | Clear-out s after volley (3) | Launcher + agitator keep running to empty the robot. 0 = off. |
+| 2 | Start gap to center seam in (1.00) | Where the robot starts: its edge this far from the center seam (0.25 in steps). The routes shift so the garden, the park corner and the slot stay in the same place on the field. 3.75 = the old centered-on-the-robot start. |
+| 3 | Start delay s (0) | Waits before anything. Park time doesn't move, so it cuts the garden trip and 2nd shot. |
+| 4 | Launcher ticks/s (1180) | Flywheel speed, steps of 20. Shots short: up. Long: down. |
+| 5 | Match travel and park power (1.00) | Driving speed. Lower is gentler but may not finish. |
+| 6, 7 | Beta first / second agitator feed s (3, 3) | Length of each volley. These are the Match values. |
+| 8 | Beta garden total inward passes (1) | 2 = back off and push into the garden again, about 2 s more. |
+| 9 | Park margin s (1.0) | Spare park time. More = safer park, less time for the 2nd shot. |
+| 10 | Clear-out s after volley (3) | Launcher + agitator keep running to empty the robot. 0 = off. |
 
-**Rows 10 to 56: leave alone.** Garden tuning, park and garden-entry points, measured park time
+**Rows 11 to 57: leave alone.** Garden tuning, park and garden-entry points, measured park time
 (5.46 s, don't lower), calibration-only rows, then the camera rows. A bad edit there can block INIT.
 
 ## If something is wrong

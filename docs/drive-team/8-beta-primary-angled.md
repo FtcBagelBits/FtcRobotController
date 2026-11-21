@@ -18,8 +18,8 @@ One practice run (Nov 19, v36); later builds untested on the field.
 
 | Time | What happens |
 | --- | --- |
-| 0 - 1.2 s | One straight leg to the spot: 8 in off the wall, 8 in left. Launcher spins up on the way. |
-| 1.2 - 2 s | Turns in place to the **calculated** aim, about 14.8 deg right. |
+| 0 - 1.2 s | One straight leg to the spot: 8 in off the wall, 10.5 in left. Launcher spins up on the way. |
+| 1.2 - 2 s | Turns in place to the **calculated** aim, about 18.5 deg right (it points the launcher, which is left of the robot's center). |
 | 2 - 5 s | Shoots its 4 pollen. Does not wait for the camera. |
 | 5 - 11 s | Straight to the garden, picks up, like the match Primary. |
 | 11 - 14 s | Back to the same spot; turns to the same aim. |
@@ -44,15 +44,16 @@ the garden lane. Our robot also uses the space 8 in off the wall in front of the
 <div class="side" markdown="1">
 <div markdown="1">
 
-![Placement: front flat on the wall, back (launcher) to the hive, centered on the hive, 3.7 in from the center seam](img/shoot-and-park-placement.svg)
+![Placement: front flat on the wall, back (launcher) to the hive, robot edge 1 in from the center seam so the launcher is on the hive center](img/shoot-and-park-placement.svg)
 
 </div>
 <div markdown="1">
 
 - **Red:** at the **audience** wall. **Blue:** at the **scoring-end** wall.
 - **Front** (intake) **flat on the wall**, **back** (launcher and camera) **to the hive**.
-- **Center the robot on the hive.** Its edge is 3.7 in (9.5 cm) from the center seam. The aim
-  angle is calculated from this spot, so placement matters more than in the match Primary.
+- **1 in (2.5 cm) from the center seam** (spacer gauge, then take it off the field): the launcher
+  is on the hive's center. INIT row 2 says 1.00. The aim is calculated from this spot, so
+  placement matters more than in the match Primary.
 - Exactly **4 pollen**. **Fresh battery.**
 
 </div>
@@ -68,8 +69,9 @@ the garden lane. Our robot also uses the space 8 in off the wall in front of the
 | --- | --- |
 | Status | `READY` |
 | Row 1 Alliance | `RED audience-side cell (tags 34-37)` or `BLUE scoring-side cell (tags 42-45)` |
-| BUILD / RUN | `pollen-hive-v42` / `MATCH / LIVE` |
-| Plan | `PRIMARY ANGLED: drive to 8.0 in away / 8.0 in left, turn -14.8 deg, ...` |
+| Row 2 Start gap to center seam in | `1` (matches where the robot really is) |
+| BUILD / RUN | `pollen-hive-v43` / `MATCH / LIVE` |
+| Plan | `PRIMARY ANGLED: drive to 8.0 in away / 10.5 in left, turn -18.5 deg, ...` |
 | SETTINGS | `all defaults` (or only the change the coach asked for) |
 | Odometry | `READY` |
 
@@ -84,21 +86,22 @@ saved file, separate from the match Primary). No Execution row: it always runs L
 | Row | Setting (default) | What it does |
 | --- | --- | --- |
 | 1 | Alliance (choose) | Which cell the camera watches. Every INIT. |
-| 2 | Start delay s (0) | Waits before anything. |
-| 3 | Launcher ticks/s (1180) | Flywheel speed, steps of 20. |
-| 4 | Match travel and park power (1.00) | Driving speed. |
-| 5, 6 | Beta first / second agitator feed s (3, 3) | Length of each volley. |
-| 7 | Beta garden total inward passes (1) | 2 = push into the garden again, about 2 s more. |
-| 8 | Park margin s (1.0) | Spare park time. |
-| 9 | Clear-out s after volley (3) | Launcher + agitator keep running to empty the robot. 0 = off. |
-| 10 | **Angled shot spot left in** (8) | Where to shoot from: inches left of the start (toward the garden). Negative = right. |
-| 11 | **Angled shot spot away from wall in** (8) | Where to shoot from: inches off the end wall (3 to 24). |
-| 12 | **Aim target in left of center** (-2.0) | Where on the cell to aim, inches left of its middle; -2 = 2 in right (the robot shoots a little left). 0.5 in steps. |
+| 2 | **Start gap to center seam in** (1.00) | Where the robot starts: its edge this far from the center seam. The aim and the garden and park points use it. |
+| 3 | Start delay s (0) | Waits before anything. |
+| 4 | Launcher ticks/s (1180) | Flywheel speed, steps of 20. |
+| 5 | Match travel and park power (1.00) | Driving speed. |
+| 6, 7 | Beta first / second agitator feed s (3, 3) | Length of each volley. |
+| 8 | Beta garden total inward passes (1) | 2 = push into the garden again, about 2 s more. |
+| 9 | Park margin s (1.0) | Spare park time. |
+| 10 | Clear-out s after volley (3) | Launcher + agitator keep running to empty the robot. 0 = off. |
+| 11 | **Angled shot spot left in** (10.5) | Where to shoot from: inches left of the start (toward the garden). Negative = right. |
+| 12 | **Angled shot spot away from wall in** (8) | Where to shoot from: inches off the end wall (3 to 24). |
+| 13 | **Aim target in left of center** (-2.0) | Where on the cell to aim, inches left of its middle; -2 = 2 in right (the robot shoots a little left). 0.5 in steps. |
 
-The Plan line shows the turn the robot will make after any change to rows 10-12. A spot whose
+The Plan line shows the turn the robot will make after any change to rows 2 and 11-13. A spot whose
 turn would hit the wall, or the midline, blocks INIT.
 
-**Rows 13 to 59: leave alone.** Garden tuning, park and entry points, calibration-only rows, camera rows.
+**Rows 14 to 60: leave alone.** Garden tuning, park and entry points, calibration-only rows, camera rows.
 
 ## If something is wrong
 

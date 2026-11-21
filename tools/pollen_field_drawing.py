@@ -8,17 +8,18 @@ SEAM = 23.502                                  # CAD tile pitch (soft-tile cente
 ZONE = (-70.101, -59.585, -46.599, -23.907)    # red loading zone: x0, x1, z0, z1 (conservative inboard edge)
 flower_x = -20.058
 # Red nominal presets (inches, field center origin). Blue is the same picture rotated 180 degrees.
-P = [(hx, W - R), (hx, W - R - 10 / IN), (hx - 25, W - R - 10 / IN), (-56, -26)]       # B: shoot first
+PX = -1 - R  # v43 primary start: robot edge 1 in from the center seam (launcher on the hive center)
+P = [(PX, W - R), (PX, W - R - 10 / IN), (hx - 25, W - R - 10 / IN), (-56, -26)]       # B: shoot first
 S = [(flower_x / 2, -W + R), (flower_x / 2, -W + R + 8), (-56, -47)]                   # C: shoot second
 
-# Match autos (red, inches), from the pollen-hive-v42 defaults (same as v38) in PollenHiveSettings / PollenHiveRoute.
-# Primary: field X = hx - left, Z = W - R - forward. Secondary: X = flower_x / 2 + left, Z = -W + R + forward.
+# Match autos (red, inches), from the pollen-hive-v43 defaults (same as v38) in PollenHiveSettings / PollenHiveRoute.
+# Primary (v43): field X = start - left - (hive-centered rows keep their field points), Z = W - R - forward. Secondary: X = flower_x / 2 + left, Z = -W + R + forward.
 # Primary Shooter + Garden: start, clear the wall (collection entry forward 34 cm), align with the
 # garden (left 108 cm), side-wall then garden-wall contact (the garden corner), back the same way.
-HIVE_P_OUT = [(hx, W - R), (hx, W - R - 34 / IN), (hx - 108 / IN, W - R - 34 / IN),
+HIVE_P_OUT = [(PX, W - R), (PX, W - R - 34 / IN), (hx - 108 / IN, W - R - 34 / IN),
               (-W + R, W - R - 34 / IN), (-W + R, W - R)]
 # Park from the start: Park1 (10 cm, 0), Park2 (10 cm, 63.5 cm left), Park3 (222.47 cm, 109.88 cm left).
-HIVE_P_PARK = [(hx, W - R), (hx, W - R - 10 / IN), (hx - 63.5 / IN, W - R - 10 / IN), (-56, -26)]
+HIVE_P_PARK = [(PX, W - R), (PX, W - R - 10 / IN), (hx - 63.5 / IN, W - R - 10 / IN), (-56, -26)]
 # Secondary Shooter + Flower: start, clear the wall (36.58 cm), align with the flower (-34.06 cm left),
 # drive in until the drainer is seated (24 cm short of the entry), back out the same way.
 HIVE_S_OUT = [(flower_x / 2, -W + R), (flower_x / 2, -W + R + 36.58 / IN),
@@ -29,7 +30,7 @@ HIVE_S_PARK = [(flower_x / 2, -W + R), (flower_x / 2, -W + R + 20.32 / IN), (-56
 # left of the start, then the same garden entry; it returns to the spot and parks from there
 # (park corner, then the slot). Secondary angled: straight off the wall 8 in, right 10.5 in to the
 # spot, then the flower entry; it returns to the spot and parks straight to the outer slot.
-HIVE_PA_SPOT = (hx - 8, W - R - 8)
+HIVE_PA_SPOT = (PX - 10.5, W - R - 8)
 HIVE_PA_OUT = [HIVE_P_OUT[0], HIVE_PA_SPOT, HIVE_P_OUT[2], HIVE_P_OUT[3], HIVE_P_OUT[4]]
 HIVE_PA_PARK = [HIVE_PA_SPOT, HIVE_P_PARK[2], HIVE_P_PARK[3]]
 HIVE_SA_SPOT = (flower_x / 2 - 10.5, -W + R + 8)

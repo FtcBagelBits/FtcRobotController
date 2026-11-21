@@ -43,11 +43,30 @@ public final class PollenHiveRoute {
     private static final PollenHiveSettings.Row[] ANGLED_ROWS={
         // Left of the START (negative = right). Primary 8 in toward the garden; secondary (v41) 10.5 in
         // right, toward the flower side: about 8 in right of the cell's middle, mirroring the primary.
-        new PollenHiveSettings.Row(SHOT_LEFT,"Angled shot spot left in (- = right)",8,-10.5,.5,-24,24),
+        // v43 primary: 10.5 in left of the new start (1 in from the seam) = the old spot, 8 in left of the hive center.
+        new PollenHiveSettings.Row(SHOT_LEFT,"Angled shot spot left in (- = right)",10.5,-10.5,.5,-24,24),
         new PollenHiveSettings.Row(SHOT_AWAY,"Angled shot spot away from wall in",8,8,.5,3,24),
         // v37: aim this far LEFT of our cell's middle (negative = right); default 2 in right.
         new PollenHiveSettings.Row(AIM_LEFT,"Aim target in left of center",PollenConfig.AIM_TARGET_LEFT_IN,
                 PollenConfig.AIM_TARGET_LEFT_IN,PollenConfig.AIM_TARGET_STEP_IN,-PollenConfig.AIM_TARGET_MAX_IN,PollenConfig.AIM_TARGET_MAX_IN)};
+    /** v43: primary placement, an INIT row for every primary hive mode (not the secondary). The
+     * robot's midline-side edge this far from the center seam; 1 in puts the launcher on the hive's
+     * center (3.74 in = the robot's center on it, the pre-v43 start). The route rows below keep
+     * their field positions: their LEFT values are measured from a hive-centered start and
+     * hiveLeftCm() is added when the nodes are built (PARK CLEAR, which only backs off the wall,
+     * is not shifted). */
+    static final String START_GAP="startGapIn";
+    private static final PollenHiveSettings.Row START_GAP_ROW=new PollenHiveSettings.Row(START_GAP,
+            "Start gap to center seam in",PollenFieldGeometry.PRIMARY_MIDLINE_GAP_INCHES,
+            PollenFieldGeometry.PRIMARY_MIDLINE_GAP_INCHES,.25,0,8);
+    /** Our cell's middle, cm LEFT of the start (0 for the secondary: its rows are its own). */
+    double hiveLeftCm() {
+        return secondary?0:PollenFieldGeometry.hiveLeftOfPrimaryStartInches(values.get(START_GAP))*PollenFieldGeometry.INCH_TO_CM;
+    }
+    /** Robot-center field X (red, inches) at the start. */
+    double startXInches() {
+        return secondary?PollenFieldGeometry.SUPPORT_START_X_INCHES:PollenFieldGeometry.primaryStartXInches(values.get(START_GAP));
+    }
     private double shotX,shotY,shotH;
     public PollenHiveRoute(boolean secondary) { this(secondary,false); }
     public PollenHiveRoute(boolean secondary,boolean makeRoom) { this(secondary,makeRoom,false); }
@@ -69,21 +88,22 @@ public final class PollenHiveRoute {
             rows.add(new PollenHiveSettings.Row(COLLECTION_PREFIX+row.key,row.label,
                     row.primary,row.secondary,row.step,row.min,row.max));
         }
+        if(!secondary) rows.add(START_GAP_ROW);
         if(angled) rows.addAll(Arrays.asList(ANGLED_ROWS));
         values=new PollenHiveSettings.Values(rows.toArray(new PollenHiveSettings.Row[0]),secondary); v=values.v;
     }
     /** Match 2 (v39) INIT order, after Alliance/side: the rows a driver checks or might change. Keys a
      * mode doesn't have are skipped. Everything else follows, never-changed rows last. Execution is
      * never shown: every hive mode runs LIVE. */
-    private static final String[] PRIMARY_FIRST={"startDelay","launcher","matchTravelPower","matchFirstFeed",
+    private static final String[] PRIMARY_FIRST={START_GAP,"startDelay","launcher","matchTravelPower","matchFirstFeed",
         "matchSecondFeed","matchGardenPasses","parkMargin","clearOut",SHOT_LEFT,SHOT_AWAY,AIM_LEFT};
     private static final String[] SECONDARY_FIRST={"launcher","matchFlowerShakes","matchFlowerCleanup",
         "collectionEntryLeft","matchTravelPower","matchFirstFeed","matchSecondFeed","parkMargin","clearOut","startDelay",
         SHOT_LEFT,SHOT_AWAY,AIM_LEFT};
     private static final String[] MAKE_ROOM_FIRST={"launcher","firstFeed","parkMargin","startDelay"};
-    private static final String[] SHOT_FIRST={"launcher","firstFeed","firstWindow","feedIntake","feedAgitator",
+    private static final String[] SHOT_FIRST={START_GAP,"launcher","firstFeed","firstWindow","feedIntake","feedAgitator",
         "feedPausePct","startDelay"};
-    private static final String[] GARDEN_FIRST={"travelPower","pickupPower","collectPower","collectHold",
+    private static final String[] GARDEN_FIRST={START_GAP,"travelPower","pickupPower","collectPower","collectHold",
         "clearForward","pickupLeft","pickupForward"};
     /** Rows a Match/Beta mode never uses: listed after the collection tuning, at the very end. */
     private static final String[] MATCH_UNUSED={"firstFeed","secondFeed","firstWindow","travelPower","collectPower",
@@ -150,7 +170,7 @@ public final class PollenHiveRoute {
         return new Node(name,xCm/2.54,yCm/2.54,0,power,false,false,0);
     }
     public Node[] garden() {
-        double f=v[13], side=v[16], near=v[17];
+        double f=v[13], side=v[16]+hiveLeftCm(), near=v[17]; // pickup left: field-fixed (v43)
         // Keep the starting heading: back clear, strafe to the row, drive front-first
         // into collection, then back out and retrace the corridor to the shooting pose.
         return new Node[]{
@@ -172,7 +192,7 @@ public final class PollenHiveRoute {
         shotX=values.get(SHOT_AWAY); shotY=values.get(SHOT_LEFT);
         // v41: the aim allows for where the cell's middle really is relative to the start.
         shotH=Math.toRadians(PollenFieldGeometry.aimDegrees(shotX,shotY,values.get(AIM_LEFT),
-                PollenFieldGeometry.cellLeftOfStartInches(secondary)));
+                secondary?PollenFieldGeometry.cellLeftOfStartInches(true):hiveLeftCm()/PollenFieldGeometry.INCH_TO_CM));
     }
     /** Angled mode: the primary drives one straight leg from the start to the shot spot (no turn; the aim turn
      * happens there, clear of the wall). */
@@ -189,7 +209,7 @@ public final class PollenHiveRoute {
     }
     /** Back clear of the end wall, then line up with the correct collection entry. */
     public Node[] collectionOutbound() {
-        double clear=v[COLLECTION_ENTRY_FORWARD], left=v[COLLECTION_ENTRY_LEFT];
+        double clear=v[COLLECTION_ENTRY_FORWARD], left=v[COLLECTION_ENTRY_LEFT]+hiveLeftCm();
         double power=v[MATCH_TRAVEL_POWER];
         // Angled: already off the wall at the shot spot; one straight leg to the garden entry.
         if(angled) return new Node[]{transit(secondary?"ALIGN WITH FLOWER":"ALIGN WITH GARDEN",clear,left,power)};
@@ -212,7 +232,7 @@ public final class PollenHiveRoute {
         PollenHiveSettings.Values tuning=collectionSettings();
         double exitX=secondary?(v[COLLECTION_ENTRY_FORWARD]-tuning.get("gap")+tuning.get("back"))/2.54:0;
         double exitY=secondary?v[COLLECTION_ENTRY_LEFT]/2.54:
-                PollenFieldGeometry.END_WALL_INCHES-PollenFieldGeometry.ROBOT_HALF_INCHES+PollenFieldGeometry.RED_HIVE_X_INCHES;
+                PollenFieldGeometry.END_WALL_INCHES-PollenFieldGeometry.ROBOT_HALF_INCHES+startXInches();
         return planned(collectionOutbound(),shotX(),shotY())+process+planned(collectionReturn(exitX,exitY),exitX,exitY)
                 +2*aimTurnSeconds()+.5;
     }
@@ -289,8 +309,9 @@ public final class PollenHiveRoute {
     }
     private Node[] park(double power) {
         if(v[21]==0) return new Node[0];
+        double shift=hiveLeftCm(); // field-fixed corner and slot; PARK CLEAR only backs off the wall
         return new Node[]{transit("PARK CLEAR",v[22],v[23],power),
-            transit("PARK CORNER",v[24],v[25],power),transit("PARK",v[26],v[27],power)};
+            transit("PARK CORNER",v[24],v[25]+shift,power),transit("PARK",v[26],v[27]+shift,power)};
     }
     /** Make room: clear the flower (Park1 forward), slide right along the end wall to the side
      * wall, then back into the corner. */
@@ -371,7 +392,7 @@ public final class PollenHiveRoute {
             int steps=Math.max(1,(int)Math.ceil(Math.hypot(n.x-x,n.y-y)/.1));
             for(int j=0;j<=steps;j++) {
                 double t=(double)j/steps, f=x+(n.x-x)*t, l=y+(n.y-y)*t;
-                double fieldX=secondary?PollenFieldGeometry.SUPPORT_START_X_INCHES+l:PollenFieldGeometry.RED_HIVE_X_INCHES-l;
+                double fieldX=secondary?PollenFieldGeometry.SUPPORT_START_X_INCHES+l:startXInches()-l;
                 double fieldZ=secondary?PollenFieldGeometry.supportStartZInches()+f:PollenFieldGeometry.END_WALL_INCHES-9-f;
                 checkFieldFootprint(fieldX,fieldZ,0,n.name);
             }
@@ -379,7 +400,7 @@ public final class PollenHiveRoute {
         }
     }
     private void checkFootprint(double f,double l,double h,String label) {
-        double x=secondary?PollenFieldGeometry.SUPPORT_START_X_INCHES+l:PollenFieldGeometry.RED_HIVE_X_INCHES-l;
+        double x=secondary?PollenFieldGeometry.SUPPORT_START_X_INCHES+l:startXInches()-l;
         double z=secondary?PollenFieldGeometry.supportStartZInches()+f:PollenFieldGeometry.END_WALL_INCHES-9-f;
         checkFieldFootprint(x,z,h,label);
     }

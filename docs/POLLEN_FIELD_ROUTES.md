@@ -223,6 +223,13 @@ inch to the center seam. A 1.0-inch spacer gauge is an allowed alignment device
 (G302) and must be taken off the field before the match (G303.C). The loading
 zone tape sits about 0.4 inch inside one tile row along the side wall.
 
+**v43 (match 2):** the primary now starts with its midline-side edge **1 in** from the center seam
+(robot center X = -10.0), which puts the launcher (2.74 in left of the robot's center, under the
+Limelight) on the hive center. Every primary route point keeps the field position above: the code
+adds the 2.74 in to each lateral target (`PollenFieldGeometry.HIVE_LEFT_OF_PRIMARY_START_INCHES`;
+in the hive modes from the INIT row *Start gap to center seam in*), so leg 2 is 27.74 in and the
+match park corner is 70.46 cm left of the start. Aims point the launcher, not the robot's center.
+
 [POLLEN_PIT_SHEET.svg](POLLEN_PIT_SHEET.svg) is the simplified alliance version of
 this guide: tile grid, both alliances, inner/outer slots, the no-wall strip and
 timeline badges. `python3 tools/draw-pollen-pit-sheet.py out.pdf` makes a

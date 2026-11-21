@@ -182,7 +182,7 @@ public final class PollenShootTuning {
      * parking spot as fullRoute(). The spot is the team's ASSUMED one; it is not field-tested. */
     private void angledRoute() {
         set(1, PollenFieldGeometry.ANGLED_OFF_WALL_INCHES * PollenFieldGeometry.INCH_TO_CM, 0);
-        set(2, PollenFieldGeometry.ANGLED_SIDE_INCHES * PollenFieldGeometry.INCH_TO_CM, 90);
+        set(2, PollenFieldGeometry.angledSideLegInches() * PollenFieldGeometry.INCH_TO_CM, 90);
         set(3, PollenFieldGeometry.angledDistanceCm(), PollenFieldGeometry.angledAngleDegrees());
         values[Field.AIM_ANGLE.ordinal()] = PollenFieldGeometry.angledAimDegrees();
     }
@@ -190,7 +190,8 @@ public final class PollenShootTuning {
     /** B's full route: off the wall, left past the frame, then to the inner parking slot. */
     private void fullRoute() {
         set(1, PollenFieldGeometry.PRIMARY_WALL_CLEARANCE_CM, 0);
-        set(2, PollenFieldGeometry.PRIMARY_SIDE_CLEARANCE_INCHES * PollenFieldGeometry.INCH_TO_CM, 90);
+        // v43: from the start (1 in from the seam) to the same field point, hive - 25 in.
+        set(2, PollenFieldGeometry.primarySideLegInches() * PollenFieldGeometry.INCH_TO_CM, 90);
         set(3, B_FIELD_LEG3_CM, B_FIELD_LEG3_DEGREES);
         values[Field.DRIVE_POWER.ordinal()] = .25;
         values[Field.CALIBRATION.ordinal()] = 1;

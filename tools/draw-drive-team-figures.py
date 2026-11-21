@@ -153,8 +153,11 @@ def placement_picture(tag, name, title):
                 arrowprops=dict(arrowstyle='-|>', lw=2.5, color='#111', mutation_scale=18), zorder=7)
     ax.text(x + 1.2, back + away * 5, 'BACK\n(launcher)\nto the hive', ha='left', va='center', fontsize=14.4, weight='bold')
     if tag == 'P':
-        gap(ax, x + R, 0, z, '3.7 in\n(9.5 cm)', (2.0, wall + away * 20), 'left')
-        ax.text(xmin + 1, wall + away * 30, 'Center the robot on the hive.', fontsize=15.2, weight='bold')
+        gap(ax, x + R, 0, z, '1 in\n(2.5 cm)', (2.0, wall + away * 20), 'left')
+        # The launcher (under the camera) sits left of the robot's center: on the hive's center line.
+        ax.plot([hx], [z + away * R], marker='o', ms=12, mfc='#f2b134', mec='#111', zorder=9)
+        ax.text(xmin + 1, wall + away * 30, '1 in from the center seam\n(spacer gauge): the launcher\nis then on the hive center.',
+                fontsize=14.4, weight='bold', va='center')
     else:
         gap(ax, -20.058, x - R, wall + away * 4, 'about 1 in', (xmin + 1, wall + away * 16), 'left')
         gap(ax, x + R, 0, wall + away * 4, 'about 1 in', (2.0, wall + away * 16), 'left')

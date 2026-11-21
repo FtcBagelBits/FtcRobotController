@@ -1,6 +1,6 @@
 # Hive pipeline benchmark
 
-**Build pollen-hive-v42. Camera only: no motors or odometry.** Full instructions and export commands:
+**Build pollen-hive-v43. Camera only: no motors or odometry.** Full instructions and export commands:
 `docs/POLLEN_HIVE_BENCHMARK.md`. Print this sheet for practice.
 
 ## First prove logging works

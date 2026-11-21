@@ -153,8 +153,7 @@ public abstract class PollenHiveOpMode extends OpMode {
                         ? "SECONDARY ANGLED: drive to %.1f in away / %.1f in left, turn %.1f deg, wait for UP, shoot, flower, return there, shoot, park"
                         : "PRIMARY ANGLED: drive to %.1f in away / %.1f in left, turn %.1f deg, shoot, garden, return there, shoot, park",
                         settings.values.get("shotAwayIn"), settings.values.get("shotLeftIn"),
-                        PollenFieldGeometry.aimDegrees(settings.values.get("shotAwayIn"), settings.values.get("shotLeftIn"),
-                                settings.values.get("aimTargetLeftIn"), PollenFieldGeometry.cellLeftOfStartInches(secondary())))
+                        Math.toDegrees(settings.shotHeading()))
                 : secondary() ? "SECONDARY: wait for UP, shoot, drain flower, return, shoot again (no camera wait)"
                 : "PRIMARY: shoot, garden (front intake), return, wait/shoot, park");
         telemetry.addData("SETTINGS", changed == 0 ? "all defaults" : "*** " + changed + " CHANGED FROM DEFAULT: "
