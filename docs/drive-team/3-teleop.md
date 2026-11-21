@@ -17,7 +17,8 @@ After autonomous it is already selected for you: just press INIT, then START.
 | **Left trigger** | Intake out (spits pollen back out) |
 | **R1, hold** | Shoot. The launcher spins up, then feeds by itself and keeps feeding until you let go. |
 | **Square, hold** | **Unjam with drainer up:** runs the launcher slowly backwards to push a stuck ball out. While you hold Square nothing feeds, even if R1 is held too. |
-| **Circle** / **Triangle** | Practice only: mark the **start** / **end** of a move we want to copy into autonomous. The gamepad buzzes once / twice. They do not change how the robot drives. |
+| **Circle, tap** | **Aim at the hive** (v36): the robot turns in place until the launcher points at the middle of the nearest hive cell the Limelight sees (v38; within 0.4 deg). One buzz = aiming, one short blip = done, three blips = no hive tags in view (nothing happens). Keep the hive cell in view. The left stick still drives; touching the right stick cancels it, and Circle again aims again from where the robot is. It aims **2 in right of the cell's middle** by default (the robot shoots a little left): INIT row **Circle aim target in left of center**, 0.5 in steps, negative = right. Since v37 it is one smooth turn. Every aim is saved in the recording. |
+| **L1** / **Triangle** | Practice only: mark the **start** / **end** of a move we want to copy into autonomous (L1 was Circle before v36). The gamepad buzzes once / twice. They do not change how the robot drives. |
 
 **Drain a flower:** Lower the drainer, guide it into the flower, then rock the left stick gently left and right. Tap Cross to raise the drainer when finished.
 
@@ -42,7 +43,7 @@ You can change these settings before START. Usually leave them alone.
 - **D-pad UP/DOWN:** pick a row (marked `>`). **D-pad LEFT/RIGHT:** change it. Tap and let go.
 - **Triangle:** all back to the defaults. The screen says `Settings: DEFAULTS` or `CHANGED - check before START`.
 - Settings stay until the robot app restarts, so **check the INIT screen before every match**.
-- The screen should show **Build `pollen-hive-v34`**.
+- The screen should show **Build `pollen-hive-v38`**.
 - **Keep the robot still during INIT.** The robot records every TeleOp run for the programmers.
   If the screen shows `STORAGE WARNING`, tell a mentor after the match; the robot still drives.
 

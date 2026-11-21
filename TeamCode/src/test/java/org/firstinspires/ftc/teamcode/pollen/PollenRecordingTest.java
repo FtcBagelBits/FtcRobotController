@@ -86,13 +86,13 @@ public final class PollenRecordingTest {
         PollenTeleOpRecorder.Sample s = new PollenTeleOpRecorder.Sample();
         s.odometry = "READY";
         recorder.start(0, "settings", s);
-        check(recorder.screen(0).contains("Circle = start a rehearsal"), "Screen says how to start");
+        check(recorder.screen(0).contains("L1 = start a rehearsal"), "Screen says how to start");
         check(recorder.loop(0.02, 0, false, true, s) == PollenTeleOpRecorder.Mark.NONE,
                 "Square with no rehearsal open does nothing");
         recorder.loop(0.04, 0, false, false, s);
         s.x = 12; s.y = -3; s.headingDegrees = 90;
-        check(recorder.loop(1.00, 0, true, false, s) == PollenTeleOpRecorder.Mark.STARTED, "Circle starts rehearsal 1");
-        check(recorder.loop(1.02, 0, true, false, s) == PollenTeleOpRecorder.Mark.NONE, "Holding Circle does not start another");
+        check(recorder.loop(1.00, 0, true, false, s) == PollenTeleOpRecorder.Mark.STARTED, "L1 starts rehearsal 1");
+        check(recorder.loop(1.02, 0, true, false, s) == PollenTeleOpRecorder.Mark.NONE, "Holding L1 does not start another");
         check(recorder.rehearsal() == 1 && recorder.screen(3).contains("REHEARSAL 1: 2.0 s"), "Screen shows the open rehearsal");
         // A still robot inside a rehearsal is still recorded at the fast rate (a pause is part of the move).
         int before = count(rows(out), "SAMPLE");
@@ -101,12 +101,14 @@ public final class PollenRecordingTest {
         check(recorder.loop(2.10, 0, false, true, s) == PollenTeleOpRecorder.Mark.ENDED, "Square ends it");
         check(recorder.rehearsal() == 0, "No rehearsal open after Square");
         recorder.loop(2.12, 0, false, false, s);
-        check(recorder.loop(3.00, 0, true, false, s) == PollenTeleOpRecorder.Mark.STARTED, "Circle starts rehearsal 2");
+        check(recorder.loop(3.00, 0, true, false, s) == PollenTeleOpRecorder.Mark.STARTED, "L1 starts rehearsal 2");
         recorder.loop(3.02, 0, false, false, s);
-        check(recorder.loop(4.00, 0, true, false, s) == PollenTeleOpRecorder.Mark.STARTED, "Circle again: rehearsal 3");
+        check(recorder.loop(4.00, 0, true, false, s) == PollenTeleOpRecorder.Mark.STARTED, "L1 again: rehearsal 3");
+        recorder.event(4.5, 0, "AIM_DONE n=1 source=CAMERA", s);
         recorder.stop(5, 0, s);
         List<String[]> rows = rows(out);
         check(count(rows, "MARK_START") == 3 && count(rows, "MARK_END") == 3, "Every start has an end");
+        check(count(rows, "AIM") == 1, "Circle's aim writes an AIM row");
         int kind = column(rows, "kind"), number = column(rows, "rehearsal"), note = column(rows, "note");
         StringBuilder marks = new StringBuilder();
         for (String[] row : rows) if (row[kind].startsWith("MARK")) marks.append(row[kind]).append(row[number]).append(' ');
@@ -115,8 +117,8 @@ public final class PollenRecordingTest {
         for (String[] row : rows) {
             if (row[kind].equals("MARK_START") && row[number].equals("1"))
                 check(row[column(rows, "x_in")].equals("12.0000") && row[column(rows, "heading_deg")].equals("90.0000"),
-                        "MARK_START holds the pose where Circle was pressed");
-            if (row[kind].equals("MARK_END") && row[number].equals("2")) check(row[note].contains("next Circle"), "End reason: next Circle");
+                        "MARK_START holds the pose where L1 was pressed");
+            if (row[kind].equals("MARK_END") && row[number].equals("2")) check(row[note].contains("next L1"), "End reason: next L1");
             if (row[kind].equals("MARK_END") && row[number].equals("3")) check(row[note].contains("STOP"), "End reason: STOP");
         }
         check(rows.get(rows.size() - 1)[kind].equals("STOP"), "STOP is the last row");

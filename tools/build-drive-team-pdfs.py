@@ -49,7 +49,13 @@ def html_for(name):
     text = (PAGES / f'{name}.md').read_text()
     body = markdown.markdown(text, extensions=['tables', 'md_in_html'])
     base = PAGES.as_uri() + '/'
-    css = CSS + ('body { font-size: 10pt; line-height: 1.2; }' if name == '5-hive-benchmark' else '')
+    css = CSS
+    if name in ('3-teleop', '4-hive-practice', '5-hive-benchmark'):
+        css += 'body { font-size: 10pt; line-height: 1.2; }'
+    if name in ('3-teleop', '4-hive-practice'):
+        css += 'table { font-size: 9.5pt; } th, td { padding: 1.5pt 4pt; }'
+    if name == '4-hive-practice':
+        css += 'th:first-child { width: 1.55in; } .side { grid-template-columns: 2.7in 1fr; }'
     return (f'<!DOCTYPE html><html><head><meta charset="utf-8"><base href="{base}"><style>{css}</style></head>'
             f'<body>{body}<div class="footer">Team 31452 drive team guide - build {BUILD} - '
             f'source: docs/drive-team/{name}.md</div></body></html>')

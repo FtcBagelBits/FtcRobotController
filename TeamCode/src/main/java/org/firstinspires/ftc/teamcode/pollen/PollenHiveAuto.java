@@ -10,7 +10,7 @@ public final class PollenHiveAuto {
     private static final double MAX_LOOP_GAP_S = 0.25;
     public enum Run { MATCH, SHOT_ONLY, GARDEN_RETURN }
     /** ROOM = make room: driving to the corner; WAIT = parked in the corner until park time. */
-    public enum Phase { DELAY, FIRST, OUTBOUND, GARDEN, FLOWER, RETURN, SETTLE, ALIGN_SHOT, SECOND, ROOM, WAIT, PARK_WAIT, PARK, DONE }
+    public enum Phase { DELAY, TO_SHOT, FIRST, OUTBOUND, GARDEN, FLOWER, RETURN, SETTLE, ALIGN_SHOT, SECOND, ROOM, WAIT, PARK_WAIT, PARK, DONE }
     public static final class Output {
         public double forward,strafe,turn,launcher,intake,agitator;
         public boolean finished,feed,drainerDown;
@@ -22,6 +22,10 @@ public final class PollenHiveAuto {
     private final PollenCollectionSequence.Kind collectionKind;
     private final double collectionEstimate;
     private final int cutoffSeconds;
+    /** Shooting pose: the start, or the angled mode's spot and aim heading (inches, radians). */
+    private final double shotX,shotY,shotH;
+    /** The first volley is over (or skipped); before that, angled SETTLE leads to FIRST. */
+    private boolean firstShotDone;
     private Phase phase=Phase.DELAY;
     private PollenHiveMotion motion;
     private PollenCollectionSequence collection;
@@ -41,7 +45,10 @@ public final class PollenHiveAuto {
         config.validateForStart(collectionKind!=null);
         collectionEstimate=collectionKind==null?0:config.collectionEstimate();
         cutoffSeconds=collectionKind==null?27:30;
+        shotX=config.shotX(); shotY=config.shotY(); shotH=config.shotHeading();
     }
+    /** Angled mode drives to its shot spot before the first volley (match runs only). */
+    private boolean angledStart() { return config.angled&&collectionKind!=null; }
     public void start(double now) { start(now,now); }
     void start(double now,double timerStart) { began=timerStart; phaseAt=previous=now; started=true; hive.reset(); }
     boolean checksHive() { return phase==Phase.SECOND||(phase==Phase.FIRST&&config.secondary); }
@@ -60,8 +67,8 @@ public final class PollenHiveAuto {
         boolean volleyStarted=wasFeeding;
         if(volleyStarted) feedSeconds+=dt;
         wasFeeding=false;
-        double distanceFromShot=Math.hypot(x,y);
-        double headingError=Math.toDegrees(PollenOdometryDrive.wrap(h));
+        double distanceFromShot=Math.hypot(x-shotX,y-shotY);
+        double headingError=Math.toDegrees(PollenOdometryDrive.wrap(h-shotH));
         boolean atShotPosition=distanceFromShot<=PollenOdometryDrive.POSITION_TOLERANCE_IN;
         boolean headingNeedsCorrection=Math.abs(headingError)>PollenOdometryDrive.HEADING_TOLERANCE_DEG;
         boolean atPose=atShotPosition&&!headingNeedsCorrection;
@@ -70,13 +77,21 @@ public final class PollenHiveAuto {
         double omega=Math.abs(turnRate);
         px=x; py=y; ph=h;
         // Keep the shooting motion check ahead of any deadline-driven departure.
-        if((!departed||volleyStarted) && (distanceFromShot>2 || Math.abs(headingError)>10))
+        // Angled: before it leaves for its spot, the robot should still be at the start.
+        boolean atStartCheck=!departed&&angledStart();
+        double fromCheck=atStartCheck?Math.hypot(x,y):distanceFromShot;
+        double headingCheck=atStartCheck?Math.toDegrees(PollenOdometryDrive.wrap(h)):headingError;
+        if((!departed||volleyStarted) && (fromCheck>2 || Math.abs(headingCheck)>10))
             return stop("Unexpected motion at shooting start (>2 in or >10 deg); inspect drive/mapping/odometry");
         double remaining=cutoffSeconds-(now-began);
         double parkReserve=departureReserve();
         if(collectionKind!=null&&config.parkEnabled()&&phase!=Phase.PARK) {
-            PollenHiveRoute.Node[] approach=distanceFromShot>1.5?config.collectionReturn(x,y):null;
-            parkReserve=config.measuredParkSeconds()+config.parkMargin();
+            // Already returning: finish the legs left, never rebuild the return from the collection site.
+            PollenHiveRoute.Node[] approach=distanceFromShot<=1.5?null
+                    :phase==Phase.RETURN&&motion!=null?motion.remaining():config.collectionReturn(x,y);
+            if(approach!=null&&approach.length==0) approach=null;
+            // Angled: the park starts by turning back from the aim heading.
+            parkReserve=config.measuredParkSeconds()+config.parkMargin()+config.aimTurnSeconds();
             if(approach!=null) parkReserve+=PollenHiveRoute.planned(approach,x,y);
             if(remaining<=parkReserve) {
                 startBetaPark(now,String.format(Locale.US,"Park deadline during %s, %.2f s left",phase,remaining),approach);
@@ -108,12 +123,19 @@ public final class PollenHiveAuto {
         switch(phase) {
             case DELAY:
                 if(now-phaseAt>=config.v[2]) {
-                    if(run==Run.GARDEN_RETURN) garden(now,"Garden practice"); else enter(Phase.FIRST,now);
+                    if(run==Run.GARDEN_RETURN) garden(now,"Garden practice");
+                    else if(angledStart()) {
+                        reason=String.format(Locale.US,"Driving to the angled shot spot (%.1f in away, %.1f in left, aim %.1f deg)",
+                                shotX,shotY,Math.toDegrees(shotH));
+                        motion=new PollenHiveMotion(config.toShot());
+                        enter(Phase.TO_SHOT,now);
+                    }
+                    else enter(Phase.FIRST,now);
                 }
                 break;
             case FIRST: case SECOND:
                 boolean returnVolley=phase==Phase.SECOND&&collectionKind!=null;
-                if(returnVolley&&!volleyStarted&&atShotPosition&&headingNeedsCorrection) {
+                if((returnVolley||angledStart())&&!volleyStarted&&atShotPosition&&headingNeedsCorrection) {
                     alignForReturnShot(now,headingError);
                     break;
                 }
@@ -171,13 +193,13 @@ public final class PollenHiveAuto {
                     break;
                 }
                 // Calibration Garden + Return retains its standalone route.
-            case OUTBOUND: case RETURN: case ROOM: case PARK:
+            case TO_SHOT: case OUTBOUND: case RETURN: case ROOM: case PARK:
                 // The nudge is one short leg; if it cannot finish quickly, skip the volley and park as before.
                 if(phase==Phase.RETURN&&nudged&&now-phaseAt>1.5) {
                     waitForBetaPark(now,"Return nudge did not reach the shot spot; second shot skipped");
                     break;
                 }
-                if(phase==Phase.RETURN&&atShotPosition&&headingNeedsCorrection) {
+                if((phase==Phase.RETURN||phase==Phase.TO_SHOT)&&atShotPosition&&headingNeedsCorrection) {
                     alignForReturnShot(now,headingError);
                     break;
                 }
@@ -187,7 +209,7 @@ public final class PollenHiveAuto {
                     if(phase==Phase.OUTBOUND) {
                         collection=new PollenCollectionSequence(collectionKind,config.collectionSettings(),x,y,0);
                         enter(collectionKind==PollenCollectionSequence.Kind.FLOWER?Phase.FLOWER:Phase.GARDEN,now);
-                    } else if(phase==Phase.GARDEN||phase==Phase.RETURN) {
+                    } else if(phase==Phase.GARDEN||phase==Phase.RETURN||phase==Phase.TO_SHOT) {
                         enter(Phase.SETTLE,now); hive.reset(); settledAt=Double.NaN;
                     }
                     else if(phase==Phase.ROOM) {
@@ -213,8 +235,10 @@ public final class PollenHiveAuto {
                     alignForReturnShot(now,headingError);
                 } else if(settled) {
                     if(run==Run.GARDEN_RETURN) return stop("Garden returned and settled at S");
-                    enter(Phase.SECOND,now);
+                    enter(firstShotDone||!angledStart()?Phase.SECOND:Phase.FIRST,now);
                 }
+                else if(!firstShotDone&&angledStart()&&now-phaseAt>1.5)
+                    outbound(now,"Shot spot did not settle; first shot skipped");
                 // Fast mode: stopped just off the spot (0.5-3 in). One short leg back instead of losing the volley.
                 else if(config.fast&&!nudged&&collectionKind!=null&&!atShotPosition&&distanceFromShot<=3
                         &&speed<=1.5&&now-phaseAt>=.3) {
@@ -231,22 +255,23 @@ public final class PollenHiveAuto {
                 break;
             case ALIGN_SHOT:
                 if(distanceFromShot>1||now>alignUntil) {
-                    waitForBetaPark(now,"Return heading correction failed; second shot skipped");
+                    if(!firstShotDone&&angledStart()) outbound(now,"Aim turn failed; first shot skipped");
+                    else waitForBetaPark(now,"Return heading correction failed; second shot skipped");
                 } else if(Math.abs(headingError)<=RETURN_ALIGNMENT_DEG&&omega<=Math.toRadians(10)) {
                     settledAt=Double.NaN;
                     reason="Heading corrected; settling for return shot";
                     enter(Phase.SETTLE,now);
                 } else {
-                    o.turn=PollenOdometryDrive.turnPower(0,config.v[8],h,turnRate,RETURN_ALIGNMENT_DEG);
+                    o.turn=PollenOdometryDrive.turnPower(shotH,config.v[8],h,turnRate,RETURN_ALIGNMENT_DEG);
                 }
                 break;
             default: break;
         }
-        if(collectionKind!=null&&config.v[0]!=1&&(phase==Phase.RETURN||phase==Phase.SETTLE||phase==Phase.ALIGN_SHOT||phase==Phase.SECOND))
+        if(collectionKind!=null&&config.v[0]!=1&&(phase==Phase.TO_SHOT||phase==Phase.RETURN||phase==Phase.SETTLE||phase==Phase.ALIGN_SHOT||phase==Phase.SECOND))
             o.launcher=config.v[6];
         if(phase!=Phase.DONE) applyClearOut(o,now);
         o.finished=phase==Phase.DONE;
-        o.phase=phase+((phase==Phase.OUTBOUND||phase==Phase.GARDEN||phase==Phase.FLOWER
+        o.phase=phase+((phase==Phase.TO_SHOT||phase==Phase.OUTBOUND||phase==Phase.GARDEN||phase==Phase.FLOWER
                 ||phase==Phase.RETURN||phase==Phase.ROOM||phase==Phase.PARK)?": "+motionPhase:"");
         o.reason=reason; o.decision=decision;
         return o;
@@ -268,7 +293,7 @@ public final class PollenHiveAuto {
     }
     private void alignForReturnShot(double now,double headingError) {
         alignUntil=now+PollenOdometryDrive.turnTimeoutSeconds(Math.abs(headingError),config.v[8]);
-        reason="Correcting return heading to 0 degrees";
+        reason=String.format(Locale.US,"Correcting heading to %.1f degrees",Math.toDegrees(shotH));
         enter(Phase.ALIGN_SHOT,now);
     }
     /** The agitator meters balls into the flywheel. Stop both shooting outputs on the
@@ -280,6 +305,7 @@ public final class PollenHiveAuto {
         motion=new PollenHiveMotion(config.garden()); enter(Phase.GARDEN,now);
     }
     private void outbound(double now,String why) {
+        firstShotDone=true;
         reason=why+"; starting collection trip";
         motion=new PollenHiveMotion(config.collectionOutbound());
         enter(Phase.OUTBOUND,now);
@@ -292,7 +318,7 @@ public final class PollenHiveAuto {
     }
     private void enter(Phase p,double now) {
         phase=p;
-        if(p==Phase.OUTBOUND||p==Phase.GARDEN||p==Phase.ROOM||p==Phase.WAIT||p==Phase.PARK) departed=true;
+        if(p==Phase.TO_SHOT||p==Phase.OUTBOUND||p==Phase.GARDEN||p==Phase.ROOM||p==Phase.WAIT||p==Phase.PARK) departed=true;
         motionPhase="";
         phaseAt=now;
         feedSeconds=0;

@@ -22,6 +22,8 @@ public abstract class PollenHiveOpMode extends OpMode {
     protected boolean hero() { return false; }
     /** Beta Primary Shooter - Fast: own saved file and defaults (see PollenHiveRoute.FAST_DEFAULTS). */
     protected boolean fast() { return false; }
+    /** Beta Primary Shooter - Angled Left: both volleys from an angled spot (own saved file). */
+    protected boolean angled() { return false; }
     protected PollenHiveAuto.Run run() { return PollenHiveAuto.Run.MATCH; }
     private int defaultExecution() { return run()==PollenHiveAuto.Run.MATCH?2:run()==PollenHiveAuto.Run.GARDEN_RETURN?1:0; }
     private File reportFile;
@@ -54,7 +56,7 @@ public abstract class PollenHiveOpMode extends OpMode {
     private boolean up, down, left, right, lb, rb, square, triangle, circle;
     private double displayAt = -1, hiveLogAt = -1, hiveLogStamp = Double.NaN;
 
-    private String fileName() { return fast() ? "primary-fast" : hero() ? "primary-hero" : secondary() ? PollenHiveStore.SECONDARY : PollenHiveStore.PRIMARY; }
+    private String fileName() { return fast() ? "primary-fast" : angled() ? "primary-angled" : hero() ? "primary-hero" : secondary() ? PollenHiveStore.SECONDARY : PollenHiveStore.PRIMARY; }
     private int routeRows() { return matchCollection() ? settings.v.length : PollenHiveSettings.ROUTE.length; }
     private int rows() { return routeRows() + cameraSettings.v.length; }
     private PollenHiveSettings.Values table(int r) { return r < routeRows() ? settings.values : cameraSettings; }
@@ -75,7 +77,7 @@ public abstract class PollenHiveOpMode extends OpMode {
 
     @Override public final void init() {
         PollenDrainerHold.holdUp(hardwareMap);
-        settings = new PollenHiveRoute(secondary(), makeRoom(), fast());
+        settings = new PollenHiveRoute(secondary(), makeRoom(), fast(), angled());
         cameraSettings = new PollenHiveSettings.Values(PollenHiveSettings.CAMERA, false);
         loadMessage = "Auto: " + PollenHiveStore.load(fileName(), settings.values)
                 + ". Camera: " + PollenHiveStore.load(PollenHiveStore.CAMERA, cameraSettings) + ".";
@@ -143,6 +145,10 @@ public abstract class PollenHiveOpMode extends OpMode {
                 : run()==PollenHiveAuto.Run.GARDEN_RETURN ? "Garden, return to S, settle, DONE; no shots or park"
                 : makeRoom() ? "SECONDARY OUT OF THE WAY: wait for UP, shoot, wait in corner, park at deadline"
                 : secondary() ? "SECONDARY: wait for UP, shoot, drain flower, return, shoot if UP"
+                : angled() ? String.format(Locale.US, "PRIMARY ANGLED: drive to %.1f in away / %.1f in left, turn %.1f deg, shoot, garden, return there, shoot, park",
+                        settings.values.get("shotAwayIn"), settings.values.get("shotLeftIn"),
+                        PollenFieldGeometry.aimDegrees(settings.values.get("shotAwayIn"), settings.values.get("shotLeftIn"),
+                                settings.values.get("aimTargetLeftIn")))
                 : "PRIMARY: shoot, garden (front intake), return, wait/shoot, park");
         telemetry.addData("SETTINGS", changed == 0 ? "all defaults" : "*** " + changed + " CHANGED FROM DEFAULT: "
                 + join(settings.values.changedSummary(), cameraSettings.changedSummary()) + " ***");

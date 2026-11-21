@@ -45,7 +45,7 @@ camera, launcher or agitator.
 | Mode | Default sequence | INIT adjustments |
 | --- | --- | --- |
 | Garden | Run intake at 1.0. Strafe right at up to 0.30 until side contact, then drive forward at up to 0.25 until garden wall contact. Back off 3 in at up to 0.25 and return to garden wall contact once for two total inward passes. Stop in the corner. | Backoff and re-entry repeats (0–8), backoff distance in inches, strafe power, forward approach power, backoff power, intake power. |
-| Flower | Start intake at 1.0, lower to 0.02 and wait 0.4 s. Approach at up to 0.20, switching to 0.15 near the flower. After contact, swing 3.5 cm left and 3.5 cm right at up to 0.40 three times, center, then withdraw 18 cm. Drive 7 cm forward and back twice at up to 0.30 and dwell 1 s. Raise the drainer and stop the intake at DONE. | Stand-off, distance at which to switch to seating power, approach and seating power, lower dwell and position, cycle count (0–8), lateral amplitude and power, withdrawal, cleanup stroke/count/power, final dwell, and intake power. |
+| Flower | Start intake at 1.0, lower to 0.02 and wait 0.4 s. Approach at up to 0.30, switching to 0.15 near the flower. After contact, swing 3.5 cm left and 3.5 cm right at up to 0.75 three times, center, then withdraw 18 cm. Drive 7 cm forward and back twice at up to 0.40 and dwell 1 s. Raise the drainer and stop the intake at DONE. | Stand-off, distance at which to switch to seating power, approach and seating power, lower dwell and position, cycle count (0–8), lateral amplitude and power, withdrawal, cleanup stroke/count/power, final dwell, and intake power. |
 
 For a **first garden run**, use zero repeats to see the side-wall and garden-wall approaches
 once. The right strafe and forward passes have no programmed distance or time cutoff. Once
@@ -65,7 +65,10 @@ The drainer stays down and the intake runs through withdrawal, every cleanup str
 
 When an approach stops making progress for about 0.75 s, the routine treats it as wall contact
 if the robot is settled and still aligned. The trace marks it `CONTACT LIMIT`. The final flower
-approach continues until contact. A stalled flower swing
+approach continues until contact. Since v36 the swings brake later than other legs (slow-down
+0.5 x sqrt(inches left) instead of 0.20, ramp 4 /s instead of 2 /s): with the normal slow-down
+the 1.9-3.5 in swings never passed about 0.3 power whatever the swing power was (2026-11-19
+traces). A stalled flower swing
 advances to the next swing target. Backoff, withdrawal, and cleanup require reaching their
 targets. Pinpoint faults and control-loop stalls stop the sequence.
 
@@ -80,8 +83,11 @@ starts its return after garden-wall contact. Secondary Shooter + Flower uses two
 and one forward-back cleanup cycle. The **Beta garden total inward passes**, **Beta flower left-right
 cycles**, and **Beta flower forward-back cycles** INIT rows tune those counts.
 The garden or flower tuning rows follow **Alliance** and **Execution** in each beta INIT menu.
-In Secondary Shooter + Flower, **Sideways power** defaults to 0.40. D-pad left/right adjusts it by
-0.05, up to 0.50. **Intake power** during collection and **Beta shooting intake power** both
+In Secondary Shooter + Flower, **Swing sideways power** defaults to 0.75. D-pad left/right adjusts it by
+0.05, up to 0.90. It replaced the old **Sideways power** row in v35 (key `shakePower`, was
+`sidePower`, 0.50 at most), so an old saved swing power shows as IGNORED at INIT until the
+next Square save. Flower approach power is 0.30 and withdrawal/cleanup power 0.40 since v35;
+the flower practice mode keeps its own saved profile. **Intake power** during collection and **Beta shooting intake power** both
 default to 1.00. Press **Square** to save match edits or run them immediately after editing.
 After the first volley, each backs clear of the end wall and aligns with its collection lane.
 While it leaves, the **Clear-out s after volley** row (3 s) keeps the agitator and launcher running
@@ -93,7 +99,9 @@ coordinates measured from the shooting pose. In particular, adjust the secondary
 to center the drainer in the flower opening. The default offsets come from the practice traces
 and field layout and need a field check.
 
-Each mode backs clear before crossing back to the original shooting pose. If it is in position
+Each mode backs clear before crossing back to the original shooting pose. If the park deadline
+comes during that return, the park finishes only the return legs still left and then parks; it
+never drives back out to the collection site (v35). If it is in position
 and heading is more than 2° off, it turns toward 0° in place. It then settles and checks for fresh
 Hive UP before feeding again. Both pre-spin the flywheel during return. They interrupt the active
 phase when the measured parking duration plus the configured **Park margin s** remains. The margin defaults to 1.0 s and moves in 0.5 s steps. The **Match travel and park

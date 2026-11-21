@@ -106,7 +106,10 @@ public final class PollenHiveSettings {
         row("pipeline", "Limelight pipeline", 4, 4, 1, 0, 9),
         row("lensHeight", "Lens height in", 11.75, 11.75, 0.25, 2, 30),
         row("tilt", "Camera tilt up deg", 31.6, 31.6, 0.1, -10, 80),
-        row("sideways", "Camera sideways correction in", 2.62, 2.62, 0.25, -12, 12),
+        // v38: 0 (was 2.62, fitted when the camera was turned right). The camera was straightened;
+        // six 2026-11-19 shot-pose traces imply -0.6 +- 1 in (robot placement scatter about 3 in),
+        // Calibration Hive Aim at the start +0.2 in. Fine-tune with Calibration Hive Aim's readout.
+        row("sideways", "Camera sideways correction in", 0, 0, 0.25, -12, 12),
         row("upHeight", "UP tag height in", 50.7, 50.7, 0.1, 30, 70),
         row("downHeight", "DOWN tag height in", 35.6, 35.6, 0.1, 20, 50),
         row("band", "UP/DOWN band +/- in", 3.0, 3.0, 0.25, 0.5, 6),

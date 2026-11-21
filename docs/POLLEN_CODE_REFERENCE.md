@@ -62,6 +62,8 @@ Calibration Odometry and Calibration Pedro Pathing are unaffected.
 | Calibration Garden + Return | Isolated collection route and return |
 | Primary Shooter + Garden / Secondary Shooter + Flower | Hive-aware autonomous modes; use the testing guide before running |
 | Beta Primary Shooter - Hero | Primary garden route with independent INIT settings |
+| Beta Primary Shooter - Angled Left | Primary garden route from an angled shot spot, own settings file `primary-angled`, rows `shotLeftIn`/`shotAwayIn`, aim from `PollenFieldGeometry.aimDegrees` (`PollenHiveRoute.angled`) |
+| Calibration Hive Aim | PollenBot TeleOp started at the primary start; Circle aims by camera (D-pad left) or odometry (D-pad right); AIM rows compare both (`PollenAimCalibration`, `PollenHiveAim`). Its screen also shows the **Camera sideways correction** that would center the cell: with the robot carefully centered at the primary start, put that number in the camera row (default 0 since v38; 2.62 before the camera was straightened) |
 | Beta Primary Shooter - Fast | Primary garden route, own settings file `primary-fast`, closer garden entry, 2.5 s feeds, one return nudge (`PollenHiveRoute.fast`) |
 | Beta Secondary Shooter - Out of the Way | Shoot, wait in the scoring-end/side-wall corner (phases ROOM, WAIT), then park with the configured margin |
 

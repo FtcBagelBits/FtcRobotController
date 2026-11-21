@@ -21,6 +21,7 @@ public class PollenTests {
     @Test public void hiveHardware() { PollenHiveHardwareTest.main(NO_ARGS); }
 
     @Test public void hive() { PollenHiveTest.main(NO_ARGS); }
+    @Test public void hiveAim() { PollenHiveAimTest.main(NO_ARGS); }
 
     private static final String[] NO_ARGS = {};
 

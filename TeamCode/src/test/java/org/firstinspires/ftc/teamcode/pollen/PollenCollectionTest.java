@@ -14,7 +14,7 @@ public final class PollenCollectionTest {
     private static void edit(PollenHiveSettings.Values s, String key, double value) { s.v[s.index(key)] = value; }
 
     private static final class Trial {
-        double forward, left, seat, endLeft, endRight, seconds;
+        double forward, left, seat, endLeft, endRight, seconds, maxSwingStrafe;
         String fault;
         final List<String> phases = new ArrayList<>();
         final List<String> limited = new ArrayList<>();
@@ -66,6 +66,8 @@ public final class PollenCollectionTest {
                     off(seq.tick(400,0,0,0,false));
                     return;
                 }
+                if (o.phase.startsWith("Left ") || o.phase.startsWith("Right "))
+                    maxSwingStrafe = Math.max(maxSwingStrafe, Math.abs(o.strafe));
                 check(o.intake == (kind == FLOWER ? 1 : s.get("intake")), "Intake dropped in " + o.phase);
                 check(o.drainerDown == (kind == FLOWER), "Drainer state in " + o.phase);
                 double[] w = PollenFacing.wheelPowers(o.forward,o.strafe,o.turn);
@@ -131,6 +133,8 @@ public final class PollenCollectionTest {
 
         PollenHiveSettings.Values f = PollenCollectionSequence.settings(FLOWER);
         Trial flower = new Trial(FLOWER,f,-1.4);
+        // 2026-11-19: with the normal slow-down the 3.5 cm swings never passed ~0.3 power.
+        check(flower.maxSwingStrafe >= .5, "Flower swings reach well past 0.3 power: " + flower.maxSwingStrafe);
         check(flower.fault == null && flower.phases.contains("Finish ingesting"), "Flower runs through final intake dwell");
         near(flower.seat,23,"Seated at actual wall");
         near(flower.endLeft,3.5,"First left swing");
@@ -155,7 +159,7 @@ public final class PollenCollectionTest {
         check(bound.limited.size() == 8 && bound.limited.contains("Center drainer")
                 && bound.phases.contains("Ingest forward 2") && bound.seconds < 15, "Bound swings and center should withdraw");
         edit(f,"amplitude",5);
-        edit(f,"sidePower",.15);
+        edit(f,"shakePower",.15);
         Trial wide = new Trial(FLOWER,f,-1.4);
         check(wide.fault == null && wide.phases.contains("Right 3"), "Tuned lateral swing completes");
         near(wide.endLeft,5,"Adjusted left swing");

@@ -4,6 +4,15 @@ package org.firstinspires.ftc.teamcode.pollen;
 public final class PollenHiveMotion {
     private static final double CONTACT_PROGRESS_IN = .15;
     private static final double MAX_TRANSLATION_HEADING_ERROR = Math.toRadians(12);
+    /** Flower swings (2026-11-19 traces): the normal slow-down (0.20 x sqrt in) held 1.9-3.5 in
+     * swings near 0.3 power whatever the swing power was. These brake later and ramp faster. */
+    static final double SWING_SLOWDOWN_PER_SQRT_INCH = .5, SWING_RAMP_PER_SECOND = 4;
+    /** Squaring up in place (2026-11-19 primary: stuck 0.44 in from the point, 2.3 deg off, with a
+     * 0.03 turn command that never moved it). Turn with at least MIN_TURN_POWER; each SQUARE_RETRY_S
+     * without SQUARE_PROGRESS_DEG of progress, turn again SQUARE_POWER_STEP harder, up to
+     * SQUARE_MAX_POWER; after SQUARE_GIVE_UP_S keep going with the heading it has. */
+    static final double SQUARE_RETRY_S = .5, SQUARE_PROGRESS_DEG = .3, SQUARE_POWER_STEP = .05,
+            SQUARE_MAX_POWER = .3, SQUARE_GIVE_UP_S = 3;
     enum Contact { STRICT, ALLOWED, DRIVE_UNTIL_BLOCKED }
     public static final class Output {
         public double forward,strafe,turn;
@@ -15,11 +24,14 @@ public final class PollenHiveMotion {
     private int index;
     private double began,previous=Double.NaN,px,py,ph,progressAt,progressX,progressY,progressH,progressDistance;
     private boolean newNode=true;
+    private double squareAt=Double.NaN,squareBest,squareBestAt,squareBoost;
     private String fault,detail="";
     public PollenHiveMotion(PollenHiveRoute.Node[] nodes) { this(nodes,Contact.STRICT); }
     PollenHiveMotion(PollenHiveRoute.Node[] nodes,Contact contact) {
         this.nodes=nodes; this.contact=contact;
     }
+    /** The legs not yet finished, current leg first; empty once done. */
+    PollenHiveRoute.Node[] remaining() { return java.util.Arrays.copyOfRange(nodes,Math.min(index,nodes.length),nodes.length); }
     public Output tick(double now,double x,double y,double h) {
         Output o=new Output();
         if(fault!=null) { o.fault=fault; o.detail=detail; return o; }
@@ -35,7 +47,7 @@ public final class PollenHiveMotion {
         double remaining=wallDrive?-travel:distance;
         if(newNode) {
             began=progressAt=now; progressX=x; progressY=y; progressH=h;
-            progressDistance=remaining; newNode=false;
+            progressDistance=remaining; newNode=false; squareAt=Double.NaN; squareBoost=0;
         }
         double vx=dt>0?(x-px)/dt:0, vy=dt>0?(y-py)/dt:0;
         double omega=dt>0?PollenOdometryDrive.wrap(h-ph)/dt:Double.POSITIVE_INFINITY;
@@ -70,13 +82,32 @@ public final class PollenHiveMotion {
             o.strafe=power*(sin*n.x-cos*n.y);
         } else {
             if(elapsed>12) return fail(n.name+" move timeout");
-            PollenOdometryDrive.Command c=PollenOdometryDrive.command(n.x,n.y,
-                    PollenOdometryDrive.rampedPower(elapsed,n.power),x,y,h,vx,vy);
+            PollenOdometryDrive.Command c=n.swing
+                    ?PollenOdometryDrive.command(n.x,n.y,PollenOdometryDrive.rampedPower(elapsed,n.power,SWING_RAMP_PER_SECOND),
+                            x,y,h,vx,vy,SWING_SLOWDOWN_PER_SQRT_INCH)
+                    :PollenOdometryDrive.command(n.x,n.y,PollenOdometryDrive.rampedPower(elapsed,n.power),x,y,h,vx,vy);
             o.forward=c.forward; o.strafe=c.strafe;
         }
         if(!n.turn) {
             o.turn=Math.max(-.25,Math.min(.25,error));
             if(Math.abs(error)>MAX_TRANSLATION_HEADING_ERROR) { o.forward=0; o.strafe=0; }
+            if(!wallDrive&&distance<=PollenOdometryDrive.POSITION_TOLERANCE_IN
+                    &&Math.abs(error)>Math.toRadians(PollenOdometryDrive.HEADING_TOLERANCE_DEG)) {
+                // In position but crooked: a proportional turn this small cannot move the robot.
+                double degrees=Math.abs(Math.toDegrees(error));
+                if(Double.isNaN(squareAt)) { squareAt=squareBestAt=now; squareBest=degrees; squareBoost=0; }
+                if(degrees<=squareBest-SQUARE_PROGRESS_DEG) { squareBest=degrees; squareBestAt=now; }
+                else if(now-squareBestAt>=SQUARE_RETRY_S) { squareBoost+=SQUARE_POWER_STEP; squareBestAt=now; }
+                if(now-squareAt>=SQUARE_GIVE_UP_S) {
+                    detail+=String.format(java.util.Locale.US," heading_accepted_deg=%.2f",Math.toDegrees(error));
+                    return advance(o);
+                }
+                double p=PollenOdometryDrive.turnPower(n.h,SQUARE_MAX_POWER,h,omega,1);
+                double floor=Math.min(SQUARE_MAX_POWER,PollenOdometryDrive.MIN_TURN_POWER+squareBoost);
+                o.turn=p==0?0:Math.copySign(Math.max(Math.abs(p),floor),p);
+                detail+=String.format(java.util.Locale.US," squaring_turn=%.2f",o.turn);
+                o.detail=detail;
+            } else squareAt=Double.NaN;
         }
         if(contact!=Contact.STRICT&&!n.turn) {
             // Check even near the target, where a blocked intake or drainer can still push.

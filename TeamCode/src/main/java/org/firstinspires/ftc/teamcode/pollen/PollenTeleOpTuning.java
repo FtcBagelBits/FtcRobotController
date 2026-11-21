@@ -3,7 +3,7 @@ package org.firstinspires.ftc.teamcode.pollen;
 /** PollenBot TeleOp INIT menu: launcher speed, spin-up time, agitator feed power, drive power and optional drainer settings. Pure Java, no
  * hardware calls. Defaults come from the TeleOp's own constants and PollenConfig. */
 public final class PollenTeleOpTuning {
-    public enum Row { LAUNCHER, SPINUP, AGITATOR, DRIVE, DRAINER_UP, DRAINER_DOWN, DRAINER_STEP }
+    public enum Row { LAUNCHER, SPINUP, AGITATOR, DRIVE, DRAINER_UP, DRAINER_DOWN, DRAINER_STEP, AIM_LEFT }
     public static final double MIN_LAUNCHER = 500, MAX_LAUNCHER = 2500, LAUNCHER_STEP = 20;
     public static final double MIN_SPINUP = 0, MAX_SPINUP = 6, SPINUP_STEP = .5;
     public static final double MIN_AGITATOR = .10, MAX_AGITATOR = 1.0, AGITATOR_STEP = .05;
@@ -15,9 +15,10 @@ public final class PollenTeleOpTuning {
 
     /** Process-local memory between INITs, cleared by a Robot Controller app restart. */
     public static final class Snapshot {
-        private final double launcher, spinup, agitator, drive, drainerUp, drainerDown, drainerStep;
+        private final double launcher, spinup, agitator, drive, drainerUp, drainerDown, drainerStep, aimLeft;
         private Snapshot(double launcher, double spinup, double agitator, double drive,
-                double drainerUp, double drainerDown, double drainerStep) {
+                double drainerUp, double drainerDown, double drainerStep, double aimLeft) {
+            this.aimLeft = aimLeft;
             this.launcher = launcher;
             this.spinup = spinup;
             this.agitator = agitator;
@@ -30,8 +31,10 @@ public final class PollenTeleOpTuning {
 
     private final double defaultLauncher, defaultSpinup, defaultAgitator;
     private double launcher, spinup, agitator, drive;
-    private double drainerUp, drainerDown, drainerStep;
+    private double drainerUp, drainerDown, drainerStep, aimLeft;
     private final boolean drainerEnabled;
+    /** One past the last row this menu shows (PollenBot: through AIM_LEFT; drainer test: drainer rows). */
+    private int rowEnd;
     private Row selected = Row.LAUNCHER;
     private int firstRow;
     private boolean locked;
@@ -63,6 +66,8 @@ public final class PollenTeleOpTuning {
         drainerUp = remembered == null ? DEFAULT_DRAINER_UP : remembered.drainerUp;
         drainerDown = remembered == null ? DEFAULT_DRAINER_DOWN : remembered.drainerDown;
         drainerStep = remembered == null ? DEFAULT_DRAINER_STEP : remembered.drainerStep;
+        aimLeft = remembered == null ? PollenConfig.AIM_TARGET_LEFT_IN : remembered.aimLeft;
+        rowEnd = drainerEnabled ? Row.values().length : Row.DRIVE.ordinal() + 1;
     }
 
     /** Servo-only menu for PollenDrainerTest; shares the TeleOp defaults and edit rules. */
@@ -71,6 +76,7 @@ public final class PollenTeleOpTuning {
                 PollenConfig.LAUNCHER_SPINUP_SECONDS, PollenConfig.AGITATOR_FEED_POWER, remembered, true);
         tuning.firstRow = Row.DRAINER_UP.ordinal();
         tuning.selected = Row.DRAINER_UP;
+        tuning.rowEnd = Row.DRAINER_STEP.ordinal() + 1;
         return tuning;
     }
 
@@ -81,10 +87,11 @@ public final class PollenTeleOpTuning {
         if (reset) {
             if (!previous[4]) { launcher = defaultLauncher; spinup = defaultSpinup; agitator = defaultAgitator; drive = MAX_DRIVE;
                 drainerUp = DEFAULT_DRAINER_UP; drainerDown = DEFAULT_DRAINER_DOWN; drainerStep = DEFAULT_DRAINER_STEP;
+                aimLeft = PollenConfig.AIM_TARGET_LEFT_IN;
             }
         } else {
             Row[] rows = Row.values();
-            int rowCount = (drainerEnabled ? rows.length : Row.DRIVE.ordinal() + 1) - firstRow;
+            int rowCount = rowEnd - firstRow;
             if (up && !down && !previous[0]) selected = rows[firstRow + (selected.ordinal() - firstRow + rowCount - 1) % rowCount];
             if (down && !up && !previous[1]) selected = rows[firstRow + (selected.ordinal() - firstRow + 1) % rowCount];
             int sign = right && !left && !previous[3] ? 1 : left && !right && !previous[2] ? -1 : 0;
@@ -94,6 +101,8 @@ public final class PollenTeleOpTuning {
             if (sign != 0 && selected == Row.DRIVE) drive = step(drive, sign * DRIVE_STEP, MIN_DRIVE, MAX_DRIVE);
             if (sign != 0 && selected == Row.DRAINER_UP) drainerUp = step(drainerUp, sign * DRAINER_POSITION_INCREMENT, 0, 1);
             if (sign != 0 && selected == Row.DRAINER_DOWN) drainerDown = step(drainerDown, sign * DRAINER_POSITION_INCREMENT, 0, 1);
+            if (sign != 0 && selected == Row.AIM_LEFT) aimLeft = step(aimLeft, sign * PollenConfig.AIM_TARGET_STEP_IN,
+                    -PollenConfig.AIM_TARGET_MAX_IN, PollenConfig.AIM_TARGET_MAX_IN);
             if (sign != 0 && selected == Row.DRAINER_STEP) drainerStep = step(drainerStep, sign * DRAINER_STEP_INCREMENT, MIN_DRAINER_STEP, MAX_DRAINER_STEP);
         }
         System.arraycopy(keys, 0, previous, 0, keys.length);
@@ -114,6 +123,8 @@ public final class PollenTeleOpTuning {
     }
 
     public double drainerStep() { return drainerStep; }
+    /** Circle aims this many inches left of our hive cell's middle (negative = right). */
+    public double aimTargetLeftIn() { return aimLeft; }
     public double launcherVelocity() { return launcher; }
     /** Longest wait, in seconds of R1, before feeding starts (sooner if up to speed). */
     public double spinupSeconds() { return spinup; }
@@ -135,10 +146,10 @@ public final class PollenTeleOpTuning {
     public boolean isDefault() {
         return launcher == defaultLauncher && spinup == defaultSpinup && agitator == defaultAgitator && drive == MAX_DRIVE
                 && (!drainerEnabled || (drainerUp == DEFAULT_DRAINER_UP && drainerDown == DEFAULT_DRAINER_DOWN
-                && drainerStep == DEFAULT_DRAINER_STEP));
+                && drainerStep == DEFAULT_DRAINER_STEP && aimLeft == PollenConfig.AIM_TARGET_LEFT_IN));
     }
     public Row selected() { return selected; }
     public void lock() { locked = true; }
     public boolean locked() { return locked; }
-    public Snapshot snapshot() { return new Snapshot(launcher, spinup, agitator, drive, drainerUp, drainerDown, drainerStep); }
+    public Snapshot snapshot() { return new Snapshot(launcher, spinup, agitator, drive, drainerUp, drainerDown, drainerStep, aimLeft); }
 }

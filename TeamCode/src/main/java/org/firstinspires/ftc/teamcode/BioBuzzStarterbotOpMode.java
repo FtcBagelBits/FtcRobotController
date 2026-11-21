@@ -39,10 +39,15 @@ import com.qualcomm.robotcore.hardware.VoltageSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.RobotLog;
 
+import org.firstinspires.ftc.teamcode.pollen.IsHiveReadyForShot;
 import org.firstinspires.ftc.teamcode.pollen.PollenConfig;
+import org.firstinspires.ftc.teamcode.pollen.PollenHiveAim;
+import org.firstinspires.ftc.teamcode.pollen.PollenHiveCamera;
+import org.firstinspires.ftc.teamcode.pollen.PollenHiveSettings;
 import org.firstinspires.ftc.teamcode.pollen.PollenFacing;
 import org.firstinspires.ftc.teamcode.pollen.PollenHiveStore;
 import org.firstinspires.ftc.teamcode.pollen.PollenHiveTrace;
+import org.firstinspires.ftc.teamcode.pollen.PollenOdometryDrive;
 import org.firstinspires.ftc.teamcode.pollen.PollenOdometryHardware;
 import org.firstinspires.ftc.teamcode.pollen.PollenRunLog;
 import org.firstinspires.ftc.teamcode.pollen.PollenTeleOpRecorder;
@@ -158,6 +163,25 @@ public class BioBuzzStarterbotOpMode extends OpMode {
      * Recording never changes how the robot drives. If anything about it fails (no room on the
      * Hub, no Pinpoint, a write error), TeleOp carries on and the screen says what is missing.
      */
+    /*
+     * AIM (Circle, v36): turn in place so the launcher points at the middle of the hive cell the
+     * Limelight sees nearest the launcher's line; see pollen/PollenHiveAim.java. Every aim is an
+     * AIM row in the recording. Circle again aims again from where the robot is; the turn stick cancels it. The calibration mode
+     * ("Calibration Hive Aim") also aims by odometry from the primary start: D-pad LEFT = camera,
+     * RIGHT = odometry.
+     */
+    protected boolean aimCalibration() { return false; }
+    private PollenHiveCamera camera;             // stays null without a working Limelight
+    private String cameraProblem = "";
+    private IsHiveReadyForShot.Mount mount;
+    private final PollenHiveAim aim = new PollenHiveAim();
+    private PollenHiveAim.Source aimSource = PollenHiveAim.Source.CAMERA;
+    private IsHiveReadyForShot.Frame lastFrame;
+    private double lastFrameStamp = Double.NaN, lastFrameAt = Double.NEGATIVE_INFINITY;
+    private double routeX = Double.NaN, routeY = Double.NaN, routeH = Double.NaN, previousH = Double.NaN, previousHAt, headingRate;
+    private boolean circleWasPressed, aimLeftWas, aimRightWas;
+    private double aimTurn;
+
     private PinpointLocalizer odometry;          // stays null if there is no Pinpoint
     private GoBildaPinpointDriver pinpoint;
     private String odometryProblem = "";
@@ -248,13 +272,29 @@ public class BioBuzzStarterbotOpMode extends OpMode {
          * during INIT. With no Pinpoint (or a broken one) TeleOp works exactly as before.
          */
         try {
-            odometry = PollenOdometryHardware.open(hardwareMap);
-            pinpoint = PollenOdometryHardware.device(hardwareMap);
+            if (aimCalibration()) {
+                // The calibration mode starts at the primary shooter start: zero the Pinpoint there.
+                pinpoint = PollenOdometryHardware.device(hardwareMap);
+                odometry = PollenOdometryHardware.openZeroed(hardwareMap, pinpoint);
+            } else {
+                odometry = PollenOdometryHardware.open(hardwareMap);
+                pinpoint = PollenOdometryHardware.device(hardwareMap);
+            }
         } catch (Exception ex) {
             odometry = null;
             pinpoint = null;
             odometryProblem = "no working Pinpoint";
             RobotLog.ii("PollenTeleOp", "No odometry in this run: %s", ex.toString());
+        }
+        // Circle aims with the Limelight, using the same camera calibration as the hive autos.
+        try {
+            PollenHiveSettings.Values cameraSettings = new PollenHiveSettings.Values(PollenHiveSettings.CAMERA, false);
+            PollenHiveStore.load(PollenHiveStore.CAMERA, cameraSettings);
+            mount = IsHiveReadyForShot.Mount.from(cameraSettings);
+            camera = new PollenHiveCamera(hardwareMap, (int) cameraSettings.get("pipeline"));
+        } catch (Exception ex) {
+            camera = null;
+            cameraProblem = ex.toString();
         }
         // How much room the Control Hub has for recordings. Read once: it looks through folders.
         try {
@@ -292,9 +332,13 @@ public class BioBuzzStarterbotOpMode extends OpMode {
         telemetry.addData(marker(PollenTeleOpTuning.Row.DRAINER_UP) + "Drainer up position", "%.2f (+/- 0.01)", tuning.drainerUpPosition());
         telemetry.addData(marker(PollenTeleOpTuning.Row.DRAINER_DOWN) + "Drainer down position", "%.2f (+/- 0.01)", tuning.drainerDownPosition());
         telemetry.addData(marker(PollenTeleOpTuning.Row.DRAINER_STEP) + "Drainer step", "%.3f (+/- 0.002)", tuning.drainerStep());
+        telemetry.addData(marker(PollenTeleOpTuning.Row.AIM_LEFT) + "Circle aim target in left of center", "%.1f (default %.1f; - = right)",
+                tuning.aimTargetLeftIn(), PollenConfig.AIM_TARGET_LEFT_IN);
         telemetry.addData("Controls", "D-pad UP/DOWN selects; LEFT/RIGHT edits; Triangle = defaults");
         telemetry.addData("Settings", tuning.isDefault() ? "DEFAULTS" : "CHANGED - check before START");
-        telemetry.addData("Recording", "this run is saved on the Hub. Circle = start a rehearsal, Triangle = end it");
+        telemetry.addData("Recording", "this run is saved on the Hub. L1 = start a rehearsal, Triangle = end it");
+        telemetry.addData("Circle = aim at the hive", camera == null ? "NO CAMERA (" + cameraProblem + ")" : "Limelight " + camera.status
+                + (aimCalibration() ? ". CALIBRATION: start at the PRIMARY shooter start; D-pad LEFT camera / RIGHT odometry" : ""));
         telemetry.addData("Recorded position", odometry == null ? "none (" + odometryProblem + "); the run is still recorded"
                 : "Pinpoint " + PollenOdometryHardware.status(pinpoint) + " - keep the robot still during INIT");
         telemetry.addData("Hub storage", storageLine);
@@ -320,6 +364,10 @@ public class BioBuzzStarterbotOpMode extends OpMode {
         upWasPressed = gamepad1.dpad_up;
         downWasPressed = gamepad1.dpad_down;
         armServo.setPosition(armPosition);
+        circleWasPressed = gamepad1.circle;
+        aim.setTargetLeftIn(tuning.aimTargetLeftIn());
+        aimLeftWas = gamepad1.dpad_left;
+        aimRightWas = gamepad1.dpad_right;
     }
 
     /*
@@ -337,7 +385,11 @@ public class BioBuzzStarterbotOpMode extends OpMode {
          * Note, moving the joystick forward on most gamepads results in a negative signal, so
          * we invert it before passing it to the function.
          */
-        mecanumDrive(-gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
+        updatePose();
+        readCamera();
+        aimLoop();
+        // While Circle's aim is turning, it owns the turn; the left stick still drives.
+        mecanumDrive(-gamepad1.left_stick_y, gamepad1.left_stick_x, aim.active() ? aimTurn : gamepad1.right_stick_x);
 
         // Read the launcher's speed sensor (its encoder) once for this loop.
         launcherMeasuredVelocity = launcher.getVelocity();
@@ -402,6 +454,19 @@ public class BioBuzzStarterbotOpMode extends OpMode {
         telemetry.addData("Intake / agitator command", "%.2f / %.2f",
                 intakePower, agitatorPower);
         telemetry.addData("Drive power", "%.0f%%", tuning.driveScale() * 100);
+        telemetry.addData("Aim (Circle)", aim.active() ? aimScreen : aim.lastResult());
+        if (aimCalibration()) {
+            PollenHiveAim.Bearing b = PollenHiveAim.bearing(freshFrame(), mount, aim.targetLeftIn());
+            telemetry.addData("CALIBRATION source", aimSource + " (D-pad LEFT camera / RIGHT odometry)");
+            telemetry.addData("Camera sees", b == null ? "no hive tags" : String.format("cell %d (%d tags): %.1f deg %s, %.0f in",
+                    b.cluster, b.tags, Math.abs(b.degrees), b.degrees >= 0 ? "right" : "left", b.distanceIn));
+            double sideways = PollenHiveAim.sidewaysToCenter(freshFrame(), mount, routeY, routeH);
+            telemetry.addData("Camera sideways correction", Double.isFinite(sideways) ? String.format(
+                    "now %.2f in; to center this cell %.2f in (valid with the robot centered on the cell)",
+                    mount.sidewaysCorrectionIn, sideways) : "needs hive tags and the Pinpoint");
+            telemetry.addData("Odometry", Double.isFinite(routeX) ? String.format("%.1f in away, %.1f in left, heading %.1f; aim %.1f deg",
+                    routeX, routeY, Math.toDegrees(routeH), PollenHiveAim.odometryAimDegrees(routeX, routeY, aim.targetLeftIn())) : "none");
+        }
 
         // Last, after every motor has its command: write this loop to the recording.
         record();
@@ -412,6 +477,8 @@ public class BioBuzzStarterbotOpMode extends OpMode {
      */
     @Override
     public void stop() {
+        logAim(aim.cancel(runTimer.seconds(), routeH, "stop"));
+        try { if (camera != null) camera.stop(); } catch (RuntimeException ignored) { }
         // Finish the recording so the file is complete when it is downloaded.
         try {
             if (recorder != null) recorder.stop(runTimer.seconds(), System.currentTimeMillis(), sample);
@@ -435,14 +502,19 @@ public class BioBuzzStarterbotOpMode extends OpMode {
         }
         recorder = new PollenTeleOpRecorder(recordingFile);
         try {
+            updatePose();
             fillSample();
             String settings = "build=" + PollenConfig.BUILD + " installed=" + PollenHiveStore.installed()
-                    + " opmode=PollenBot launcher=" + tuning.launcherVelocity()
+                    + " opmode=" + (aimCalibration() ? "PollenAimCalibration" : "PollenBot") + " launcher=" + tuning.launcherVelocity()
                     + " spinup=" + tuning.spinupSeconds() + " agitator=" + tuning.agitatorPower()
                     + " drive=" + tuning.driveScale() + " settings=" + (tuning.isDefault() ? "DEFAULTS" : "CHANGED")
                     + " reverse=" + LAUNCHER_REVERSE_VELOCITY + " feedBoost=" + INTAKE_FEED_BOOST
                     + " facing=" + PollenFacing.logName() + " pinpoint=" + (odometry == null ? "none" : sample.odometry.replace(' ', '_'))
-                    + " battery=" + batteryVolts + " storage=[" + storageLine + "]";
+                    + " battery=" + batteryVolts + " storage=[" + storageLine + "]"
+                    + " camera=" + (camera == null ? "none" : "open") + " aim_tolerance_deg=" + PollenHiveAim.TOLERANCE_DEG
+                    + " aim_target_left_in=" + tuning.aimTargetLeftIn()
+                    + " lensHeight=" + (mount == null ? "NaN" : mount.lensHeightIn) + " tilt=" + (mount == null ? "NaN" : mount.tiltUpDeg)
+                    + " sideways=" + (mount == null ? "NaN" : mount.sidewaysCorrectionIn);
             recorder.start(System.currentTimeMillis(), settings, sample);
             // The robot log gets the same line, so robotControllerLog.txt also shows the settings.
             RobotLog.ii("PollenTeleOp", "START %s recording=%s", settings,
@@ -497,8 +569,7 @@ public class BioBuzzStarterbotOpMode extends OpMode {
             return;
         }
         try {
-            odometry.update();
-            Pose pose = odometry.pose();
+            Pose pose = odometry.pose(); // updated once per loop in updatePose()
             // Route directions, the same ones every autonomous uses (see pollen/PollenFacing.java).
             double[] route = PollenFacing.routePose(pose.x(), pose.y(), pose.heading());
             sample.odometry = PollenOdometryHardware.status(pinpoint);
@@ -520,7 +591,7 @@ public class BioBuzzStarterbotOpMode extends OpMode {
         try {
             fillSample();
             PollenTeleOpRecorder.Mark mark = recorder.loop(runTimer.seconds(), System.currentTimeMillis(),
-                    gamepad1.circle, gamepad1.triangle, sample);
+                    gamepad1.left_bumper, gamepad1.triangle, sample);
             // The gamepad buzzes so the driver knows the button counted: once = started, twice = ended.
             if (mark == PollenTeleOpRecorder.Mark.STARTED) gamepad1.rumble(200);
             if (mark == PollenTeleOpRecorder.Mark.ENDED) gamepad1.rumbleBlips(2);
@@ -532,6 +603,84 @@ public class BioBuzzStarterbotOpMode extends OpMode {
             recorder = null;
             telemetry.addData("Recording", "OFF: " + recordingProblem);
         }
+    }
+
+    /* Read the Pinpoint once per loop (route directions) and how fast the heading is changing. */
+    private void updatePose() {
+        if (odometry == null) { routeX = routeY = routeH = Double.NaN; return; }
+        try {
+            odometry.update();
+            Pose pose = odometry.pose();
+            double[] route = PollenFacing.routePose(pose.x(), pose.y(), pose.heading());
+            double now = runTimer.seconds();
+            if (Double.isFinite(previousH) && now > previousHAt)
+                headingRate = PollenOdometryDrive.wrap(route[2] - previousH) / (now - previousHAt);
+            previousH = route[2]; previousHAt = now;
+            routeX = route[0]; routeY = route[1]; routeH = route[2];
+        } catch (RuntimeException ex) {
+            odometry = null;
+            odometryProblem = "read failed: " + ex;
+            routeX = routeY = routeH = Double.NaN;
+        }
+    }
+
+    /* Keep the newest camera frame and when it arrived (a frame is new when its stamp changes). */
+    private void readCamera() {
+        if (camera == null) return;
+        try {
+            IsHiveReadyForShot.Frame f = camera.read();
+            if (f != null && (lastFrame == null || f.stamp != lastFrameStamp)) {
+                lastFrame = f; lastFrameStamp = f.stamp; lastFrameAt = runTimer.seconds();
+            }
+        } catch (RuntimeException ex) { cameraProblem = ex.toString(); }
+    }
+
+    private IsHiveReadyForShot.Frame freshFrame() {
+        return runTimer.seconds() - lastFrameAt <= PollenHiveAim.MAX_FRAME_AGE_S ? lastFrame : null;
+    }
+
+    private String aimScreen = "";
+
+    /* Circle: start (or cancel) an aim; while aiming, the turn comes from PollenHiveAim. */
+    private void aimLoop() {
+        double now = runTimer.seconds();
+        if (aimCalibration()) {
+            if (gamepad1.dpad_left && !aimLeftWas) aimSource = PollenHiveAim.Source.CAMERA;
+            if (gamepad1.dpad_right && !aimRightWas) aimSource = PollenHiveAim.Source.ODOMETRY;
+        }
+        aimLeftWas = gamepad1.dpad_left;
+        aimRightWas = gamepad1.dpad_right;
+        boolean circle = gamepad1.circle;
+        if (circle && !circleWasPressed) {
+            // Circle while aiming = aim again from here (v37; v36 cancelled, and drivers pressed
+            // again while the slow finish looked stuck). The right stick still cancels.
+            if (aim.active()) logAim(aim.cancel(now, routeH, "restarted_by_circle"));
+            String event = aim.start(now, aimSource, routeH, routeX, routeY, aimCalibration(),
+                    freshFrame(), now - lastFrameAt, mount);
+            logAim(event);
+            if (aim.active()) gamepad1.rumble(150); else gamepad1.rumbleBlips(3);
+        }
+        circleWasPressed = circle;
+        aimTurn = 0;
+        if (!aim.active()) return;
+        if (Math.abs(gamepad1.right_stick_x) > 0.25 || !Double.isFinite(routeH)) {
+            logAim(aim.cancel(now, routeH, Double.isFinite(routeH) ? "driver_turned" : "no_heading"));
+            return;
+        }
+        PollenHiveAim.Output o = aim.tick(now, routeH, headingRate, freshFrame(), now - lastFrameAt, mount);
+        aimTurn = o.turn;
+        aimScreen = o.screen;
+        logAim(o.event);
+        if (!o.active) gamepad1.rumbleBlips(1);
+    }
+
+    /* Write an aim event to the recording and the robot log. */
+    private void logAim(String event) {
+        if (event == null) return;
+        RobotLog.ii("PollenAim", "%s", event);
+        if (recorder == null) return;
+        try { fillSample(); recorder.event(runTimer.seconds(), System.currentTimeMillis(), event, sample); }
+        catch (RuntimeException ignored) { }
     }
 
     void mecanumDrive(double forward, double strafe, double rotate) {

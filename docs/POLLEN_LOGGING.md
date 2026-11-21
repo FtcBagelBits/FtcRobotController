@@ -81,18 +81,24 @@ Every download pulls every recording still on the Hub, so downloads get slower u
 For moves that are easier to find by driving than by measuring: collecting from the garden,
 lining up on the flower, a parking path.
 
+TeleOp **AIM rows** (v36): every Circle aim writes `AIM_START` (camera bearing, the cell, the
+odometry estimate when known, the heading), `AIM_AGAIN` for each extra turn after a camera check,
+and `AIM_DONE` (degrees turned, seconds, turns, the camera's remaining error) or `AIM_CANCEL` /
+`AIM_REFUSED`, in the `note` column with kind `AIM`. **Calibration Hive Aim** writes the same rows
+with both the camera and the odometry estimate, to compare them.
+
 1. Put the robot where the autonomous would begin the move, facing the way it would face. For a
    move after the first volley that is the start spot S: front flat on the end wall, launcher to
    the hive. **Keep it still through TeleOp INIT** (the Pinpoint calibrates then). INIT must show
    `Recorded position: Pinpoint READY`.
-2. START. Press **Circle**: one buzz, and the screen shows `REHEARSAL 1`.
+2. START. Press **L1** (Circle before v36): one buzz, and the screen shows `REHEARSAL 1`.
 3. Drive the move the way the robot should do it: smoothly, **without turning** (today's routes
    hold one heading), intake on the triggers where the auto should collect. Stopping for a
    moment is fine: a pause becomes a hold.
-4. Press **Triangle**: two buzzes. To try again, put the robot back and press Circle: that is
+4. Press **Triangle**: two buzzes. To try again, put the robot back and press L1: that is
    rehearsal 2. Note which ones were good.
 5. STOP, then download. `teleop-summary.md` lists each rehearsal: its timeline, a waypoint table
-   in cm from the Circle spot (forward = toward the hive, left = left looking at the hive), each
+   in cm from the L1 spot (forward = toward the hive, left = left looking at the hive), each
    leg as `cm @ angle` like the Odo menus, and draft `move(...)` lines in the style of
    `PollenHiveRoute`. `rehearsals/*.svg` draws the driven path and the waypoints. By hand:
    `python3 tools/teleop-rehearsal.py FOLDER --out FOLDER/rehearsals`

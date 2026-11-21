@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Turn rehearsals marked in PollenBot TeleOp recordings into draft autonomous waypoints.
 
-In TeleOp, Circle marks the start of a rehearsal and Triangle marks its end (see
+In TeleOp, L1 (Circle before v36) marks the start of a rehearsal and Triangle marks its end (see
 docs/POLLEN_LOGGING.md). This reads the recording(s), and for every rehearsal prints where the
-robot went, measured from the spot where Circle was pressed, in the route directions every
+robot went, measured from the spot where L1 was pressed, in the route directions every
 autonomous uses: forward = toward the hive, left = left as seen looking at the hive, heading
 counterclockwise. The driven path is reduced to a few waypoints, with what the intake and
 launcher were doing on the way.
@@ -181,7 +181,7 @@ def describe(recording, number_, rows, args):
                      'rejects turns (PollenHiveRoute), and the Odo legs do not turn: this needs turn steps, '
                      'or re-drive it without turning.')
     marks = waypoints(rows, points, args.tolerance_in)
-    origin = 'the pose at INIT (--absolute)' if args.absolute else 'the spot and heading where Circle was pressed'
+    origin = 'the pose at INIT (--absolute)' if args.absolute else 'the spot and heading where L1 (Circle before v36) was pressed'
     lines += ['', f'Waypoints (cm from {origin}; forward = toward the hive, left = left looking at the hive;',
               f'path kept within {args.tolerance_in:g} in of what was driven):', '',
               '| # | at s | forward cm | left cm | heading deg | leg from previous | intake on this leg | then hold s |',
@@ -242,7 +242,7 @@ def summarize(recording, args):
     lines += [f'Slowest loop: {slow:.0f} ms.', '']
     numbers = sorted({int(r['rehearsal']) for r in rows if r['rehearsal'].isdigit() and r['rehearsal'] != '0'})
     if not numbers:
-        lines += ['No rehearsals were marked in this run (Circle starts one, Triangle ends it).', '']
+        lines += ['No rehearsals were marked in this run (L1 starts one, Circle before v36; Triangle ends it).', '']
     outputs = []
     for n in numbers:
         part = [r for r in rows if r['rehearsal'] == str(n)]
@@ -259,7 +259,7 @@ def main():
     parser.add_argument('--tolerance-in', type=float, default=1.0,
                         help='how far (inches) the simplified path may stray from the driven one')
     parser.add_argument('--absolute', action='store_true',
-                        help='measure from the pose at TeleOp INIT instead of from the Circle press')
+                        help='measure from the pose at TeleOp INIT instead of from the L1 press')
     args = parser.parse_args()
     recordings = find_recordings(args.path)
     if not recordings:
