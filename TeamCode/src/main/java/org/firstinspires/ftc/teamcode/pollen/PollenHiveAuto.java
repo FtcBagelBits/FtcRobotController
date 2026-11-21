@@ -51,7 +51,15 @@ public final class PollenHiveAuto {
     private boolean angledStart() { return config.angled&&collectionKind!=null; }
     public void start(double now) { start(now,now); }
     void start(double now,double timerStart) { began=timerStart; phaseAt=previous=now; started=true; hive.reset(); }
-    boolean checksHive() { return phase==Phase.SECOND||(phase==Phase.FIRST&&config.secondary); }
+    /** Which volleys wait for the camera to latch our cell UP. The secondary's preload never needs
+     * the partner again: its cell needs about 8 balls to tip, so after our 4 preload pollen it is
+     * still UP when we come back from the flower. Its return volley (Secondary Shooter + Flower)
+     * feeds as soon as it is settled with the launcher at speed (v40, match 2). The primary's
+     * return volley still waits for UP: its preload tips its own cell DOWN. */
+    boolean checksHive() {
+        if(phase==Phase.SECOND) return !(config.secondary&&collectionKind!=null);
+        return phase==Phase.FIRST&&config.secondary;
+    }
     public Output stop(String why) { phase=Phase.DONE; reason=why; wasFeeding=false; endClearOut(); return zero(); }
     private Output zero() { Output o=new Output(); o.phase=phase.toString(); o.reason=reason; o.decision=decision; o.finished=phase==Phase.DONE; return o; }
     public Output tick(double now,IsHiveReadyForShot.Frame frame,double x,double y,double h,double velocity,boolean odometryReady) {
@@ -174,7 +182,8 @@ public final class PollenHiveAuto {
                     o.intake=config.feedIntake(collectionKind!=null); o.agitator=feedPaused?0:config.v[12]; wasFeeding=true;
                     if(feedPaused) decision+=" feed_paused=true";
                 }
-                if(o.feed) reason=checksHive?"Feeding: hive UP latched":"Feeding primary preload";
+                if(o.feed) reason=checksHive?"Feeding: hive UP latched"
+                        :phase==Phase.SECOND?"Feeding return volley: cell already UP, no camera wait":"Feeding primary preload";
                 else if(!settled) reason="Not settled at shooting pose";
                 else if(!readySpeed) reason="Waiting for measured launcher speed";
                 else reason=hiveReady?"Timing confirmed hive UP":hive.reason;

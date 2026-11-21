@@ -655,7 +655,7 @@ z
     </g>
     <text style="font-size: 7.2px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; fill: #1a1a1a" transform="translate(81.93433 283.912508)">S (Secondary + Flower)</text>
     <text style="font-size: 7.2px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; fill: #1a1a1a" transform="translate(75.02683 292.624227)">wait for our cell UP, shoot 4</text>
-    <text style="font-size: 7.2px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; fill: #1a1a1a" transform="translate(80.591642 301.335946)">flower, back, shoot if UP</text>
+    <text style="font-size: 7.2px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; fill: #1a1a1a" transform="translate(79.537517 301.335946)">flower, back, shoot again</text>
     <text style="font-size: 7.2px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; fill: #1a1a1a" transform="translate(84.963955 310.047665)">25.5 s go: OUTER slot</text>
    </g>
   </g>
@@ -706,46 +706,49 @@ z
     <text style="font-size: 9.2px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #111111" x="455.4" y="298.62106" transform="rotate(-0 455.4 298.62106)">Waits with its launcher spinning until ITS cell is UP (your tip),</text>
    </g>
    <g id="text_34">
-    <text style="font-size: 9.2px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #111111" x="455.4" y="316.26502" transform="rotate(-0 455.4 316.26502)">then shoots 4. Then drains the flower beside it, comes back, and</text>
+    <text style="font-size: 9.2px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #111111" x="455.4" y="316.26502" transform="rotate(-0 455.4 316.26502)">then shoots 4. Drains the flower beside it, comes back, and shoots</text>
    </g>
    <g id="text_35">
-    <text style="font-size: 9.2px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #111111" x="455.4" y="333.90898" transform="rotate(-0 455.4 333.90898)">shoots again if its cell is UP. Leaves at 25.5 s for the OUTER slot.</text>
+    <text style="font-size: 9.2px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #111111" x="455.4" y="333.90898" transform="rotate(-0 455.4 333.90898)">again right away (its cell needs 8 balls to tip, so it is still UP).</text>
    </g>
    <g id="text_36">
-    <text style="font-weight: 700; font-size: 9.2px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #111111" x="455.4" y="351.55294" transform="rotate(-0 455.4 351.55294)">From you: tip the starting UP cell as early as you can; stay off our</text>
+    <text style="font-size: 9.2px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #111111" x="455.4" y="351.55294" transform="rotate(-0 455.4 351.55294)">Leaves at 25.5 s for the OUTER slot.</text>
    </g>
    <g id="text_37">
-    <text style="font-weight: 700; font-size: 9.2px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #111111" x="455.4" y="369.1969" transform="rotate(-0 455.4 369.1969)">flower lane; park in the INNER slot. No tip = we never shoot in auto.</text>
+    <text style="font-weight: 700; font-size: 9.2px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #111111" x="455.4" y="369.1969" transform="rotate(-0 455.4 369.1969)">From you: tip the starting UP cell as early as you can; stay off our</text>
    </g>
    <g id="text_38">
-    <text style="font-weight: 700; font-size: 11.5px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #111111" x="455.4" y="398.175545" transform="rotate(-0 455.4 398.175545)">SWARM: 16 points</text>
+    <text style="font-weight: 700; font-size: 9.2px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #111111" x="455.4" y="386.84086" transform="rotate(-0 455.4 386.84086)">flower lane; park in the INNER slot. No tip = we never shoot in auto.</text>
    </g>
    <g id="text_39">
-    <text style="font-size: 9.2px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #111111" x="455.4" y="413.59138" transform="rotate(-0 455.4 413.59138)">Each robot LEAVE 3 + AUTO PARK 5; both robots = 16. End-of-match</text>
+    <text style="font-weight: 700; font-size: 11.5px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #111111" x="455.4" y="415.819505" transform="rotate(-0 455.4 415.819505)">SWARM: 16 points</text>
    </g>
    <g id="text_40">
-    <text style="font-size: 9.2px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #111111" x="455.4" y="431.23534" transform="rotate(-0 455.4 431.23534)">parks count too (5 each). PARK = partly in our loading zone. Touching</text>
+    <text style="font-size: 9.2px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #111111" x="455.4" y="431.23534" transform="rotate(-0 455.4 431.23534)">Each robot LEAVE 3 + AUTO PARK 5; both robots = 16. End-of-match</text>
    </g>
    <g id="text_41">
-    <text style="font-size: 9.2px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #111111" x="455.4" y="448.8793" transform="rotate(-0 455.4 448.8793)">the perimeter wall at the end of AUTO = no LEAVE.</text>
+    <text style="font-size: 9.2px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #111111" x="455.4" y="448.8793" transform="rotate(-0 455.4 448.8793)">parks count too (5 each). PARK = partly in our loading zone. Touching</text>
    </g>
    <g id="text_42">
-    <text style="font-weight: 700; font-size: 11.5px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #111111" x="455.4" y="477.857945" transform="rotate(-0 455.4 477.857945)">Tip math (field-check counts, not a promise)</text>
+    <text style="font-size: 9.2px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #111111" x="455.4" y="466.52326" transform="rotate(-0 455.4 466.52326)">the perimeter wall at the end of AUTO = no LEAVE.</text>
    </g>
    <g id="text_43">
-    <text style="font-size: 9.2px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #111111" x="455.4" y="493.27378" transform="rotate(-0 455.4 493.27378)">The starting UP cell holds 3 staged nectar: about 3 more pollen tips it.</text>
+    <text style="font-weight: 700; font-size: 11.5px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #111111" x="455.4" y="495.501905" transform="rotate(-0 455.4 495.501905)">Tip math (field-check counts, not a promise)</text>
    </g>
    <g id="text_44">
-    <text style="font-size: 9.2px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #111111" x="455.4" y="510.91774" transform="rotate(-0 455.4 510.91774)">An empty cell holds 7 pollen; the 8th tips it. So after the first tip,</text>
+    <text style="font-size: 9.2px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #111111" x="455.4" y="510.91774" transform="rotate(-0 455.4 510.91774)">The starting UP cell holds 3 staged nectar: about 3 more pollen tips it.</text>
    </g>
    <g id="text_45">
-    <text style="font-size: 9.2px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #111111" x="455.4" y="528.5617" transform="rotate(-0 455.4 528.5617)">4 preloads alone will not tip the other cell.</text>
+    <text style="font-size: 9.2px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #111111" x="455.4" y="528.5617" transform="rotate(-0 455.4 528.5617)">An empty cell holds 7 pollen; the 8th tips it. So after the first tip,</text>
    </g>
    <g id="text_46">
-    <text style="font-size: 7.8px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #555555" x="455.4" y="553.95597" transform="rotate(-0 455.4 553.95597)">Times measured in our Nov 19 practice (P 7 runs, S 2 runs), build v35-v38.</text>
+    <text style="font-size: 9.2px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #111111" x="455.4" y="546.20566" transform="rotate(-0 455.4 546.20566)">4 preloads alone will not tip the other cell.</text>
    </g>
    <g id="text_47">
-    <text style="font-size: 7.8px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #555555" x="455.4" y="571.59993" transform="rotate(-0 455.4 571.59993)">Routes: pollen-hive-v39 defaults, field CAD v26-27.2, 18 in robot.</text>
+    <text style="font-size: 7.8px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #555555" x="455.4" y="571.59993" transform="rotate(-0 455.4 571.59993)">Times measured in our Nov 19 practice (P 7 runs, S 2 runs), build v35-v38.</text>
+   </g>
+   <g id="text_48">
+    <text style="font-size: 7.8px; font-family: 'Inter', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #555555" x="455.4" y="589.24389" transform="rotate(-0 455.4 589.24389)">Routes: pollen-hive-v40 defaults, field CAD v26-27.2, 18 in robot.</text>
    </g>
   </g>
  </g>

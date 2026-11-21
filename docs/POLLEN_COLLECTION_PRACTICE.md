@@ -102,8 +102,8 @@ and field layout and need a field check.
 Each mode backs clear before crossing back to the original shooting pose. If the park deadline
 comes during that return, the park finishes only the return legs still left and then parks; it
 never drives back out to the collection site (v35). If it is in position
-and heading is more than 2° off, it turns toward 0° in place. It then settles and checks for fresh
-Hive UP before feeding again. Both pre-spin the flywheel during return. They interrupt the active
+and heading is more than 2° off, it turns toward 0° in place. It then settles and, for the primary, checks for fresh
+Hive UP before feeding again; the secondary feeds without a camera check (v40). Both pre-spin the flywheel during return. They interrupt the active
 phase when the measured parking duration plus the configured **Park margin s** remains. The margin defaults to 1.0 s and moves in 0.5 s steps. The **Match travel and park
 power** row defaults to 1.00 for the outbound, return,
 and park legs. The controller still ramps up and slows for target poses. Garden and flower

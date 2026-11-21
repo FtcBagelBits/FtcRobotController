@@ -11,7 +11,7 @@ flower_x = -20.058
 P = [(hx, W - R), (hx, W - R - 10 / IN), (hx - 25, W - R - 10 / IN), (-56, -26)]       # B: shoot first
 S = [(flower_x / 2, -W + R), (flower_x / 2, -W + R + 8), (-56, -47)]                   # C: shoot second
 
-# Match autos (red, inches), from the pollen-hive-v39 defaults (same as v38) in PollenHiveSettings / PollenHiveRoute.
+# Match autos (red, inches), from the pollen-hive-v40 defaults (same as v38) in PollenHiveSettings / PollenHiveRoute.
 # Primary: field X = hx - left, Z = W - R - forward. Secondary: X = flower_x / 2 + left, Z = -W + R + forward.
 # Primary Shooter + Garden: start, clear the wall (collection entry forward 34 cm), align with the
 # garden (left 108 cm), side-wall then garden-wall contact (the garden corner), back the same way.

@@ -3,7 +3,7 @@
 **Our match auto when our PARTNER shoots first.** Driver Hub: Autonomous list, group **1 Match**.
 
 The robot waits until the camera sees our cell UP (the partner's tip does that), shoots its 4 pollen,
-drains the flower beside it, comes back, shoots again if our cell is UP, then parks in the **OUTER** slot.
+drains the flower beside it, comes back and shoots again right away, then parks in the **OUTER** slot.
 
 ## What the robot does
 
@@ -23,11 +23,11 @@ Times depend on when the partner tips. Practice, Nov 19 (2 runs):
 | our cell UP for over 1 s | Shoots its 4 pollen (3 s). Practice: started at 1.7 s and 5.7 s. |
 | next | Backs off the wall (about 14 in) and lines up with the flower. Launcher and agitator run 3 s more to empty the robot. |
 | next 8 - 9 s | Flower: drainer down, drives in until seated, 2 side-to-side swings, backs out, 1 forward-back cleanup, intake on all the way. |
-| about 19 - 22 s | Back at the start spot; shoots again **only if** our cell is UP again. |
+| about 19 - 21 s | Back at the start spot with the launcher already at speed. Shoots again as soon as it settles (about 0.3 s). **No camera wait:** our cell needs about 8 balls to tip, so it is still UP. |
 | 25.5 s | Leaves for the **OUTER** slot. Parked by about 28.7 s. |
 
 **If the partner never tips:** it never shoots in auto. It waits until 25.5 s, then parks.
-The 4 pollen are still in the robot for TeleOp. **A late tip** (after about 8 s) leaves no time
+The 4 pollen are still in the robot for TeleOp. **A late tip** (after about 8 s) may leave no time
 for the second volley.
 
 </div>
@@ -73,7 +73,7 @@ lane, and park in the **INNER** slot. Show them the partner sheet.
 | --- | --- |
 | Status | `READY` |
 | Row 1 Alliance | `RED scoring-side cell (tags 30-33)` or `BLUE audience-side cell (tags 38-41)` |
-| BUILD / RUN | `pollen-hive-v39` / `MATCH / LIVE` |
+| BUILD / RUN | `pollen-hive-v40` / `MATCH / LIVE` |
 | SETTINGS | `all defaults` (or only the change the coach asked for) |
 | Hive cell behind robot | Our cell's name and **DOWN** (it starts down). Not `NO CAMERA`, and not UNKNOWN for long. |
 | Camera calibration | tilt and lens numbers (not `NOT CALIBRATED`) |

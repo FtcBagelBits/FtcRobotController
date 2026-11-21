@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Draw the alliance-partner sheet (docs/POLLEN_PIT_SHEET.svg): our two Match autos. Optional: needs matplotlib.
 Usage: python3 tools/draw-pollen-pit-sheet.py [output.svg|.pdf|.png]
-Routes are the pollen-hive-v39 defaults (unchanged since v38) (tools/pollen_field_drawing.py HIVE_*); times are the
+Routes are the pollen-hive-v40 defaults (unchanged since v38) (tools/pollen_field_drawing.py HIVE_*); times are the
 2026-11-19 practice traces in runs/ (Primary v35-v38, 7 runs; Secondary v35, 2 runs).
 Print the PDF/SVG landscape on letter paper; the engineering plot is docs/POLLEN_FIELD_ROUTES.svg."""
 import os
@@ -48,7 +48,7 @@ for blue in (False, True):
 
 # Timeline badges on the red half; the blue half is identical, rotated.
 badge(ax, (-13, 37), 'P (Primary + Garden)\n1-4 s shoot 4\n4-15 s garden and back\n15-22 s shoot if our cell UP\n23.5 s go: INNER slot', P_COL)
-badge(ax, (-35, -6), 'S (Secondary + Flower)\nwait for our cell UP, shoot 4\nflower, back, shoot if UP\n25.5 s go: OUTER slot', S_COL)
+badge(ax, (-35, -6), 'S (Secondary + Flower)\nwait for our cell UP, shoot 4\nflower, back, shoot again\n25.5 s go: OUTER slot', S_COL)
 ax.text(-W + 2, -W - 2.5, 'RED', color=RED, fontsize=12, weight='bold', va='bottom')
 ax.text(W - 2, -W - 2.5, 'BLUE', color=BLUE, fontsize=12, weight='bold', va='bottom', ha='right')
 ax.text(0, W + 2.5, 'AUDIENCE END   (dashed line = alliance midline, a tile seam)', fontsize=8, ha='center', va='top')
@@ -75,8 +75,9 @@ lines = [
     ('Start: red at the scoring wall, blue at the audience wall, between', ''),
     ('the flower and the center seam (1 in gaps).', ''),
     ('Waits with its launcher spinning until ITS cell is UP (your tip),', ''),
-    ('then shoots 4. Then drains the flower beside it, comes back, and', ''),
-    ('shoots again if its cell is UP. Leaves at 25.5 s for the OUTER slot.', ''),
+    ('then shoots 4. Drains the flower beside it, comes back, and shoots', ''),
+    ('again right away (its cell needs 8 balls to tip, so it is still UP).', ''),
+    ('Leaves at 25.5 s for the OUTER slot.', ''),
     ('From you: tip the starting UP cell as early as you can; stay off our', 'b'),
     ('flower lane; park in the INNER slot. No tip = we never shoot in auto.', 'b'),
     ('', ''),
@@ -91,7 +92,7 @@ lines = [
     ('4 preloads alone will not tip the other cell.', ''),
     ('', ''),
     ('Times measured in our Nov 19 practice (P 7 runs, S 2 runs), build v35-v38.', 's'),
-    ('Routes: pollen-hive-v39 defaults, field CAD v26-27.2, 18 in robot.', 's'),
+    ('Routes: pollen-hive-v40 defaults, field CAD v26-27.2, 18 in robot.', 's'),
 ]
 y = 1.0
 colors = {'hp': P_COL, 'hs': S_COL}

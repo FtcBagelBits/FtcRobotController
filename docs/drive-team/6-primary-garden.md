@@ -73,7 +73,7 @@ Without it the Status says `BLOCKED` and the robot does nothing in auto.
 | --- | --- |
 | Status | `READY` |
 | Row 1 Alliance | `RED audience-side cell (tags 34-37)` or `BLUE scoring-side cell (tags 42-45)` |
-| BUILD / RUN | `pollen-hive-v39` / `MATCH / LIVE` |
+| BUILD / RUN | `pollen-hive-v40` / `MATCH / LIVE` |
 | SETTINGS | `all defaults` (or only the change the coach asked for) |
 | Hive cell behind robot | `Primary preload skips Hive UP` (not `NO CAMERA`) |
 | Camera calibration | tilt and lens numbers (not `NOT CALIBRATED`) |

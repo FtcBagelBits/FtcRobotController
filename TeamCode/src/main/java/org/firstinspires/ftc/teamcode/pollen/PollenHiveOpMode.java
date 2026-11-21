@@ -148,7 +148,7 @@ public abstract class PollenHiveOpMode extends OpMode {
         telemetry.addData("Plan", run()==PollenHiveAuto.Run.SHOT_ONLY ? "Stationary volley, then DONE; no departure"
                 : run()==PollenHiveAuto.Run.GARDEN_RETURN ? "Garden, return to S, settle, DONE; no shots or park"
                 : makeRoom() ? "SECONDARY OUT OF THE WAY: wait for UP, shoot, wait in corner, park at deadline"
-                : secondary() ? "SECONDARY: wait for UP, shoot, drain flower, return, shoot if UP"
+                : secondary() ? "SECONDARY: wait for UP, shoot, drain flower, return, shoot again (no camera wait)"
                 : angled() ? String.format(Locale.US, "PRIMARY ANGLED: drive to %.1f in away / %.1f in left, turn %.1f deg, shoot, garden, return there, shoot, park",
                         settings.values.get("shotAwayIn"), settings.values.get("shotLeftIn"),
                         PollenFieldGeometry.aimDegrees(settings.values.get("shotAwayIn"), settings.values.get("shotLeftIn"),

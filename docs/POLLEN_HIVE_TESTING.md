@@ -5,12 +5,18 @@ For the v8 motion investigation and exact retest order, see [Hive auto diagnosti
 Intermittent tags? Start with the [automatic pipeline benchmark](POLLEN_HIVE_BENCHMARK.md).
 It records raw detections before calibration passes; the current confirmation rule is unchanged.
 
-Build **pollen-hive-v39**. The two tested Hive shooters are in Match. Hero, Fast and Out of the Way are in Beta Test.
+Build **pollen-hive-v40**. The two tested Hive shooters are in Match. Hero, Fast and Out of the Way are in Beta Test.
 
 **v39 (match 2):** there is no Execution row any more. Every hive mode, calibration included, runs
 LIVE. Where this guide says DRY or DRIVE, that option is gone from the INIT menu (the controller
 still supports it in code). The INIT menus list the rows to check or change first, never-changed
 rows last (`PollenHiveRoute.menuOrder`).
+
+**v40:** Secondary Shooter + Flower's return volley no longer waits for the camera. Its cell needs
+about 8 balls to tip, so after our 4 preloads it is still UP; the robot feeds as soon as it is back,
+settled for 0.3 s, with the launcher (spun up during the return) at 96 % of target. In the
+2026-11-19 traces the UP re-confirmation took 1.23 and 1.27 s. The primary's return volley still
+waits for UP.
 Print [the two-page practice sheet](drive-team/print/4-hive-practice.pdf). This guide explains the
 controls and checks in full; the patch kit README covers applying, building, installing and pushing.
 
@@ -274,13 +280,13 @@ The Calibration Garden + Return route is about **6.48 s** by the existing drive 
 
 ## Timing and autonomous behavior
 
-- Primary preloads skip the Hive UP check. The primary return shot and secondary volley require more than 1 s of continuous confirmed UP to latch permission. Before the latch, losing UP restarts the timer. After the latch, the camera continues reporting through the volley.
+- Primary preloads skip the Hive UP check. The primary return shot and the secondary's first volley require more than 1 s of continuous confirmed UP to latch permission. Before the latch, losing UP restarts the timer. After the latch, the camera continues reporting through the volley.
 - The launcher must reach measured speed before feed starts. Once started, feeding continues through camera changes and speed dips for the configured duration.
 - In the latest field traces, the last clear velocity dip came 2.11 s into the primary preload and 1.68 s into the return volley. The 3 s settings shorten the feed window while leaving margin for those events. Count all balls on the next field run because velocity alone cannot confirm the last ball cleared.
 - Since v33, after each volley in the Match autos and Hero, the **clear-out** keeps the agitator and launcher running 3 s together while the robot leaves (**Clear-out s after volley**). It adds no time: it overlaps the outbound drive, or the wait before parking after the return volley. Balls it fires while the robot moves may not score; the point is an empty robot before collecting. Both stop on the same tick, so no ball is pushed into a stopped launcher. The park deadline cancels the clear-out. Before v33 the launcher and agitator were commanded off on the departure tick.
 - Collection does not wait for flywheel spin-down. The Match autos and Hero keep the launcher off during collection (after the clear-out) and bring it up to speed as soon as they start the return. The intake and agitator stay off during return transit and alignment.
 - After return, position must be within 0.5 inch of START, heading within 2 degrees, and speed/turn rate settled for 0.3 seconds. At the shooting position, the Match autos and Hero turn toward 0 degrees if the heading error exceeds 2 degrees. Old readiness is discarded while traveling and during the correction. Fresh observations reconfirm UP. Our cell stays locked.
-- The collection autos wait for a fresh UP latch after settling back at the shooting pose. The park deadline interrupts the active phase and zeroes shooting outputs. From the shooting position, the default deadlines are **23.54 s primary** and **25.53 s secondary**. When farther away, departure also budgets the clearance and return route before parking. The **30-second** cutoff stops whatever phase is active.
+- The primary collection autos wait for a fresh UP latch after settling back at the shooting pose; Secondary Shooter + Flower does not (v40). The park deadline interrupts the active phase and zeroes shooting outputs. From the shooting position, the default deadlines are **23.54 s primary** and **25.53 s secondary**. When farther away, departure also budgets the clearance and return route before parking. The **30-second** cutoff stops whatever phase is active.
 - An unavailable or uncalibrated camera prevents only the hive-gated volleys.
 - A 0.25-second control-loop gap, invalid odometry, lost Pinpoint READY status, stuck drive/turn or route failure latches a stop. There is no guarantee of finishing parking if the robot runs slower than the estimates; the deadline still wins.
 

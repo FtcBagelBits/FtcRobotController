@@ -603,15 +603,19 @@ public final class PollenHiveTest {
             } else check(!o.drainerDown,"Drainer raised outside flower process");
             if(o.phase.equals("FIRST")) firstFeed|=o.feed;
             if(o.phase.equals("SECOND")) {
-                check(phases.contains("RETURN")&&Math.hypot(robot.x,robot.y)<=.5,"Check again only at the shooting position");
+                check(phases.contains("RETURN")&&Math.hypot(robot.x,robot.y)<=.5,"Return volley only at the shooting position");
+                check(!a.checksHive(),"v39: the secondary's return volley does not wait for the camera");
                 secondFeed|=o.feed;
             }
             robot.step(o.forward,o.strafe,o.turn,false,.02);
             if(phase.equals("FLOWER")&&robot.x<5.1) { robot.x=5.1; robot.vf=0; }
             if(o.finished) break;
         }
-        check(o.finished&&firstFeed&&seated&&cleanup.size()==1&&swings.size()==4&&phases.contains("SECOND")&&secondFeed==upAfterReturn,
-                "Secondary drains, returns and conditionally fires: "+phases+" "+cleanup+" "+swings+" "+o.reason);
+        // v39: the cell needs about 8 balls to tip, so it is still UP after our 4 preloads. The return
+        // volley fires whatever the camera sees after the return (upAfterReturn false = DOWN/hidden).
+        check(o.finished&&firstFeed&&seated&&cleanup.size()==1&&swings.size()==4&&phases.contains("SECOND")&&secondFeed,
+                "Secondary drains, returns and fires without a camera check (camera UP="+upAfterReturn+"): "
+                +phases+" "+cleanup+" "+swings+" "+o.reason);
     }
     private static void lateCollectionAndPark() {
         PollenHiveRoute c=new PollenHiveRoute(false); c.v[0]=2;
