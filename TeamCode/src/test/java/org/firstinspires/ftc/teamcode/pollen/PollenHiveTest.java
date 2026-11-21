@@ -189,8 +189,10 @@ public final class PollenHiveTest {
         check(o.feed&&o.intake==1,"A re-confirmed UP cell starts the volley at full intake");
     }
 
-    private static void unsettledReturnParks() {
-        PollenHiveRoute c=new PollenHiveRoute(false); c.v[0]=2;
+    private static void unsettledReturnParks() { unsettledReturnParks(false); unsettledReturnParks(true); }
+    /** v53: both Beta robots always shoot at the spot (penalty risk), even 1.5 in off. */
+    private static void unsettledReturnParks(boolean secondary) {
+        PollenHiveRoute c=new PollenHiveRoute(secondary); c.v[0]=2;
         PollenHiveAuto a=new PollenHiveAuto(c,hive()); a.start(0);
         PollenOdometryTest.SimRobot robot=new PollenOdometryTest.SimRobot();
         robot.leftLimit=PollenFieldGeometry.END_WALL_INCHES-9+PollenFieldGeometry.PRIMARY_START_X_INCHES; // side wall, v43 start
@@ -198,12 +200,13 @@ public final class PollenHiveTest {
         for(int i=1;i<=1501;i++) {
             double t=i*.02;
             o=a.tick(t,frame(i,true),robot.x+off,robot.y,robot.h,o==null?0:o.launcher,true);
-            if(o.phase.equals("SETTLE")) off=1; // odometry/robot ends 1 in off the shot pose
+            if(o.phase.equals("SETTLE")) off=1.5; // odometry/robot ends 1.5 in off the shot pose
             phases.add(o.phase.split(":")[0]); secondFeed|=o.phase.equals("SECOND")&&o.feed;
             robot.step(o.forward,o.strafe,o.turn,false,.02);
             if(o.finished) break;
         }
-        check(phases.contains("SETTLE")&&!secondFeed&&o.finished&&o.reason.equals("Finished departure"),"Unsettled return skips the second shot and still parks: "+o.reason+" "+phases);
+        check(phases.contains("SETTLE")&&secondFeed&&o.finished&&o.reason.equals("Finished departure"),
+                (secondary?"Secondary":"Primary")+": return 1.5 in off still shoots the second shot and parks: "+o.reason+" "+phases);
     }
     private static void returnHeadingCorrection(double degrees) {
         PollenHiveAuto a=new PollenHiveAuto(new PollenHiveRoute(false),hive()); a.start(0);
@@ -531,7 +534,7 @@ public final class PollenHiveTest {
         System.out.printf(Locale.US,"Fast mode simulated (assumed robot): second volley ends %.2f s vs %.2f s Match%n",fast[0],match[0]);
     }
     /** Fast mode: stopped 0.5-3 in off the spot after the return, it nudges back once and shoots;
-     * Match skips the volley as before; a nudge that cannot finish gives up within 1.5 s and parks. */
+     * Match shoots from where it stopped (v53); a nudge that cannot finish shoots from there and parks. */
     private static void returnNudge() {
         for(int variant=0;variant<3;variant++) {
             boolean fast=variant>0, stuck=variant==2;
@@ -551,9 +554,10 @@ public final class PollenHiveTest {
                 reason=o.reason;
                 if(o.finished) break;
             }
-            if(!fast) check(!nudgedSeen&&!second,"Match does not nudge; it skips the volley as before");
+            // v53: a Beta robot always shoots; it never skips a volley for being off the spot.
+            if(!fast) check(!nudgedSeen&&second&&reason.equals("Finished departure"),"Match does not nudge; it shoots from 1 in off and parks: "+reason);
             else if(!stuck) check(nudgedSeen&&second&&reason.equals("Finished departure"),"Fast mode nudges back once and fires the second volley: "+reason);
-            else check(nudgedSeen&&!second&&reason.equals("Finished departure"),"A stuck nudge gives up and still parks: "+reason);
+            else check(nudgedSeen&&second&&reason.equals("Finished departure"),"A stuck nudge shoots from where it is and parks: "+reason);
         }
     }
     /** Paced feed: the agitator holds while the launcher is below the set %, restarts at 96 %; 0 = old behavior. */
@@ -631,7 +635,8 @@ public final class PollenHiveTest {
         check(phases.contains("PARK")&&o.finished&&o.reason.equals("Finished departure"),
                 "Default cycle attempts and completes park: "+o.reason);
         if(driveOnly) check(!firstFeed&&!secondFeed&&!collect,"Drive-only disables all mechanism actions");
-        else { check(firstFeed&&collect,"Primary fires and collects"); check(secondFeed!=tipped,"Second shot respects current hive state"); }
+        // v53: a primary always fires its return volley; with the cell DOWN it waits until the park deadline.
+        else { check(firstFeed&&collect,"Primary fires and collects"); check(secondFeed,"Primary always fires the return volley (tipped="+tipped+")"); }
         return finishedAt;
     }
     /** v46: "Beta flower forward-back cycles" = 0 turns the flower trip off. The secondary waits
@@ -971,6 +976,62 @@ public final class PollenHiveTest {
         check(shifted&&secondFeed==expectShot&&(expectShot||!skipped.isEmpty())&&o.reason.equals("Finished departure"),
                 "Return "+offIn+" in off the spot: second volley="+secondFeed+" (expected "+expectShot+") "+skipped+" "+o.reason);
     }
+    /** v53: the primary return volley fires before the park deadline even if the cell never shows UP. */
+    private static void angledPrimaryDeadlineShot() {
+        PollenHiveRoute c=new PollenHiveRoute(false,false,false,true);
+        PollenHiveAuto a=new PollenHiveAuto(c,hive()); a.start(0);
+        PollenOdometryTest.SimRobot robot=new PollenOdometryTest.SimRobot();
+        robot.leftLimit=PollenFieldGeometry.END_WALL_INCHES-9+PollenFieldGeometry.PRIMARY_START_X_INCHES;
+        boolean returned=false,secondFeed=false,feedBeforePark=true; double feedAt=Double.NaN; String why="";
+        PollenHiveAuto.Output o=null;
+        for(int i=1;i<=1501;i++) {
+            double t=i*.02;
+            if(o!=null&&o.phase.startsWith("RETURN")) returned=true;
+            // After the return the camera sees our cell DOWN the whole time.
+            IsHiveReadyForShot.Frame f=returned?frame(i,false):frame(i,true);
+            o=a.tick(t,f,robot.x,robot.y,robot.h,o==null?0:o.launcher,true);
+            if(o.phase.equals("SECOND")&&o.feed&&!secondFeed) { secondFeed=true; feedAt=t; why=o.reason; }
+            if(o.phase.startsWith("PARK:")&&!secondFeed) feedBeforePark=false;
+            robot.step(o.forward,o.strafe,o.turn,false,.02);
+            if(o.finished) break;
+        }
+        check(secondFeed&&feedBeforePark&&why.startsWith("Feeding before the park deadline")&&o.reason.equals("Finished departure"),
+                "Primary return volley fires before the park deadline without UP at "+feedAt+": "+why+" "+o.reason);
+    }
+    /** v53: the angled primary's FIRST stop 0.56 in off the spot (field, 2026-11-21) still shoots. */
+    private static void angledPrimaryFirstOff() {
+        PollenHiveRoute c=new PollenHiveRoute(false,false,false,true);
+        PollenHiveAuto a=new PollenHiveAuto(c,hive()); a.start(0);
+        PollenOdometryTest.SimRobot robot=new PollenOdometryTest.SimRobot();
+        robot.leftLimit=PollenFieldGeometry.END_WALL_INCHES-9+PollenFieldGeometry.PRIMARY_START_X_INCHES;
+        boolean shifted=false,firstFeed=false; PollenHiveAuto.Output o=null;
+        for(int i=1;i<=400;i++) {
+            o=a.tick(i*.02,frame(i,true),robot.x,robot.y,robot.h,o==null?0:o.launcher,true);
+            if(!shifted&&o.phase.equals("SETTLE")) { robot.x-=.56; robot.vf=0; shifted=true; }
+            if(o.phase.equals("FIRST")&&o.feed) firstFeed=true;
+            robot.step(o.forward,o.strafe,o.turn,false,.02);
+            if(firstFeed) break;
+        }
+        check(shifted&&firstFeed,"Angled primary first volley fires 0.56 in off the spot: "+o.phase+" "+o.reason);
+    }
+    /** v53: an angled secondary stopped 0.8 in off its spot still waits for UP, then shoots. */
+    private static void angledSecondaryFirstOff() {
+        PollenHiveRoute c=new PollenHiveRoute(true,false,false,true); c.beginMatchSetup(); c.selectMatchAlliance(true);
+        PollenHiveAuto a=new PollenHiveAuto(c,new IsHiveReadyForShot(M,38)); a.start(0);
+        PollenOdometryTest.SimRobot robot=new PollenOdometryTest.SimRobot();
+        boolean shifted=false,earlyFeed=false,firstFeed=false; PollenHiveAuto.Output o=null;
+        for(int i=1;i<=600;i++) {
+            double t=i*.02;
+            IsHiveReadyForShot.Frame f=t>=6?new IsHiveReadyForShot.Frame(i,tag(41,52,10,60,M)):new IsHiveReadyForShot.Frame(i);
+            o=a.tick(t,f,robot.x,robot.y,robot.h,o==null?0:o.launcher,true);
+            if(!shifted&&o.phase.equals("SETTLE")) { robot.x-=.8; robot.vf=0; shifted=true; }
+            if(o.feed&&t<6) earlyFeed=true;
+            if(o.phase.equals("FIRST")&&o.feed) firstFeed=true;
+            robot.step(o.forward,o.strafe,o.turn,false,.02);
+            if(firstFeed) break;
+        }
+        check(shifted&&!earlyFeed&&firstFeed,"Angled secondary 0.8 in off waits for UP, then shoots: "+o.phase+" "+o.reason);
+    }
     /** v52: the alliance an auto saves for TeleOp, and Circle aiming only at that alliance. */
     private static void allianceForTeleOp() {
         java.util.Properties p=PollenAlliance.toProperties(PollenAlliance.BLUE,1000,"PollenHivePrimaryAngledAuto");
@@ -1292,7 +1353,7 @@ public final class PollenHiveTest {
         check(fullPower<priorPower,"Full-power transit improves simulated cycle time");
         primaryCycle(false,true,1); primaryCycle(true,false,1); secondaryFlower(true); secondaryFlower(false);
         slowMatchPark(false, .30); slowMatchPark(true, .20); slowMatchPark(false, .10);
-        lateCollectionAndPark(); parkFromCollectionLane(); parkFinishesReturnLegs(); squaresUpInPlace(); angledPrimary(); angledPrimaryReturnOff(.65,true); angledPrimaryReturnOff(1.3,false); allianceForTeleOp(); angledSecondary(true); angledSecondary(false); angledSecondaryMissesPreload(false); angledSecondaryMissesPreload(true); cameraHeightFromFieldTrace(); motionFaults(); practice(); noCoastGate(); makeRoom();
+        lateCollectionAndPark(); parkFromCollectionLane(); parkFinishesReturnLegs(); squaresUpInPlace(); angledPrimary(); angledPrimaryReturnOff(.65,true); angledPrimaryReturnOff(1.3,true); angledPrimaryReturnOff(2.5,true); angledPrimaryDeadlineShot(); angledPrimaryFirstOff(); angledSecondaryFirstOff(); allianceForTeleOp(); angledSecondary(true); angledSecondary(false); angledSecondaryMissesPreload(false); angledSecondaryMissesPreload(true); cameraHeightFromFieldTrace(); motionFaults(); practice(); noCoastGate(); makeRoom();
         System.out.println("PASS PollenHiveTest: "+checks+" checks");
     }
 }
