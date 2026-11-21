@@ -127,42 +127,66 @@ public final class PollenHiveTest {
         check(h.cluster()<0,"Another allowed cell in between restarts identification");
     }
     private static void autonomousTagGate() {
+        // M: UP 49.7 +/- 3, so the autonomous UP window is 46.7 to 55.7 in.
         IsHiveReadyForShot h=new IsHiveReadyForShot(M,38);
         for(int i=1;i<=12;i++) {
-            h.updateForAutonomous(new IsHiveReadyForShot.Frame(i,
-                    tag(38,51.5+i*.09,14,60,M),tag(41,54+i*.3,10,60,M)),i*.02);
+            h.updateForAutonomous(new IsHiveReadyForShot.Frame(i,tag(38,51.5,14,60,M),tag(39,52,0,60,M),
+                    tag(41,60+i*.3,10,60,M)),i*.02);
         }
-        check(h.isHiveReadyForShot(.24),"One in-band tag qualifies in spite of another outlier or sideways offset");
+        check(h.isHiveReadyForShot(.24),"Median ignores one outlier tag; a sideways tag still counts");
 
+        h=new IsHiveReadyForShot(M,38);
+        for(int i=1;i<=12;i++) h.updateForAutonomous(new IsHiveReadyForShot.Frame(i,tag(41,54.1+(i%2)*.4,14,60,M)),i*.02);
+        check(h.isHiveReadyForShot(.24),"A high UP reading (54-55 in, seen on the field) qualifies");
+        h.updateForAutonomous(new IsHiveReadyForShot.Frame(13,tag(41,58,14,60,M)),.26);
+        h.updateForAutonomous(new IsHiveReadyForShot.Frame(14,tag(41,40,14,60,M)),.28);
+        check(h.isHiveReadyForShot(.28),"Two out-of-window frames in a row do not revoke permission");
+        h.updateForAutonomous(new IsHiveReadyForShot.Frame(15,tag(41,54.1,14,60,M)),.30);
+        check(h.isHiveReadyForShot(.30),"An in-window frame after forgiven frames keeps permission");
+        for(int i=16;i<=18;i++) h.updateForAutonomous(new IsHiveReadyForShot.Frame(i,tag(41,42,14,60,M)),i*.02);
+        check(!h.isHiveReadyForShot(.36),"Three out-of-window frames in a row revoke permission");
+
+        // v47 hole: a steady tag at a DOWN or tipping height must never arm.
+        for(double low:new double[]{30.5,35.6,39.3,44}) {
+            h=new IsHiveReadyForShot(M,38);
+            for(int i=1;i<=100;i++) {
+                h.updateForAutonomous(new IsHiveReadyForShot.Frame(i,tag(38,low,0,60,M),tag(39,low+.2,0,60,M)),i*.02);
+                check(!h.isHiveReadyForShot(i*.02),"A steady DOWN/tipping cell never qualifies: "+low);
+            }
+        }
+        // Mostly DOWN with an occasional UP-looking frame never confirms.
+        h=new IsHiveReadyForShot(M,38);
+        for(int i=1;i<=60;i++) {
+            h.updateForAutonomous(new IsHiveReadyForShot.Frame(i,tag(38,i%4==0?52:40,0,60,M)),i*.02);
+            check(!h.isHiveReadyForShot(i*.02),"Three DOWN frames out of four never confirm UP");
+        }
         h=new IsHiveReadyForShot(M,38);
         for(int i=1;i<=70;i++) {
             double now=i*.02;
-            h.updateForAutonomous(new IsHiveReadyForShot.Frame(i,tag(41,54+i*.16,10,60,M),
-                    tag(42,49.7,0,60,M)),now);
-            check(!h.isHiveReadyForShot(now),"A moving, off-band tag and an in-band wrong-cell tag cannot arm");
+            h.updateForAutonomous(new IsHiveReadyForShot.Frame(i,tag(41,60,10,60,M),tag(42,49.7,0,60,M)),now);
+            check(!h.isHiveReadyForShot(now),"An in-band wrong-cell tag cannot arm");
         }
-        for(int i=71;i<=100;i++) {
-            h.updateForAutonomous(new IsHiveReadyForShot.Frame(i,tag(41,54.1+(i%2)*.2,14,60,M)),i*.02);
-        }
-        check(h.isHiveReadyForShot(2.0),"Steady out-of-band tag qualifies with normal height jitter");
-        h.updateForAutonomous(new IsHiveReadyForShot.Frame(101,tag(41,56,14,60,M)),2.02);
-        check(!h.isHiveReadyForShot(2.02),"Renewed out-of-band motion revokes permission immediately");
 
         PollenHiveRoute c=new PollenHiveRoute(true); c.v[0]=2;
+        h=new IsHiveReadyForShot(M,38);
         PollenHiveAuto a=new PollenHiveAuto(c,h,PollenHiveAuto.Run.SHOT_ONLY); a.start(0);
         PollenHiveAuto.Output o=null;
         for(int i=1;i<=100;i++) {
             o=a.tick(i*.02,new IsHiveReadyForShot.Frame(i,tag(41,54.1,14,60,M)),0,0,0,1100,true);
             check(!o.feed&&o.intake==0,"Wait for the launcher without feeding");
         }
-        check(o.decision.contains("hive_up_latched=true"),"Steady out-of-band tag completes auto confirmation");
-        o=a.tick(2.02,new IsHiveReadyForShot.Frame(101,tag(41,56,14,60,M)),0,0,0,1180,true);
+        check(o.decision.contains("hive_up_latched=true"),"High UP tag completes auto confirmation");
+        o=a.tick(2.02,new IsHiveReadyForShot.Frame(101,tag(41,58,14,60,M)),0,0,0,1100,true);
+        check(o.decision.contains("hive_up_latched=true"),"One odd frame during spin-up keeps the latch");
+        o=a.tick(2.04,new IsHiveReadyForShot.Frame(102,tag(41,40,14,60,M)),0,0,0,1100,true);
+        o=a.tick(2.06,new IsHiveReadyForShot.Frame(103,tag(41,40,14,60,M)),0,0,0,1100,true);
+        o=a.tick(2.08,new IsHiveReadyForShot.Frame(104,tag(41,40,14,60,M)),0,0,0,1180,true);
         check(!o.feed,"A latch earned during spin-up cannot start feeding after permission is lost");
-        for(int i=102;i<=190;i++) {
-            o=a.tick(i*.02,new IsHiveReadyForShot.Frame(i,tag(41,56,14,60,M)),0,0,0,1180,true);
+        for(int i=105;i<=200;i++) {
+            o=a.tick(i*.02,new IsHiveReadyForShot.Frame(i,tag(41,54.1,14,60,M)),0,0,0,1180,true);
             if(o.feed) break;
         }
-        check(o.feed&&o.intake==1,"A re-confirmed steady tag starts the volley at full intake");
+        check(o.feed&&o.intake==1,"A re-confirmed UP cell starts the volley at full intake");
     }
 
     private static void unsettledReturnParks() {
